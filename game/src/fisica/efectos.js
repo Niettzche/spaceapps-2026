@@ -255,9 +255,10 @@ export class Efectos {
     }
     if (this.sprites.size >= MAX_SPRITES) return true;
     // Polvo y arena nacen del suelo (origen abajo al centro); el resto, centrado en el punto del evento.
+    // Polvo y arena van detrás del robot (profundidad 9, como las partículas de arena) para no tapar el chasis.
     const deSuelo = ev.tipo === 'polvo' || ev.tipo === 'patinaje';
     const s = this.scene.add.sprite(ev.x, ev.y, PREFIJO_TEXTURA + nombre)
-      .setOrigin(0.5, deSuelo ? 1 : 0.5).setScale(PX).setDepth(11)
+      .setOrigin(0.5, deSuelo ? 1 : 0.5).setScale(PX).setDepth(deSuelo ? 9 : 11)
       .setFlipX((ev.dir ?? 1) > 0 && deSuelo); // la hoja se dibuja con el polvo saliendo hacia la izquierda (robot a la derecha)
     this.sprites.add(s);
     s.once('animationcomplete', () => { this.sprites.delete(s); s.destroy(); });

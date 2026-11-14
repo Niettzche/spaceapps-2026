@@ -144,6 +144,7 @@ Fuente pixel: debe ser propia o con licencia libre. La fuente "Patch Pixel" de p
 - **Detección automática.** Al compilar, Vite busca `assets/**/*.png` y `assets/**/*.json` (cualquier subcarpeta) y los indexa por nombre
   sin extensión. Las escenas Prueba y Misión cargan solo los que existen: si falta un archivo no se pide nada (sin 404) y se dibuja la figura provisional.
   Los nombres deben ser **únicos en todo `assets/`** (si se repiten, gana el primero y sale un aviso en la consola).
+  Excepción: `assets/iconos/` (íconos del taller, `iconos/<id>.png`) no entra en este índice; pueden llamarse igual que los sprites.
 - **En `npm run dev`, después de agregar un archivo nuevo, reinicia el servidor** (Vite no siempre vuelve a buscar archivos nuevos). Cambiar un PNG que ya existía solo pide recargar.
 - **Escala:** todo a 1 px de arte; el juego lo multiplica × 3 (`ZOOM_ARTE`). No se rota nada a mano: el chasis y la carga giran con su cuerpo físico; las ruedas no giran (cambian de cuadro).
 - **Mezcla:** cada pieza se reemplaza por separado. Puede haber ruedas con arte y chasis provisional, o un mundo con tiles y otro sin ellos.

@@ -79,6 +79,11 @@ export class Recorrido {
     const avisoSuelo = notaSuelo(o.mundo, o.perfil.superficies);
     this.hud = new Hud(scene, { titulo: o.titulo, subtitulo: o.subtitulo, aviso: [avisoSuelo && `${avisoSuelo}.`, avisoNivel].filter(Boolean).join(' ') });
     this._botonAbandonar();
+    // Instrucciones al empezar: objetivo + controles (teclado y táctil). Esc abandona.
+    const controles = '→ / D acelerar   ← / A frenar   (táctil: ▶ ◀)   Esc abandonar';
+    if (o.modo === 'prueba') this.hud.instrucciones('Prueba en la Tierra: llega a la META con la carga', [controles]);
+    else this.hud.instrucciones('Misión: entrega el suministro', ['Frena y detente 2 s dentro de la ZONA DE ENTREGA con la carga ≥ 60 %', controles]);
+    scene.input.keyboard.on('keydown-ESC', () => this._terminar(false, 'abandono'));
   }
 
   _dibujarMeta(yMeta) {
@@ -102,11 +107,14 @@ export class Recorrido {
       this.scene.add.text(a + 6, yMeta - m(6) + 4, 'ZONA DE ENTREGA · frena y espera 2 s', { fontFamily: 'monospace', fontSize: '12px', color: '#4cc38a', stroke: '#0b0d17', strokeThickness: 3 }).setDepth(5);
     } else {
       const x = this.xMundo(this.meta_m);
-      if (!sprite(this.scene, 'meta', { x, y: yMeta, origen: [0, 1], profundidad: 5, anim: 'ondea' })) {
+      const bandera = sprite(this.scene, 'meta', { x, y: yMeta, origen: [0, 1], profundidad: 5, anim: 'ondea' });
+      if (!bandera) {
         g.lineStyle(3, 0xffffff, 1).lineBetween(x, yMeta, x, yMeta - m(4));
         g.fillStyle(0xff6b6b, 1).fillTriangle(x, yMeta - m(4), x + m(1.6), yMeta - m(3.5), x, yMeta - m(3));
       }
-      this.scene.add.text(x + 6, yMeta - m(5.2), 'META', { fontFamily: 'monospace', fontSize: '12px', color: '#ffffff' }).setDepth(5);
+      // El texto va justo encima de la bandera (sprite de 2 m o figura provisional de 4 m).
+      const alto = bandera ? bandera.displayHeight : m(4);
+      this.scene.add.text(x + 6, yMeta - alto - 18, 'META', { fontFamily: 'monospace', fontSize: '12px', color: '#ffffff', stroke: '#0b0d17', strokeThickness: 3 }).setDepth(5);
     }
   }
 
@@ -125,6 +133,7 @@ export class Recorrido {
     const delta = runner?.isFixed ? runner.delta : deltaCuadro;
     const r = this.robot;
     const acelerador = this.terminado ? 0 : this.controles.acelerador();
+    if (acelerador !== 0) this.hud.ocultarInstrucciones();
     r.actualizar(delta, acelerador, this.superficieDe);
     this.aspecto.dibujar(this.g);
     this.efectos.actualizar(delta, r); // polvo de ruedas y arena al patinar
