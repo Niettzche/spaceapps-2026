@@ -108,5 +108,5 @@
     "exageracion_vertical": null,
     "obstaculos": []
   },
-  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Anillo 80-85°S (Luna), 0.75 km, 100 m, d/D 0.134, en -83.615, 100.565. novedoso: por verificar. Cae en el campo volcánico de San Francisco (Arizona), zona usada en el entrenamiento de geología del Apolo; falta agregarla a data/known_analogs.json con coordenada y fuente."
+  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Anillo 80-85°S (Luna), 0.75 km, 100 m, d/D 0.134, en -83.615, 100.565. novedoso: por verificar; está en el campo volcánico de San Francisco (Arizona), que tiene sitios de entrenamiento de geología del Apolo (USGS, 'Walk in the footsteps of the Apollo astronauts: a field guide to northern Arizona astronaut training sites' (https://www.usgs.gov/publications/walk-footsteps-apollo-astronauts-a-field-guide-northern-arizona-astronaut-training))."
 }

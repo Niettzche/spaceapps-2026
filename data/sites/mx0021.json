@@ -8,7 +8,7 @@
   "destino_ref": "polo_sur_lunar",
   "prueba_util": null,
   "uso_exploracion": "Análogo operativo, no geológico: probar navegación y movilidad de rovers en paredes empinadas, excavación (ISRU) y operación con sombra en el fondo del tajo",
-  "proceso": "Excavación artificial: tajo minero a cielo abierto (cantera a menos de 2 km en OpenStreetMap)",
+  "proceso": "Probable tajo minero a cielo abierto (cantera de OpenStreetMap a ≤ 2 km; por verificar)",
   "novedoso": true,
   "variables": {
     "forma": {
