@@ -2,24 +2,30 @@
 - volcánico: catálogo ciencia_datos/datos/crateres_conocidos_mx.csv (GVP y artículos), detección a ≤ 2.5 km
 - mina: cantera de OpenStreetMap a ≤ 1 km (más estricto que los 2 km del detector, para que la "verdad" sea más limpia)
 - impacto: Meteor Crater (Earth Impact Database), detección G00195
-Uso: python3 validar.py  (lee etiquetas_ia.jsonl y el visor)"""
-import json, math, csv, subprocess
+Uso: python3 ciencia_datos/etiquetado_ia/validar.py  (lee ciencia_datos/datos/: etiquetas_ia.csv, candidatos y catálogo)"""
+import json, math, csv
 from pathlib import Path
 AQUI = Path(__file__).parent
-S = {s["id"]: s for s in json.loads((AQUI.parent / "visor.html").read_text().split("const DATOS = ", 1)[1].split(";\nconst S", 1)[0])["sitios"]}
-E = {}
-for l in (AQUI / "etiquetas_ia.jsonl").read_text().splitlines():
-    r = json.loads(l)
-    if "error" not in r: E[r["id"]] = r
-cat = list(csv.DictReader(subprocess.run(["git", "-C", str(Path.home() / "sa-niveles"), "show", "origin/main:ciencia_datos/datos/crateres_conocidos_mx.csv"],
-                                         capture_output=True, text=True).stdout.splitlines()))
+DATOS = AQUI.parent / "datos"                      # ciencia_datos/datos del repo (no el visor local)
+def leer(n): return list(csv.DictReader(open(DATOS / n, encoding="utf-8")))
+S = {}
+for r in leer("crateres_mexico.csv"):
+    if float(r["ndvi_p90"]) < 0.35:
+        S[r["cid"]] = dict(lat=float(r["lat"]), lon=float(r["lon"]), km_mina=float(r["km_mina"]) if r["km_mina"] else None)
+for r in leer("global_crateres.csv"):
+    if r["arido"] == "True":
+        S.setdefault(r["gid"], dict(lat=float(r["lat"]), lon=float(r["lon"]), km_mina=float(r["km_mina"]) if r["km_mina"] else None))
+E = {r["id"]: r for r in leer("etiquetas_ia.csv")}
+cat = [v for v in leer("crateres_conocidos_mx.csv") if v["lat"]]
 def km(a, b, c, d): return math.hypot((a - c) * 111, (b - d) * 111 * math.cos(math.radians(a)))
 verdad = {}
 for cid, s in S.items():
-    for v in cat:
-        if v["lat"] and km(s["lat"], s["lon"], float(v["lat"]), float(v["lon"])) <= 2.5:
-            verdad[cid] = ("crater_volcanico", "catálogo: " + v["nombre"])
-    if s.get("km_mina") is not None and s["km_mina"] <= 1.0 and cid not in verdad:
+    if cid not in E: continue
+    dist = [(km(s["lat"], s["lon"], float(v["lat"]), float(v["lon"])), v["nombre"]) for v in cat]
+    dmin, nom = min(dist)
+    if dmin <= 2.5:
+        verdad[cid] = ("crater_volcanico", f"catálogo: {nom} ({dmin:.2f} km)")     # el más cercano
+    elif s["km_mina"] is not None and s["km_mina"] <= 1.0:
         verdad[cid] = ("mina_o_cantera", f"OSM a {s['km_mina']} km")
 verdad["G00195"] = ("crater_impacto", "Meteor Crater")
 ok = tot = 0; filas = []
