@@ -160,6 +160,14 @@
       "lon": -101.248621,
       "fuente_url": "https://doi.org/10.22201/cgeo.20072902e.2021.3.1636",
       "nota": "Coordenada de una muestra del fondo del cráter (Sánchez-Sánchez et al. 2021, Rev. Mex. Cienc. Geol. 38(3)). Ningún artículo arbitrado lo llama análogo."
+    },
+    {
+      "nombre": "Colton Crater (Crater 160), campo volcánico de San Francisco (Arizona, EE. UU.)",
+      "pais": "US",
+      "lat": 35.545,
+      "lon": -111.63611,
+      "fuente_url": "https://pubs.usgs.gov/of/2005/1190/of2005-1190.pdf",
+      "nota": "Coordenada: tabla de conos de https://en.wikipedia.org/wiki/San_Francisco_volcanic_field (fila 'Colton Crater (Crater 160)', 35°32′42″N 111°38′10″W). Uso como análogo: Schaber (2005), USGS OFR 2005-1190: 'On 15-17 July, 1970 ... conducted the Lunar Module crew members—D.R. Scott, J.B. Irwin, R.F. Gordon, and H.H. Schmitt—on a one and one-half day exercise in surface (volcanic) geology in the Crater 160, S.P. Crater, and Merriam Crater areas, near Flagstaff' (entrenamiento de las tripulaciones principal y de respaldo del Apolo 15). Agregado el 14 nov 2026 (model/NIVEL2.md §A)."
     }
   ]
 }
