@@ -14,7 +14,7 @@ export const DIM = {
     chasis_ligero: { largo: 3.0, alto: 0.7 },
     chasis_reforzado: { largo: 3.0, alto: 0.9 },
   },
-  radioRueda: { rueda_estandar: 0.5, rueda_ancha: 0.6, rueda_tacos: 0.55 },
+  radioRueda: { rueda_estandar: 0.45, rueda_ancha: 0.5, rueda_tacos: 0.45 }, // respaldo si falta radio_m; igual a parts.json
   paredSoporte: { soporte_basico: 0.25, soporte_amortiguado: 0.45 },
   carga: { largo: 0.9, alto: 0.6 },
   ejeX: 0.36, // posición de los ejes como fracción del largo, desde el centro

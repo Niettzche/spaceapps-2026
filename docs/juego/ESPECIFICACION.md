@@ -41,11 +41,18 @@
 | `carga` | carga | sí |
 | `modulo` | modulo | no |
 
+- **Fuente única:** ranuras, sistemas, obligatorias, multiplicador × 2, diseño por defecto y cálculo de costo/masa viven en
+  `scenes/Taller/diseno.js` (frente taller). `fisica/diseno.js` los reutiliza y solo agrega lo de la física: completar ranuras
+  obligatorias vacías con el diseño por defecto (`completadas`), reportar `invalidas` y `MASA_CARGA_KG` = 10 (valor de juego).
 - `partida.diseno = [{ ranura, pieza }]` (formato de `result.schema.json`).
 - Cada ranura de rueda cobra **2 × costo y 2 × masa** de la pieza.
 - Robot mínimo con ruedas estándar ≈ 730 de 1,000 créditos (chasis ligero 150 + 2×2×80 + batería chica 90 + motor eficiente 110 + soporte básico 60).
 - Si `partida.diseno` está vacío (pruebas), se usa un diseño por defecto con `rueda_estandar`.
-- Radio de rueda: `radio_m` de `parts.json` si existe (propuesta de taller); si no, tabla de juego en `fisica/robot.js`.
+- Radio de rueda: `radio_m` de `parts.json` (0.45 / 0.5 / 0.45 m); la tabla de `fisica/robot.js` es solo respaldo y tiene los mismos valores.
+- Masa total para física y energía = masa de piezas (ruedas × 2) + `MASA_CARGA_KG` (la carga es un cuerpo aparte).
+- Atributos que lee la física por pieza: rueda `agarre[arena|roca|compacto]`, `radio_m`, `masa`; chasis `resistencia`;
+  motor `fuerza`, `consumo`; batería `capacidad`; soporte `proteccion`. `capacidad` del panel solar no se usa (fuera del MVP, §6).
+- Agarre: cada eje usa el **suyo** según la superficie bajo esa rueda (no se toma el mínimo de los dos ejes).
 - **La carga es un cuerpo suelto** sobre el soporte: puede caerse. Un fragmento suelto nunca activa la victoria.
 
 ## 4. Controles
