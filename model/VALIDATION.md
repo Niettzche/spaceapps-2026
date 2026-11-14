@@ -49,16 +49,43 @@ Modelo: regresión logística Luna contra Marte con 4,288 cráteres lunares y 57
 
 | nombre | diam_km | prof_diam | P_Luna | dist | dentro_95 |
 |---|---|---|---|---|---|
-| Meteor Crater | 1.06 | 0.126 | 0.958 | 11.4 | sí |
-| Lonar | 1.81 | 0.0524 | 0.462 | 3.73 | sí |
-| Wolfe Creek | 0.782 | 0.0341 | 0.379 | 2.84 | sí |
-| Tenoumer | 1.63 | 0.0245 | 0.209 | 4.99 | sí |
-| Pingualuit | 3.07 | 0.0181 | 0.132 | 11.4 | sí |
-| Tswaing | 0.903 | 0.0761 | 0.754 | 3.42 | sí |
-| Roter Kamm | 1.82 | 0.0347 | 0.275 | 5.33 | sí |
+| Meteor Crater | 1.06 | 0.126 | 0.958 | 11 | sí |
+| Lonar | 1.81 | 0.0524 | 0.462 | 3.47 | sí |
+| Wolfe Creek | 0.782 | 0.0341 | 0.379 | 3 | sí |
+| Tenoumer | 1.63 | 0.0245 | 0.209 | 4.89 | sí |
+| Pingualuit | 3.07 | 0.0181 | 0.132 | 10.9 | sí |
+| Tswaing | 0.903 | 0.0761 | 0.754 | 3.43 | sí |
+| Roter Kamm | 1.82 | 0.0347 | 0.275 | 5.14 | sí |
 | Talemzane | 1.37 | 0.0199 | 0.205 | 3.37 | sí |
 
 **Detector frente a cráteres volcánicos conocidos de México** (`ciencia_datos/datos/crateres_conocidos_mx.csv`, 70 cráteres con fuente, 66 con coordenadas): de 62 en el rango del detector (0.6–10 km o sin diámetro), encuentra el 40% y el 32% pasa el filtro tipo cráter. No detectados: 15 con lago (el DEM ve el espejo de agua), 3 menores de 0.6 km y 22 por otras razones (islas, coordenadas desplazadas, poca profundidad). Mismo cotejo que `ciencia_datos/03_etiquetas_por_fuentes.ipynb` (radio de 2.5 km; una depresión cuenta una sola vez).
+
+### ¿La forma distingue un cráter de otra depresión cerrada?
+
+**Tasa base de la nube Luna+Marte.** De las 5,208 depresiones cerradas que el detector encontró en México (cualquier forma, cualquier vegetación), el 84% cae dentro del 95 % de la nube. Es decir: **la nube descarta formas extremas (sobre todo tajos muy hondos), pero no confirma que algo sea un cráter**. Los 8 de 8 impactos de arriba son una condición necesaria, no una prueba.
+
+| filtro | entorno | n | dentro_95 |
+|---|---|---|---|
+| no lo pasa | árido | 182 | 97 % |
+| no lo pasa | intermedio | 1340 | 89 % |
+| no lo pasa | húmedo | 3018 | 78 % |
+| pasa el filtro de cráter | árido | 46 | 89 % |
+| pasa el filtro de cráter | intermedio | 156 | 97 % |
+| pasa el filtro de cráter | húmedo | 466 | 91 % |
+
+**Control negativo de forma.** Candidatos áridos con etiqueta de IA de confianza ≥ 0.7: cráteres naturales (volcánico o de impacto) frente a depresiones que no son cráteres (presa o lago, valle o cañada, hondonada eólica o duna). Si la forma distinguiera, los cráteres tendrían puntajes claramente más altos. El AUC mide eso: 0.5 = no separa, 1 = separa perfecto.
+
+| grupo | n | forma_mejor_mediana | P_Luna_mediana | dentro_95 | dD_mediana | dif_perfil_mediana |
+|---|---|---|---|---|---|---|
+| cráter natural (IA) | 14 | 0.628 | 0.623 | 71 % | 0.0791 | 0.0054 |
+| presa, valle o duna (IA) | 26 | 0.766 | 0.348 | 85 % | 0.028 | 0.00265 |
+
+AUC de separación cráter natural frente a presa/valle/duna (14 contra 26 casos; p = prueba de permutación de dos colas, 5,000 repeticiones): puntaje de forma 0.42 (p = 0.43); d/D 0.75 (p = 0.01); diferencia de perfil con el gemelo lunar 0.37 (p = 0.18; menor diferencia = más lunar). Un AUC por debajo de 0.5 quiere decir que las presas, valles y dunas puntúan **más** lunar que los cráteres: son más planas; el puntaje de forma las toma por marcianas (en Marte los cráteres son planos) y la diferencia de perfil absoluta premia lo plano (eso lo corrige el PR de la diferencia relativa).
+
+**Límite declarado.** La forma sola (3 medidas a 200 m) no distingue un cráter de otra depresión cerrada de tamaño parecido. Por eso el catálogo usa la **etiqueta verificada** (IA sobre imagen de satélite y relieve, revisada contra fuentes) para decidir qué es un cráter, y la forma solo para decir **qué tan lunar o marciano** es un cráter ya identificado.
+
+**Precisión del detector según la IA.** De los 296 candidatos áridos del detector (México + Atacama, Arizona y Arabia), la IA etiqueta 27 como cráteres naturales (9%) y 53 como minas o canteras (18%); el resto son valles, presas, dunas, otras formas o casos que no se pueden decidir: valle_o_canada 94, no_se_puede_decir 57, otro 22, hondonada_eolica_o_duna 22, presa_o_lago 20, dolina_karst 1. Ojo: la IA solo está validada en 33 casos (29 aciertos, IC 95 % 72–97 %) y esos casos son minas, volcanes y Meteor Crater; valles, presas y dunas no tienen casos validados. El detector es un **detector de depresiones cerradas con forma de cráter**, no un detector de cráteres.
+
 
 ## Límites que siempre se declaran
 
