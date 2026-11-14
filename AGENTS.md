@@ -70,18 +70,32 @@ La gravedad del destino **no** se atribuye al análogo terrestre: esa es justo u
 
 ### 6.1 Qué es (y qué no decir)
 
-**"Comparador transparente de variables v0"**: cada lugar se describe con variables medidas por la NASA; se compara contra el perfil
-del destino; el resultado es una similitud por dimensión y total, con límites explícitos. **No es una IA entrenada**; no lo presentes así.
-Extensión opcional si da tiempo: kNN o clustering sobre la malla de variables (scikit-learn), identificado como tal.
+El modelo tiene dos partes, y así se presenta:
+
+1. **Similitud de forma (núcleo, `analisis/` + `ciencia_datos/`):** un detector de depresiones tipo cráter corre con el mismo código y a
+   la misma resolución (200 m) sobre México, el polo sur lunar y Marte. Después, **modelos explicables entrenados con cráteres de la Luna
+   y de Marte** (árbol de decisión poco profundo y regresión logística, Luna contra Marte) separan los dos cuerpos con **75–77 % de
+   exactitud balanceada** fuera de pliegue (validación por grupos espaciales, `ciencia_datos/02`); con 8 sitios de Marte, 78 %
+   (`ciencia_datos/03`). El puntaje de un cráter mexicano combina ese modelo con su distancia a la nube Luna+Marte. La regla principal
+   del árbol es profundidad/diámetro.
+2. **Comparador transparente de variables (complemento, `/model`):** variables climáticas y de superficie medidas por la NASA, comparadas
+   con el perfil del destino; similitud por dimensión con límites explícitos.
+
+Qué decir: "modelo explicable entrenado con cráteres reales de la Luna y Marte + comparador de variables". Qué **no** decir: red neuronal,
+deep learning ni "la IA descubrió": no lo es. Extensión opcional: kNN o clustering sobre la malla de variables, identificado como tal.
 
 ### 6.2 Variables del MVP
 
 | Dimensión | Tierra (fuente) | Destino (fuente) | Uso |
 |---|---|---|---|
-| Oscilación térmica diaria | NASA POWER `T2M_RANGE` (climatología) | Marte: MEDA/REMS (Jezero/Gale); Luna: LRO Diviner | Similitud |
-| Aridez | NASA POWER `PRECTOTCORR` | 0 (sin precipitación líquida) | Similitud |
-| Vegetación | MODIS NDVI (MOD13Q1) | 0 | **Veto**: NDVI alto = descartado |
-| Pendiente y rugosidad | SRTM / Copernicus DEM | MOLA / HRSC (Marte); LOLA (Luna) | Similitud + perfil del nivel |
+| **Forma del cráter** (profundidad/diámetro, borde) | Copernicus DEM GLO-30 (30 m → 200 m) | Luna: LOLA `ldem_80s_80m` (80 m → 200 m); Marte: HRSC+MOLA blend (200 m) | **Similitud principal** |
+| Oscilación térmica diaria | NASA POWER `T2M_RANGE` (climatología) | Marte: MEDA/REMS (Jezero/Gale); Luna: LRO Diviner | Complementaria |
+| Aridez | NASA POWER `PRECTOTCORR` | 0 (sin precipitación líquida) | Complementaria |
+| Vegetación | MODIS NDVI (MOD13Q1) | 0 | **Veto**: NDVI alto = descartado (equivale al filtro de zonas áridas del detector, NDVI p90 < 0.35) |
+| Pendiente y rugosidad | SRTM / Copernicus DEM | MOLA / HRSC (Marte); LOLA (Luna) | Complementaria + perfil del nivel |
+
+Ojo con el borde: a 200 m, el borde lunar medido sale negativo (mediana −23 m), así que `PROYECTO.md` advierte que no sirve como
+criterio de parecido con la Luna. El frente modelo decide cómo usarlo; profundidad/diámetro es la variable que sí separa.
 
 **El modelo calcula para los DOS destinos** (Jezero en Marte y una región candidata de base de Artemis en el polo sur lunar),
 aunque el juego del MVP solo tenga nivel de Marte. Así cubrimos las dos mitades del reto ("bases lunares permanentes y Marte").
@@ -91,20 +105,29 @@ Los valores del destino se capturan una vez en `data/targets/*.json` **con fuent
 
 ### 6.3 Cálculo
 
-- Por dimensión: `s = exp(-|tierra - destino| / escala)`; escalas iniciales (P): térmica 20 K, pendiente 5°, rugosidad 5 m.
+- **Forma:** puntaje en [0, 1] del modelo Luna contra Marte + distancia a la nube Luna+Marte (`ciencia_datos/`). Es la dimensión
+  con más peso (P).
+- Dimensiones complementarias: `s = exp(-|tierra - destino| / escala)`; escalas iniciales (P): térmica 20 K, pendiente 5°, rugosidad 5 m.
 - Si el destino está fuera del rango terrestre: **recortar al extremo terrestre** y registrarlo en `limites`.
 - Total: media geométrica ponderada; **veto** si alguna dimensión es 0 (ej. vegetación densa).
 - Dato faltante: se omite la dimensión, se renormalizan los pesos y baja `confianza`.
 - **Validación obligatoria:** controles negativos (Amazonas, Congo, zonas agrícolas → cerca de 0 %) y análogos conocidos
   (desiertos hiperáridos, campos de lava) → altos. Si falla, el modelo está mal. Resultado en `model/VALIDATION.md`.
+- **Validación del detector (ya hecha, `informe/validacion_detector.pdf`):**
+  - Encuentra **9 de 11** cráteres mexicanos conocidos.
+  - De sus 668 detecciones, el **71 %** cae en sierras húmedas del sur: son dolinas y cañadas reales que a 200 m cumplen la forma.
+    Está explicado: un relieve sin árboles (FABDEM) solo las reduce 15 %, así que no son copas de árboles. Por eso se aplica el filtro árido.
+  - Quedan **47 candidatos en zonas áridas**, donde están todos los cráteres y minas reales.
+  - Con fuentes citables (`ciencia_datos/03`): los 8 cráteres de impacto terrestres detectados caen dentro de la nube Luna+Marte.
 - Límites que siempre se declaran: gravedad, presión atmosférica, radiación, vacío lunar.
 
 ### 6.4 Tres formas de identificar ubicaciones (responde a "el reto es identificar")
 
 1. **Curadas y validadas:** 3 sitios del MVP (dunas → agarre; campo de lava → relieve; desierto con pendiente → energía).
    Candidatos a verificar: Samalayuca (Chih.), Pinacate (Son.) y uno más. Estado: `documentado` o `candidato_modelo`.
-2. **Escaneo sistemático:** script que recorre una malla (ej. México a 0.25°), calcula similitud y guarda el top-N que no esté en la
-   lista de análogos conocidos → `candidato_modelo`. Es el "descubrimiento" del pitch.
+2. **Escaneo sistemático:** el detector (`analisis/07_buscador_crateres.py`) ya recorre todo México; se filtran las zonas áridas,
+   se calcula la similitud y se guarda el top-N que no esté en la lista de análogos conocidos → `candidato_modelo`
+   (ver §8.1). Es el "descubrimiento" del pitch.
    La lista vive en `data/known_analogs.json` (Atacama, Valles Secos de McMurdo, cráter Haughton, Death Valley, Islandia, Hawái,
    desierto de Mojave, Río Tinto, etc.) y sirve para dos cosas: controles positivos de la validación y marcar `novedoso: true`.
 3. **Propuestas de usuarios (explorador libre):** el usuario da una coordenada → la API calcula la similitud en vivo →
