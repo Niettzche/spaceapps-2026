@@ -7,9 +7,12 @@ import { Robot } from './robot.js';
 import { Controles } from './controles.js';
 import { Hud } from './hud.js';
 import { Telemetria, construirResultado } from './telemetria.js';
+import { Efectos } from './efectos.js';
+import { AspectoRobot, crearFondo, claveDeFondo, sprite, tira } from './aspecto.js';
 
-const FONDO = { tierra: '#7f9fbf', marte: '#b98a6a', luna: '#05060b' }; // provisional hasta los fondos de arte
+const FONDO = { tierra: '#7f9fbf', marte: '#b98a6a', luna: '#05060b' }; // color si no hay fondo de arte (fisica/aspecto.js)
 const SEG_QUIETO_ENTREGA = 2; // la entrega exige 2 s detenido en la zona
+const SEG_SIN_ENERGIA_FIN = 5; // sin energía, la partida termina al detenerse o a los 5 s (atascado contra el borde del nivel) (P)
 const ESPERA_FIN_MS = 1400;
 
 export class Recorrido {
@@ -26,6 +29,7 @@ export class Recorrido {
     this.terminado = false;
     this.telemetria = new Telemetria();
     this.tQuieto = 0;
+    this.tSinEnergia = 0;
 
     aplicarGravedad(scene, o.gravedad);
     scene.cameras.main.setBackgroundColor(FONDO[o.mundo] ?? FONDO.tierra);
@@ -49,11 +53,17 @@ export class Recorrido {
     // Robot sobre el plano de inicio.
     const x0 = xMundo(6);
     const y0 = yMundo(alturaEn(o.perfil, 6)) - m(1.6);
-    this.robot = new Robot(scene, x0, y0, o.diseno, o.piezas, (tipo, detalle) => this.telemetria.registrar(this.robot?.t ?? 0, tipo, detalle));
+    this.robot = new Robot(scene, x0, y0, o.diseno, o.piezas, (tipo, detalle) => {
+      this.telemetria.registrar(this.robot?.t ?? 0, tipo, detalle);
+      this.efectos?.alTelemetria(tipo, detalle); // efectos en la rueda, el chasis o la carga
+    }, { mundo: o.mundo });
+    this.efectos = new Efectos(scene, { mundo: o.mundo, gravedad: o.gravedad, robot: this.robot, superficieDe: this.superficieDe });
     this.g = scene.add.graphics().setDepth(10);
+    this.aspecto = new AspectoRobot(scene, this.robot); // sprites de arte si existen; si no, figuras
 
     const cam = scene.cameras.main;
     cam.setBounds(izq, this.terreno.arriba - m(25), der - izq, this.terreno.abajo - this.terreno.arriba + m(25));
+    crearFondo(scene, claveDeFondo(o.mundo, o.sitioId), { x: izq, ancho: der - izq });
     cam.startFollow(this.robot, false, 0.12, 0.12, -m(6), m(1));
 
     this.controles = new Controles(scene);
@@ -66,17 +76,26 @@ export class Recorrido {
     if (this.zona) {
       const a = this.xMundo(this.zona.desde);
       const b = this.xMundo(this.zona.hasta);
-      g.fillStyle(0x4cc38a, 0.18).fillRect(a, yMeta - m(6), b - a, m(6));
-      g.lineStyle(2, 0x4cc38a, 0.8).strokeRect(a, yMeta - m(6), b - a, m(6));
-      // Astronauta provisional (1.8 m) al final de la zona.
       const xa = b - m(1.5);
-      g.fillStyle(0xffffff, 1).fillRect(xa - m(0.3), yMeta - m(1.8), m(0.6), m(1.8));
-      g.fillStyle(0x6fb3ff, 1).fillRect(xa - m(0.22), yMeta - m(1.6), m(0.44), m(0.3));
+      // Arte si existe (fisica/aspecto.js); si no, figuras provisionales. Base y baliza no tienen figura.
+      sprite(this.scene, 'base', { x: b - m(1), y: yMeta, origen: [0.5, 1], profundidad: 4 });
+      sprite(this.scene, 'baliza', { x: a, y: yMeta, origen: [0.5, 1], profundidad: 5, anim: 'parpadea' });
+      if (!tira(this.scene, 'zona_entrega', a, yMeta, b - a, 5)) {
+        g.fillStyle(0x4cc38a, 0.18).fillRect(a, yMeta - m(6), b - a, m(6));
+        g.lineStyle(2, 0x4cc38a, 0.8).strokeRect(a, yMeta - m(6), b - a, m(6));
+      }
+      this.astronauta = sprite(this.scene, 'astronauta', { x: xa, y: yMeta, origen: [0.5, 1], profundidad: 6, anim: 'reposo' });
+      if (!this.astronauta) { // astronauta provisional (1.8 m) al final de la zona
+        g.fillStyle(0xffffff, 1).fillRect(xa - m(0.3), yMeta - m(1.8), m(0.6), m(1.8));
+        g.fillStyle(0x6fb3ff, 1).fillRect(xa - m(0.22), yMeta - m(1.6), m(0.44), m(0.3));
+      }
       this.scene.add.text(a + 6, yMeta - m(6) + 4, 'ZONA DE ENTREGA', { fontFamily: 'monospace', fontSize: '12px', color: '#4cc38a' }).setDepth(5);
     } else {
       const x = this.xMundo(this.meta_m);
-      g.lineStyle(3, 0xffffff, 1).lineBetween(x, yMeta, x, yMeta - m(4));
-      g.fillStyle(0xff6b6b, 1).fillTriangle(x, yMeta - m(4), x + m(1.6), yMeta - m(3.5), x, yMeta - m(3));
+      if (!sprite(this.scene, 'meta', { x, y: yMeta, origen: [0, 1], profundidad: 5, anim: 'ondea' })) {
+        g.lineStyle(3, 0xffffff, 1).lineBetween(x, yMeta, x, yMeta - m(4));
+        g.fillStyle(0xff6b6b, 1).fillTriangle(x, yMeta - m(4), x + m(1.6), yMeta - m(3.5), x, yMeta - m(3));
+      }
       this.scene.add.text(x + 6, yMeta - m(5.2), 'META', { fontFamily: 'monospace', fontSize: '12px', color: '#ffffff' }).setDepth(5);
     }
   }
@@ -89,11 +108,16 @@ export class Recorrido {
 
   superficieDe = (xMundo) => superficieEn(this.o.perfil, (xMundo - this.xMundo(0)) / PX_POR_M);
 
-  actualizar(_time, delta) {
+  actualizar(_time, deltaCuadro) {
+    // Energía, patinaje y entrega corren con el tiempo de la física: con paso fijo (main.js), Matter avanza runner.delta
+    // por cuadro sin importar los fps. Con el delta del cuadro, a 30 fps la batería se gastaría al doble por metro.
+    const runner = this.scene.matter.world.runner;
+    const delta = runner?.isFixed ? runner.delta : deltaCuadro;
     const r = this.robot;
     const acelerador = this.terminado ? 0 : this.controles.acelerador();
     r.actualizar(delta, acelerador, this.superficieDe);
-    r.dibujar(this.g);
+    this.aspecto.dibujar(this.g);
+    this.efectos.actualizar(delta, r); // polvo de ruedas y arena al patinar
     const estado = r.estado();
     const x_m = (r.x - this.xMundo(0)) / PX_POR_M;
     this.hud.actualizar(estado, { distancia_m: r.distancia_m, meta_m: this.meta_m - 6 });
@@ -102,7 +126,8 @@ export class Recorrido {
     if (r.destruido) return this._terminar(false, 'chasis_destruido');
     if (r.cargaPerdida) return this._terminar(false, 'carga_perdida');
     if (r.volcado) return this._terminar(false, 'volcado');
-    if (r.sinEnergia && r.quieto(0.4)) return this._terminar(false, 'energia_agotada');
+    this.tSinEnergia = r.sinEnergia ? this.tSinEnergia + delta / 1000 : 0;
+    if (r.sinEnergia && (r.quieto(0.4) || this.tSinEnergia >= SEG_SIN_ENERGIA_FIN)) return this._terminar(false, 'energia_agotada');
 
     if (this.o.modo === 'prueba') {
       if (x_m >= this.meta_m) this._terminar(true, 'meta');
@@ -122,6 +147,7 @@ export class Recorrido {
     if (this.terminado) return;
     this.terminado = true;
     const r = this.robot;
+    if (exito) this._efectoFin(motivo);
     if (!exito) this.telemetria.registrar(r.t, 'fallo', motivo);
     const estado = r.estado();
     const resultado = construirResultado({
@@ -147,7 +173,17 @@ export class Recorrido {
     }));
   }
 
+  /** Celebración en la meta (bandera) o en la entrega (carga). */
+  _efectoFin(motivo) {
+    const r = this.robot;
+    const enMeta = motivo === 'meta';
+    const x = enMeta ? this.xMundo(this.meta_m) : r.carga.position.x;
+    const y = enMeta ? this.terreno.yMundo(alturaEn(this.o.perfil, this.meta_m)) - m(4) : r.carga.position.y - m(0.5);
+    this.efectos.emitir({ tipo: motivo, x, y, superficie: this.superficieDe(x) });
+  }
+
   destruir() {
+    this.efectos?.destruir();
     this.robot.destruir();
   }
 }

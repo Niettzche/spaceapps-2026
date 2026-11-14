@@ -5,6 +5,7 @@ import { m, velAMs, msAVel } from './escala.js';
 import { resolverDiseno, MASA_CARGA_KG, RUEDAS_POR_RANURA } from './diseno.js';
 import { gastoPorSegundo } from './energia.js';
 import { danioChasis, danioCarga, UMBRAL_CARGA_MS } from './danio.js';
+import { agarreSuelo } from './suelos.js';
 
 const M = Phaser.Physics.Matter.Matter;
 
@@ -14,7 +15,7 @@ export const DIM = {
     chasis_ligero: { largo: 3.0, alto: 0.7 },
     chasis_reforzado: { largo: 3.0, alto: 0.9 },
   },
-  radioRueda: { rueda_estandar: 0.5, rueda_ancha: 0.6, rueda_tacos: 0.55 },
+  radioRueda: { rueda_estandar: 0.45, rueda_ancha: 0.5, rueda_tacos: 0.45 }, // respaldo si falta radio_m; igual a parts.json
   paredSoporte: { soporte_basico: 0.25, soporte_amortiguado: 0.45 },
   carga: { largo: 0.9, alto: 0.6 },
   ejeX: 0.36, // posición de los ejes como fracción del largo, desde el centro
@@ -33,7 +34,7 @@ export const FRICCION_ESTATICA = 1;
 export const friccionDeAgarre = (agarre) => agarre * agarre;
 
 const PATINA_MS = 1.0; // diferencia rueda–suelo (m/s) a partir de la cual se considera patinaje
-const PATINA_SEG = 0.35;
+export const PATINA_SEG = 0.35; // exportada para los efectos (efectos.js)
 const CONTACTO_RECIENTE_SEG = 0.15; // la suspensión hace rebotar la rueda: cuenta el contacto reciente
 const SIN_FUERZA_MS = 0.3;
 const SIN_FUERZA_SEG = 1.5;
@@ -51,7 +52,8 @@ export class Robot {
    * @param {Array} piezas  catálogo (parts.json)
    * @param {(tipo: string, detalle: string) => void} alEvento  telemetría
    */
-  constructor(scene, x, y, diseno, piezas, alEvento = () => {}) {
+  constructor(scene, x, y, diseno, piezas, alEvento = () => {}, { mundo = 'tierra' } = {}) {
+    this.mundo = mundo; // para el agarre real del suelo (suelos.js)
     this.scene = scene;
     this.alEvento = alEvento;
     this.resuelto = resolverDiseno(diseno, piezas);
@@ -205,7 +207,8 @@ export class Robot {
     // Agarre según la superficie bajo cada rueda (Matter usa el mínimo con el suelo, que vale 1).
     for (const w of this.ruedas) {
       w.superficie = superficieDe(w.cuerpo.position.x);
-      w.cuerpo.friction = friccionDeAgarre(w.pieza.agarre?.[w.superficie] ?? 0.6);
+      // Fricción = curva(agarre de la pieza) × agarre real del suelo (suelos.js; sin dato = 1).
+      w.cuerpo.friction = friccionDeAgarre(w.pieza.agarre?.[w.superficie] ?? 0.6) * agarreSuelo(this.mundo, w.superficie);
     }
 
     // Energía
@@ -292,21 +295,26 @@ export class Robot {
     return velAMs(M.Body.getSpeed(this.chasis)) < umbralMs && velAMs(M.Body.getSpeed(this.carga)) < umbralMs;
   }
 
-  /** Dibujo provisional con figuras (se reemplaza por sprites de arte). */
-  dibujar(g) {
+  /**
+   * Dibujo provisional con figuras. Con arte, fisica/aspecto.js (AspectoRobot) pone los sprites y pide omitir esas partes:
+   * omitir = { chasis, soporte, carga, ruedas: [tras, del] }.
+   */
+  dibujar(g, omitir = {}) {
     g.clear();
-    const poligono = (cuerpo, color) => {
-      for (const parte of cuerpo.parts.length > 1 ? cuerpo.parts.slice(1) : cuerpo.parts) {
-        g.fillStyle(color, 1);
-        g.fillPoints(parte.vertices, true);
-      }
-    };
-    poligono(this.chasis, this.destruido ? 0x5a3a3a : 0xdfe3ee);
+    const partes = this.chasis.parts.length > 1 ? this.chasis.parts.slice(1) : this.chasis.parts;
+    partes.forEach((parte, i) => {
+      if (i === 0 ? omitir.chasis : omitir.soporte) return; // parte 0 = base; 1 y 2 = paredes del soporte
+      g.fillStyle(this.destruido ? 0x5a3a3a : 0xdfe3ee, 1);
+      g.fillPoints(parte.vertices, true);
+    });
     const c = Phaser.Display.Color.Interpolate.ColorWithColor(
       Phaser.Display.Color.ValueToColor(0xd94a3a), Phaser.Display.Color.ValueToColor(0xffd166), 100, Math.round(this.integridad * 100));
-    g.fillStyle(this.cargaPerdida ? 0x7a4040 : Phaser.Display.Color.GetColor(c.r, c.g, c.b), 1);
-    g.fillPoints(this.carga.vertices, true);
-    for (const w of this.ruedas) {
+    if (!omitir.carga) {
+      g.fillStyle(this.cargaPerdida ? 0x7a4040 : Phaser.Display.Color.GetColor(c.r, c.g, c.b), 1);
+      g.fillPoints(this.carga.vertices, true);
+    }
+    for (const [i, w] of this.ruedas.entries()) {
+      if (omitir.ruedas?.[i]) continue;
       const { x, y } = w.cuerpo.position;
       g.fillStyle(0x2b2d3a, 1);
       g.fillCircle(x, y, w.radio);
