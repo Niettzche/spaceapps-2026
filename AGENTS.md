@@ -238,7 +238,8 @@ de cada depresión de México con el mismo código y a la misma resolución (200
   (ej. MacDougal ↔ `pinacate`), se enriquece el sitio curado en vez de duplicarlo.
 - `web/public/data/` lo genera el frente modelo con su script (`analisis/10_exportar_web.py`); **nadie lo edita a mano**.
   Excepción temporal: `sitios.json` (sitios destacados) hoy es curado por el frente modelo y marca sus campos de demostración
-  con `demo: true`; mientras no tenga script, solo el frente modelo lo edita.
+  con `demo: true`; mientras no tenga script, solo el frente modelo lo edita. Vence cuando exista el script de exportación
+  del frente modelo. Los registros con `demo: true` no se presentan como datos reales en la demo ni en el pitch.
 - **El Expediente del juego (`game/`) muestra solo la comparación del sitio que se va a probar** y enlaza a la ficha completa de `web/`.
   El mapa completo, el quiz y las fichas viven en `web/` y **no se duplican en el juego**.
 - Los otros frentes no tocan estas carpetas. Si el juego necesita algo de aquí, lo lee de `data/sites/`, nunca de `web/` ni de `analisis/`.
@@ -362,7 +363,7 @@ propuestas de usuarios) · 10 s cierre. Preparar respuestas para: "¿qué modelo
 
 ## 16. Pendientes que decide el equipo (no los decidas tú, agente)
 
-Hora exacta del pitch · asignar una persona a cada frente · tercer sitio · nivel jugable de la Luna en el MVP sí/no · nombre final y paleta · tipo de suministro · ¿usar LLM en la demo o solo reglas?
+Hora exacta del pitch · tercer sitio · nivel jugable de la Luna en el MVP sí/no · nombre final y paleta · tipo de suministro · ¿usar LLM en la demo o solo reglas?
 · ¿el "generador de video" mencionado en la reunión es para el tráiler?
 · **Destino del MVP:** Luna (polo sur, Artemis) o Marte (Jezero). Los datos del detector favorecen la Luna.
 · **Nombre:** "Misión Cero" (juego) y "Cráter Gemelo" (página/explorador), o uno solo.
