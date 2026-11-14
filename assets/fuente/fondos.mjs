@@ -47,6 +47,8 @@ function cielo(ruta, pinta) {
 
 export function generar() {
   dunas();
+  desierto();
+  lava();
   marte();
   luna();
 }
@@ -177,4 +179,85 @@ function luna() {
     const t = (g > 0.015 ? 0.5 + g * 7 : 0.12 + g * 2) - i.prof / 70 - (i.sombra ? 0.3 : 0) + grano;
     return tramado(ROCA.slice(0, 6), t, x, y);
   }, { luzDesde: 'izquierda', elev: 0.28 });
+}
+
+// ---------------------------------------------------------------- Tierra: desierto genérico (cualquier sitio sin fondo propio)
+// Tarde dorada con cielo despejado, sierras y mesetas lejanas, matorral y rocas cerca.
+function desierto() {
+  const P = PALETAS.tierra, CIELO = rampa(P.cielo_tarde), LEJOS = rampa(P.sierra), CERCA = rampa(P.desierto_cerca);
+  const SOL = [62, 70];
+  cielo('fondos/fondo_desierto_1.png', (x, y) => {
+    const dx = Math.min(Math.abs(x - SOL[0]), W - Math.abs(x - SOL[0])), d = Math.hypot(dx, y - SOL[1]);
+    if (d < 8) return CIELO[6];
+    if (d < 10) return (x + y) % 2 ? CIELO[6] : CIELO[5];
+    let t = Math.pow(clamp(y / 140, 0, 1), 1.1) + clamp(1 - d / 110, 0, 1) * 0.25;
+    // cirros altos, muy tenues
+    const cirro = ruido(x + y * 2, 4, 71, 3);
+    if (y > 24 && y < 60 && cirro > 0.32 && (x + y) % 2 === 0) return CIELO[Math.min(6, Math.floor(t * 6) + 1)];
+    return tramado(CIELO.slice(0, 6), t, x, y);
+  });
+  // sierra lejana con mesetas: perfil escalonado y azulado por la distancia
+  capa('fondos/fondo_desierto_2.png', (x) => {
+    const sierra = 104 - 14 * clamp(1 - Math.abs(ruido(x, 4, 72, 4)) * 2.4, 0, 1) - 5 * onda(x, 2, 0.7);
+    const meseta = ruido(x, 7, 73, 2) > 0.25 ? 112 - Math.round(ruido(x, 3, 74, 1) * 3) * 3 : 200;
+    return Math.min(sierra, meseta);
+  }, (x, y, i) => {
+    if (i.prof < 1) return i.luz > 0.5 ? LEJOS[3] : LEJOS[2];
+    return tramado(LEJOS, 0.6 - i.prof / 60 + (i.luz - 0.5) * 0.35, x, y);
+  }, { luzDesde: 'izquierda', elev: 0.5 });
+  // llano cercano con lomitas, matorral y rocas
+  const matas = [[22, 4], [77, 3], [139, 5], [196, 3], [251, 4], [300, 3]];
+  const rocas = [[51, 3], [168, 2], [228, 3]];
+  capa('fondos/fondo_desierto_3.png', (x) => 146 + 5 * onda(x, 1, 1.9) + 4 * onda(x, 3, 0.3) + 2 * ruido(x, 16, 75, 3), (x, y, i) => {
+    for (const [bx, r] of matas) {
+      const dx = x - bx, top = i.hs[bx] - r - 1;
+      if (Math.abs(dx) <= r && y >= top + Math.abs(dx) * 0.6 && y < i.hs[bx] + 1 && hash(x, y, 5) > 0.22) return y < top + 2 ? CERCA[3] : CERCA[1];
+    }
+    for (const [rx, r] of rocas) {
+      const cy = i.hs[rx] - r * 0.4, dx = x - rx, dy = y - cy;
+      if ((dx * dx) / (r * r) + (dy * dy) / (r * r * 0.45) <= 1) return dx + dy < -r * 0.5 ? CERCA[5] : dx + dy < 0 ? CERCA[4] : CERCA[2];
+    }
+    if (i.prof < 1) return i.luz > 0.5 ? CERCA[5] : CERCA[4];
+    return tramado(CERCA.slice(1, 6), 0.62 - i.prof / 40 + (i.luz - 0.5) * 0.5, x, y);
+  }, { luzDesde: 'izquierda', elev: 0.45 });
+}
+
+// ---------------------------------------------------------------- Tierra: campo de lava (Pinacate)
+// Conos de ceniza en el horizonte, coladas de basalto negro con bordes ásperos, cielo claro con bruma.
+function lava() {
+  const P = PALETAS.tierra, CIELO = rampa(P.cielo_lava), CONOS = rampa(P.conos), BAS = rampa(P.roca);
+  cielo('fondos/fondo_lava_1.png', (x, y) => {
+    const t = Math.pow(clamp(y / 150, 0, 1), 1.2);
+    if (hash(x, y, 81) > 0.997 && y < 40) return CIELO[2];
+    return tramado(CIELO, t, x, y);
+  });
+  // conos de ceniza: montículos truncados, con cráter en la cima, en tonos óxido apagados
+  const conos = [[34, 38, 24], [118, 26, 16], [176, 46, 30], [262, 30, 18]];
+  capa('fondos/fondo_lava_2.png', (x) => {
+    let h = 128 + 3 * onda(x, 3, 1.2) + 2 * ruido(x, 12, 82, 2);
+    for (const [cx, r, alto] of conos) {
+      let dx = Math.abs(x - cx); dx = Math.min(dx, W - dx);
+      const u = dx / r;
+      if (u < 1) {
+        const cima = u < 0.28 ? alto - (0.28 - u) * 10 : alto * (1 - (u - 0.28) / 0.72) ** 1.2 + 0;
+        h = Math.min(h, 128 - Math.max(0, cima));
+      }
+    }
+    return h;
+  }, (x, y, i) => {
+    if (i.prof < 1) return i.luz > 0.55 ? CONOS[4] : CONOS[2];
+    const surco = Math.sin(x * 0.9 + y * 0.15) > 0.8 && i.prof > 2;   // cárcavas en las laderas
+    return tramado(CONOS.slice(0, 5), 0.62 - i.prof / 55 + (i.luz - 0.5) * 0.55 - (surco ? 0.12 : 0), x, y);
+  }, { luzDesde: 'derecha', elev: 0.55 });
+  // coladas cercanas: bordes dentados de basalto, casi negras, con brillos vítreos
+  capa('fondos/fondo_lava_3.png', (x) => {
+    const escalon = Math.round(ruido(x, 10, 83, 2) * 3) * 3;
+    return 150 - escalon + 2.5 * ruido(x, 40, 84, 2) + 3 * onda(x, 2, 2.2);
+  }, (x, y, i) => {
+    if (i.prof < 1) return i.luz > 0.5 ? BAS[5] : BAS[3];
+    const vidrio = hash(x, y, 85) > 0.965 && i.luz > 0.45;
+    const grieta = tileNoise(x / 4, y / 2, 80, 0, 86) > 0.62;
+    if (grieta) return BAS[0];
+    return tramado(BAS.slice(0, 5), 0.45 - i.prof / 45 + (i.luz - 0.5) * 0.6 + (vidrio ? 0.35 : 0), x, y);
+  }, { luzDesde: 'derecha', elev: 0.5 });
 }
