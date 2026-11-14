@@ -48,19 +48,24 @@
       datos ya la marca como la que usa el juego (MR-056); 3.73 queda como media de referencia (MR-001). Nada que cambiar.
 
 ## En curso
-- #23 ya entró. #28 (aclaración del agarre en pantalla) espera merge.
+- #23 ya entró. #28 aprobado por juego, con su precisión del texto: "En la prueba: agarre² × agarre del suelo (P)" (antes
+  omitía el cuadrado). Ya está en #28, #31 y #39. #28, #31, #38 y #39 en revisión; los cuatro mergean limpio con main y con feat/juego.
 - **Íconos 16 × 16 de arte (#26), revisados en el Taller con main + #28 + #26 combinados localmente:**
   - Los 12 cargan bien y se ven nítidos.
   - El texto de la ranura de carga se salía de la caja; lo arreglé en #31.
   - Le pedí a Mauricio en #26 que la rueda ancha se distinga de la estándar a 16 px (hoy solo cambian 44 de 256 píxeles) y un poco más de contraste sobre el fondo de las ranuras.
+  - Juego lo pasó a arte como prioridad alta en `docs/arte/SPRITES_PENDIENTES.md`. Además, `aspecto.js` (juego) ya no usa
+    `assets/iconos/` como sprites, así que se acabó el aviso de nombres repetidos.
 - **Hoja `Judges` del libro de datos** (respuestas para los jueces con dato real y fuente): en #38.
 - **Prueba en teléfono (emulación de Edge con toques reales, 3 pantallas):**
   - Todo se puede tocar: 7/7 ranuras, 15/15 filas del catálogo, Quitar, Restablecer y Probar el robot.
   - Antes los botones de abajo medían ~13 px de alto y Quitar ~10 px; ahora las zonas de toque miden ≥ 37 px en horizontal
     (el dibujo no cambió). Ver el PR de este cambio.
-  - **Pendientes que no son del taller** (los decide integración): en vertical el juego queda en una franja de 390 × 219 px
-    (todo mide menos de 22 px), no hay aviso de "gira el teléfono", el lienzo no tiene `touch-action: manipulation` (un doble
-    toque rápido puede hacer zoom en iOS) y el texto del Taller queda de ~8 px en un teléfono (ilegible sin rediseño móvil).
+  - Lo que no era del taller ya lo aplicó juego en `game/index.html` (`feat/juego`): `touch-action: manipulation` (sin zoom por
+    doble toque), aviso de "gira tu teléfono" en vertical y la pestaña se llama MARSCEPTION.
+  - **Queda para después de la entrega** (acordado con juego): el texto del Taller mide ~8 px en un teléfono; necesita un
+    diseño propio para móvil.
+- La hoja `Judges` ya la usa el equipo para preparar las respuestas del pitch.
 
 ## Siguiente
 - Corridas de verificación (las corre juego en `game/e2e/`; resultados esperados según el reporte de juego):
