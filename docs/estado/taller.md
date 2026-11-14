@@ -31,18 +31,45 @@
 - [x] Uso de IA en el frente taller (para `docs/USO_IA.md`, dueño: integración): la investigación de piezas, el libro de datos
       (búsqueda y verificación de fuentes) y el código del taller se hicieron con Claude Code; cada dato se revisó contra su fuente.
 
+- [x] **Modelo de precios (acordado taller + juego):** el MVP se queda con el **precio por pieza** de `parts.json` (mínimo 730,
+      presupuesto 1,000), que es con el que se calibró el camino dorado. El precio por kilo de material del libro de datos queda
+      como mejora posterior (se puede mencionar en el pitch). Registrado en el libro de datos (Index A34, Materials A2,
+      RV-137/138); falta que integración lo anote en `docs/DECISIONES.md`.
+- [x] **Propuesta para juego** (rama `feat/taller-agarre`, no va a `feat/juego`): `suelos.js` con la arena de duna de la Tierra
+      (BM-004, con fuente), `AGARRE_PROVISIONAL = 1` (P) explícito donde no hay φ, y el HUD lo declara en pantalla
+      ("Suelo: arena: agarre provisional (P)"). `USAR_SUELO_TIERRA = false` por defecto: con φ 31° la ancha queda en ≈ 0.49
+      (≈ 26°) y las caras de duna recreadas son de ~30–34°, así que el camino dorado probablemente se rompería. Con `false`
+      se comporta igual que main. 21 pruebas de física pasan. Reemplaza el borrador del worktree local `mc-juego-agarre`.
+- [x] Las dos observaciones de juego sobre #16 ya están resueltas en #23: la regla del "peor eje" ahora es el promedio de
+      ejes con aviso, y la autonomía ya incluye los 10 kg de carga (99 s, igual que la física).
+
 ## En curso
-- Modelo de precios: **sin decidir** (Excel por kg de material, mínimo 665, contra `parts.json` por pieza, mínimo 730).
-  La hoja Parts refleja `parts.json` (lo que usa el juego). No se unifica hasta que el equipo elija.
+- Gravedad de Marte: integración registró **3.71** (ecuatorial, NASA JPL SSD) en `docs/DECISIONES.md`; juego recomienda
+  **3.73** (media, NASA Fact Sheet S01). Las dos son citables y están en el libro de datos (MR-056 y MR-001). Decide el
+  equipo; si cambia a 3.73, el taller actualiza MR-056/MR-001 y el Index A28.
 
 ## Siguiente
-- [ ] Probar el camino dorado completo en la física (estándar patina en dunas → ancha pasa) con los φ nuevos, si juego los usa
+- Corridas de verificación (las corre juego en `game/e2e/`; resultados esperados según el reporte de juego):
+
+  | # | Corrida | Esperado |
+  |---|---|---|
+  | 1 | Samalayuca, rueda estándar | Falla (patina en las caras de duna) |
+  | 2 | Samalayuca, rueda ancha | Llega (~59 s) |
+  | 3 | Samalayuca, ancha + soporte básico | Integridad de la carga ~82 % |
+  | 4 | Samalayuca, ancha + soporte amortiguado | Integridad de la carga ~94 % |
+  | 5 | Pinacate, rueda ancha | Se atora en los bloques de roca recreados |
+  | 6 | Pinacate, rueda con tacos | Pasa |
+  | 7 | Misión Luna, batería chica | Entrega |
+  | 8 | Misión Jezero, batería chica | Entrega (repetir si la gravedad cambia a 3.73) |
+
+  Si juego activa `USAR_SUELO_TIERRA`, hay que repetir 1–6.
 - [ ] Balance fino con telemetría real (agarre, consumo) junto con el frente juego
 
 ## Bloqueos / necesito de otro frente
-- Juego (Edmundo): `fisica/suelos.js` tiene `tierra: { arena: null, roca: null }` "Gap en el libro de datos". Ya hay dato:
-  arena de duna BM-004 φ 28–34° (tan = 0.53–0.67) y escoria de lava BM-003 φ 25–32° (0.47–0.62). Son genéricos, no
-  medidos en Samalayuca ni Pinacate. Decide él si los usa.
+- Juego (Edmundo): revisar la rama `feat/taller-agarre` y quedarse con lo que sume. Datos disponibles en el libro de datos:
+  arena de duna BM-004 φ 28–34° (tan = 0.53–0.67), escoria de lava BM-003 φ 25–32° (no corresponde a los tramos de roca o
+  compacto de Pinacate) y Bekker de arena seca. Para "Jezero como Spirit" falta Bekker del polvo de Marte (BM-013, Gap).
+- Integración (Alan): anotar en `docs/DECISIONES.md` el modelo de precios por pieza para el MVP.
 - Arte (Mauricio): íconos de las 12 piezas, 16 × 16, PNG transparente, en **`assets/iconos/<id_de_pieza>.png`**.
   Ids: `rueda_estandar`, `rueda_ancha`, `rueda_tacos`, `chasis_ligero`, `chasis_reforzado`, `bateria_chica`,
   `bateria_grande`, `motor_eficiente`, `motor_potente`, `soporte_basico`, `soporte_amortiguado`, `panel_solar`.
