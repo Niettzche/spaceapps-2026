@@ -45,6 +45,7 @@
 - Cada ranura de rueda cobra **2 × costo y 2 × masa** de la pieza.
 - Robot mínimo con ruedas estándar ≈ 730 de 1,000 créditos (chasis ligero 150 + 2×2×80 + batería chica 90 + motor eficiente 110 + soporte básico 60).
 - Si `partida.diseno` está vacío (pruebas), se usa un diseño por defecto con `rueda_estandar`.
+- Radio de rueda: `radio_m` de `parts.json` si existe (propuesta de taller); si no, tabla de juego en `fisica/robot.js`.
 - **La carga es un cuerpo suelto** sobre el soporte: puede caerse. Un fragmento suelto nunca activa la victoria.
 
 ## 4. Controles
@@ -55,7 +56,9 @@
 ## 5. Física (Matter.js)
 
 - Gravedad: `GRAVEDAD[mundo] × ESCALA_GRAVEDAD` (`config/world.js`). Prueba = Tierra; Misión = destino elegido.
-- **Fricción:** Matter combina con el mínimo (`pair.friction = min(A, B)`). Suelo = 1; rueda = `agarre[superficie]` de la pieza.
+- **Fricción:** Matter combina con el mínimo (`pair.friction = min(A, B)`) y no es de Coulomb (umbral estático = fricción × frictionStatic × 5).
+  Suelo = 1; rueda = **`agarre[superficie]²`** (curva de juego que separa las ruedas: 0.4 → 0.16, 0.9 → 0.81). Calibrado en pruebas sin interfaz:
+  en las dunas, la rueda estándar patina 37 veces y se queda sin energía; la ancha llega a la meta en ~60 s.
 - Terreno: un **cuadrilátero convexo por tramo** del perfil (punto i → i+1, cerrado hacia abajo), grueso para evitar que el robot lo atraviese.
 - Vehículo: ruedas circulares unidas al chasis con `constraint` (suspensión con rigidez 0.2–0.5); el chasis no colisiona con sus ruedas (`collisionFilter.group` negativo).
 - Motor: en cada `update`, velocidad angular objetivo de las ruedas proporcional al acelerador, con tope según `fuerza`.
@@ -92,7 +95,8 @@
 - Zona de entrega al final del terreno, con el astronauta como marcador.
 - **Victoria:** carga en la zona con integridad ≥ 60 % y robot detenido 2 s.
 - **Derrota:** destrucción, pérdida de la carga o energía agotada.
-- Terreno del destino: procedural declarado hasta que el frente modelo entregue perfiles (LOLA / HRSC+MOLA).
+- Terreno del destino: procedural declarado (160 m jugables) hasta que el frente modelo entregue perfiles (LOLA / HRSC+MOLA).
+- **Pendiente:** balancear energía y terreno de la misión; con batería chica todavía no se completa en Luna ni Marte.
 
 ## 11. Puntuación (valor de juego)
 

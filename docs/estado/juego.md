@@ -3,13 +3,19 @@
 > Lo actualiza SOLO este frente. Rama: `feat/juego`.
 
 **Responsable:** Edmundo  ·  **Agente:** Claude Code / Codex
-**Última actualización:** 14 nov, 13:56
+**Última actualización:** 14 nov, tarde
 
 ## Hecho
 - Especificación v1 del frente: `docs/juego/ESPECIFICACION.md`
+- Lógica con figuras provisionales (sin arte) en `game/src/fisica/` y `game/src/feedback/`:
+  terreno desde perfil real o ilustrativo declarado, robot de 4 ruedas (2 visibles) desde `partida.diseno`, carga suelta,
+  agarre por superficie, patinaje, energía, daño, volcado, telemetría `Result`, controles de teclado y táctil, HUD, cámara.
+- Escenas `Prueba`, `Mision` y `Resultados` funcionando con puntuación (máx. 1,000), estrellas y feedback por reglas.
+- Camino dorado de la prueba verificado sin interfaz: rueda estándar patina en dunas y falla; rueda ancha llega a la meta.
+- Pruebas de funciones puras: `node game/src/fisica/fisica.test.mjs` (11 casos).
 
 ## En curso
--
+- Balance de la misión (Luna y Marte): con batería chica todavía no se completa.
 
 ## Siguiente
 - [ ] Robot físico (4 ruedas, 2 visibles) a partir de partida.diseno, con acelerar/frenar en teclado y táctil (`fisica/robot.js`)
