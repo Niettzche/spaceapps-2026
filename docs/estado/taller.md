@@ -48,7 +48,11 @@
       datos ya la marca como la que usa el juego (MR-056); 3.73 queda como media de referencia (MR-001). Nada que cambiar.
 
 ## En curso
-- #23 en revisión del lado de juego.
+- #23 ya entró. #28 (aclaración del agarre en pantalla) espera merge.
+- **Íconos 16 × 16 de arte (#26), revisados en el Taller con main + #28 + #26 combinados localmente:**
+  - Los 12 cargan bien y se ven nítidos.
+  - El texto de la ranura de carga se salía de la caja; lo arreglé en #31.
+  - Le pedí a Mauricio en #26 que la rueda ancha se distinga de la estándar a 16 px (hoy solo cambian 44 de 256 píxeles) y un poco más de contraste sobre el fondo de las ranuras.
 
 ## Siguiente
 - Corridas de verificación (las corre juego en `game/e2e/`; resultados esperados según el reporte de juego):
