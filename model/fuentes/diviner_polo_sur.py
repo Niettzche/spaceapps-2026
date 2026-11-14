@@ -10,7 +10,14 @@ Cálculo del frente modelo, no publicado como tal:
 - solo terreno iluminado: Tmax de verano ≥ 110 K, umbral de trampa fría de Williams et al. 2019. Excluye la sombra permanente;
 - estadístico: mediana. El 14 nov 2026 da p25 160.0 K, mediana 176.5 K y p75 193.3 K, con 1,125,184 píxeles de 240 m.
 
-Uso:  uv run python -m model.fuentes.diviner_polo_sur [carpeta_de_descarga]
+Uso:  uv run python -m model.fuentes.diviner_polo_sur [carpeta_con_los_tif]
+      (rasterio ya viene en las dependencias del proyecto, pyproject.toml; fuera del proyecto: `uv run --with rasterio`)
+
+Descarga: el servidor de UCLA usa una configuración TLS antigua. Con Python 3.13 y OpenSSL actual falla con
+CERTIFICATE_VERIFY_FAILED en urllib, y curl responde "dh key too small". No desactives la verificación de certificados.
+Si falla, baja a mano con el navegador los dos .tif de ARCHIVOS (unos 25 MB cada uno) desde URL, ponlos en una carpeta
+y pásala como argumento: el script los usa sin descargar. El 14 nov 2026 los .tif se obtuvieron así.
+No conocemos un espejo en PDS con estos mapas estacionales.
 """
 from __future__ import annotations
 
