@@ -34,7 +34,23 @@ for cid, (t, fuente) in verdad.items():
     tot += 1; acierta = E[cid]["tipo"] == t; ok += acierta
     filas.append((cid, t, E[cid]["tipo"], E[cid]["confianza"], "✓" if acierta else "✗", fuente))
 for f in sorted(filas, key=lambda x: x[1]): print(*f, sep=" | ")
+def binom_cdf(k, n, p):
+    return sum(math.comb(n, i) * p ** i * (1 - p) ** (n - i) for i in range(k + 1))
+def clopper_pearson(x, n, alfa=0.05):
+    """Intervalo exacto (Clopper-Pearson) para una proporción binomial, por bisección sobre la binomial (sin scipy)."""
+    def biseccion(f, lo=0.0, hi=1.0):
+        for _ in range(100):
+            m = (lo + hi) / 2
+            lo, hi = (m, hi) if f(m) else (lo, m)
+        return (lo + hi) / 2
+    bajo = 0.0 if x == 0 else biseccion(lambda p: 1 - binom_cdf(x - 1, n, p) < alfa / 2)   # P(X ≥ x | p) = α/2
+    alto = 1.0 if x == n else biseccion(lambda p: binom_cdf(x, n, p) > alfa / 2)           # P(X ≤ x | p) = α/2
+    return bajo, alto
+lo, hi = clopper_pearson(ok, tot)
 print(f"\nAcierto contra fuentes externas: {ok}/{tot} = {ok / max(tot, 1):.0%}")
+print(f"Intervalo de confianza al 95 % (Clopper-Pearson, exacto): {lo:.1%} – {hi:.1%}  [{lo:.3f}, {hi:.3f}]")
+print("Ojo: los casos no son una muestra al azar (son los que tienen verdad externa: minas de OSM, volcanes del catálogo y Meteor Crater);"
+      " el intervalo vale para ese tipo de casos. Valle, presa y duna no tienen casos validados: no extrapolar a los 298.")
 por = {}
 for f in filas: por.setdefault(f[1], [0, 0]); por[f[1]][0] += f[4] == "✓"; por[f[1]][1] += 1
 print({k: f"{a}/{b}" for k, (a, b) in por.items()})

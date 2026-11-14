@@ -33,5 +33,7 @@ G00245 | mina_o_cantera | mina_o_cantera | 0.85 | ✓ | OSM a 0.69 km
 G00246 | mina_o_cantera | mina_o_cantera | 0.45 | ✓ | OSM a 0.13 km
 
 Acierto contra fuentes externas: 29/33 = 88%
+Intervalo de confianza al 95 % (Clopper-Pearson, exacto): 71.8% – 96.6%  [0.718, 0.966]
+Ojo: los casos no son una muestra al azar (son los que tienen verdad externa: minas de OSM, volcanes del catálogo y Meteor Crater); el intervalo vale para ese tipo de casos. Valle, presa y duna no tienen casos validados: no extrapolar a los 298.
 {'crater_volcanico': '6/6', 'mina_o_cantera': '22/26', 'crater_impacto': '1/1'}
 Etiquetas en todos: [('valle_o_canada', 94), ('no_se_puede_decir', 57), ('mina_o_cantera', 53), ('crater_volcanico', 26), ('hondonada_eolica_o_duna', 24), ('otro', 22), ('presa_o_lago', 20), ('crater_impacto', 1), ('dolina_karst', 1)]

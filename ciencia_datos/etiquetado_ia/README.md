@@ -4,7 +4,7 @@
 
 **Qué no se le dio:** ni el nombre ni la distancia a minas de OpenStreetMap. Así su acierto se puede medir contra esas fuentes.
 
-**Validación** (`validacion.txt`, generado con `validar.py`): **29 de 33 aciertos (88 %)** contra fuentes externas que no vio.
+**Validación** (`validacion.txt`, generado con `validar.py`): **29 de 33 aciertos (88 %; IC 95 % Clopper-Pearson 71.8–96.6 %)** contra fuentes externas que no vio.
 - Cráteres volcánicos del catálogo `crateres_conocidos_mx.csv` (GVP y artículos): **6 de 6**.
 - Canteras o minas de OpenStreetMap a ≤ 1 km: **22 de 26**. Las 4 fallas tienen confianza baja (0.3–0.4) y dicen "no se puede decir" o "valle".
 - Meteor Crater: **1 de 1**, como impacto.
