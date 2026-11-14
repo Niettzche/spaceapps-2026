@@ -64,9 +64,17 @@ export class Teclado {
     this.alEscape = alEscape;
     this.extra = {};
     this.manejador = (ev) => this.tecla(ev);
+    // Las escenas de Phaser se reutilizan al reiniciarse: suelta el manejador de la visita anterior.
+    scene.teclado?.soltar();
     scene.input.keyboard.on('keydown', this.manejador);
-    scene.events.once('shutdown', () => scene.input.keyboard.off('keydown', this.manejador));
+    scene.events.once('shutdown', () => this.soltar());
     scene.teclado = this;
+  }
+
+  soltar() {
+    this.scene.input?.keyboard?.off('keydown', this.manejador);
+    this.items = [];
+    this.actual = null;
   }
 
   /** Reemplaza los elementos navegables (en orden). Conserva el foco si el elemento sigue presente. */
@@ -97,7 +105,7 @@ export class Teclado {
     const el = typeof document !== 'undefined' ? document.activeElement : null;
     if (el && /^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(el.tagName)) return;
     const k = ev.key;
-    if (this.extra[k]) { this.extra[k](ev); return; }
+    if (this.extra[k]) { ev.preventDefault?.(); this.extra[k](ev); return; }
     if (k === 'ArrowDown' || k === 'ArrowRight' || (k === 'Tab' && !ev.shiftKey)) { ev.preventDefault?.(); this.mover(1); }
     else if (k === 'ArrowUp' || k === 'ArrowLeft' || (k === 'Tab' && ev.shiftKey)) { ev.preventDefault?.(); this.mover(-1); }
     else if (k === 'Enter' || k === ' ') { ev.preventDefault?.(); this.actual?.activar(); }
@@ -107,5 +115,7 @@ export class Teclado {
 
 /** Borra todo lo dibujado por la escena (para escenas con varias vistas). */
 export function limpiar(scene) {
-  scene.children.removeAll(true);
+  // DisplayList.removeAll() no destruye: se destruye cada objeto para no dejar texturas huérfanas.
+  scene.children.list.slice().forEach((o) => o.destroy());
+  if (scene.teclado) { scene.teclado.items = []; scene.teclado.actual = null; }
 }
