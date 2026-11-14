@@ -2,25 +2,66 @@
 
 > Lo actualiza SOLO este frente. Rama: `feat/expediente`.
 
-**Responsable:** Diego  ·  **Agente:** Claude Code / Codex
-**Última actualización:** (fecha y hora)
+**Responsable:** Diego  ·  **Agente:** Claude Code  ·  **Rama:** feat/expediente
+**Última actualización:** 14 nov 2026
 
 ## Hecho
--
+- [x] Pantalla de carga con progreso real (eventos del cargador de Phaser sobre el arte de `/assets`; si no hay arte, 100 %)
+
+- [x] Menú: nueva partida → elección de destino (Marte primero, Luna), continuar, explorador, "¿De dónde salen los números?"
+- [x] Expediente: lista de sitios del destino (curados primero, luego por similitud; 8 por página) y comparación 1 a 1:
+  Tierra a la izquierda, destino a la derecha, misma variable y unidad, fuente y fecha de cada lado; "sin dato" si falta;
+  aviso si las unidades no coinciden; banda roja en sitios `ilustrativo` o `demo: true`. Probado también con los 56 sitios
+  de `feat/modelo-fichas` (29 Marte, 27 Luna).
+- [x] Pruebas de lógica: `cd game && node --test src/scenes/expediente/pruebas/`
+
+- [x] Expediente: recuadro "Lo que la Tierra no puede probar" (une `no_reproducible_en_tierra` del destino y `limites` del sitio;
+  gravedad con su valor y la nota de que solo se simula en la misión); las notas largas de `limites` salen como "Límite del cálculo"
+
+- [x] Tickets: 3 por partida (`TICKETS_POR_PARTIDA`), se gastan al elegir un sitio nuevo, no se entra sin tickets, volver a probar
+  un sitio ya pagado no cuesta; "Nueva partida" los restaura sin duplicar. "Probar" fija `partida.sitio` (objeto del sitio) → Taller.
+- [x] Guardado en localStorage (`mision_cero.partida.v1`): se guarda al elegir destino y sitio, y al ocultar/cerrar la pestaña
+  (así también se conservan `diseno` y `resultados` que escriben otras escenas). "Continuar" lo restaura en el mismo objeto
+  `partida` y va al Taller si ya hay sitio, o al Expediente si no. Verificado: camino dorado Menú → Marte → Samalayuca → ticket
+  (3→2) → Taller, y recarga → Continuar.
+
+- [x] Botón "Ficha completa ↗" que abre web/ en otra pestaña con `?sitio=<id>` (y `&ficha=MX0007` para detecciones del detector).
+  La URL sale de `VITE_WEB_URL` (archivo `game/.env.local`, no se sube); sin ella el botón aparece deshabilitado ("sin enlace").
+
+- [x] Pantalla "¿De dónde salen los números?" en español e inglés (3 páginas: fuentes, cálculo, validación/límites/valores
+  de juego). Todo el contenido sale de AGENTS.md; si cambian cifras o fuentes, actualizar `game/src/scenes/expediente/numeros.js`.
+
+- [x] Explorador: formulario HTML sobre el lienzo (lat/lon validados en grados decimales, destino, relleno opcional con un sitio
+  del catálogo que tenga coordenadas) → POST /score con contador de espera → similitud total, confianza y tabla por dimensión
+  (Tierra / destino / similitud, con fuente), límites y errores de la API. Si la API no responde: aviso claro y el juego sigue.
+  Probado con la API local (`uvicorn api.main:app`): ~60 s por punto, por eso la espera máxima es 90 s (`ESPERA_API_MS`).
+
+- [x] Explorador: "Proponer sitio" (POST /submit) solo si la API permite y la similitud total ≥ 0.6 (`UMBRAL_PROPUESTA`, P);
+  nombre obligatorio (3–80 caracteres), alias opcional con aviso de no poner datos personales; confirma `propuesto_usuario`
+  o explica el fallo. Probado de punta a punta con la API local.
 
 ## En curso
--
+- (nada)
 
 ## Siguiente
-- [ ] Pantalla de carga con progreso real
-- [ ] Menú y elección de destino (Luna o Marte; el jugador elige)
-- [ ] Expediente: comparación 1 a 1 con fuente y unidad
-- [ ] Tickets de prueba (3 por partida)
-- [ ] Explorador: consulta de coordenadas → /score → /submit
-- [ ] Pantalla '¿De dónde salen los números?'
+- [ ] Cuando el arte esté listo: fondos y tipografía en Boot/Menú/Expediente (hoy texto monoespaciado provisional)
+- [ ] Revisar el Expediente con los datos reales cuando `feat/modelo` llegue a `main`
+
+## Cómo probar
+- `cd game && npm run dev` → Menú → Nueva partida → Marte → Médanos de Samalayuca → Gastar 1 ticket y probar → Taller.
+- Pruebas de lógica: `cd game && node --test src/scenes/expediente/pruebas/`
+- Explorador con API: desde la raíz `ALLOWED_ORIGINS=http://localhost:5173 uvicorn api.main:app --port 8000`.
+  Opcional: `game/.env.local` con `VITE_API_URL=...` y `VITE_WEB_URL=...`.
 
 ## Bloqueos / necesito de otro frente
--
+- **Modelo/API (Mario):** en `main`, `/score` para (31.84, -113.39) devolvió total 0.60 con confianza 0.25 (solo precipitación;
+  MODIS respondió 400) y `puede_proponer: true`. ¿Exigir una confianza mínima para proponer? Lo decide el frente modelo; el
+  Explorador muestra la confianza junto al total. La API tarda ~60 s por punto.
+- **API (CORS):** el servidor debe incluir el origen del juego en `ALLOWED_ORIGINS`.
+- **Arte:** Boot precarga solo lo que haya en `/assets`. Si se necesitan hojas de sprites, crear `assets/manifest.json`
+  (formato en `game/src/scenes/expediente/assets.js`); sin manifiesto, cada imagen se carga con clave = ruta sin extensión.
 
 ## Cambios que propongo a contratos o AGENTS.md (los aplica el integrador)
--
+- **web/ (Alan):** leer `?ficha=<ID>` y `?sitio=<id>` al cargar para abrir la ficha o el sitio directamente (hoy el juego
+  enlaza así; si no se implementa, el enlace abre la página en `#mapa`).
+- **Despliegue:** definir `VITE_WEB_URL` (URL pública de web/) y `VITE_API_URL` (API del VPS) al construir el juego.

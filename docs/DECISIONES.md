@@ -17,3 +17,4 @@
 - 14 nov · Integración confirma puntuación: máximo 1,000; sin entrega 0 puntos/estrellas; entrega 1 estrella, 2 desde 750 y 3 desde 900. Valores de juego.
 - 14 nov · Publicación acordada: VPS del usuario, web en raíz y juego en /game/; acceso SSH, dominio y directorio pendientes. VITE_GAME_URL=/game/ y build del juego con --base=/game/.
 - 14 nov · Expediente usa sitios con perfil de al menos dos muestras o estado distinto de candidato_modelo; el catálogo científico completo se mantiene en TODOS_LOS_SITIOS.
+- 14 nov · Nombre del juego: MARSCEPTION; arte de Mauricio hecho con apoyo de IA (Claude), se declara en la entrega · decisión del equipo (juego y arte).

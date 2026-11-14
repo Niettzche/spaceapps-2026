@@ -5,7 +5,7 @@ const copy = {
     title: 'Find Earth’s next training ground.',
     intro: 'Compare terrestrial terrain with the Moon and Mars. Explore crater-like landforms, inspect the evidence, and discover what a rover could test before leaving Earth.',
     explore: 'Explore the evidence', quiz: 'Try the terrain quiz',
-    caption: 'Rincón de Parangueo, Mexico · elevation-derived relief from Copernicus DEM (ESA), rendered with synthetic light; not a photograph. 12.8 km across, 200 m per pixel.',
+    caption: 'Rincón de Parangueo, Mexico · elevation-derived relief from Copernicus DEM (ESA), rendered with synthetic light; not a photograph. 12.8 km across, source resolution 200 m.',
     scope: 'Mexico is our validated case study. The global search has covered Atacama, Arizona and Arabia: 3 of 10 prioritized arid regions, not the entire planet.',
     steps: [
       ['01 / DISCOVER', 'Start with terrain', 'One detector measures crater-like depressions across Earth, the lunar south pole and Mars at a shared resolution of 200 m per pixel.'],
@@ -23,7 +23,7 @@ const copy = {
     title: 'La próxima misión empieza en la Tierra.',
     intro: 'Compara el terreno terrestre con la Luna y Marte. Explora formas tipo cráter, revisa la evidencia y descubre qué podría probar un rover antes de salir de la Tierra.',
     explore: 'Explorar la evidencia', quiz: 'Probar el quiz de terrenos',
-    caption: 'Rincón de Parangueo, México · relieve del DEM Copernicus (ESA), con iluminación sintética; no es una fotografía. Ventana de 12.8 km, 200 m por píxel.',
+    caption: 'Rincón de Parangueo, México · relieve del DEM Copernicus (ESA), con iluminación sintética; no es una fotografía. Ventana de 12.8 km, resolución de origen 200 m.',
     scope: 'México es nuestro caso validado. La búsqueda global cubre Atacama, Arizona y Arabia: 3 de 10 regiones áridas priorizadas, no todo el planeta.',
     steps: [
       ['01 / DESCUBRIR', 'Comenzar por el terreno', 'El mismo detector mide depresiones tipo cráter en la Tierra, el polo sur lunar y Marte a una resolución común de 200 m por píxel.'],
