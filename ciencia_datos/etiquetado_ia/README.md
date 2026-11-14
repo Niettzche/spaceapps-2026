@@ -4,9 +4,9 @@
 
 **Qué no se le dio:** ni el nombre ni la distancia a minas de OpenStreetMap. Así su acierto se puede medir contra esas fuentes.
 
-**Validación** (`validacion.txt`, generado con `validar.py`): **30 de 34 aciertos (88 %)** contra fuentes externas que no vio.
+**Validación** (`validacion.txt`, generado con `validar.py`): **29 de 33 aciertos (88 %)** contra fuentes externas que no vio.
 - Cráteres volcánicos del catálogo `crateres_conocidos_mx.csv` (GVP y artículos): **6 de 6**.
-- Canteras o minas de OpenStreetMap a ≤ 1 km: **23 de 27**. Las 4 fallas tienen confianza baja (0.3–0.4) y dicen "no se puede decir" o "valle".
+- Canteras o minas de OpenStreetMap a ≤ 1 km: **22 de 26**. Las 4 fallas tienen confianza baja (0.3–0.4) y dicen "no se puede decir" o "valle".
 - Meteor Crater: **1 de 1**, como impacto.
 
 **Resultado en los 298:** 94 valles o cañadas, 57 no se puede decir, 53 minas, 26 cráteres volcánicos, 24 hondonadas eólicas o dunas, 22 otro, 20 presas o lagos, 1 impacto y 1 dolina. Confirma que buena parte de las detecciones del detector no son cráteres, y sirve para limpiar la lista.
@@ -15,7 +15,8 @@
 
 **Archivos:**
 - `../datos/etiquetas_ia.csv`: id (cid o gid), tipo, confianza, razón (lo que vio), modelo y fecha.
-- `etiquetar.py`, `validar.py`: los scripts. Dependen del visor local (`visor.html` y `visor_img/`, que generan las celdas 17 y 20 de `analisis/`), así que se corren desde ese directorio; no son parte de la CI.
+- `etiquetar.py`: el etiquetado. Depende del visor local (`visor.html` y `visor_img/`, que generan las celdas 17 y 20 de `analisis/`), así que no corre en la CI.
+- `validar.py`: la validación. Lee solo datos del repo (`ciencia_datos/datos/`): `python3 ciencia_datos/etiquetado_ia/validar.py`. Usa el cráter del catálogo **más cercano** a ≤ 2.5 km y la distancia a mina sin redondear.
 
 **Limitaciones:**
 - La "verdad" de minas es OpenStreetMap, que puede tener errores.

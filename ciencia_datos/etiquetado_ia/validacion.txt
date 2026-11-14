@@ -1,10 +1,10 @@
 G00195 | crater_impacto | crater_impacto | 0.85 | ✓ | Meteor Crater
-MX0007 | crater_volcanico | crater_volcanico | 0.85 | ✓ | catálogo: Molina (Cráter Trébol)
-MX0008 | crater_volcanico | crater_volcanico | 0.85 | ✓ | catálogo: Cráter El Elegante
-MX0009 | crater_volcanico | crater_volcanico | 0.75 | ✓ | catálogo: Celaya (Volcán Los Vidrios)
-MX0010 | crater_volcanico | crater_volcanico | 0.75 | ✓ | catálogo: Sykes (Cráter Grande / Volcán Romo)
-MX0012 | crater_volcanico | crater_volcanico | 0.85 | ✓ | catálogo: Cerro Colorado
-MX0261 | crater_volcanico | crater_volcanico | 0.7 | ✓ | catálogo: Santa Rosa (anillo de toba)
+MX0007 | crater_volcanico | crater_volcanico | 0.85 | ✓ | catálogo: MacDougal (Cráter Verdugo) (0.35 km)
+MX0008 | crater_volcanico | crater_volcanico | 0.85 | ✓ | catálogo: Cráter El Elegante (0.21 km)
+MX0009 | crater_volcanico | crater_volcanico | 0.75 | ✓ | catálogo: Celaya (Volcán Los Vidrios) (0.01 km)
+MX0010 | crater_volcanico | crater_volcanico | 0.75 | ✓ | catálogo: Sykes (Cráter Grande / Volcán Romo) (0.34 km)
+MX0012 | crater_volcanico | crater_volcanico | 0.85 | ✓ | catálogo: Cerro Colorado (0.34 km)
+MX0261 | crater_volcanico | crater_volcanico | 0.7 | ✓ | catálogo: Hoya Rincón de Parangueo (0.20 km)
 MX0019 | mina_o_cantera | mina_o_cantera | 0.85 | ✓ | OSM a 0.5 km
 MX0020 | mina_o_cantera | mina_o_cantera | 0.8 | ✓ | OSM a 0.8 km
 MX0025 | mina_o_cantera | mina_o_cantera | 0.9 | ✓ | OSM a 1.0 km
@@ -12,27 +12,26 @@ MX0084 | mina_o_cantera | mina_o_cantera | 0.85 | ✓ | OSM a 0.1 km
 MX0085 | mina_o_cantera | mina_o_cantera | 0.85 | ✓ | OSM a 0.1 km
 MX0158 | mina_o_cantera | no_se_puede_decir | 0.3 | ✗ | OSM a 0.0 km
 MX0207 | mina_o_cantera | mina_o_cantera | 0.6 | ✓ | OSM a 0.6 km
-G00000 | mina_o_cantera | mina_o_cantera | 0.5 | ✓ | OSM a 1.0 km
-G00003 | mina_o_cantera | mina_o_cantera | 0.55 | ✓ | OSM a 0.2 km
-G00013 | mina_o_cantera | mina_o_cantera | 0.85 | ✓ | OSM a 0.1 km
-G00023 | mina_o_cantera | mina_o_cantera | 0.85 | ✓ | OSM a 0.3 km
-G00025 | mina_o_cantera | mina_o_cantera | 0.9 | ✓ | OSM a 0.2 km
+G00003 | mina_o_cantera | mina_o_cantera | 0.55 | ✓ | OSM a 0.25 km
+G00013 | mina_o_cantera | mina_o_cantera | 0.85 | ✓ | OSM a 0.11 km
+G00023 | mina_o_cantera | mina_o_cantera | 0.85 | ✓ | OSM a 0.26 km
+G00025 | mina_o_cantera | mina_o_cantera | 0.9 | ✓ | OSM a 0.18 km
 G00026 | mina_o_cantera | mina_o_cantera | 0.6 | ✓ | OSM a 0.1 km
-G00027 | mina_o_cantera | mina_o_cantera | 0.85 | ✓ | OSM a 0.1 km
-G00028 | mina_o_cantera | mina_o_cantera | 0.9 | ✓ | OSM a 0.2 km
-G00029 | mina_o_cantera | mina_o_cantera | 0.85 | ✓ | OSM a 0.4 km
-G00070 | mina_o_cantera | mina_o_cantera | 0.4 | ✓ | OSM a 0.3 km
-G00071 | mina_o_cantera | no_se_puede_decir | 0.4 | ✗ | OSM a 0.2 km
-G00114 | mina_o_cantera | valle_o_canada | 0.35 | ✗ | OSM a 0.9 km
-G00183 | mina_o_cantera | crater_volcanico | 0.3 | ✗ | OSM a 0.5 km
-G00206 | mina_o_cantera | mina_o_cantera | 0.8 | ✓ | OSM a 0.0 km
-G00210 | mina_o_cantera | mina_o_cantera | 0.85 | ✓ | OSM a 0.1 km
-G00240 | mina_o_cantera | mina_o_cantera | 0.9 | ✓ | OSM a 0.9 km
-G00243 | mina_o_cantera | mina_o_cantera | 0.93 | ✓ | OSM a 0.8 km
-G00244 | mina_o_cantera | mina_o_cantera | 0.8 | ✓ | OSM a 0.3 km
-G00245 | mina_o_cantera | mina_o_cantera | 0.85 | ✓ | OSM a 0.7 km
-G00246 | mina_o_cantera | mina_o_cantera | 0.45 | ✓ | OSM a 0.1 km
+G00027 | mina_o_cantera | mina_o_cantera | 0.85 | ✓ | OSM a 0.07 km
+G00028 | mina_o_cantera | mina_o_cantera | 0.9 | ✓ | OSM a 0.24 km
+G00029 | mina_o_cantera | mina_o_cantera | 0.85 | ✓ | OSM a 0.37 km
+G00070 | mina_o_cantera | mina_o_cantera | 0.4 | ✓ | OSM a 0.29 km
+G00071 | mina_o_cantera | no_se_puede_decir | 0.4 | ✗ | OSM a 0.18 km
+G00114 | mina_o_cantera | valle_o_canada | 0.35 | ✗ | OSM a 0.88 km
+G00183 | mina_o_cantera | crater_volcanico | 0.3 | ✗ | OSM a 0.49 km
+G00206 | mina_o_cantera | mina_o_cantera | 0.8 | ✓ | OSM a 0.04 km
+G00210 | mina_o_cantera | mina_o_cantera | 0.85 | ✓ | OSM a 0.11 km
+G00240 | mina_o_cantera | mina_o_cantera | 0.9 | ✓ | OSM a 0.87 km
+G00243 | mina_o_cantera | mina_o_cantera | 0.93 | ✓ | OSM a 0.76 km
+G00244 | mina_o_cantera | mina_o_cantera | 0.8 | ✓ | OSM a 0.29 km
+G00245 | mina_o_cantera | mina_o_cantera | 0.85 | ✓ | OSM a 0.69 km
+G00246 | mina_o_cantera | mina_o_cantera | 0.45 | ✓ | OSM a 0.13 km
 
-Acierto contra fuentes externas: 30/34 = 88%
-{'crater_volcanico': '6/6', 'mina_o_cantera': '23/27', 'crater_impacto': '1/1'}
+Acierto contra fuentes externas: 29/33 = 88%
+{'crater_volcanico': '6/6', 'mina_o_cantera': '22/26', 'crater_impacto': '1/1'}
 Etiquetas en todos: [('valle_o_canada', 94), ('no_se_puede_decir', 57), ('mina_o_cantera', 53), ('crater_volcanico', 26), ('hondonada_eolica_o_duna', 24), ('otro', 22), ('presa_o_lago', 20), ('crater_impacto', 1), ('dolina_karst', 1)]
