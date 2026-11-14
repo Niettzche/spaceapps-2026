@@ -5,11 +5,11 @@
   "gravedad_ms2": 1.62,
   "variables": {
     "oscilacion_termica": {
-      "valor": null,
+      "valor": 176.0,
       "unidad": "K",
-      "fuente": "LRO Diviner (PENDIENTE)",
-      "fecha": null,
-      "nota": "PENDIENTE: capturar con fuente verificada"
+      "fuente": "LRO Diviner, mapas polares de temperatura estacional de Williams et al. 2019, JGR Planets 124, 2505 (doi:10.1029/2019JE006028)",
+      "fecha": "verano austral (producto polar_south_80_summer_amplitude)",
+      "nota": "Rango de temperatura de la SUPERFICIE (no hay aire) a lo largo de una lunación (~29.5 días). 176 K es la mediana calculada por el frente modelo (script: model/fuentes/diviner_polo_sur.py, reproduce 176.5 K) sobre el mapa oficial de amplitud de verano, en píxeles de 85–90°S con máximo de verano ≥ 110 K (excluye sombra permanente); rango intercuartil 160–193 K. Punto candidato Connecting Ridge C2: 144 K. No es el mismo observable que T2M_RANGE: la comparación es solo de orden de magnitud y el comparador la recorta al máximo terrestre (40 K)."
     },
     "precipitacion": {
       "valor": 0,

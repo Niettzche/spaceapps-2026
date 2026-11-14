@@ -58,6 +58,29 @@ def tabla_md(df: pd.DataFrame, cols: list[str]) -> str:
     return "\n".join(filas)
 
 
+def cotejo_catalogo(radio_km: float = 2.5) -> dict:
+    """Cuántos cráteres del catálogo encuentra el detector (misma lógica que ciencia_datos/03)."""
+    cat = pd.read_csv(DATOS / "crateres_conocidos_mx.csv")
+    h = pd.read_csv(DATOS / "hoyas_mexico.csv")
+    c = cat.dropna(subset=["lat", "lon"]).reset_index(drop=True)
+    la1, lo1 = np.radians(c.lat.to_numpy())[:, None], np.radians(c.lon.to_numpy())[:, None]
+    la2, lo2 = np.radians(h.lat.to_numpy())[None, :], np.radians(h.lon.to_numpy())[None, :]
+    d = 6371 * 2 * np.arcsin(np.sqrt(np.sin((la2 - la1) / 2) ** 2 + np.cos(la1) * np.cos(la2) * np.sin((lo2 - lo1) / 2) ** 2))
+    k = d.argmin(1)
+    c["a_km"], c["hid"], c["crater"] = d[np.arange(len(c)), k], h.hid.to_numpy()[k], h.crater.to_numpy()[k].astype(bool)
+    c["detectado"] = c.a_km <= radio_km
+    dup = c[c.detectado].sort_values("a_km").duplicated("hid")
+    c.loc[dup[dup].index, "detectado"] = False
+    c["pasa"] = c.detectado & c.crater
+    rango = c.diam_km_aprox.between(0.6, 10) | c.diam_km_aprox.isna()
+    nd = c[~c.detectado]
+    lago = nd.lago.astype(str).str.lower().str.startswith(("si", "sí", "estacional"))
+    chico = nd.diam_km_aprox < 0.6
+    return {"n_catalogo": len(cat), "con_coord": len(c), "en_rango": int(rango.sum()),
+            "detectado": float(c[rango].detectado.mean()), "pasa": float(c[rango].pasa.mean()),
+            "chico": int(chico.sum()), "lago": int((lago & ~chico).sum()), "otra": int((~lago & ~chico).sum())}
+
+
 def parte_forma() -> list[str]:
     out = ["## B. Forma (dimensión principal)", ""]
     res = forma.resumen_modelo()
@@ -76,10 +99,13 @@ def parte_forma() -> list[str]:
     out.append("")
     out.append(tabla_md(imp, ["nombre", "diam_km", "prof_diam", "P_Luna", "dist", "dentro_95"]))
     out.append("")
+    c = cotejo_catalogo()
     out.append("**Detector frente a cráteres volcánicos conocidos de México** (`ciencia_datos/datos/crateres_conocidos_mx.csv`, "
-               "70 cráteres con fuente): de 62 en el rango del detector, encuentra el 40 % y el 32 % pasa el filtro tipo cráter. "
-               "No detectados: 15 con lago (el DEM ve el espejo de agua), 3 menores de 0.6 km y 22 por otras razones "
-               "(islas, coordenadas desplazadas, poca profundidad). Ver `informe/validacion_detector.pdf`.")
+               f"{c['n_catalogo']} cráteres con fuente, {c['con_coord']} con coordenadas): de {c['en_rango']} en el rango del detector "
+               f"(0.6–10 km o sin diámetro), encuentra el {c['detectado']:.0%} y el {c['pasa']:.0%} pasa el filtro tipo cráter. "
+               f"No detectados: {c['lago']} con lago (el DEM ve el espejo de agua), {c['chico']} menores de 0.6 km y {c['otra']} por otras "
+               "razones (islas, coordenadas desplazadas, poca profundidad). Mismo cotejo que `ciencia_datos/03_etiquetas_por_fuentes.ipynb` "
+               "(radio de 2.5 km; una depresión cuenta una sola vez).")
     return out
 
 
@@ -105,6 +131,12 @@ def main():
             continue
         df["pasa"] = ok(df)
         out += [f"### {titulo}: {int(df.pasa.sum())} de {len(df)} pasan", "", tabla_md(df, cols + ["pasa"]), ""]
+        if titulo == "Análogos conocidos" and (~df.pasa).any():
+            out += ["**Lectura.** El comparador complementario mide clima árido, suelo desnudo y relieve suave. Pasan los análogos "
+                    "elegidos por eso mismo (desiertos hiperáridos, dunas, cráteres en zonas secas). No pasan los que son análogos por "
+                    "otra razón que estas variables no ven: frío polar, lava en clima húmedo, química del agua (Río Tinto), "
+                    "microbialitos y cenotes, cuevas, o estructuras sepultadas. Que no pasen es esperable y marca el alcance del "
+                    "comparador: no reemplaza a la forma ni a la composición. No pasan: " + ", ".join(df.loc[~df.pasa, "nombre"]) + ".", ""]
         if df.errores.str.len().gt(0).any():
             out += ["Errores de medición: " + " · ".join(f"{n}: {e}" for n, e in zip(df.nombre, df.errores) if e), ""]
     out += parte_forma()

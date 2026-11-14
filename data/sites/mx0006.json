@@ -9,7 +9,7 @@
   "prueba_util": null,
   "uso_exploracion": "Candidato a verificar en campo: navegación y movilidad dentro de una depresión tipo cráter",
   "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
-  "novedoso": null,
+  "novedoso": false,
   "variables": {
     "forma": {
       "valor": 0.7043,
@@ -83,20 +83,21 @@
     }
   },
   "similitud": {
-    "total": 0.6906,
+    "total": 0.5769,
     "por_dimension": {
       "forma": 0.7043,
-      "oscilacion_termica": null,
+      "oscilacion_termica": 0.281,
       "precipitacion": 0.7483,
       "ndvi": 0.4609,
       "pendiente": 0.7923
     },
-    "confianza": 0.8
+    "confianza": 1.0
   },
   "limites": [
     "gravedad",
     "presion_atmosferica",
-    "radiacion"
+    "radiacion",
+    "oscilacion_termica: destino por encima del máximo terrestre (55.0 > 40.0); se compara contra el extremo"
   ],
   "nivel": {
     "perfil_elevacion_m": [],
@@ -104,5 +105,5 @@
     "exageracion_vertical": null,
     "obstaculos": []
   },
-  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Meridiani (Opportunity) (Marte), 0.93 km, 22 m, d/D 0.024, en -1.678, -5.128. novedoso: pendiente; data/known_analogs.json todavía no tiene coordenadas con fuente."
+  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Meridiani (Opportunity) (Marte), 0.93 km, 22 m, d/D 0.024, en -1.678, -5.128."
 }

@@ -9,7 +9,7 @@
   "prueba_util": null,
   "uso_exploracion": "Análogo operativo, no geológico: probar navegación y movilidad de rovers en paredes empinadas, excavación (ISRU) y operación con sombra en el fondo del tajo",
   "proceso": "Excavación artificial: tajo minero a cielo abierto (cantera a menos de 2 km en OpenStreetMap)",
-  "novedoso": null,
+  "novedoso": true,
   "variables": {
     "forma": {
       "valor": 0.8944,
@@ -83,22 +83,23 @@
     }
   },
   "similitud": {
-    "total": 0.4402,
+    "total": 0.3979,
     "por_dimension": {
       "forma": 0.8944,
-      "oscilacion_termica": null,
+      "oscilacion_termica": 0.2657,
       "precipitacion": 0.1437,
       "ndvi": 0.3703,
       "pendiente": 0.2285
     },
-    "confianza": 0.8
+    "confianza": 1.0
   },
   "limites": [
     "gravedad",
     "presion_atmosferica",
     "radiacion",
     "vacio",
-    "iluminacion_polar_rasante"
+    "iluminacion_polar_rasante",
+    "oscilacion_termica: destino por encima del máximo terrestre (176.0 > 40.0); se compara contra el extremo"
   ],
   "nivel": {
     "perfil_elevacion_m": [],
@@ -106,5 +107,5 @@
     "exageracion_vertical": null,
     "obstaculos": []
   },
-  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Anillo 80-85°S (Luna), 0.64 km, 59 m, d/D 0.092, en -83.76, 47.017. novedoso: pendiente; data/known_analogs.json todavía no tiene coordenadas con fuente."
+  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Anillo 80-85°S (Luna), 0.64 km, 59 m, d/D 0.092, en -83.76, 47.017."
 }

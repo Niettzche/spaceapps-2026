@@ -9,7 +9,7 @@
   "prueba_util": null,
   "uso_exploracion": "Candidato a verificar en campo: navegación y movilidad dentro de una depresión tipo cráter",
   "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
-  "novedoso": null,
+  "novedoso": true,
   "variables": {
     "forma": {
       "valor": 0.5658,
@@ -83,20 +83,21 @@
     }
   },
   "similitud": {
-    "total": 0.4731,
+    "total": 0.4339,
     "por_dimension": {
       "forma": 0.5658,
-      "oscilacion_termica": null,
+      "oscilacion_termica": 0.3068,
       "precipitacion": 0.5769,
       "ndvi": 0.2243,
       "pendiente": 0.3961
     },
-    "confianza": 0.8
+    "confianza": 1.0
   },
   "limites": [
     "gravedad",
     "presion_atmosferica",
-    "radiacion"
+    "radiacion",
+    "oscilacion_termica: destino por encima del máximo terrestre (55.0 > 40.0); se compara contra el extremo"
   ],
   "nivel": {
     "perfil_elevacion_m": [],
@@ -104,5 +105,5 @@
     "exageracion_vertical": null,
     "obstaculos": []
   },
-  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Cráter Jezero (Marte), 0.71 km, 28 m, d/D 0.039. novedoso: pendiente; data/known_analogs.json todavía no tiene coordenadas con fuente."
+  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Cráter Jezero (Marte), 0.71 km, 28 m, d/D 0.039."
 }

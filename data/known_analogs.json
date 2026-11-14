@@ -1,75 +1,165 @@
 {
-  "descripcion": "Análogos conocidos: controles positivos y referencia para marcar 'novedoso'.",
+  "descripcion": "Análogos conocidos (documentados en la literatura o en programas de entrenamiento): controles positivos de la validación y referencia para 'novedoso' (un candidato a menos de 50 km de uno de estos no es novedoso). Coordenadas con fuente, reunidas el 14 nov 2026.",
   "analogos": [
     {
-      "nombre": "Desierto de Atacama",
+      "nombre": "Desierto de Atacama, núcleo hiperárido de Yungay (Chile)",
       "pais": "CL",
-      "lat": null,
-      "lon": null,
-      "nota": "análogo conocido; coordenadas por capturar"
+      "lat": -24.063778,
+      "lon": -69.8805,
+      "fuente_url": "https://doi.org/10.3389/fmicb.2021.794743",
+      "nota": "Fuentes et al. (2022), Front. Microbiol. 12:794743: 'coordinates are 24°03′49.6″S, 69°52′49.8″W' (sitio de estudio en Yungay, cuenca Aguas Blancas, 1000–1300 m s.n.m.). WorldCover: 100% suelo desnudo en 1 km. Análogo de Marte: Azua-Bustos et al. (2022), Front. Astron. Space Sci., doi 10.3389/fspas.2021.810426."
     },
     {
-      "nombre": "Valles Secos de McMurdo",
+      "nombre": "Valles Secos de McMurdo, Wright Valley (Antártida)",
       "pais": "AQ",
-      "lat": null,
-      "lon": null,
-      "nota": "análogo conocido; coordenadas por capturar"
+      "lat": -77.516667,
+      "lon": 161.833333,
+      "fuente_url": "https://en.wikipedia.org/wiki/Wright_Valley",
+      "nota": "Plantilla {{coord|77|31|S|161|50|E|name=Wright Valley}} del artículo (datos USGS). Descartamos Taylor Valley: su coordenada de Wikipedia (77°37′S 163°00′E) queda a ~0.4 km de la de Canada Glacier (77.6167°S, 162.9833°E), o sea, sobre el glaciar. WorldCover no cubre la Antártida, así que no verificamos la cobertura del suelo."
     },
     {
-      "nombre": "Cráter Haughton, isla Devon",
+      "nombre": "Cráter Haughton (isla Devon, Canadá)",
       "pais": "CA",
-      "lat": null,
-      "lon": null,
-      "nota": "análogo conocido; coordenadas por capturar"
+      "lat": 75.383333,
+      "lon": -89.666667,
+      "fuente_url": "https://en.wikipedia.org/wiki/Haughton_impact_crater",
+      "nota": "Centro del cráter según Wikipedia/GeoHack. WorldCover: 99% suelo desnudo."
     },
     {
-      "nombre": "Death Valley",
+      "nombre": "Death Valley, Badwater Basin (EE. UU.)",
       "pais": "US",
-      "lat": null,
-      "lon": null,
-      "nota": "análogo conocido; coordenadas por capturar"
+      "lat": 36.250278,
+      "lon": -116.825833,
+      "fuente_url": "https://en.wikipedia.org/wiki/Badwater_Basin",
+      "nota": "Wikipedia/GeoHack. Planicie salina. WorldCover: 100% suelo desnudo."
     },
     {
-      "nombre": "Islandia (campos de lava)",
+      "nombre": "Islandia, campo de lava Holuhraun",
       "pais": "IS",
-      "lat": null,
-      "lon": null,
-      "nota": "análogo conocido; coordenadas por capturar"
+      "lat": 64.85,
+      "lon": -16.83,
+      "fuente_url": "https://en.wikipedia.org/wiki/Holuhraun",
+      "nota": "Wikipedia/GeoHack (coordenada de región, dim 10 km). WorldCover: 100% suelo desnudo. Alternativa: Krafla 65.733333, -16.783333 (https://en.wikipedia.org/wiki/Krafla)."
     },
     {
-      "nombre": "Hawái (Mauna Kea / Kilauea)",
+      "nombre": "Hawái, cima del Mauna Kea",
       "pais": "US",
-      "lat": null,
-      "lon": null,
-      "nota": "análogo conocido; coordenadas por capturar"
+      "lat": 19.820556,
+      "lon": -155.468056,
+      "fuente_url": "https://en.wikipedia.org/wiki/Mauna_Kea",
+      "nota": "Cima según Wikipedia/GeoHack. No encontramos coordenadas publicadas del sitio de pruebas de PISCES, por eso usamos la cima. WorldCover: 98% suelo desnudo."
     },
     {
-      "nombre": "Desierto de Mojave",
+      "nombre": "Desierto de Mojave (EE. UU.)",
       "pais": "US",
-      "lat": null,
-      "lon": null,
-      "nota": "análogo conocido; coordenadas por capturar"
+      "lat": 35.0,
+      "lon": -116.0,
+      "fuente_url": "https://en.wikipedia.org/wiki/Mojave_Desert",
+      "nota": "Coordenada genérica del artículo (35°N 116°W), no un sitio de pruebas concreto. WorldCover: 90% suelo desnudo, 9% matorral. Alternativa con sitio concreto: Amboy Crater 34.543883, -115.791109 (https://en.wikipedia.org/wiki/Amboy_Crater)."
     },
     {
-      "nombre": "Río Tinto",
+      "nombre": "Río Tinto, Peña de Hierro, sondeo BH-10 del proyecto IPBSL (Huelva, España)",
       "pais": "ES",
-      "lat": null,
-      "lon": null,
-      "nota": "análogo conocido; coordenadas por capturar"
+      "lat": 37.729372,
+      "lon": -6.556214,
+      "fuente_url": "https://info.igme.es/geofpi/litoteca/adjuntos/0314e/bh_informacion_coordenadas.pdf",
+      "nota": "Documento de la Litoteca del IGME: 'BH-10: 37°43’45.74”N 6°33’22.37W' (el documento no indica datum, se supone WGS84/GPS). IPBSL es un proyecto de perforación en 'a geochemical Mars terrestrial analogue' (EPSC2012-292). Análogo: Amils & Fernández-Remolar (2014), Life 4:511, doi 10.3390/life4030511. El punto cae en tierra (WorldCover: pastizal/matorral). No usamos la coordenada de la corta de Peña del Hierro (37.726842, -6.555016; es.wikipedia) porque cae en el lago de la mina. El sitio de perforación de MARTE (2005) no se publicó."
     },
     {
-      "nombre": "Meteor Crater",
+      "nombre": "Meteor Crater (Arizona, EE. UU.)",
       "pais": "US",
-      "lat": null,
-      "lon": null,
-      "nota": "análogo conocido; coordenadas por capturar"
+      "lat": 35.028056,
+      "lon": -111.023333,
+      "fuente_url": "https://en.wikipedia.org/wiki/Meteor_Crater",
+      "nota": "Wikipedia/GeoHack. WorldCover: 77% pastizal, 23% suelo desnudo."
     },
     {
-      "nombre": "Desierto de Utah (MDRS)",
+      "nombre": "Mars Desert Research Station (Utah, EE. UU.)",
       "pais": "US",
-      "lat": null,
-      "lon": null,
-      "nota": "análogo conocido; coordenadas por capturar"
+      "lat": 38.406458,
+      "lon": -110.791903,
+      "fuente_url": "https://en.wikipedia.org/wiki/Mars_Desert_Research_Station",
+      "nota": "Wikipedia/GeoHack. El píxel central es la estación (construido); en 1 km a la redonda hay 99.9% de suelo desnudo."
+    },
+    {
+      "nombre": "El Pinacate, cráter El Elegante (Sonora, México)",
+      "pais": "MX",
+      "lat": 31.8467,
+      "lon": -113.3913,
+      "fuente_url": "https://en.wikipedia.org/wiki/El_Elegante_Crater",
+      "nota": "Coordenada de Wikipedia/GeoHack. WorldCover: matorral 40%, suelo desnudo 36%, pastizal 24% en 1 km. La página de la UNESCO (whc.unesco.org/en/list/1410) no menciona a la NASA. No usar la coordenada de Bolívar-Torres et al. 2026 (29.5, -112.5), que no coincide."
+    },
+    {
+      "nombre": "Laguna de Alchichica (Puebla, México), maar con microbialitos",
+      "pais": "MX",
+      "lat": 19.41609,
+      "lon": -97.40295,
+      "fuente_url": "https://es.wikipedia.org/wiki/Laguna_de_Alchichica",
+      "nota": "La coordenada es el centro del lago, así que cae en agua. Para el modelo conviene un punto en la orilla con microbialitos, y no encontramos ninguno publicado. Otra cita: Martínez-Pabello et al. 2026, Astrobiology 26(5):331–352, doi 10.1177/15311074261443811 (análogo del Noeico marciano)."
+    },
+    {
+      "nombre": "Cuatro Ciénegas (Coahuila, México)",
+      "pais": "MX",
+      "lat": 26.98611,
+      "lon": -102.06639,
+      "fuente_url": "https://en.wikipedia.org/wiki/Cuatro_Ci%C3%A9negas",
+      "nota": "La coordenada de Wikipedia es la del pueblo, no la de las pozas ni las dunas de yeso. NASA Earth Observatory usa 26.868, -102.123."
+    },
+    {
+      "nombre": "Gran Desierto de Altar, dunas (Sonora, México)",
+      "pais": "MX",
+      "lat": 31.95,
+      "lon": -114.14,
+      "fuente_url": "https://en.wikipedia.org/wiki/Gran_Desierto_de_Altar",
+      "nota": "Es el análogo eólico mexicano más cercano a Samalayuca, y ya está documentado."
+    },
+    {
+      "nombre": "Salinas de Guerrero Negro, tapetes microbianos (Baja California Sur, México)",
+      "pais": "MX",
+      "lat": 27.95889,
+      "lon": -114.05611,
+      "fuente_url": "https://en.wikipedia.org/wiki/Guerrero_Negro",
+      "nota": "La coordenada es la del pueblo, no la de las pozas de evaporación."
+    },
+    {
+      "nombre": "Cueva de Villa Luz / Cueva del Azufre (Tabasco, México)",
+      "pais": "MX",
+      "lat": 17.4437,
+      "lon": -92.7648,
+      "fuente_url": "https://en.wikipedia.org/wiki/Villa_Luz_Cave",
+      "nota": "Sitio subterráneo: las variables de superficie del modelo no lo representan."
+    },
+    {
+      "nombre": "Mina de Naica / Cueva de los Cristales (Chihuahua, México)",
+      "pais": "MX",
+      "lat": 27.85083,
+      "lon": -105.49639,
+      "fuente_url": "https://en.wikipedia.org/wiki/Naica_Mine",
+      "nota": "Es la única mina mexicana que encontramos descrita como análogo. Es un sitio subterráneo."
+    },
+    {
+      "nombre": "Cráter de Chicxulub (Yucatán, México), sepultado",
+      "pais": "MX",
+      "lat": 21.4,
+      "lon": -89.5,
+      "fuente_url": "https://en.wikipedia.org/wiki/Chicxulub_crater",
+      "nota": "Es análogo por su estructura de impacto, no por la superficie: el relieve actual no muestra el cráter."
+    },
+    {
+      "nombre": "Cenote El Zacatón (Tamaulipas, México)",
+      "pais": "MX",
+      "lat": 22.99335,
+      "lon": -98.16586,
+      "fuente_url": "https://en.wikipedia.org/wiki/Zacat%C3%B3n",
+      "nota": "El punto es agua (cenote)."
+    },
+    {
+      "nombre": "Maar Rincón de Parangueo (Valle de Santiago, Guanajuato, México)",
+      "pais": "MX",
+      "lat": 20.430146,
+      "lon": -101.248621,
+      "fuente_url": "https://doi.org/10.22201/cgeo.20072902e.2021.3.1636",
+      "nota": "Coordenada de una muestra del fondo del cráter (Sánchez-Sánchez et al. 2021, Rev. Mex. Cienc. Geol. 38(3)). Ningún artículo arbitrado lo llama análogo."
     }
   ]
 }

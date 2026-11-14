@@ -26,11 +26,24 @@ CURADOS = {
         "lat": 31.84444, "lon": -113.39111, "estado": "documentado",
         "fuente_coord": "Smithsonian GVP, subrasgos de Pinacate (vn=341001): cráter El Elegante 31°50′40″N 113°23′28″W",
         "crater_cid": "MX0008",                       # El Elegante medido por el detector
+        "novedoso": False,                            # documentado: entrenamiento del Apolo
         "perfil": {"rumbo_grados": 90.0, "largo_m": 4_000.0},   # transecto este-oeste que cruza el cráter
         "uso_exploracion": "Geología de campo y movilidad en terreno volcánico y dentro de un cráter (maar El Elegante)",
-        "nota_extra": ("Los astronautas del Apolo entrenaron geología en el Pinacate (fuente en data/known_analogs.json). "
+        "nota_extra": ("Documentado como análogo: viajes de entrenamiento de geología de 1965–1967 y de la tripulación del Apolo 14 "
+                       "(Shepard y Mitchell) del 14 al 18 de febrero de 1970 (Phinney 2015, NASA SP-2015-626). "
                        "Otras detecciones del campo (MacDougal MX0007, Sykes MX0010, Cerro Colorado MX0012, MX0009, MX0011) "
                        "se agregan aquí en vez de exportarse como candidatos."),
+    },
+    "samalayuca": {
+        "lat": 31.263611, "lon": -106.395278, "estado": "candidato_modelo",
+        "fuente_coord": ("centro del campo de dunas, N 31°15′49″ W 106°23′43″ (Domínguez-Acosta, Langford y Gill 2023, "
+                         "Bol. Soc. Geol. Mex. 75(3) A240823, doi:10.18268/BSGM2023v75n3a240823); ESA WorldCover 2021: suelo desnudo"),
+        "perfil": {"rumbo_grados": 90.0, "largo_m": 3_000.0},   # transecto este-oeste sobre las dunas
+        "uso_exploracion": "Movilidad de rovers en arena suelta y dunas activas (agarre, hundimiento, subir y bajar crestas)",
+        "novedoso": True,
+        "nota_extra": ("No se encontró literatura que trate a Samalayuca como análogo planetario (búsqueda del 14 nov 2026); "
+                       "el análogo eólico mexicano documentado es el Gran Desierto de Altar, a más de 700 km. No tiene cráter: "
+                       "la forma no aplica y la similitud usa solo las dimensiones complementarias."),
     },
 }
 
@@ -82,6 +95,7 @@ def construir(sid: str, cfg: dict) -> dict:
         notas.append(perfil["error"])
     sitio.update({
         "lat": lat, "lon": lon, "estado": cfg["estado"], "variables": variables,
+        "novedoso": cfg.get("novedoso", sitio.get("novedoso")),
         "uso_exploracion": cfg.get("uso_exploracion", sitio.get("uso_exploracion")),
         "similitud": {"total": sim["total"], "por_dimension": sim["por_dimension"], "confianza": sim["confianza"]},
         "limites": limites, "nivel": nivel, "nota": " ".join(n for n in notas if n),
