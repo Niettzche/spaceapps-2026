@@ -32,7 +32,10 @@
   no pasan son análogos por razones que el comparador no ve (frío, lava húmeda, química, cuevas). Impactos terrestres: 8 de 8
   dentro de la nube de forma.
 
+- `ciencia_datos/04_fichas_explicables.ipynb` → `salidas/fichas_explicables.json` (54 sitios): aporte exacto de cada variable al logit, gemelos kNN lunares y marcianos con coordenadas (las de Marte recuperadas de la posición en el recorte) y puntaje por dimensión frente a los dos destinos.
+
 ## En curso
+- Sumar las variables de `perfiles_radiales.csv` (analisis/17, sesión del Colab) a una versión del modelo de la Luna, sin mezclar resoluciones con Marte.
 - `model/scan.py --global`: los 12 mejores en forma de `global_crateres.csv` (Atacama 6, Arizona 6; Arabia ninguno en el top), sin duplicados de México a ≤1 km. 9 de 12 están junto a una cantera: el patrón de las minas se repite fuera de México. g00174 y g00176 (campo volcánico de San Francisco, AZ) quedan con novedoso null por verificar.
 
 ## Siguiente

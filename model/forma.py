@@ -77,6 +77,69 @@ def forma_para(destino_id: str, diam_km: float, prof_m: float, borde_m: float) -
             "dentro_95": bool(r.dentro_95), "nota": nota, "fuente": FUENTE}
 
 
+def explicar(diam_km: float, prof_m: float, borde_m: float) -> dict:
+    """Contribución exacta de cada variable al logit de la regresión logística, en log-odds hacia la Luna.
+
+    logit(P_Luna) = intercepto + sum_j aporte_j,   aporte_j = -coef_j * z_j
+    (sklearn guarda el coeficiente de la clase "Marte"; se cambia de signo para leerlo hacia la Luna).
+    """
+    clf, *_ = _modelo()
+    esc, lr = clf[0], clf[-1]
+    x = _preparar([diam_km], [prof_m], [borde_m])[0]
+    z = (x - esc.mean_) / esc.scale_
+    signo = -1.0 if lr.classes_[1] == "Marte" else 1.0
+    aportes = signo * lr.coef_[0] * z
+    intercepto = float(signo * lr.intercept_[0])
+    logit = intercepto + float(aportes.sum())
+    return {"intercepto": round(intercepto, 4), "logit_luna": round(logit, 4), "P_Luna": round(1 / (1 + math.exp(-logit)), 4),
+            "aportes": {v: {"valor": round(float(xv), 4), "z": round(float(zv), 3), "aporte_logit": round(float(a), 4)}
+                        for v, xv, zv, a in zip(VARIABLES, x, z, aportes)}}
+
+
+R_MARTE = 3_396_190.0
+# Centro de cada recorte de 100 x 100 km de Marte (analisis/03 y analisis/15): lat, lon este
+SITIOS_CENTRO_POR_VERIFICAR = {"Cráter Jezero", "Cráter Gale", "Oxia Planum"}
+CENTROS_MARTE = {"Cráter Jezero": (18.44, 77.45), "Cráter Gale": (-5.40, 137.80), "Oxia Planum": (18.20, -24.30),
+                 "Meridiani (Opportunity)": (-1.95, -5.53), "Gusev (Spirit)": (-14.57, 175.47), "Elysium (InSight)": (4.50, 135.62),
+                 "Utopia (Zhurong)": (25.07, 109.93), "Chryse (Viking 1)": (22.27, -47.95)}
+
+
+@functools.lru_cache(maxsize=1)
+def _referencia() -> pd.DataFrame:
+    ref = pd.read_csv(REF_CSV)
+    ref = ref[ref.crater.astype(bool) & ~ref.sitio.str.contains("|".join(SITIOS_EXCLUIDOS))].reset_index(drop=True)
+    # Marte no trae lat/lon: se recupera de la fila/columna del recorte (equidistante, origen x=-50 km, y=R·lat0+50 km, 200 m)
+    for sitio, (la0, lo0) in CENTROS_MARTE.items():
+        m = (ref.sitio == sitio) & ref.lat.isna()
+        if m.any():
+            x = -50_000 + (ref.loc[m, "j"] + 0.5) * 200
+            y = R_MARTE * np.radians(la0) + 50_000 - (ref.loc[m, "i"] + 0.5) * 200
+            ref.loc[m, "lat"] = np.degrees(y / R_MARTE)
+            ref.loc[m, "lon"] = lo0 + np.degrees(x / (R_MARTE * np.cos(np.radians(la0))))
+    return ref
+
+
+def gemelos_knn(diam_km: float, prof_m: float, borde_m: float, k: int = 3) -> dict:
+    """Los k cráteres más parecidos de cada cuerpo, en el mismo espacio estandarizado del modelo (3 variables)."""
+    _, esc, *_ = _modelo()
+    ref = _referencia()
+    Z = esc.transform(_preparar(ref.diam_km, ref.prof_m, ref.borde_m))
+    z0 = esc.transform(_preparar([diam_km], [prof_m], [borde_m]))[0]
+    d = np.sqrt(((Z - z0) ** 2).sum(1))
+    out = {}
+    for cuerpo in ("Luna", "Marte"):
+        idx = np.where(ref.cuerpo.to_numpy() == cuerpo)[0]
+        mejores = idx[np.argsort(d[idx])[:k]]
+        out[cuerpo] = [{"sitio": ref.sitio.iloc[i], "lat": None if pd.isna(ref.lat.iloc[i]) else round(float(ref.lat.iloc[i]), 3),
+                        "lon": None if pd.isna(ref.lon.iloc[i]) else round(float(ref.lon.iloc[i]), 3),
+                        "diam_km": round(float(ref.diam_km.iloc[i]), 2), "prof_m": round(float(ref.prof_m.iloc[i])),
+                        "prof_diam": round(float(ref.prof_diam.iloc[i]), 3), "borde_m": round(float(ref.borde_m.iloc[i]), 1),
+                        "distancia_z": round(float(d[i]), 3),
+                        **({"coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"}
+                           if ref.sitio.iloc[i] in SITIOS_CENTRO_POR_VERIFICAR else {})} for i in mejores]
+    return out
+
+
 def resumen_modelo() -> dict:
     *_, corte, n = _modelo()
     return {"corte95": round(corte, 3), **n, "variables": VARIABLES, "sitios_marte_excluidos": list(SITIOS_EXCLUIDOS)}
