@@ -98,6 +98,7 @@ def explicar(diam_km: float, prof_m: float, borde_m: float) -> dict:
 
 R_MARTE = 3_396_190.0
 # Centro de cada recorte de 100 x 100 km de Marte (analisis/03 y analisis/15): lat, lon este
+SITIOS_CENTRO_POR_VERIFICAR = {"Cráter Jezero", "Cráter Gale", "Oxia Planum"}
 CENTROS_MARTE = {"Cráter Jezero": (18.44, 77.45), "Cráter Gale": (-5.40, 137.80), "Oxia Planum": (18.20, -24.30),
                  "Meridiani (Opportunity)": (-1.95, -5.53), "Gusev (Spirit)": (-14.57, 175.47), "Elysium (InSight)": (4.50, 135.62),
                  "Utopia (Zhurong)": (25.07, 109.93), "Chryse (Viking 1)": (22.27, -47.95)}
@@ -133,7 +134,9 @@ def gemelos_knn(diam_km: float, prof_m: float, borde_m: float, k: int = 3) -> di
                         "lon": None if pd.isna(ref.lon.iloc[i]) else round(float(ref.lon.iloc[i]), 3),
                         "diam_km": round(float(ref.diam_km.iloc[i]), 2), "prof_m": round(float(ref.prof_m.iloc[i])),
                         "prof_diam": round(float(ref.prof_diam.iloc[i]), 3), "borde_m": round(float(ref.borde_m.iloc[i]), 1),
-                        "distancia_z": round(float(d[i]), 3)} for i in mejores]
+                        "distancia_z": round(float(d[i]), 3),
+                        **({"coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"}
+                           if ref.sitio.iloc[i] in SITIOS_CENTRO_POR_VERIFICAR else {})} for i in mejores]
     return out
 
 
