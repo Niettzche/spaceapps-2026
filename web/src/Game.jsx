@@ -36,7 +36,7 @@ export default function Game({ t, items, imgBase, hasSheet, onOpen }) {
       <div className="panel">
         {!done && (
           <>
-            <h1>{t.q}</h1>
+            <h2>{t.q}</h2>
             <p className="lede">{t.q_sub}</p>
             <div className="answers">
               {BODIES.map((b) => (
@@ -68,7 +68,7 @@ export default function Game({ t, items, imgBase, hasSheet, onOpen }) {
         )}
         {done && (
           <>
-            <h1>{t.score(score, rounds.length)}</h1>
+            <h2>{t.score(score, rounds.length)}</h2>
             <p className="lede">{t.bridge}</p>
             <div className="row">
               <a className="primary" href="#mapa">{t.to_map}</a>

@@ -1,6 +1,10 @@
-"""Comparador transparente de variables v0 (NO es una IA entrenada).
+"""Comparador de similitud del modelo de análogos (AGENTS.md §6.3).
 
-Similitud por dimensión:  s = exp(-|tierra - destino| / escala)
+Dos tipos de dimensión:
+- **forma** (principal): puntaje ya calculado en [0, 1] por model/forma.py (modelo explicable Luna contra Marte +
+  distancia a la nube Luna+Marte). Solo existe para sitios con un cráter medido por el detector; en un punto
+  cualquiera falta, se omite y baja la confianza.
+- **complementarias** (clima, vegetación, pendiente): s = exp(-|tierra - destino| / escala)
 - Si el destino está fuera del rango alcanzable en la Tierra, se compara contra el extremo terrestre
   ("lo más cerca que llega la Tierra") y se registra en `limites`.
 - Total: media geométrica ponderada. Veto: si una dimensión con veto da ~0, el total es 0.
@@ -12,11 +16,12 @@ from __future__ import annotations
 import math
 
 DIMENSIONES = {
-    # nombre: escala, peso, veto, rango terrestre (min, max) o None
-    "oscilacion_termica": {"escala": 20.0, "peso": 0.35, "veto": False, "rango_tierra": (0.0, 40.0)},
-    "precipitacion":      {"escala": 1.0,  "peso": 0.25, "veto": False, "rango_tierra": (0.0, None)},
-    "ndvi":               {"escala": 0.15, "peso": 0.20, "veto": True,  "rango_tierra": (-1.0, 1.0)},
-    "pendiente":          {"escala": 5.0,  "peso": 0.20, "veto": False, "rango_tierra": (0.0, 90.0)},
+    # nombre: escala, peso, veto, rango terrestre (min, max) o None; "precalculada": el sitio trae el puntaje 0..1
+    "forma":              {"peso": 0.40, "veto": False, "precalculada": True},
+    "oscilacion_termica": {"escala": 20.0, "peso": 0.20, "veto": False, "rango_tierra": (0.0, 40.0)},
+    "precipitacion":      {"escala": 1.0,  "peso": 0.15, "veto": False, "rango_tierra": (0.0, None)},
+    "ndvi":               {"escala": 0.15, "peso": 0.10, "veto": True,  "rango_tierra": (-1.0, 1.0)},
+    "pendiente":          {"escala": 5.0,  "peso": 0.15, "veto": False, "rango_tierra": (0.0, 90.0)},
 }
 UMBRAL_VETO = 0.05
 
@@ -46,11 +51,18 @@ def comparar(sitio_vars: dict, destino_vars: dict, dimensiones: dict = DIMENSION
     peso_total = sum(c["peso"] for c in dimensiones.values())
     peso_usado, log_suma, vetado = 0.0, 0.0, False
     for dim, cfg in dimensiones.items():
-        t, d = _valor(sitio_vars, dim), _valor(destino_vars, dim)
-        if t is None or d is None:
-            por_dim[dim] = None
-            continue
-        s, nota = similitud_dimension(float(t), float(d), cfg)
+        if cfg.get("precalculada"):
+            t = _valor(sitio_vars, dim)
+            if t is None:
+                por_dim[dim] = None
+                continue
+            s, nota = min(max(float(t), 0.0), 1.0), None
+        else:
+            t, d = _valor(sitio_vars, dim), _valor(destino_vars, dim)
+            if t is None or d is None:
+                por_dim[dim] = None
+                continue
+            s, nota = similitud_dimension(float(t), float(d), cfg)
         por_dim[dim] = round(s, 4)
         if nota:
             limites.append(f"{dim}: {nota}")

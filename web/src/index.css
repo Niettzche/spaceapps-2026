@@ -245,3 +245,42 @@ td { border-bottom: 1px solid var(--line); padding: 0.35rem 0.6rem 0.35rem 0; }
   .ans { transition: none; }
   .cardimg img { transition: none; }
 }
+
+/* Project overview: retain the explorer's mineral palette. */
+.skip-link { position: absolute; top: -100px; left: 16px; z-index: 10; padding: 12px; background: var(--bone); }
+.skip-link:focus { top: 8px; }
+section[id] { scroll-margin-top: 20px; }
+.project-hero { display: grid; grid-template-columns: 1fr 1fr; min-height: 680px; background: var(--bone); }
+.hero-copy { padding: clamp(28px, 5vw, 80px); align-self: center; }
+.eyebrow { font-size: .75rem; font-weight: 700; letter-spacing: .12em; }
+.hero-copy h1 { font-size: clamp(2.8rem, 5.5vw, 5.4rem); line-height: .98; letter-spacing: -.055em; max-width: 12ch; margin-top: 24px; text-wrap: balance; }
+.hero-intro { margin-top: 26px; max-width: 38em; color: var(--ash); font-size: 1.12rem; }
+.hero-copy .row { margin-top: 28px; }
+.scope-note { border-left: 3px solid var(--lake); padding-left: 14px; margin-top: 32px; font-size: .85rem; color: var(--ash); max-width: 37em; }
+.hero-visual { position: relative; min-width: 0; background: var(--basalt); display: flex; flex-direction: column; }
+.hero-visual img { width: 100%; flex: 1; min-height: 0; object-fit: cover; }
+.hero-visual figcaption { padding: 12px 20px; color: var(--dust); font-size: .72rem; }
+.project-steps { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); }
+.project-steps article { padding: clamp(24px, 3.5vw, 50px); border-bottom: 1px solid var(--line); }
+.project-steps article + article { border-left: 1px solid var(--line); }
+.project-steps .eyebrow { color: var(--lake); }
+.project-steps h2 { margin-top: 20px; font-size: 1.5rem; }
+.project-steps article > p:last-child { margin-top: 14px; color: var(--ash); font-size: .95rem; }
+.panel h2 { font-size: clamp(2rem, 4.6vw, 3.9rem); line-height: .98; }
+.mission-link { display: grid; grid-template-columns: 1.5fr 1fr; gap: 40px; padding: clamp(28px, 5vw, 72px); background: var(--basalt); color: var(--bone); }
+.mission-link h2 { margin-top: 18px; }
+.mission-link p:not(.eyebrow) { margin-top: 18px; max-width: 40em; color: var(--dust); }
+.mission-link > div:last-child { align-self: center; }
+.mission-link .primary { background: var(--bone); color: var(--basalt); }
+.project-sources { padding: clamp(28px, 5vw, 72px); background: var(--bone); }
+.project-sources > p { max-width: 52em; margin-top: 18px; color: var(--ash); }
+.project-sources ul { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 14px 30px; margin-top: 28px; }
+.project-footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 24px; padding: 30px clamp(16px, 4vw, 56px); font-size: .85rem; }
+.project-footer p { margin-top: 8px; color: var(--ash); }
+@media (max-width: 860px) {
+ .project-hero, .project-steps, .mission-link { grid-template-columns: 1fr; }
+ .project-hero { min-height: 0; }
+ .hero-visual img { max-height: 450px; }
+ .project-steps article + article { border-left: 0; }
+ .top nav { flex-wrap: wrap; gap: .6rem 1rem; }
+}

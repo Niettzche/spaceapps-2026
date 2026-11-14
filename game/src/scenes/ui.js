@@ -12,3 +12,11 @@ export function boton(scene, x, y, texto, alPulsar) {
 export function nota(scene, texto) {
   scene.add.text(480, 510, texto, { fontFamily: 'monospace', fontSize: '12px', color: '#6c7393', align: 'center', wordWrap: { width: 900 } }).setOrigin(0.5);
 }
+
+// Una sola transición a la vez; Phaser limpia el fundido al reiniciar la cámara.
+export function irA(escena, destino) {
+  const camera = escena.cameras.main;
+  if (camera.fadeEffect.isRunning) return;
+  camera.once('camerafadeoutcomplete', () => escena.scene.start(destino));
+  camera.fadeOut(180, 0, 0, 0);
+}

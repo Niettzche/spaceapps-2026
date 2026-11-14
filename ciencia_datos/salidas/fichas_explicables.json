@@ -1,0 +1,6811 @@
+{
+ "g00003": {
+  "nombre": "Depresión tipo cráter G00003 (Atacama (Chile))",
+  "pais": "CL",
+  "lat": -21.9198,
+  "lon": -68.832,
+  "estado": "candidato_modelo",
+  "destino_ref": "polo_sur_lunar",
+  "proceso": "Probable tajo minero a cielo abierto (cantera de OpenStreetMap a ≤ 2 km; por verificar)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 1.427,
+   "prof_m": 182.9,
+   "prof_diam": 0.1281,
+   "borde_m": -109.2
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": 3.6956,
+   "P_Luna": 0.9758,
+   "aportes": {
+    "log_diam": {
+     "valor": 0.1544,
+     "z": 0.27,
+     "aporte_logit": -0.0853
+    },
+    "prof_diam": {
+     "valor": 0.1282,
+     "z": 1.713,
+     "aporte_logit": 2.68
+    },
+    "borde_rel": {
+     "valor": -0.0765,
+     "z": -1.811,
+     "aporte_logit": 0.3581
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -80.989,
+     "lon": -58.779,
+     "diam_km": 1.32,
+     "prof_m": 158,
+     "prof_diam": 0.12,
+     "borde_m": -101.1,
+     "distancia_z": 0.264
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -81.903,
+     "lon": 34.408,
+     "diam_km": 1.37,
+     "prof_m": 161,
+     "prof_diam": 0.117,
+     "borde_m": -105.2,
+     "distancia_z": 0.293
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -84.419,
+     "lon": 20.15,
+     "diam_km": 1.55,
+     "prof_m": 181,
+     "prof_diam": 0.117,
+     "borde_m": -119.2,
+     "distancia_z": 0.331
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Oxia Planum",
+     "lat": 18.674,
+     "lon": -23.577,
+     "diam_km": 1.13,
+     "prof_m": 172,
+     "prof_diam": 0.152,
+     "borde_m": -68.0,
+     "distancia_z": 0.939,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Cráter Jezero",
+     "lat": 17.62,
+     "lon": 77.706,
+     "diam_km": 1.32,
+     "prof_m": 138,
+     "prof_diam": 0.105,
+     "borde_m": -53.6,
+     "distancia_z": 1.367,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Gusev (Spirit)",
+     "lat": -15.319,
+     "lon": 176.14,
+     "diam_km": 1.91,
+     "prof_m": 255,
+     "prof_diam": 0.133,
+     "borde_m": -71.8,
+     "distancia_z": 1.418
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.9758,
+    "terreno": 0.8138,
+    "superficie": 0.8259,
+    "clima": 0.4829,
+    "total": 0.7301,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.0242,
+    "terreno": 0.2952,
+    "superficie": 0.8259,
+    "clima": 0.4829,
+    "total": 0.1429,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "g00013": {
+  "nombre": "Depresión tipo cráter G00013 (Atacama (Chile))",
+  "pais": "CL",
+  "lat": -20.993,
+  "lon": -68.6379,
+  "estado": "candidato_modelo",
+  "destino_ref": "polo_sur_lunar",
+  "proceso": "Probable tajo minero a cielo abierto (cantera de OpenStreetMap a ≤ 2 km; por verificar)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 1.58,
+   "prof_m": 246.0,
+   "prof_diam": 0.1557,
+   "borde_m": -30.3
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": 4.4064,
+   "P_Luna": 0.9879,
+   "aportes": {
+    "log_diam": {
+     "valor": 0.1987,
+     "z": 0.445,
+     "aporte_logit": -0.1403
+    },
+    "prof_diam": {
+     "valor": 0.1557,
+     "z": 2.448,
+     "aporte_logit": 3.829
+    },
+    "borde_rel": {
+     "valor": -0.0192,
+     "z": 0.127,
+     "aporte_logit": -0.0251
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -80.565,
+     "lon": -33.824,
+     "diam_km": 1.79,
+     "prof_m": 306,
+     "prof_diam": 0.171,
+     "borde_m": -29.0,
+     "distancia_z": 0.467
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.406,
+     "lon": 111.041,
+     "diam_km": 1.69,
+     "prof_m": 240,
+     "prof_diam": 0.142,
+     "borde_m": -46.4,
+     "distancia_z": 0.478
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -81.956,
+     "lon": 35.012,
+     "diam_km": 1.99,
+     "prof_m": 297,
+     "prof_diam": 0.149,
+     "borde_m": -23.3,
+     "distancia_z": 0.504
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Cráter Gale",
+     "lat": -5.926,
+     "lon": 138.496,
+     "diam_km": 1.32,
+     "prof_m": 185,
+     "prof_diam": 0.141,
+     "borde_m": -9.6,
+     "distancia_z": 0.65,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Gusev (Spirit)",
+     "lat": -15.319,
+     "lon": 176.14,
+     "diam_km": 1.91,
+     "prof_m": 255,
+     "prof_diam": 0.133,
+     "borde_m": -71.8,
+     "distancia_z": 0.923
+    },
+    {
+     "sitio": "Cráter Jezero",
+     "lat": 18.498,
+     "lon": 76.699,
+     "diam_km": 2.04,
+     "prof_m": 246,
+     "prof_diam": 0.12,
+     "borde_m": -9.9,
+     "distancia_z": 1.147,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.9879,
+    "terreno": 0.7654,
+    "superficie": 0.9493,
+    "clima": 0.4557,
+    "total": 0.7223,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.0121,
+    "terreno": 0.474,
+    "superficie": 0.9493,
+    "clima": 0.4557,
+    "total": 0.1155,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "g00016": {
+  "nombre": "Depresión tipo cráter G00016 (Atacama (Chile))",
+  "pais": "CL",
+  "lat": -20.9736,
+  "lon": -68.7289,
+  "estado": "candidato_modelo",
+  "destino_ref": "polo_sur_lunar",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 0.874,
+   "prof_m": 108.2,
+   "prof_diam": 0.1238,
+   "borde_m": -6.2
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": 3.3139,
+   "P_Luna": 0.9649,
+   "aportes": {
+    "log_diam": {
+     "valor": -0.0585,
+     "z": -0.569,
+     "aporte_logit": 0.1794
+    },
+    "prof_diam": {
+     "valor": 0.1238,
+     "z": 1.597,
+     "aporte_logit": 2.4975
+    },
+    "borde_rel": {
+     "valor": -0.0071,
+     "z": 0.535,
+     "aporte_logit": -0.1058
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.831,
+     "lon": 105.241,
+     "diam_km": 0.81,
+     "prof_m": 100,
+     "prof_diam": 0.123,
+     "borde_m": -3.7,
+     "distancia_z": 0.153
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -81.744,
+     "lon": 34.545,
+     "diam_km": 0.84,
+     "prof_m": 101,
+     "prof_diam": 0.12,
+     "borde_m": -3.3,
+     "distancia_z": 0.167
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -80.529,
+     "lon": -41.059,
+     "diam_km": 0.9,
+     "prof_m": 105,
+     "prof_diam": 0.117,
+     "borde_m": -6.5,
+     "distancia_z": 0.198
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Cráter Gale",
+     "lat": -5.156,
+     "lon": 137.601,
+     "diam_km": 0.9,
+     "prof_m": 98,
+     "prof_diam": 0.109,
+     "borde_m": -6.8,
+     "distancia_z": 0.411,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Cráter Jezero",
+     "lat": 17.682,
+     "lon": 77.527,
+     "diam_km": 1.08,
+     "prof_m": 125,
+     "prof_diam": 0.115,
+     "borde_m": -6.7,
+     "distancia_z": 0.429,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Gusev (Spirit)",
+     "lat": -15.202,
+     "lon": 175.372,
+     "diam_km": 1.01,
+     "prof_m": 103,
+     "prof_diam": 0.102,
+     "borde_m": -16.7,
+     "distancia_z": 0.707
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.9649,
+    "terreno": 0.7825,
+    "superficie": 0.8601,
+    "clima": 0.4557,
+    "total": 0.7109,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.0351,
+    "terreno": 0.4636,
+    "superficie": 0.8601,
+    "clima": 0.4557,
+    "total": 0.1746,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "g00023": {
+  "nombre": "Depresión tipo cráter G00023 (Atacama (Chile))",
+  "pais": "CL",
+  "lat": -22.9504,
+  "lon": -69.0793,
+  "estado": "candidato_modelo",
+  "destino_ref": "polo_sur_lunar",
+  "proceso": "Probable tajo minero a cielo abierto (cantera de OpenStreetMap a ≤ 2 km; por verificar)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 1.256,
+   "prof_m": 186.8,
+   "prof_diam": 0.1487,
+   "borde_m": -10.5
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": 4.1671,
+   "P_Luna": 0.9847,
+   "aportes": {
+    "log_diam": {
+     "valor": 0.099,
+     "z": 0.052,
+     "aporte_logit": -0.0164
+    },
+    "prof_diam": {
+     "valor": 0.1487,
+     "z": 2.262,
+     "aporte_logit": 3.538
+    },
+    "borde_rel": {
+     "valor": -0.0084,
+     "z": 0.492,
+     "aporte_logit": -0.0973
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -83.453,
+     "lon": -162.142,
+     "diam_km": 1.17,
+     "prof_m": 174,
+     "prof_diam": 0.148,
+     "borde_m": -8.5,
+     "distancia_z": 0.124
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.407,
+     "lon": 117.526,
+     "diam_km": 1.17,
+     "prof_m": 178,
+     "prof_diam": 0.152,
+     "borde_m": -2.0,
+     "distancia_z": 0.271
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -81.2,
+     "lon": 56.766,
+     "diam_km": 1.19,
+     "prof_m": 165,
+     "prof_diam": 0.138,
+     "borde_m": -8.7,
+     "distancia_z": 0.293
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Cráter Gale",
+     "lat": -5.926,
+     "lon": 138.496,
+     "diam_km": 1.32,
+     "prof_m": 185,
+     "prof_diam": 0.141,
+     "borde_m": -9.6,
+     "distancia_z": 0.234,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.484,
+     "lon": -23.526,
+     "diam_km": 1.48,
+     "prof_m": 206,
+     "prof_diam": 0.139,
+     "borde_m": 19.0,
+     "distancia_z": 0.81,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.715,
+     "lon": -23.57,
+     "diam_km": 1.43,
+     "prof_m": 181,
+     "prof_diam": 0.127,
+     "borde_m": 12.8,
+     "distancia_z": 0.857,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.9847,
+    "terreno": 0.3519,
+    "superficie": 0.7408,
+    "clima": 0.5012,
+    "total": 0.6476,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.0153,
+    "terreno": 0.9701,
+    "superficie": 0.7408,
+    "clima": 0.5012,
+    "total": 0.1425,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "g00026": {
+  "nombre": "Depresión tipo cráter G00026 (Atacama (Chile))",
+  "pais": "CL",
+  "lat": -23.4328,
+  "lon": -69.5131,
+  "estado": "candidato_modelo",
+  "destino_ref": "polo_sur_lunar",
+  "proceso": "Probable tajo minero a cielo abierto (cantera de OpenStreetMap a ≤ 2 km; por verificar)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 0.93,
+   "prof_m": 103.3,
+   "prof_diam": 0.111,
+   "borde_m": -83.6
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": 3.3025,
+   "P_Luna": 0.9645,
+   "aportes": {
+    "log_diam": {
+     "valor": -0.0315,
+     "z": -0.463,
+     "aporte_logit": 0.1459
+    },
+    "prof_diam": {
+     "valor": 0.1111,
+     "z": 1.257,
+     "aporte_logit": 1.9664
+    },
+    "borde_rel": {
+     "valor": -0.0899,
+     "z": -2.263,
+     "aporte_logit": 0.4474
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.058,
+     "lon": -57.931,
+     "diam_km": 0.93,
+     "prof_m": 102,
+     "prof_diam": 0.109,
+     "borde_m": -81.7,
+     "distancia_z": 0.087
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -81.481,
+     "lon": 165.034,
+     "diam_km": 1.01,
+     "prof_m": 102,
+     "prof_diam": 0.101,
+     "borde_m": -86.2,
+     "distancia_z": 0.331
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -80.825,
+     "lon": 106.207,
+     "diam_km": 0.93,
+     "prof_m": 92,
+     "prof_diam": 0.098,
+     "borde_m": -81.8,
+     "distancia_z": 0.345
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Oxia Planum",
+     "lat": 19.033,
+     "lon": -23.546,
+     "diam_km": 0.98,
+     "prof_m": 98,
+     "prof_diam": 0.1,
+     "borde_m": -105.0,
+     "distancia_z": 0.654,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Gusev (Spirit)",
+     "lat": -15.287,
+     "lon": 175.638,
+     "diam_km": 1.01,
+     "prof_m": 83,
+     "prof_diam": 0.082,
+     "borde_m": -90.3,
+     "distancia_z": 0.782
+    },
+    {
+     "sitio": "Gusev (Spirit)",
+     "lat": -15.398,
+     "lon": 175.29,
+     "diam_km": 0.71,
+     "prof_m": 54,
+     "prof_diam": 0.076,
+     "borde_m": -76.4,
+     "distancia_z": 1.198
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.9645,
+    "terreno": 0.741,
+    "superficie": 0.6834,
+    "clima": 0.5065,
+    "total": 0.7149,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.0355,
+    "terreno": 0.4896,
+    "superficie": 0.6834,
+    "clima": 0.5065,
+    "total": 0.1793,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "g00071": {
+  "nombre": "Depresión tipo cráter G00071 (Atacama (Chile))",
+  "pais": "CL",
+  "lat": -24.2162,
+  "lon": -69.0487,
+  "estado": "candidato_modelo",
+  "destino_ref": "polo_sur_lunar",
+  "proceso": "Probable tajo minero a cielo abierto (cantera de OpenStreetMap a ≤ 2 km; por verificar)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 1.373,
+   "prof_m": 238.9,
+   "prof_diam": 0.174,
+   "borde_m": -18.3
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": 5.2072,
+   "P_Luna": 0.9946,
+   "aportes": {
+    "log_diam": {
+     "valor": 0.1377,
+     "z": 0.204,
+     "aporte_logit": -0.0645
+    },
+    "prof_diam": {
+     "valor": 0.174,
+     "z": 2.936,
+     "aporte_logit": 4.593
+    },
+    "borde_rel": {
+     "valor": -0.0133,
+     "z": 0.324,
+     "aporte_logit": -0.0641
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.514,
+     "lon": -9.495,
+     "diam_km": 1.24,
+     "prof_m": 207,
+     "prof_diam": 0.168,
+     "borde_m": -5.8,
+     "distancia_z": 0.382
+    },
+    {
+     "sitio": "Polo sur (85-90°S)",
+     "lat": -85.718,
+     "lon": -80.908,
+     "diam_km": 1.66,
+     "prof_m": 278,
+     "prof_diam": 0.167,
+     "borde_m": -11.7,
+     "distancia_z": 0.424
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -80.565,
+     "lon": -33.824,
+     "diam_km": 1.79,
+     "prof_m": 306,
+     "prof_diam": 0.171,
+     "borde_m": -29.0,
+     "distancia_z": 0.473
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Cráter Gale",
+     "lat": -5.926,
+     "lon": 138.496,
+     "diam_km": 1.32,
+     "prof_m": 185,
+     "prof_diam": 0.141,
+     "borde_m": -9.6,
+     "distancia_z": 0.918,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.484,
+     "lon": -23.526,
+     "diam_km": 1.48,
+     "prof_m": 206,
+     "prof_diam": 0.139,
+     "borde_m": 19.0,
+     "distancia_z": 1.288,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.715,
+     "lon": -23.57,
+     "diam_km": 1.43,
+     "prof_m": 181,
+     "prof_diam": 0.127,
+     "borde_m": 12.8,
+     "distancia_z": 1.469,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.9946,
+    "terreno": 0.6188,
+    "superficie": 0.9048,
+    "clima": 0.5132,
+    "total": 0.7278,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.0054,
+    "terreno": 0.5863,
+    "superficie": 0.9048,
+    "clima": 0.5132,
+    "total": 0.0896,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "g00174": {
+  "nombre": "Depresión tipo cráter G00174 (Arizona (EE. UU.))",
+  "pais": "US",
+  "lat": 35.9512,
+  "lon": -111.667,
+  "estado": "candidato_modelo",
+  "destino_ref": "polo_sur_lunar",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
+  "novedoso": null,
+  "medidas": {
+   "diam_km": 0.903,
+   "prof_m": 144.3,
+   "prof_diam": 0.1599,
+   "borde_m": -28.2
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": 4.9604,
+   "P_Luna": 0.993,
+   "aportes": {
+    "log_diam": {
+     "valor": -0.0443,
+     "z": -0.513,
+     "aporte_logit": 0.1618
+    },
+    "prof_diam": {
+     "valor": 0.1598,
+     "z": 2.557,
+     "aporte_logit": 4.0003
+    },
+    "borde_rel": {
+     "valor": -0.0312,
+     "z": -0.281,
+     "aporte_logit": 0.0555
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.91,
+     "lon": -94.437,
+     "diam_km": 0.81,
+     "prof_m": 141,
+     "prof_diam": 0.174,
+     "borde_m": -29.7,
+     "distancia_z": 0.445
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -80.929,
+     "lon": 162.756,
+     "diam_km": 1.06,
+     "prof_m": 167,
+     "prof_diam": 0.158,
+     "borde_m": -21.2,
+     "distancia_z": 0.47
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -80.564,
+     "lon": -91.307,
+     "diam_km": 0.71,
+     "prof_m": 112,
+     "prof_diam": 0.157,
+     "borde_m": -17.2,
+     "distancia_z": 0.474
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Oxia Planum",
+     "lat": 18.674,
+     "lon": -23.577,
+     "diam_km": 1.13,
+     "prof_m": 172,
+     "prof_diam": 0.152,
+     "borde_m": -68.0,
+     "distancia_z": 1.071,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Cráter Gale",
+     "lat": -5.926,
+     "lon": 138.496,
+     "diam_km": 1.32,
+     "prof_m": 185,
+     "prof_diam": 0.141,
+     "borde_m": -9.6,
+     "distancia_z": 1.155,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Gusev (Spirit)",
+     "lat": -15.319,
+     "lon": 176.14,
+     "diam_km": 1.91,
+     "prof_m": 255,
+     "prof_diam": 0.133,
+     "borde_m": -71.8,
+     "distancia_z": 1.485
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.993,
+    "terreno": 0.6563,
+    "superficie": 0.2758,
+    "clima": 0.3325,
+    "total": 0.5598,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.007,
+    "terreno": 0.2381,
+    "superficie": 0.2758,
+    "clima": 0.3325,
+    "total": 0.0663,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "g00176": {
+  "nombre": "Depresión tipo cráter G00176 (Arizona (EE. UU.))",
+  "pais": "US",
+  "lat": 35.5447,
+  "lon": -111.6365,
+  "estado": "candidato_modelo",
+  "destino_ref": "polo_sur_lunar",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (borde levantado: probable volcánico)",
+  "novedoso": null,
+  "medidas": {
+   "diam_km": 0.749,
+   "prof_m": 103.2,
+   "prof_diam": 0.1379,
+   "borde_m": 58.5
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": 3.4118,
+   "P_Luna": 0.9681,
+   "aportes": {
+    "log_diam": {
+     "valor": -0.1255,
+     "z": -0.833,
+     "aporte_logit": 0.2628
+    },
+    "prof_diam": {
+     "valor": 0.1378,
+     "z": 1.97,
+     "aporte_logit": 3.0813
+    },
+    "borde_rel": {
+     "valor": 0.0781,
+     "z": 3.414,
+     "aporte_logit": -0.675
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -81.213,
+     "lon": -113.666,
+     "diam_km": 0.68,
+     "prof_m": 76,
+     "prof_diam": 0.112,
+     "borde_m": 45.1,
+     "distancia_z": 0.814
+    },
+    {
+     "sitio": "Polo sur (85-90°S)",
+     "lat": -86.518,
+     "lon": 106.882,
+     "diam_km": 0.64,
+     "prof_m": 96,
+     "prof_diam": 0.151,
+     "borde_m": 64.8,
+     "distancia_z": 0.91
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -81.29,
+     "lon": 170.412,
+     "diam_km": 0.64,
+     "prof_m": 101,
+     "prof_diam": 0.158,
+     "borde_m": 36.7,
+     "distancia_z": 0.914
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Cráter Jezero",
+     "lat": 18.317,
+     "lon": 76.631,
+     "diam_km": 1.24,
+     "prof_m": 147,
+     "prof_diam": 0.119,
+     "borde_m": 17.2,
+     "distancia_z": 2.386,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.484,
+     "lon": -23.526,
+     "diam_km": 1.48,
+     "prof_m": 206,
+     "prof_diam": 0.139,
+     "borde_m": 19.0,
+     "distancia_z": 2.495,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.715,
+     "lon": -23.57,
+     "diam_km": 1.43,
+     "prof_m": 181,
+     "prof_diam": 0.127,
+     "borde_m": 12.8,
+     "distancia_z": 2.599,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.9545,
+    "terreno": 0.5252,
+    "superficie": 0.2234,
+    "clima": 0.3089,
+    "total": 0.5085,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.0315,
+    "terreno": 0.6907,
+    "superficie": 0.2234,
+    "clima": 0.3089,
+    "total": 0.1354,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "g00216": {
+  "nombre": "Depresión tipo cráter G00216 (Arizona (EE. UU.))",
+  "pais": "US",
+  "lat": 33.0924,
+  "lon": -109.3571,
+  "estado": "candidato_modelo",
+  "destino_ref": "polo_sur_lunar",
+  "proceso": "Probable tajo minero a cielo abierto (cantera de OpenStreetMap a ≤ 2 km; por verificar)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 1.748,
+   "prof_m": 272.6,
+   "prof_diam": 0.1559,
+   "borde_m": -61.5
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": 4.4694,
+   "P_Luna": 0.9887,
+   "aportes": {
+    "log_diam": {
+     "valor": 0.2425,
+     "z": 0.618,
+     "aporte_logit": -0.1949
+    },
+    "prof_diam": {
+     "valor": 0.1559,
+     "z": 2.455,
+     "aporte_logit": 3.8396
+    },
+    "borde_rel": {
+     "valor": -0.0352,
+     "z": -0.414,
+     "aporte_logit": 0.0819
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -80.665,
+     "lon": 115.689,
+     "diam_km": 1.82,
+     "prof_m": 299,
+     "prof_diam": 0.164,
+     "borde_m": -72.3,
+     "distancia_z": 0.284
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.486,
+     "lon": -139.407,
+     "diam_km": 1.64,
+     "prof_m": 232,
+     "prof_diam": 0.141,
+     "borde_m": -58.3,
+     "distancia_z": 0.412
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.698,
+     "lon": 95.22,
+     "diam_km": 2.08,
+     "prof_m": 350,
+     "prof_diam": 0.168,
+     "borde_m": -75.7,
+     "distancia_z": 0.443
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Gusev (Spirit)",
+     "lat": -15.319,
+     "lon": 176.14,
+     "diam_km": 1.91,
+     "prof_m": 255,
+     "prof_diam": 0.133,
+     "borde_m": -71.8,
+     "distancia_z": 0.633
+    },
+    {
+     "sitio": "Oxia Planum",
+     "lat": 18.674,
+     "lon": -23.577,
+     "diam_km": 1.13,
+     "prof_m": 172,
+     "prof_diam": 0.152,
+     "borde_m": -68.0,
+     "distancia_z": 1.136,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Cráter Gale",
+     "lat": -5.926,
+     "lon": 138.496,
+     "diam_km": 1.32,
+     "prof_m": 185,
+     "prof_diam": 0.141,
+     "borde_m": -9.6,
+     "distancia_z": 1.138,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.9887,
+    "terreno": 0.3776,
+    "superficie": 0.7767,
+    "clima": 0.3175,
+    "total": 0.5614,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.0113,
+    "terreno": 0.137,
+    "superficie": 0.7767,
+    "clima": 0.3175,
+    "total": 0.0806,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "g00219": {
+  "nombre": "Depresión tipo cráter G00219 (Arizona (EE. UU.))",
+  "pais": "US",
+  "lat": 32.6331,
+  "lon": -108.3563,
+  "estado": "candidato_modelo",
+  "destino_ref": "polo_sur_lunar",
+  "proceso": "Probable tajo minero a cielo abierto (cantera de OpenStreetMap a ≤ 2 km; por verificar)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 0.749,
+   "prof_m": 119.1,
+   "prof_diam": 0.1592,
+   "borde_m": 12.5
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": 4.7083,
+   "P_Luna": 0.9911,
+   "aportes": {
+    "log_diam": {
+     "valor": -0.1255,
+     "z": -0.833,
+     "aporte_logit": 0.2628
+    },
+    "prof_diam": {
+     "valor": 0.159,
+     "z": 2.536,
+     "aporte_logit": 3.9674
+    },
+    "borde_rel": {
+     "valor": 0.0167,
+     "z": 1.339,
+     "aporte_logit": -0.2647
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Polo sur (85-90°S)",
+     "lat": -87.031,
+     "lon": -130.478,
+     "diam_km": 0.71,
+     "prof_m": 112,
+     "prof_diam": 0.157,
+     "borde_m": 11.4,
+     "distancia_z": 0.107
+    },
+    {
+     "sitio": "Polo sur (85-90°S)",
+     "lat": -87.223,
+     "lon": -174.344,
+     "diam_km": 0.78,
+     "prof_m": 120,
+     "prof_diam": 0.153,
+     "borde_m": 15.1,
+     "distancia_z": 0.193
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -84.507,
+     "lon": 8.991,
+     "diam_km": 0.78,
+     "prof_m": 127,
+     "prof_diam": 0.163,
+     "borde_m": 9.3,
+     "distancia_z": 0.204
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.484,
+     "lon": -23.526,
+     "diam_km": 1.48,
+     "prof_m": 206,
+     "prof_diam": 0.139,
+     "borde_m": 19.0,
+     "distancia_z": 1.287,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Cráter Gale",
+     "lat": -5.926,
+     "lon": 138.496,
+     "diam_km": 1.32,
+     "prof_m": 185,
+     "prof_diam": 0.141,
+     "borde_m": -9.6,
+     "distancia_z": 1.352,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Cráter Jezero",
+     "lat": 18.317,
+     "lon": 76.631,
+     "diam_km": 1.24,
+     "prof_m": 147,
+     "prof_diam": 0.119,
+     "borde_m": 17.2,
+     "distancia_z": 1.374,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.9911,
+    "terreno": 0.4964,
+    "superficie": 0.8976,
+    "clima": 0.3436,
+    "total": 0.6106,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.0089,
+    "terreno": 0.7308,
+    "superficie": 0.8976,
+    "clima": 0.3436,
+    "total": 0.0982,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "g00240": {
+  "nombre": "Depresión tipo cráter G00240 (Arizona (EE. UU.))",
+  "pais": "US",
+  "lat": 32.3566,
+  "lon": -112.8642,
+  "estado": "candidato_modelo",
+  "destino_ref": "polo_sur_lunar",
+  "proceso": "Probable tajo minero a cielo abierto (cantera de OpenStreetMap a ≤ 2 km; por verificar)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 1.658,
+   "prof_m": 272.2,
+   "prof_diam": 0.1641,
+   "borde_m": -9.2
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": 4.6432,
+   "P_Luna": 0.9905,
+   "aportes": {
+    "log_diam": {
+     "valor": 0.2196,
+     "z": 0.527,
+     "aporte_logit": -0.1663
+    },
+    "prof_diam": {
+     "valor": 0.1642,
+     "z": 2.674,
+     "aporte_logit": 4.1829
+    },
+    "borde_rel": {
+     "valor": -0.0055,
+     "z": 0.587,
+     "aporte_logit": -0.1161
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Polo sur (85-90°S)",
+     "lat": -85.718,
+     "lon": -80.908,
+     "diam_km": 1.66,
+     "prof_m": 278,
+     "prof_diam": 0.167,
+     "borde_m": -11.7,
+     "distancia_z": 0.101
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.961,
+     "lon": -145.745,
+     "diam_km": 1.73,
+     "prof_m": 286,
+     "prof_diam": 0.165,
+     "borde_m": 3.7,
+     "distancia_z": 0.271
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -80.565,
+     "lon": -33.824,
+     "diam_km": 1.79,
+     "prof_m": 306,
+     "prof_diam": 0.171,
+     "borde_m": -29.0,
+     "distancia_z": 0.422
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Cráter Gale",
+     "lat": -5.926,
+     "lon": 138.496,
+     "diam_km": 1.32,
+     "prof_m": 185,
+     "prof_diam": 0.141,
+     "borde_m": -9.6,
+     "distancia_z": 0.746,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.484,
+     "lon": -23.526,
+     "diam_km": 1.48,
+     "prof_m": 206,
+     "prof_diam": 0.139,
+     "borde_m": 19.0,
+     "distancia_z": 0.931,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.715,
+     "lon": -23.57,
+     "diam_km": 1.43,
+     "prof_m": 181,
+     "prof_diam": 0.127,
+     "borde_m": 12.8,
+     "distancia_z": 1.141,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.9905,
+    "terreno": 0.4023,
+    "superficie": 0.8994,
+    "clima": 0.406,
+    "total": 0.6272,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.0095,
+    "terreno": 0.9018,
+    "superficie": 0.8994,
+    "clima": 0.406,
+    "total": 0.1103,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "g00243": {
+  "nombre": "Depresión tipo cráter G00243 (Arizona (EE. UU.))",
+  "pais": "US",
+  "lat": 31.8921,
+  "lon": -111.0353,
+  "estado": "candidato_modelo",
+  "destino_ref": "polo_sur_lunar",
+  "proceso": "Probable tajo minero a cielo abierto (cantera de OpenStreetMap a ≤ 2 km; por verificar)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 2.068,
+   "prof_m": 272.4,
+   "prof_diam": 0.1317,
+   "borde_m": -12.5
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": 3.1726,
+   "P_Luna": 0.9598,
+   "aportes": {
+    "log_diam": {
+     "valor": 0.3156,
+     "z": 0.906,
+     "aporte_logit": -0.2856
+    },
+    "prof_diam": {
+     "valor": 0.1317,
+     "z": 1.808,
+     "aporte_logit": 2.8282
+    },
+    "borde_rel": {
+     "valor": -0.006,
+     "z": 0.57,
+     "aporte_logit": -0.1128
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.052,
+     "lon": 151.546,
+     "diam_km": 2.08,
+     "prof_m": 259,
+     "prof_diam": 0.124,
+     "borde_m": -21.7,
+     "distancia_z": 0.244
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -83.757,
+     "lon": 103.496,
+     "diam_km": 2.02,
+     "prof_m": 259,
+     "prof_diam": 0.128,
+     "borde_m": -28.0,
+     "distancia_z": 0.284
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -83.12,
+     "lon": 130.341,
+     "diam_km": 1.79,
+     "prof_m": 246,
+     "prof_diam": 0.137,
+     "borde_m": -6.7,
+     "distancia_z": 0.295
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Cráter Jezero",
+     "lat": 18.498,
+     "lon": 76.699,
+     "diam_km": 2.04,
+     "prof_m": 246,
+     "prof_diam": 0.12,
+     "borde_m": -9.9,
+     "distancia_z": 0.306,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Cráter Jezero",
+     "lat": 18.339,
+     "lon": 77.951,
+     "diam_km": 1.95,
+     "prof_m": 234,
+     "prof_diam": 0.12,
+     "borde_m": 12.2,
+     "distancia_z": 0.533,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Cráter Gale",
+     "lat": -5.926,
+     "lon": 138.496,
+     "diam_km": 1.32,
+     "prof_m": 185,
+     "prof_diam": 0.141,
+     "borde_m": -9.6,
+     "distancia_z": 0.81,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.9598,
+    "terreno": 0.321,
+    "superficie": 0.5362,
+    "clima": 0.3333,
+    "total": 0.5306,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.0402,
+    "terreno": 0.8848,
+    "superficie": 0.5362,
+    "clima": 0.3333,
+    "total": 0.1736,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0000": {
+  "nombre": "Depresión tipo cráter MX0000",
+  "pais": "MX",
+  "lat": 32.308,
+  "lon": -114.5567,
+  "estado": "candidato_modelo",
+  "destino_ref": "jezero",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 2.651,
+   "prof_m": 26.9,
+   "prof_diam": 0.0101,
+   "borde_m": -4.2
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": -2.0663,
+   "P_Luna": 0.1124,
+   "aportes": {
+    "log_diam": {
+     "valor": 0.4234,
+     "z": 1.331,
+     "aporte_logit": -0.4197
+    },
+    "prof_diam": {
+     "valor": 0.0101,
+     "z": -1.436,
+     "aporte_logit": -2.2467
+    },
+    "borde_rel": {
+     "valor": -0.0016,
+     "z": 0.721,
+     "aporte_logit": -0.1426
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.07,
+     "lon": 49.714,
+     "diam_km": 3.04,
+     "prof_m": 39,
+     "prof_diam": 0.013,
+     "borde_m": -3.7,
+     "distancia_z": 0.244
+    },
+    {
+     "sitio": "Polo sur (85-90°S)",
+     "lat": -86.744,
+     "lon": -85.409,
+     "diam_km": 2.99,
+     "prof_m": 41,
+     "prof_diam": 0.014,
+     "borde_m": -15.2,
+     "distancia_z": 0.259
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -83.722,
+     "lon": -155.945,
+     "diam_km": 2.37,
+     "prof_m": 22,
+     "prof_diam": 0.009,
+     "borde_m": -19.3,
+     "distancia_z": 0.295
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Gusev (Spirit)",
+     "lat": -14.768,
+     "lon": 175.978,
+     "diam_km": 2.63,
+     "prof_m": 30,
+     "prof_diam": 0.011,
+     "borde_m": -13.1,
+     "distancia_z": 0.12
+    },
+    {
+     "sitio": "Cráter Gale",
+     "lat": -5.818,
+     "lon": 137.644,
+     "diam_km": 2.82,
+     "prof_m": 30,
+     "prof_diam": 0.011,
+     "borde_m": -12.2,
+     "distancia_z": 0.14,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Cráter Jezero",
+     "lat": 18.425,
+     "lon": 77.747,
+     "diam_km": 2.47,
+     "prof_m": 31,
+     "prof_diam": 0.013,
+     "borde_m": -9.4,
+     "distancia_z": 0.155,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.1124,
+    "terreno": 0.1916,
+    "superficie": 0.4826,
+    "clima": 0.4422,
+    "total": 0.2275,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.8876,
+    "terreno": 0.5281,
+    "superficie": 0.4826,
+    "clima": 0.4422,
+    "total": 0.6054,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0001": {
+  "nombre": "Depresión tipo cráter MX0001",
+  "pais": "MX",
+  "lat": 31.9697,
+  "lon": -114.1465,
+  "estado": "candidato_modelo",
+  "destino_ref": "jezero",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
+  "novedoso": false,
+  "medidas": {
+   "diam_km": 1.627,
+   "prof_m": 40.7,
+   "prof_diam": 0.025,
+   "borde_m": -7.9
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": -1.1601,
+   "P_Luna": 0.2386,
+   "aportes": {
+    "log_diam": {
+     "valor": 0.2114,
+     "z": 0.495,
+     "aporte_logit": -0.1561
+    },
+    "prof_diam": {
+     "valor": 0.025,
+     "z": -1.04,
+     "aporte_logit": -1.6261
+    },
+    "borde_rel": {
+     "valor": -0.0049,
+     "z": 0.611,
+     "aporte_logit": -0.1207
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.788,
+     "lon": 128.717,
+     "diam_km": 1.69,
+     "prof_m": 44,
+     "prof_diam": 0.026,
+     "borde_m": -12.2,
+     "distancia_z": 0.106
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -80.883,
+     "lon": 46.453,
+     "diam_km": 1.7,
+     "prof_m": 47,
+     "prof_diam": 0.028,
+     "borde_m": -6.3,
+     "distancia_z": 0.111
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -80.642,
+     "lon": -162.141,
+     "diam_km": 1.73,
+     "prof_m": 40,
+     "prof_diam": 0.023,
+     "borde_m": -7.5,
+     "distancia_z": 0.123
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Meridiani (Opportunity)",
+     "lat": -2.384,
+     "lon": -5.884,
+     "diam_km": 1.61,
+     "prof_m": 38,
+     "prof_diam": 0.024,
+     "borde_m": -9.7,
+     "distancia_z": 0.058
+    },
+    {
+     "sitio": "Chryse (Viking 1)",
+     "lat": 21.781,
+     "lon": -47.868,
+     "diam_km": 1.63,
+     "prof_m": 46,
+     "prof_diam": 0.028,
+     "borde_m": -7.7,
+     "distancia_z": 0.087
+    },
+    {
+     "sitio": "Meridiani (Opportunity)",
+     "lat": -1.747,
+     "lon": -5.195,
+     "diam_km": 1.7,
+     "prof_m": 44,
+     "prof_diam": 0.026,
+     "borde_m": -12.0,
+     "distancia_z": 0.111
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.2386,
+    "terreno": 0.2504,
+    "superficie": 0.4695,
+    "clima": 0.4276,
+    "total": 0.3154,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.7614,
+    "terreno": 0.6902,
+    "superficie": 0.4695,
+    "clima": 0.4276,
+    "total": 0.5841,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0002": {
+  "nombre": "Depresión tipo cráter MX0002",
+  "pais": "MX",
+  "lat": 31.9544,
+  "lon": -114.1131,
+  "estado": "candidato_modelo",
+  "destino_ref": "jezero",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
+  "novedoso": false,
+  "medidas": {
+   "diam_km": 1.48,
+   "prof_m": 26.2,
+   "prof_diam": 0.0177,
+   "borde_m": -7.9
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": -1.411,
+   "P_Luna": 0.1961,
+   "aportes": {
+    "log_diam": {
+     "valor": 0.1703,
+     "z": 0.333,
+     "aporte_logit": -0.105
+    },
+    "prof_diam": {
+     "valor": 0.0177,
+     "z": -1.235,
+     "aporte_logit": -1.9313
+    },
+    "borde_rel": {
+     "valor": -0.0053,
+     "z": 0.594,
+     "aporte_logit": -0.1175
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -81.431,
+     "lon": 177.217,
+     "diam_km": 1.58,
+     "prof_m": 24,
+     "prof_diam": 0.015,
+     "borde_m": -5.0,
+     "distancia_z": 0.15
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.396,
+     "lon": -131.626,
+     "diam_km": 1.45,
+     "prof_m": 29,
+     "prof_diam": 0.02,
+     "borde_m": -15.7,
+     "distancia_z": 0.198
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -80.807,
+     "lon": 14.952,
+     "diam_km": 1.48,
+     "prof_m": 25,
+     "prof_diam": 0.017,
+     "borde_m": 1.1,
+     "distancia_z": 0.207
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.595,
+     "lon": -24.898,
+     "diam_km": 1.5,
+     "prof_m": 26,
+     "prof_diam": 0.017,
+     "borde_m": -10.1,
+     "distancia_z": 0.052,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Meridiani (Opportunity)",
+     "lat": -1.753,
+     "lon": -5.391,
+     "diam_km": 1.46,
+     "prof_m": 28,
+     "prof_diam": 0.019,
+     "borde_m": -11.2,
+     "distancia_z": 0.089
+    },
+    {
+     "sitio": "Meridiani (Opportunity)",
+     "lat": -2.582,
+     "lon": -4.973,
+     "diam_km": 1.41,
+     "prof_m": 23,
+     "prof_diam": 0.016,
+     "borde_m": -8.4,
+     "distancia_z": 0.094
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.1961,
+    "terreno": 0.2461,
+    "superficie": 0.4868,
+    "clima": 0.4276,
+    "total": 0.2919,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.8039,
+    "terreno": 0.6783,
+    "superficie": 0.4868,
+    "clima": 0.4276,
+    "total": 0.5975,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0003": {
+  "nombre": "Depresión tipo cráter MX0003",
+  "pais": "MX",
+  "lat": 31.868,
+  "lon": -114.3341,
+  "estado": "candidato_modelo",
+  "destino_ref": "jezero",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
+  "novedoso": false,
+  "medidas": {
+   "diam_km": 0.958,
+   "prof_m": 22.4,
+   "prof_diam": 0.0234,
+   "borde_m": 2.0
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": -0.9887,
+   "P_Luna": 0.2712,
+   "aportes": {
+    "log_diam": {
+     "valor": -0.0186,
+     "z": -0.412,
+     "aporte_logit": 0.1299
+    },
+    "prof_diam": {
+     "valor": 0.0234,
+     "z": -1.083,
+     "aporte_logit": -1.6942
+    },
+    "borde_rel": {
+     "valor": 0.0021,
+     "z": 0.845,
+     "aporte_logit": -0.1671
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -81.081,
+     "lon": 35.129,
+     "diam_km": 1.01,
+     "prof_m": 25,
+     "prof_diam": 0.024,
+     "borde_m": 1.9,
+     "distancia_z": 0.093
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -81.683,
+     "lon": -143.002,
+     "diam_km": 0.96,
+     "prof_m": 27,
+     "prof_diam": 0.028,
+     "borde_m": 0.6,
+     "distancia_z": 0.144
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -81.451,
+     "lon": -119.322,
+     "diam_km": 1.01,
+     "prof_m": 29,
+     "prof_diam": 0.028,
+     "borde_m": 2.0,
+     "distancia_z": 0.159
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.535,
+     "lon": -23.893,
+     "diam_km": 0.96,
+     "prof_m": 22,
+     "prof_diam": 0.023,
+     "borde_m": 1.7,
+     "distancia_z": 0.015,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.908,
+     "lon": -23.944,
+     "diam_km": 0.98,
+     "prof_m": 21,
+     "prof_diam": 0.021,
+     "borde_m": 0.9,
+     "distancia_z": 0.082,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Gusev (Spirit)",
+     "lat": -15.17,
+     "lon": 175.766,
+     "diam_km": 0.9,
+     "prof_m": 22,
+     "prof_diam": 0.024,
+     "borde_m": -1.0,
+     "distancia_z": 0.15
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.2712,
+    "terreno": 0.2394,
+    "superficie": 0.4548,
+    "clima": 0.4276,
+    "total": 0.3287,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.7288,
+    "terreno": 0.6598,
+    "superficie": 0.4548,
+    "clima": 0.4276,
+    "total": 0.5683,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0004": {
+  "nombre": "Depresión tipo cráter MX0004",
+  "pais": "MX",
+  "lat": 31.3413,
+  "lon": -115.1156,
+  "estado": "candidato_modelo",
+  "destino_ref": "jezero",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 0.958,
+   "prof_m": 20.6,
+   "prof_diam": 0.0216,
+   "borde_m": -10.7
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": -0.9786,
+   "P_Luna": 0.2732,
+   "aportes": {
+    "log_diam": {
+     "valor": -0.0186,
+     "z": -0.412,
+     "aporte_logit": 0.1299
+    },
+    "prof_diam": {
+     "valor": 0.0215,
+     "z": -1.133,
+     "aporte_logit": -1.7727
+    },
+    "borde_rel": {
+     "valor": -0.0112,
+     "z": 0.397,
+     "aporte_logit": -0.0786
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -84.72,
+     "lon": 125.658,
+     "diam_km": 0.93,
+     "prof_m": 21,
+     "prof_diam": 0.022,
+     "borde_m": -9.0,
+     "distancia_z": 0.073
+    },
+    {
+     "sitio": "Polo sur (85-90°S)",
+     "lat": -87.539,
+     "lon": -154.175,
+     "diam_km": 0.96,
+     "prof_m": 23,
+     "prof_diam": 0.024,
+     "borde_m": -11.6,
+     "distancia_z": 0.082
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -84.508,
+     "lon": -148.113,
+     "diam_km": 0.98,
+     "prof_m": 24,
+     "prof_diam": 0.025,
+     "borde_m": -8.7,
+     "distancia_z": 0.124
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Meridiani (Opportunity)",
+     "lat": -1.798,
+     "lon": -5.131,
+     "diam_km": 0.98,
+     "prof_m": 22,
+     "prof_diam": 0.022,
+     "borde_m": -9.0,
+     "distancia_z": 0.085
+    },
+    {
+     "sitio": "Cráter Jezero",
+     "lat": 18.367,
+     "lon": 77.667,
+     "diam_km": 0.96,
+     "prof_m": 21,
+     "prof_diam": 0.022,
+     "borde_m": -7.9,
+     "distancia_z": 0.1,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.494,
+     "lon": -25.125,
+     "diam_km": 0.93,
+     "prof_m": 21,
+     "prof_diam": 0.023,
+     "borde_m": -8.1,
+     "distancia_z": 0.1,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.2732,
+    "terreno": 0.6559,
+    "superficie": 0.4257,
+    "clima": 0.3983,
+    "total": 0.3716,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.7268,
+    "terreno": 0.5531,
+    "superficie": 0.4257,
+    "clima": 0.3983,
+    "total": 0.5358,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0005": {
+  "nombre": "Depresión tipo cráter MX0005",
+  "pais": "MX",
+  "lat": 31.7799,
+  "lon": -114.1219,
+  "estado": "candidato_modelo",
+  "destino_ref": "jezero",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
+  "novedoso": false,
+  "medidas": {
+   "diam_km": 0.93,
+   "prof_m": 23.6,
+   "prof_diam": 0.0253,
+   "borde_m": -3.3
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": -0.8518,
+   "P_Luna": 0.2991,
+   "aportes": {
+    "log_diam": {
+     "valor": -0.0315,
+     "z": -0.463,
+     "aporte_logit": 0.1459
+    },
+    "prof_diam": {
+     "valor": 0.0254,
+     "z": -1.03,
+     "aporte_logit": -1.611
+    },
+    "borde_rel": {
+     "valor": -0.0035,
+     "z": 0.655,
+     "aporte_logit": -0.1295
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -84.727,
+     "lon": 136.069,
+     "diam_km": 0.93,
+     "prof_m": 28,
+     "prof_diam": 0.03,
+     "borde_m": -3.7,
+     "distancia_z": 0.114
+    },
+    {
+     "sitio": "Polo sur (85-90°S)",
+     "lat": -86.03,
+     "lon": -82.308,
+     "diam_km": 0.98,
+     "prof_m": 26,
+     "prof_diam": 0.026,
+     "borde_m": -5.3,
+     "distancia_z": 0.116
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -84.514,
+     "lon": -147.435,
+     "diam_km": 0.96,
+     "prof_m": 21,
+     "prof_diam": 0.022,
+     "borde_m": -5.4,
+     "distancia_z": 0.13
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Meridiani (Opportunity)",
+     "lat": -1.75,
+     "lon": -5.057,
+     "diam_km": 0.96,
+     "prof_m": 25,
+     "prof_diam": 0.026,
+     "borde_m": -2.5,
+     "distancia_z": 0.062
+    },
+    {
+     "sitio": "Meridiani (Opportunity)",
+     "lat": -1.678,
+     "lon": -5.128,
+     "diam_km": 0.93,
+     "prof_m": 22,
+     "prof_diam": 0.024,
+     "borde_m": -4.6,
+     "distancia_z": 0.065
+    },
+    {
+     "sitio": "Gusev (Spirit)",
+     "lat": -15.253,
+     "lon": 175.007,
+     "diam_km": 0.96,
+     "prof_m": 26,
+     "prof_diam": 0.027,
+     "borde_m": -4.5,
+     "distancia_z": 0.08
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.2991,
+    "terreno": 0.2103,
+    "superficie": 0.5262,
+    "clima": 0.4276,
+    "total": 0.3402,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.7009,
+    "terreno": 0.5798,
+    "superficie": 0.5262,
+    "clima": 0.4276,
+    "total": 0.5568,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0006": {
+  "nombre": "Depresión tipo cráter MX0006",
+  "pais": "MX",
+  "lat": 31.9779,
+  "lon": -114.4352,
+  "estado": "candidato_modelo",
+  "destino_ref": "jezero",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
+  "novedoso": false,
+  "medidas": {
+   "diam_km": 0.93,
+   "prof_m": 22.7,
+   "prof_diam": 0.0244,
+   "borde_m": -6.5
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": -0.8692,
+   "P_Luna": 0.2954,
+   "aportes": {
+    "log_diam": {
+     "valor": -0.0315,
+     "z": -0.463,
+     "aporte_logit": 0.1459
+    },
+    "prof_diam": {
+     "valor": 0.0244,
+     "z": -1.056,
+     "aporte_logit": -1.6514
+    },
+    "borde_rel": {
+     "valor": -0.007,
+     "z": 0.538,
+     "aporte_logit": -0.1065
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Polo sur (85-90°S)",
+     "lat": -89.27,
+     "lon": 41.682,
+     "diam_km": 0.9,
+     "prof_m": 22,
+     "prof_diam": 0.025,
+     "borde_m": -7.9,
+     "distancia_z": 0.08
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -84.514,
+     "lon": -147.435,
+     "diam_km": 0.96,
+     "prof_m": 21,
+     "prof_diam": 0.022,
+     "borde_m": -5.4,
+     "distancia_z": 0.097
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -84.72,
+     "lon": 125.658,
+     "diam_km": 0.93,
+     "prof_m": 21,
+     "prof_diam": 0.022,
+     "borde_m": -9.0,
+     "distancia_z": 0.109
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Meridiani (Opportunity)",
+     "lat": -2.4,
+     "lon": -5.711,
+     "diam_km": 0.93,
+     "prof_m": 24,
+     "prof_diam": 0.026,
+     "borde_m": -6.4,
+     "distancia_z": 0.037
+    },
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.43,
+     "lon": -23.753,
+     "diam_km": 0.96,
+     "prof_m": 22,
+     "prof_diam": 0.023,
+     "borde_m": -7.4,
+     "distancia_z": 0.067,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Meridiani (Opportunity)",
+     "lat": -1.678,
+     "lon": -5.128,
+     "diam_km": 0.93,
+     "prof_m": 22,
+     "prof_diam": 0.024,
+     "borde_m": -4.6,
+     "distancia_z": 0.074
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.2954,
+    "terreno": 0.2874,
+    "superficie": 0.4609,
+    "clima": 0.4276,
+    "total": 0.3501,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.7046,
+    "terreno": 0.7923,
+    "superficie": 0.4609,
+    "clima": 0.4276,
+    "total": 0.577,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0011": {
+  "nombre": "Depresión tipo cráter MX0011",
+  "pais": "MX",
+  "lat": 31.5006,
+  "lon": -113.4795,
+  "estado": "candidato_modelo",
+  "destino_ref": "jezero",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
+  "novedoso": false,
+  "medidas": {
+   "diam_km": 0.782,
+   "prof_m": 33.4,
+   "prof_diam": 0.0428,
+   "borde_m": 1.9
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": -0.0745,
+   "P_Luna": 0.4814,
+   "aportes": {
+    "log_diam": {
+     "valor": -0.1068,
+     "z": -0.759,
+     "aporte_logit": 0.2395
+    },
+    "prof_diam": {
+     "valor": 0.0427,
+     "z": -0.567,
+     "aporte_logit": -0.8874
+    },
+    "borde_rel": {
+     "valor": 0.0024,
+     "z": 0.857,
+     "aporte_logit": -0.1694
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.369,
+     "lon": -111.572,
+     "diam_km": 0.78,
+     "prof_m": 34,
+     "prof_diam": 0.043,
+     "borde_m": 3.1,
+     "distancia_z": 0.053
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.49,
+     "lon": -112.228,
+     "diam_km": 0.78,
+     "prof_m": 36,
+     "prof_diam": 0.045,
+     "borde_m": 2.2,
+     "distancia_z": 0.073
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -81.198,
+     "lon": -79.36,
+     "diam_km": 0.81,
+     "prof_m": 35,
+     "prof_diam": 0.043,
+     "borde_m": 3.5,
+     "distancia_z": 0.092
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.921,
+     "lon": -23.603,
+     "diam_km": 0.75,
+     "prof_m": 26,
+     "prof_diam": 0.035,
+     "borde_m": 2.5,
+     "distancia_z": 0.228,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Cráter Jezero",
+     "lat": 19.249,
+     "lon": 77.318,
+     "diam_km": 0.71,
+     "prof_m": 32,
+     "prof_diam": 0.045,
+     "borde_m": -2.0,
+     "distancia_z": 0.244,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.882,
+     "lon": -24.994,
+     "diam_km": 0.87,
+     "prof_m": 45,
+     "prof_diam": 0.051,
+     "borde_m": 0.6,
+     "distancia_z": 0.307,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.4814,
+    "terreno": 0.2242,
+    "superficie": 0.4781,
+    "clima": 0.3454,
+    "total": 0.3819,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.5186,
+    "terreno": 0.6179,
+    "superficie": 0.4781,
+    "clima": 0.3454,
+    "total": 0.4581,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0013": {
+  "nombre": "Depresión tipo cráter MX0013",
+  "pais": "MX",
+  "lat": 31.7632,
+  "lon": -107.0016,
+  "estado": "candidato_modelo",
+  "destino_ref": "jezero",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 2.451,
+   "prof_m": 23.4,
+   "prof_diam": 0.0095,
+   "borde_m": -8.1
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": -2.0374,
+   "P_Luna": 0.1153,
+   "aportes": {
+    "log_diam": {
+     "valor": 0.3893,
+     "z": 1.196,
+     "aporte_logit": -0.3774
+    },
+    "prof_diam": {
+     "valor": 0.0095,
+     "z": -1.452,
+     "aporte_logit": -2.2717
+    },
+    "borde_rel": {
+     "valor": -0.0033,
+     "z": 0.663,
+     "aporte_logit": -0.1311
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -83.722,
+     "lon": -155.945,
+     "diam_km": 2.37,
+     "prof_m": 22,
+     "prof_diam": 0.009,
+     "borde_m": -19.3,
+     "distancia_z": 0.174
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.385,
+     "lon": 119.239,
+     "diam_km": 2.33,
+     "prof_m": 24,
+     "prof_diam": 0.01,
+     "borde_m": -18.4,
+     "distancia_z": 0.176
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.759,
+     "lon": 131.739,
+     "diam_km": 2.27,
+     "prof_m": 24,
+     "prof_diam": 0.011,
+     "borde_m": -18.2,
+     "distancia_z": 0.21
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Cráter Jezero",
+     "lat": 18.425,
+     "lon": 77.747,
+     "diam_km": 2.47,
+     "prof_m": 31,
+     "prof_diam": 0.013,
+     "borde_m": -9.4,
+     "distancia_z": 0.083,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.945,
+     "lon": -24.035,
+     "diam_km": 2.3,
+     "prof_m": 21,
+     "prof_diam": 0.009,
+     "borde_m": -3.9,
+     "distancia_z": 0.121,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Gusev (Spirit)",
+     "lat": -14.768,
+     "lon": 175.978,
+     "diam_km": 2.63,
+     "prof_m": 30,
+     "prof_diam": 0.011,
+     "borde_m": -13.1,
+     "distancia_z": 0.143
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.1153,
+    "terreno": 0.21,
+    "superficie": 0.3326,
+    "clima": 0.3742,
+    "total": 0.2117,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.8847,
+    "terreno": 0.5788,
+    "superficie": 0.3326,
+    "clima": 0.3742,
+    "total": 0.557,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0016": {
+  "nombre": "Depresión tipo cráter MX0016",
+  "pais": "MX",
+  "lat": 30.151,
+  "lon": -115.5008,
+  "estado": "candidato_modelo",
+  "destino_ref": "polo_sur_lunar",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 0.638,
+   "prof_m": 29.8,
+   "prof_diam": 0.0467,
+   "borde_m": -84.8
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": 1.1065,
+   "P_Luna": 0.7515,
+   "aportes": {
+    "log_diam": {
+     "valor": -0.1952,
+     "z": -1.108,
+     "aporte_logit": 0.3494
+    },
+    "prof_diam": {
+     "valor": 0.0467,
+     "z": -0.461,
+     "aporte_logit": -0.7205
+    },
+    "borde_rel": {
+     "valor": -0.1329,
+     "z": -3.716,
+     "aporte_logit": 0.7349
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -81.687,
+     "lon": 79.22,
+     "diam_km": 0.68,
+     "prof_m": 35,
+     "prof_diam": 0.051,
+     "borde_m": -89.7,
+     "distancia_z": 0.164
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -83.026,
+     "lon": 38.846,
+     "diam_km": 0.71,
+     "prof_m": 33,
+     "prof_diam": 0.047,
+     "borde_m": -95.8,
+     "distancia_z": 0.197
+    },
+    {
+     "sitio": "Polo sur (85-90°S)",
+     "lat": -85.649,
+     "lon": -122.375,
+     "diam_km": 0.64,
+     "prof_m": 25,
+     "prof_diam": 0.038,
+     "borde_m": -80.2,
+     "distancia_z": 0.331
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Gusev (Spirit)",
+     "lat": -14.832,
+     "lon": 176.33,
+     "diam_km": 0.93,
+     "prof_m": 45,
+     "prof_diam": 0.048,
+     "borde_m": -119.8,
+     "distancia_z": 0.662
+    },
+    {
+     "sitio": "Gusev (Spirit)",
+     "lat": -15.342,
+     "lon": 175.283,
+     "diam_km": 0.64,
+     "prof_m": 22,
+     "prof_diam": 0.034,
+     "borde_m": -73.4,
+     "distancia_z": 0.689
+    },
+    {
+     "sitio": "Cráter Gale",
+     "lat": -5.562,
+     "lon": 136.978,
+     "diam_km": 0.64,
+     "prof_m": 33,
+     "prof_diam": 0.052,
+     "borde_m": -102.7,
+     "distancia_z": 0.956,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.7515,
+    "terreno": 0.9023,
+    "superficie": 0.1882,
+    "clima": 0.3589,
+    "total": 0.5193,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.2485,
+    "terreno": 0.3273,
+    "superficie": 0.1882,
+    "clima": 0.3589,
+    "total": 0.2865,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0017": {
+  "nombre": "Depresión tipo cráter MX0017",
+  "pais": "MX",
+  "lat": 30.9003,
+  "lon": -115.0487,
+  "estado": "candidato_modelo",
+  "destino_ref": "jezero",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 0.782,
+   "prof_m": 21.5,
+   "prof_diam": 0.0275,
+   "borde_m": -16.2
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": -0.5551,
+   "P_Luna": 0.3647,
+   "aportes": {
+    "log_diam": {
+     "valor": -0.1068,
+     "z": -0.759,
+     "aporte_logit": 0.2395
+    },
+    "prof_diam": {
+     "valor": 0.0275,
+     "z": -0.973,
+     "aporte_logit": -1.5226
+    },
+    "borde_rel": {
+     "valor": -0.0207,
+     "z": 0.075,
+     "aporte_logit": -0.0148
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -84.208,
+     "lon": -166.086,
+     "diam_km": 0.78,
+     "prof_m": 21,
+     "prof_diam": 0.027,
+     "borde_m": -15.8,
+     "distancia_z": 0.018
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.492,
+     "lon": -78.592,
+     "diam_km": 0.81,
+     "prof_m": 24,
+     "prof_diam": 0.03,
+     "borde_m": -18.7,
+     "distancia_z": 0.116
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.795,
+     "lon": 79.254,
+     "diam_km": 0.75,
+     "prof_m": 21,
+     "prof_diam": 0.028,
+     "borde_m": -17.8,
+     "distancia_z": 0.126
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Cráter Gale",
+     "lat": -4.569,
+     "lon": 138.189,
+     "diam_km": 0.81,
+     "prof_m": 22,
+     "prof_diam": 0.027,
+     "borde_m": -17.5,
+     "distancia_z": 0.074,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Meridiani (Opportunity)",
+     "lat": -1.518,
+     "lon": -6.04,
+     "diam_km": 0.78,
+     "prof_m": 21,
+     "prof_diam": 0.027,
+     "borde_m": -14.4,
+     "distancia_z": 0.08
+    },
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.765,
+     "lon": -23.553,
+     "diam_km": 0.75,
+     "prof_m": 22,
+     "prof_diam": 0.029,
+     "borde_m": -16.1,
+     "distancia_z": 0.095,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.3647,
+    "terreno": 0.5125,
+    "superficie": 0.3865,
+    "clima": 0.392,
+    "total": 0.3959,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.6353,
+    "terreno": 0.7078,
+    "superficie": 0.3865,
+    "clima": 0.392,
+    "total": 0.5188,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0018": {
+  "nombre": "Depresión tipo cráter MX0018",
+  "pais": "MX",
+  "lat": 30.6779,
+  "lon": -114.9815,
+  "estado": "candidato_modelo",
+  "destino_ref": "polo_sur_lunar",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 0.677,
+   "prof_m": 24.4,
+   "prof_diam": 0.036,
+   "borde_m": -42.6
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": 0.1616,
+   "P_Luna": 0.5403,
+   "aportes": {
+    "log_diam": {
+     "valor": -0.1694,
+     "z": -1.006,
+     "aporte_logit": 0.3173
+    },
+    "prof_diam": {
+     "valor": 0.036,
+     "z": -0.745,
+     "aporte_logit": -1.1658
+    },
+    "borde_rel": {
+     "valor": -0.0629,
+     "z": -1.351,
+     "aporte_logit": 0.2672
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -80.563,
+     "lon": -138.98,
+     "diam_km": 0.68,
+     "prof_m": 24,
+     "prof_diam": 0.035,
+     "borde_m": -41.9,
+     "distancia_z": 0.045
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.131,
+     "lon": -113.909,
+     "diam_km": 0.68,
+     "prof_m": 24,
+     "prof_diam": 0.036,
+     "borde_m": -41.4,
+     "distancia_z": 0.06
+    },
+    {
+     "sitio": "Polo sur (85-90°S)",
+     "lat": -88.245,
+     "lon": 106.013,
+     "diam_km": 0.68,
+     "prof_m": 24,
+     "prof_diam": 0.036,
+     "borde_m": -41.1,
+     "distancia_z": 0.076
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Gusev (Spirit)",
+     "lat": -15.268,
+     "lon": 175.542,
+     "diam_km": 0.64,
+     "prof_m": 24,
+     "prof_diam": 0.038,
+     "borde_m": -34.3,
+     "distancia_z": 0.327
+    },
+    {
+     "sitio": "Cráter Jezero",
+     "lat": 18.691,
+     "lon": 78.12,
+     "diam_km": 0.78,
+     "prof_m": 22,
+     "prof_diam": 0.028,
+     "borde_m": -46.3,
+     "distancia_z": 0.348,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Cráter Gale",
+     "lat": -6.031,
+     "lon": 138.614,
+     "diam_km": 0.75,
+     "prof_m": 34,
+     "prof_diam": 0.045,
+     "borde_m": -42.8,
+     "distancia_z": 0.361,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.5403,
+    "terreno": 0.6898,
+    "superficie": 0.4036,
+    "clima": 0.4047,
+    "total": 0.492,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.4597,
+    "terreno": 0.2502,
+    "superficie": 0.4036,
+    "clima": 0.4047,
+    "total": 0.3961,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0019": {
+  "nombre": "La Herradura (Son.)",
+  "pais": "MX",
+  "lat": 31.1469,
+  "lon": -112.8633,
+  "estado": "candidato_modelo",
+  "destino_ref": "polo_sur_lunar",
+  "proceso": "Probable tajo minero a cielo abierto (cantera de OpenStreetMap a ≤ 2 km; por verificar)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 1.777,
+   "prof_m": 214.1,
+   "prof_diam": 0.1205,
+   "borde_m": -13.3
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": 2.795,
+   "P_Luna": 0.9424,
+   "aportes": {
+    "log_diam": {
+     "valor": 0.2497,
+     "z": 0.646,
+     "aporte_logit": -0.2037
+    },
+    "prof_diam": {
+     "valor": 0.1205,
+     "z": 1.508,
+     "aporte_logit": 2.3591
+    },
+    "borde_rel": {
+     "valor": -0.0075,
+     "z": 0.522,
+     "aporte_logit": -0.1032
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -81.583,
+     "lon": -87.112,
+     "diam_km": 1.81,
+     "prof_m": 218,
+     "prof_diam": 0.121,
+     "borde_m": -11.5,
+     "distancia_z": 0.046
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.114,
+     "lon": 120.451,
+     "diam_km": 1.85,
+     "prof_m": 222,
+     "prof_diam": 0.12,
+     "borde_m": -19.8,
+     "distancia_z": 0.128
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -83.821,
+     "lon": 134.803,
+     "diam_km": 1.6,
+     "prof_m": 196,
+     "prof_diam": 0.123,
+     "borde_m": -16.2,
+     "distancia_z": 0.212
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Cráter Jezero",
+     "lat": 18.498,
+     "lon": 76.699,
+     "diam_km": 2.04,
+     "prof_m": 246,
+     "prof_diam": 0.12,
+     "borde_m": -9.9,
+     "distancia_z": 0.255,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Cráter Jezero",
+     "lat": 18.339,
+     "lon": 77.951,
+     "diam_km": 1.95,
+     "prof_m": 234,
+     "prof_diam": 0.12,
+     "borde_m": 12.2,
+     "distancia_z": 0.491,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Cráter Jezero",
+     "lat": 17.947,
+     "lon": 76.911,
+     "diam_km": 1.75,
+     "prof_m": 181,
+     "prof_diam": 0.104,
+     "borde_m": -29.0,
+     "distancia_z": 0.547,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.9424,
+    "terreno": 0.2645,
+    "superficie": 0.7726,
+    "clima": 0.3239,
+    "total": 0.5254,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.0576,
+    "terreno": 0.7291,
+    "superficie": 0.7726,
+    "clima": 0.3239,
+    "total": 0.2,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0020": {
+  "nombre": "Depresión tipo cráter MX0020",
+  "pais": "MX",
+  "lat": 31.2329,
+  "lon": -112.8959,
+  "estado": "candidato_modelo",
+  "destino_ref": "polo_sur_lunar",
+  "proceso": "Probable tajo minero a cielo abierto (cantera de OpenStreetMap a ≤ 2 km; por verificar)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 0.782,
+   "prof_m": 65.8,
+   "prof_diam": 0.0842,
+   "borde_m": -8.6
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": 1.7447,
+   "P_Luna": 0.8513,
+   "aportes": {
+    "log_diam": {
+     "valor": -0.1068,
+     "z": -0.759,
+     "aporte_logit": 0.2395
+    },
+    "prof_diam": {
+     "valor": 0.0841,
+     "z": 0.538,
+     "aporte_logit": 0.8421
+    },
+    "borde_rel": {
+     "valor": -0.011,
+     "z": 0.403,
+     "aporte_logit": -0.0797
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.203,
+     "lon": -109.797,
+     "diam_km": 0.78,
+     "prof_m": 65,
+     "prof_diam": 0.083,
+     "borde_m": -14.0,
+     "distancia_z": 0.237
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.772,
+     "lon": -79.727,
+     "diam_km": 0.75,
+     "prof_m": 62,
+     "prof_diam": 0.083,
+     "borde_m": -3.2,
+     "distancia_z": 0.241
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -81.188,
+     "lon": -83.83,
+     "diam_km": 0.81,
+     "prof_m": 76,
+     "prof_diam": 0.093,
+     "borde_m": -9.2,
+     "distancia_z": 0.241
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Meridiani (Opportunity)",
+     "lat": -1.984,
+     "lon": -5.176,
+     "diam_km": 0.75,
+     "prof_m": 55,
+     "prof_diam": 0.073,
+     "borde_m": -7.7,
+     "distancia_z": 0.295
+    },
+    {
+     "sitio": "Gusev (Spirit)",
+     "lat": -15.316,
+     "lon": 175.742,
+     "diam_km": 0.78,
+     "prof_m": 51,
+     "prof_diam": 0.065,
+     "borde_m": -12.0,
+     "distancia_z": 0.525
+    },
+    {
+     "sitio": "Cráter Gale",
+     "lat": -5.675,
+     "lon": 138.088,
+     "diam_km": 0.78,
+     "prof_m": 66,
+     "prof_diam": 0.084,
+     "borde_m": 3.8,
+     "distancia_z": 0.536,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.8513,
+    "terreno": 0.2496,
+    "superficie": 0.5977,
+    "clima": 0.3239,
+    "total": 0.4875,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.1487,
+    "terreno": 0.6881,
+    "superficie": 0.5977,
+    "clima": 0.3239,
+    "total": 0.2824,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0021": {
+  "nombre": "Depresión tipo cráter MX0021",
+  "pais": "MX",
+  "lat": 31.2248,
+  "lon": -112.9168,
+  "estado": "candidato_modelo",
+  "destino_ref": "polo_sur_lunar",
+  "proceso": "Probable tajo minero a cielo abierto (cantera de OpenStreetMap a ≤ 2 km; por verificar)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 0.638,
+   "prof_m": 57.8,
+   "prof_diam": 0.0906,
+   "borde_m": -0.5
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": 2.0557,
+   "P_Luna": 0.8865,
+   "aportes": {
+    "log_diam": {
+     "valor": -0.1952,
+     "z": -1.108,
+     "aporte_logit": 0.3494
+    },
+    "prof_diam": {
+     "valor": 0.0906,
+     "z": 0.711,
+     "aporte_logit": 1.1115
+    },
+    "borde_rel": {
+     "valor": -0.0008,
+     "z": 0.748,
+     "aporte_logit": -0.1479
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Polo sur (85-90°S)",
+     "lat": -85.679,
+     "lon": 132.449,
+     "diam_km": 0.64,
+     "prof_m": 61,
+     "prof_diam": 0.095,
+     "borde_m": -2.0,
+     "distancia_z": 0.153
+    },
+    {
+     "sitio": "Polo sur (85-90°S)",
+     "lat": -88.189,
+     "lon": 41.456,
+     "diam_km": 0.64,
+     "prof_m": 61,
+     "prof_diam": 0.096,
+     "borde_m": 1.7,
+     "distancia_z": 0.176
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -80.849,
+     "lon": 47.108,
+     "diam_km": 0.68,
+     "prof_m": 65,
+     "prof_diam": 0.096,
+     "borde_m": -1.0,
+     "distancia_z": 0.185
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Cráter Gale",
+     "lat": -5.675,
+     "lon": 138.088,
+     "diam_km": 0.78,
+     "prof_m": 66,
+     "prof_diam": 0.084,
+     "borde_m": 3.8,
+     "distancia_z": 0.43,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Meridiani (Opportunity)",
+     "lat": -1.984,
+     "lon": -5.176,
+     "diam_km": 0.75,
+     "prof_m": 55,
+     "prof_diam": 0.073,
+     "borde_m": -7.7,
+     "distancia_z": 0.622
+    },
+    {
+     "sitio": "Cráter Gale",
+     "lat": -5.156,
+     "lon": 137.601,
+     "diam_km": 0.9,
+     "prof_m": 98,
+     "prof_diam": 0.109,
+     "borde_m": -6.8,
+     "distancia_z": 0.797,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.8865,
+    "terreno": 0.2395,
+    "superficie": 0.5997,
+    "clima": 0.3239,
+    "total": 0.4925,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.1135,
+    "terreno": 0.6602,
+    "superficie": 0.5997,
+    "clima": 0.3239,
+    "total": 0.252,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0023": {
+  "nombre": "Cananea (Son.)",
+  "pais": "MX",
+  "lat": 30.9528,
+  "lon": -110.3202,
+  "estado": "candidato_modelo",
+  "destino_ref": "polo_sur_lunar",
+  "proceso": "Probable tajo minero a cielo abierto (cantera de OpenStreetMap a ≤ 2 km; por verificar)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 0.844,
+   "prof_m": 80.8,
+   "prof_diam": 0.0957,
+   "borde_m": 30.0
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": 1.8764,
+   "P_Luna": 0.8672,
+   "aportes": {
+    "log_diam": {
+     "valor": -0.0737,
+     "z": -0.629,
+     "aporte_logit": 0.1983
+    },
+    "prof_diam": {
+     "valor": 0.0957,
+     "z": 0.848,
+     "aporte_logit": 1.326
+    },
+    "borde_rel": {
+     "valor": 0.0355,
+     "z": 1.976,
+     "aporte_logit": -0.3907
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -81.268,
+     "lon": -84.605,
+     "diam_km": 0.96,
+     "prof_m": 102,
+     "prof_diam": 0.107,
+     "borde_m": 36.8,
+     "distancia_z": 0.379
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -84.525,
+     "lon": 91.552,
+     "diam_km": 0.68,
+     "prof_m": 68,
+     "prof_diam": 0.101,
+     "borde_m": 22.2,
+     "distancia_z": 0.414
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.044,
+     "lon": 151.196,
+     "diam_km": 0.87,
+     "prof_m": 76,
+     "prof_diam": 0.087,
+     "borde_m": 21.7,
+     "distancia_z": 0.435
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Oxia Planum",
+     "lat": 18.524,
+     "lon": -23.546,
+     "diam_km": 0.93,
+     "prof_m": 70,
+     "prof_diam": 0.075,
+     "borde_m": 8.7,
+     "distancia_z": 1.053,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Cráter Gale",
+     "lat": -5.675,
+     "lon": 138.088,
+     "diam_km": 0.78,
+     "prof_m": 66,
+     "prof_diam": 0.084,
+     "borde_m": 3.8,
+     "distancia_z": 1.087,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Cráter Jezero",
+     "lat": 18.317,
+     "lon": 76.631,
+     "diam_km": 1.24,
+     "prof_m": 147,
+     "prof_diam": 0.119,
+     "borde_m": 17.2,
+     "distancia_z": 1.159,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.8672,
+    "terreno": 0.7357,
+    "superficie": 0.938,
+    "clima": 0.3089,
+    "total": 0.5941,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.1328,
+    "terreno": 0.4931,
+    "superficie": 0.938,
+    "clima": 0.3089,
+    "total": 0.2642,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0025": {
+  "nombre": "Depresión tipo cráter MX0025",
+  "pais": "MX",
+  "lat": 30.3521,
+  "lon": -111.1188,
+  "estado": "candidato_modelo",
+  "destino_ref": "polo_sur_lunar",
+  "proceso": "Probable tajo minero a cielo abierto (cantera de OpenStreetMap a ≤ 2 km; por verificar)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 0.782,
+   "prof_m": 109.1,
+   "prof_diam": 0.1396,
+   "borde_m": -10.5
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": 4.0723,
+   "P_Luna": 0.9832,
+   "aportes": {
+    "log_diam": {
+     "valor": -0.1068,
+     "z": -0.759,
+     "aporte_logit": 0.2395
+    },
+    "prof_diam": {
+     "valor": 0.1395,
+     "z": 2.016,
+     "aporte_logit": 3.1535
+    },
+    "borde_rel": {
+     "valor": -0.0134,
+     "z": 0.321,
+     "aporte_logit": -0.0635
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -83.615,
+     "lon": 100.565,
+     "diam_km": 0.75,
+     "prof_m": 100,
+     "prof_diam": 0.134,
+     "borde_m": -10.3,
+     "distancia_z": 0.165
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -83.052,
+     "lon": -13.497,
+     "diam_km": 0.68,
+     "prof_m": 90,
+     "prof_diam": 0.133,
+     "borde_m": -9.8,
+     "distancia_z": 0.299
+    },
+    {
+     "sitio": "Polo sur (85-90°S)",
+     "lat": -88.77,
+     "lon": -128.055,
+     "diam_km": 0.68,
+     "prof_m": 88,
+     "prof_diam": 0.13,
+     "borde_m": -8.3,
+     "distancia_z": 0.347
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Cráter Jezero",
+     "lat": 17.682,
+     "lon": 77.527,
+     "diam_km": 1.08,
+     "prof_m": 125,
+     "prof_diam": 0.115,
+     "borde_m": -6.7,
+     "distancia_z": 0.883,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Cráter Gale",
+     "lat": -5.156,
+     "lon": 137.601,
+     "diam_km": 0.9,
+     "prof_m": 98,
+     "prof_diam": 0.109,
+     "borde_m": -6.8,
+     "distancia_z": 0.884,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Cráter Gale",
+     "lat": -5.926,
+     "lon": 138.496,
+     "diam_km": 1.32,
+     "prof_m": 185,
+     "prof_diam": 0.141,
+     "borde_m": -9.6,
+     "distancia_z": 0.915,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.9832,
+    "terreno": 0.2273,
+    "superficie": 0.6376,
+    "clima": 0.3222,
+    "total": 0.5115,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.0168,
+    "terreno": 0.6266,
+    "superficie": 0.6376,
+    "clima": 0.3222,
+    "total": 0.1169,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0033": {
+  "nombre": "Depresión tipo cráter MX0033",
+  "pais": "MX",
+  "lat": 29.3751,
+  "lon": -114.703,
+  "estado": "candidato_modelo",
+  "destino_ref": "jezero",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 1.058,
+   "prof_m": 22.4,
+   "prof_diam": 0.0212,
+   "borde_m": -4.9
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": -1.0897,
+   "P_Luna": 0.2517,
+   "aportes": {
+    "log_diam": {
+     "valor": 0.0245,
+     "z": -0.242,
+     "aporte_logit": 0.0763
+    },
+    "prof_diam": {
+     "valor": 0.0212,
+     "z": -1.142,
+     "aporte_logit": -1.7865
+    },
+    "borde_rel": {
+     "valor": -0.0046,
+     "z": 0.618,
+     "aporte_logit": -0.1222
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.826,
+     "lon": 3.432,
+     "diam_km": 1.08,
+     "prof_m": 22,
+     "prof_diam": 0.02,
+     "borde_m": -6.1,
+     "distancia_z": 0.055
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.138,
+     "lon": -168.021,
+     "diam_km": 1.03,
+     "prof_m": 21,
+     "prof_diam": 0.02,
+     "borde_m": -2.2,
+     "distancia_z": 0.098
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -80.759,
+     "lon": -92.776,
+     "diam_km": 1.01,
+     "prof_m": 22,
+     "prof_diam": 0.022,
+     "borde_m": -6.5,
+     "distancia_z": 0.103
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Meridiani (Opportunity)",
+     "lat": -2.619,
+     "lon": -5.278,
+     "diam_km": 1.03,
+     "prof_m": 20,
+     "prof_diam": 0.019,
+     "borde_m": -6.6,
+     "distancia_z": 0.086
+    },
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.508,
+     "lon": -25.169,
+     "diam_km": 1.11,
+     "prof_m": 22,
+     "prof_diam": 0.02,
+     "borde_m": -6.4,
+     "distancia_z": 0.092,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Oxia Planum",
+     "lat": 18.071,
+     "lon": -24.861,
+     "diam_km": 1.06,
+     "prof_m": 21,
+     "prof_diam": 0.02,
+     "borde_m": -7.7,
+     "distancia_z": 0.095,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.2517,
+    "terreno": 0.4804,
+    "superficie": 0.3245,
+    "clima": 0.3841,
+    "total": 0.3298,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.7483,
+    "terreno": 0.7552,
+    "superficie": 0.3245,
+    "clima": 0.3841,
+    "total": 0.5458,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0034": {
+  "nombre": "Depresión tipo cráter MX0034",
+  "pais": "MX",
+  "lat": 29.3361,
+  "lon": -114.6742,
+  "estado": "candidato_modelo",
+  "destino_ref": "jezero",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 1.009,
+   "prof_m": 33.4,
+   "prof_diam": 0.0331,
+   "borde_m": -5.2
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": -0.5626,
+   "P_Luna": 0.3629,
+   "aportes": {
+    "log_diam": {
+     "valor": 0.0039,
+     "z": -0.323,
+     "aporte_logit": 0.1019
+    },
+    "prof_diam": {
+     "valor": 0.0331,
+     "z": -0.824,
+     "aporte_logit": -1.2885
+    },
+    "borde_rel": {
+     "valor": -0.0052,
+     "z": 0.601,
+     "aporte_logit": -0.1187
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Polo sur (85-90°S)",
+     "lat": -87.699,
+     "lon": 20.258,
+     "diam_km": 0.98,
+     "prof_m": 33,
+     "prof_diam": 0.034,
+     "borde_m": -6.0,
+     "distancia_z": 0.058
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -80.784,
+     "lon": 13.814,
+     "diam_km": 0.98,
+     "prof_m": 31,
+     "prof_diam": 0.031,
+     "borde_m": -2.9,
+     "distancia_z": 0.098
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -81.691,
+     "lon": -22.465,
+     "diam_km": 0.96,
+     "prof_m": 34,
+     "prof_diam": 0.035,
+     "borde_m": -3.0,
+     "distancia_z": 0.13
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.97,
+     "lon": -23.95,
+     "diam_km": 1.03,
+     "prof_m": 32,
+     "prof_diam": 0.031,
+     "borde_m": -6.1,
+     "distancia_z": 0.076,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Gusev (Spirit)",
+     "lat": -15.104,
+     "lon": 175.003,
+     "diam_km": 0.96,
+     "prof_m": 28,
+     "prof_diam": 0.029,
+     "borde_m": -6.9,
+     "distancia_z": 0.153
+    },
+    {
+     "sitio": "Meridiani (Opportunity)",
+     "lat": -1.539,
+     "lon": -5.83,
+     "diam_km": 1.08,
+     "prof_m": 34,
+     "prof_diam": 0.031,
+     "borde_m": -8.5,
+     "distancia_z": 0.157
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.3629,
+    "terreno": 0.4983,
+    "superficie": 0.2976,
+    "clima": 0.4131,
+    "total": 0.3904,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.6371,
+    "terreno": 0.728,
+    "superficie": 0.2976,
+    "clima": 0.4131,
+    "total": 0.5176,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0044": {
+  "nombre": "Depresión tipo cráter MX0044",
+  "pais": "MX",
+  "lat": 29.161,
+  "lon": -103.8014,
+  "estado": "candidato_modelo",
+  "destino_ref": "jezero",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 1.462,
+   "prof_m": 26.2,
+   "prof_diam": 0.0179,
+   "borde_m": -6.8
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": -1.3999,
+   "P_Luna": 0.1978,
+   "aportes": {
+    "log_diam": {
+     "valor": 0.1649,
+     "z": 0.312,
+     "aporte_logit": -0.0984
+    },
+    "prof_diam": {
+     "valor": 0.0179,
+     "z": -1.229,
+     "aporte_logit": -1.9222
+    },
+    "borde_rel": {
+     "valor": -0.0047,
+     "z": 0.617,
+     "aporte_logit": -0.1221
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -81.431,
+     "lon": 177.217,
+     "diam_km": 1.58,
+     "prof_m": 24,
+     "prof_diam": 0.015,
+     "borde_m": -5.0,
+     "distancia_z": 0.16
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -80.807,
+     "lon": 14.952,
+     "diam_km": 1.48,
+     "prof_m": 25,
+     "prof_diam": 0.017,
+     "borde_m": 1.1,
+     "distancia_z": 0.186
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.396,
+     "lon": -131.626,
+     "diam_km": 1.45,
+     "prof_m": 29,
+     "prof_diam": 0.02,
+     "borde_m": -15.7,
+     "distancia_z": 0.216
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.595,
+     "lon": -24.898,
+     "diam_km": 1.5,
+     "prof_m": 26,
+     "prof_diam": 0.017,
+     "borde_m": -10.1,
+     "distancia_z": 0.082,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Cráter Gale",
+     "lat": -4.593,
+     "lon": 137.428,
+     "diam_km": 1.43,
+     "prof_m": 29,
+     "prof_diam": 0.02,
+     "borde_m": -4.9,
+     "distancia_z": 0.086,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Chryse (Viking 1)",
+     "lat": 21.8,
+     "lon": -48.375,
+     "diam_km": 1.48,
+     "prof_m": 23,
+     "prof_diam": 0.016,
+     "borde_m": -4.5,
+     "distancia_z": 0.086
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.1978,
+    "terreno": 0.3695,
+    "superficie": 0.5175,
+    "clima": 0.3531,
+    "total": 0.293,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.8022,
+    "terreno": 0.9818,
+    "superficie": 0.5175,
+    "clima": 0.3531,
+    "total": 0.5939,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0045": {
+  "nombre": "Depresión tipo cráter MX0045",
+  "pais": "MX",
+  "lat": 29.2437,
+  "lon": -103.9166,
+  "estado": "candidato_modelo",
+  "destino_ref": "polo_sur_lunar",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 1.034,
+   "prof_m": 61.2,
+   "prof_diam": 0.0592,
+   "borde_m": -1.6
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": 0.489,
+   "P_Luna": 0.6199,
+   "aportes": {
+    "log_diam": {
+     "valor": 0.0145,
+     "z": -0.281,
+     "aporte_logit": 0.0887
+    },
+    "prof_diam": {
+     "valor": 0.0592,
+     "z": -0.128,
+     "aporte_logit": -0.1996
+    },
+    "borde_rel": {
+     "valor": -0.0015,
+     "z": 0.722,
+     "aporte_logit": -0.1428
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Polo sur (85-90°S)",
+     "lat": -85.01,
+     "lon": -100.93,
+     "diam_km": 1.03,
+     "prof_m": 60,
+     "prof_diam": 0.058,
+     "borde_m": -0.3,
+     "distancia_z": 0.052
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.31,
+     "lon": -116.012,
+     "diam_km": 1.01,
+     "prof_m": 56,
+     "prof_diam": 0.055,
+     "borde_m": -0.7,
+     "distancia_z": 0.117
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.643,
+     "lon": 102.745,
+     "diam_km": 1.06,
+     "prof_m": 58,
+     "prof_diam": 0.054,
+     "borde_m": -2.4,
+     "distancia_z": 0.136
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.621,
+     "lon": -24.024,
+     "diam_km": 1.15,
+     "prof_m": 60,
+     "prof_diam": 0.052,
+     "borde_m": 3.2,
+     "distancia_z": 0.301,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.882,
+     "lon": -24.994,
+     "diam_km": 0.87,
+     "prof_m": 45,
+     "prof_diam": 0.051,
+     "borde_m": 0.6,
+     "distancia_z": 0.362,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.382,
+     "lon": -25.131,
+     "diam_km": 1.01,
+     "prof_m": 45,
+     "prof_diam": 0.045,
+     "borde_m": -0.3,
+     "distancia_z": 0.394,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.6199,
+    "terreno": 0.7562,
+    "superficie": 0.2516,
+    "clima": 0.3531,
+    "total": 0.4793,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.3801,
+    "terreno": 0.2743,
+    "superficie": 0.2516,
+    "clima": 0.3531,
+    "total": 0.3385,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0046": {
+  "nombre": "Depresión tipo cráter MX0046",
+  "pais": "MX",
+  "lat": 29.1578,
+  "lon": -103.6496,
+  "estado": "candidato_modelo",
+  "destino_ref": "polo_sur_lunar",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 0.677,
+   "prof_m": 73.6,
+   "prof_diam": 0.1087,
+   "borde_m": -12.0
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": 2.8932,
+   "P_Luna": 0.9475,
+   "aportes": {
+    "log_diam": {
+     "valor": -0.1694,
+     "z": -1.006,
+     "aporte_logit": 0.3173
+    },
+    "prof_diam": {
+     "valor": 0.1087,
+     "z": 1.194,
+     "aporte_logit": 1.8678
+    },
+    "borde_rel": {
+     "valor": -0.0177,
+     "z": 0.176,
+     "aporte_logit": -0.0348
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -84.149,
+     "lon": 77.008,
+     "diam_km": 0.68,
+     "prof_m": 72,
+     "prof_diam": 0.107,
+     "borde_m": -16.0,
+     "distancia_z": 0.203
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.719,
+     "lon": -55.857,
+     "diam_km": 0.75,
+     "prof_m": 78,
+     "prof_diam": 0.105,
+     "borde_m": -13.8,
+     "distancia_z": 0.204
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -81.802,
+     "lon": 103.156,
+     "diam_km": 0.64,
+     "prof_m": 74,
+     "prof_diam": 0.116,
+     "borde_m": -8.5,
+     "distancia_z": 0.269
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Cráter Gale",
+     "lat": -5.156,
+     "lon": 137.601,
+     "diam_km": 0.9,
+     "prof_m": 98,
+     "prof_diam": 0.109,
+     "borde_m": -6.8,
+     "distancia_z": 0.601,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Gusev (Spirit)",
+     "lat": -15.202,
+     "lon": 175.372,
+     "diam_km": 1.01,
+     "prof_m": 103,
+     "prof_diam": 0.102,
+     "borde_m": -16.7,
+     "distancia_z": 0.707
+    },
+    {
+     "sitio": "Cráter Jezero",
+     "lat": 17.682,
+     "lon": 77.527,
+     "diam_km": 1.08,
+     "prof_m": 125,
+     "prof_diam": 0.115,
+     "borde_m": -6.7,
+     "distancia_z": 0.91,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.9475,
+    "terreno": 0.6994,
+    "superficie": 0.2251,
+    "clima": 0.3531,
+    "total": 0.5551,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.0525,
+    "terreno": 0.5187,
+    "superficie": 0.2251,
+    "clima": 0.3531,
+    "total": 0.1668,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0047": {
+  "nombre": "Depresión tipo cráter MX0047",
+  "pais": "MX",
+  "lat": 29.2697,
+  "lon": -103.8447,
+  "estado": "candidato_modelo",
+  "destino_ref": "jezero",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 0.638,
+   "prof_m": 20.6,
+   "prof_diam": 0.0322,
+   "borde_m": -12.3
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": -0.2547,
+   "P_Luna": 0.4367,
+   "aportes": {
+    "log_diam": {
+     "valor": -0.1952,
+     "z": -1.108,
+     "aporte_logit": 0.3494
+    },
+    "prof_diam": {
+     "valor": 0.0323,
+     "z": -0.845,
+     "aporte_logit": -1.3225
+    },
+    "borde_rel": {
+     "valor": -0.0193,
+     "z": 0.123,
+     "aporte_logit": -0.0244
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -80.602,
+     "lon": -36.676,
+     "diam_km": 0.64,
+     "prof_m": 20,
+     "prof_diam": 0.032,
+     "borde_m": -12.9,
+     "distancia_z": 0.032
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.859,
+     "lon": -9.062,
+     "diam_km": 0.64,
+     "prof_m": 22,
+     "prof_diam": 0.034,
+     "borde_m": -12.6,
+     "distancia_z": 0.06
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -84.525,
+     "lon": -93.355,
+     "diam_km": 0.64,
+     "prof_m": 22,
+     "prof_diam": 0.035,
+     "borde_m": -11.4,
+     "distancia_z": 0.086
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Cráter Gale",
+     "lat": -5.724,
+     "lon": 138.012,
+     "diam_km": 0.64,
+     "prof_m": 20,
+     "prof_diam": 0.031,
+     "borde_m": -11.0,
+     "distancia_z": 0.073,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Cráter Gale",
+     "lat": -5.14,
+     "lon": 138.599,
+     "diam_km": 0.68,
+     "prof_m": 21,
+     "prof_diam": 0.031,
+     "borde_m": -11.4,
+     "distancia_z": 0.135,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.874,
+     "lon": -25.09,
+     "diam_km": 0.68,
+     "prof_m": 24,
+     "prof_diam": 0.035,
+     "borde_m": -9.2,
+     "distancia_z": 0.232,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.4367,
+    "terreno": 0.6166,
+    "superficie": 0.3935,
+    "clima": 0.3461,
+    "total": 0.4196,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.5633,
+    "terreno": 0.5884,
+    "superficie": 0.3935,
+    "clima": 0.3461,
+    "total": 0.4613,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0048": {
+  "nombre": "Depresión tipo cráter MX0048",
+  "pais": "MX",
+  "lat": 29.0262,
+  "lon": -104.2404,
+  "estado": "candidato_modelo",
+  "destino_ref": "jezero",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 0.638,
+   "prof_m": 20.4,
+   "prof_diam": 0.0319,
+   "borde_m": -6.3
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": -0.3306,
+   "P_Luna": 0.4181,
+   "aportes": {
+    "log_diam": {
+     "valor": -0.1952,
+     "z": -1.108,
+     "aporte_logit": 0.3494
+    },
+    "prof_diam": {
+     "valor": 0.032,
+     "z": -0.854,
+     "aporte_logit": -1.3355
+    },
+    "borde_rel": {
+     "valor": -0.0099,
+     "z": 0.441,
+     "aporte_logit": -0.0872
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.256,
+     "lon": -40.495,
+     "diam_km": 0.64,
+     "prof_m": 21,
+     "prof_diam": 0.034,
+     "borde_m": -6.5,
+     "distancia_z": 0.044
+    },
+    {
+     "sitio": "Polo sur (85-90°S)",
+     "lat": -85.112,
+     "lon": 148.678,
+     "diam_km": 0.64,
+     "prof_m": 21,
+     "prof_diam": 0.033,
+     "borde_m": -6.9,
+     "distancia_z": 0.049
+    },
+    {
+     "sitio": "Polo sur (85-90°S)",
+     "lat": -85.019,
+     "lon": -98.58,
+     "diam_km": 0.64,
+     "prof_m": 21,
+     "prof_diam": 0.033,
+     "borde_m": -5.4,
+     "distancia_z": 0.056
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.952,
+     "lon": -25.135,
+     "diam_km": 0.68,
+     "prof_m": 22,
+     "prof_diam": 0.032,
+     "borde_m": -5.2,
+     "distancia_z": 0.127,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.874,
+     "lon": -25.09,
+     "diam_km": 0.68,
+     "prof_m": 24,
+     "prof_diam": 0.035,
+     "borde_m": -9.2,
+     "distancia_z": 0.187,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Meridiani (Opportunity)",
+     "lat": -2.765,
+     "lon": -5.829,
+     "diam_km": 0.68,
+     "prof_m": 25,
+     "prof_diam": 0.037,
+     "borde_m": -4.2,
+     "distancia_z": 0.207
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.4181,
+    "terreno": 0.6004,
+    "superficie": 0.1998,
+    "clima": 0.3514,
+    "total": 0.3858,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.5819,
+    "terreno": 0.6042,
+    "superficie": 0.1998,
+    "clima": 0.3514,
+    "total": 0.4408,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0084": {
+  "nombre": "Hércules (Coah.)",
+  "pais": "MX",
+  "lat": 28.0546,
+  "lon": -103.7666,
+  "estado": "candidato_modelo",
+  "destino_ref": "polo_sur_lunar",
+  "proceso": "Probable tajo minero a cielo abierto (cantera de OpenStreetMap a ≤ 2 km; por verificar)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 0.903,
+   "prof_m": 192.8,
+   "prof_diam": 0.2136,
+   "borde_m": 6.9
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": 6.9427,
+   "P_Luna": 0.999,
+   "aportes": {
+    "log_diam": {
+     "valor": -0.0443,
+     "z": -0.513,
+     "aporte_logit": 0.1618
+    },
+    "prof_diam": {
+     "valor": 0.2135,
+     "z": 3.991,
+     "aporte_logit": 6.2423
+    },
+    "borde_rel": {
+     "valor": 0.0076,
+     "z": 1.033,
+     "aporte_logit": -0.2042
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -81.838,
+     "lon": 161.12,
+     "diam_km": 0.81,
+     "prof_m": 167,
+     "prof_diam": 0.206,
+     "borde_m": 8.5,
+     "distancia_z": 0.29
+    },
+    {
+     "sitio": "Polo sur (85-90°S)",
+     "lat": -86.052,
+     "lon": -100.002,
+     "diam_km": 0.71,
+     "prof_m": 147,
+     "prof_diam": 0.205,
+     "borde_m": 8.9,
+     "distancia_z": 0.486
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -84.705,
+     "lon": -82.661,
+     "diam_km": 1.11,
+     "prof_m": 221,
+     "prof_diam": 0.199,
+     "borde_m": 12.4,
+     "distancia_z": 0.524
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Cráter Gale",
+     "lat": -5.926,
+     "lon": 138.496,
+     "diam_km": 1.32,
+     "prof_m": 185,
+     "prof_diam": 0.141,
+     "borde_m": -9.6,
+     "distancia_z": 2.111,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.484,
+     "lon": -23.526,
+     "diam_km": 1.48,
+     "prof_m": 206,
+     "prof_diam": 0.139,
+     "borde_m": 19.0,
+     "distancia_z": 2.163,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Cráter Jezero",
+     "lat": 18.97,
+     "lon": 77.592,
+     "diam_km": 3.02,
+     "prof_m": 574,
+     "prof_diam": 0.19,
+     "borde_m": 46.4,
+     "distancia_z": 2.174,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.533,
+    "terreno": 0.2954,
+    "superficie": 0.4996,
+    "clima": 0.3453,
+    "total": 0.4164,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.0005,
+    "terreno": 0.8143,
+    "superficie": 0.4996,
+    "clima": 0.3453,
+    "total": 0.0298,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0085": {
+  "nombre": "Hércules (Coah.)",
+  "pais": "MX",
+  "lat": 28.0455,
+  "lon": -103.7823,
+  "estado": "candidato_modelo",
+  "destino_ref": "polo_sur_lunar",
+  "proceso": "Probable tajo minero a cielo abierto (cantera de OpenStreetMap a ≤ 2 km; por verificar)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 0.814,
+   "prof_m": 209.2,
+   "prof_diam": 0.2571,
+   "borde_m": -4.4
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": 8.9014,
+   "P_Luna": 0.9999,
+   "aportes": {
+    "log_diam": {
+     "valor": -0.0894,
+     "z": -0.691,
+     "aporte_logit": 0.2178
+    },
+    "prof_diam": {
+     "valor": 0.257,
+     "z": 5.151,
+     "aporte_logit": 8.0578
+    },
+    "borde_rel": {
+     "valor": -0.0054,
+     "z": 0.592,
+     "aporte_logit": -0.1171
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -81.407,
+     "lon": -122.71,
+     "diam_km": 1.11,
+     "prof_m": 254,
+     "prof_diam": 0.229,
+     "borde_m": 2.1,
+     "distancia_z": 0.937
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -83.983,
+     "lon": 162.584,
+     "diam_km": 0.75,
+     "prof_m": 168,
+     "prof_diam": 0.224,
+     "borde_m": -15.7,
+     "distancia_z": 1.037
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -81.838,
+     "lon": 161.12,
+     "diam_km": 0.81,
+     "prof_m": 167,
+     "prof_diam": 0.206,
+     "borde_m": 8.5,
+     "distancia_z": 1.47
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Cráter Jezero",
+     "lat": 18.97,
+     "lon": 77.592,
+     "diam_km": 3.02,
+     "prof_m": 574,
+     "prof_diam": 0.19,
+     "borde_m": 46.4,
+     "distancia_z": 2.952,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Cráter Gale",
+     "lat": -5.926,
+     "lon": 138.496,
+     "diam_km": 1.32,
+     "prof_m": 185,
+     "prof_diam": 0.141,
+     "borde_m": -9.6,
+     "distancia_z": 3.214,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.484,
+     "lon": -23.526,
+     "diam_km": 1.48,
+     "prof_m": 206,
+     "prof_diam": 0.139,
+     "borde_m": 19.0,
+     "distancia_z": 3.363,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.209,
+    "terreno": 0.3003,
+    "superficie": 0.7403,
+    "clima": 0.3453,
+    "total": 0.2986,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.0,
+    "terreno": 0.8278,
+    "superficie": 0.7403,
+    "clima": 0.3453,
+    "total": 0.0002,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0088": {
+  "nombre": "Depresión tipo cráter MX0088",
+  "pais": "MX",
+  "lat": 28.0637,
+  "lon": -100.0762,
+  "estado": "candidato_modelo",
+  "destino_ref": "jezero",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 0.782,
+   "prof_m": 21.2,
+   "prof_diam": 0.0271,
+   "borde_m": -2.2
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": -0.6907,
+   "P_Luna": 0.3339,
+   "aportes": {
+    "log_diam": {
+     "valor": -0.1068,
+     "z": -0.759,
+     "aporte_logit": 0.2395
+    },
+    "prof_diam": {
+     "valor": 0.0271,
+     "z": -0.984,
+     "aporte_logit": -1.5386
+    },
+    "borde_rel": {
+     "valor": -0.0028,
+     "z": 0.68,
+     "aporte_logit": -0.1344
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -84.055,
+     "lon": 89.1,
+     "diam_km": 0.78,
+     "prof_m": 20,
+     "prof_diam": 0.026,
+     "borde_m": -2.3,
+     "distancia_z": 0.033
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -84.404,
+     "lon": 97.767,
+     "diam_km": 0.78,
+     "prof_m": 20,
+     "prof_diam": 0.026,
+     "borde_m": -1.4,
+     "distancia_z": 0.05
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -80.583,
+     "lon": -84.033,
+     "diam_km": 0.78,
+     "prof_m": 21,
+     "prof_diam": 0.026,
+     "borde_m": -0.6,
+     "distancia_z": 0.071
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Oxia Planum",
+     "lat": 18.423,
+     "lon": -24.022,
+     "diam_km": 0.78,
+     "prof_m": 20,
+     "prof_diam": 0.026,
+     "borde_m": -2.4,
+     "distancia_z": 0.041,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Meridiani (Opportunity)",
+     "lat": -2.056,
+     "lon": -5.49,
+     "diam_km": 0.75,
+     "prof_m": 20,
+     "prof_diam": 0.027,
+     "borde_m": -1.3,
+     "distancia_z": 0.084
+    },
+    {
+     "sitio": "Cráter Gale",
+     "lat": -5.963,
+     "lon": 137.735,
+     "diam_km": 0.81,
+     "prof_m": 23,
+     "prof_diam": 0.028,
+     "borde_m": 0.8,
+     "distancia_z": 0.149,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.3339,
+    "terreno": 0.2178,
+    "superficie": 0.1851,
+    "clima": 0.2682,
+    "total": 0.2735,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.6661,
+    "terreno": 0.6005,
+    "superficie": 0.1851,
+    "clima": 0.2682,
+    "total": 0.4197,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0089": {
+  "nombre": "Depresión tipo cráter MX0089",
+  "pais": "MX",
+  "lat": 26.6949,
+  "lon": -111.6386,
+  "estado": "candidato_modelo",
+  "destino_ref": "jezero",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 0.93,
+   "prof_m": 22.7,
+   "prof_diam": 0.0244,
+   "borde_m": -28.4
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": -0.7119,
+   "P_Luna": 0.3292,
+   "aportes": {
+    "log_diam": {
+     "valor": -0.0315,
+     "z": -0.463,
+     "aporte_logit": 0.1459
+    },
+    "prof_diam": {
+     "valor": 0.0244,
+     "z": -1.056,
+     "aporte_logit": -1.6514
+    },
+    "borde_rel": {
+     "valor": -0.0305,
+     "z": -0.257,
+     "aporte_logit": 0.0509
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -81.333,
+     "lon": -131.717,
+     "diam_km": 0.93,
+     "prof_m": 22,
+     "prof_diam": 0.024,
+     "borde_m": -29.6,
+     "distancia_z": 0.045
+    },
+    {
+     "sitio": "Polo sur (85-90°S)",
+     "lat": -88.582,
+     "lon": 80.003,
+     "diam_km": 0.93,
+     "prof_m": 23,
+     "prof_diam": 0.025,
+     "borde_m": -30.3,
+     "distancia_z": 0.071
+    },
+    {
+     "sitio": "Polo sur (85-90°S)",
+     "lat": -85.718,
+     "lon": -56.291,
+     "diam_km": 0.93,
+     "prof_m": 25,
+     "prof_diam": 0.027,
+     "borde_m": -26.5,
+     "distancia_z": 0.103
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.897,
+     "lon": -23.46,
+     "diam_km": 0.93,
+     "prof_m": 21,
+     "prof_diam": 0.023,
+     "borde_m": -26.3,
+     "distancia_z": 0.092,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.63,
+     "lon": -24.877,
+     "diam_km": 0.9,
+     "prof_m": 26,
+     "prof_diam": 0.029,
+     "borde_m": -30.5,
+     "distancia_z": 0.169,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.897,
+     "lon": -24.749,
+     "diam_km": 0.98,
+     "prof_m": 20,
+     "prof_diam": 0.02,
+     "borde_m": -33.4,
+     "distancia_z": 0.186,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.3292,
+    "terreno": 0.4144,
+    "superficie": 0.2556,
+    "clima": 0.3931,
+    "total": 0.3535,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.6708,
+    "terreno": 0.8755,
+    "superficie": 0.2556,
+    "clima": 0.3931,
+    "total": 0.5258,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0090": {
+  "nombre": "Depresión tipo cráter MX0090",
+  "pais": "MX",
+  "lat": 26.3517,
+  "lon": -112.3534,
+  "estado": "candidato_modelo",
+  "destino_ref": "jezero",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 0.714,
+   "prof_m": 22.1,
+   "prof_diam": 0.0309,
+   "borde_m": -41.6
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": -0.1107,
+   "P_Luna": 0.4723,
+   "aportes": {
+    "log_diam": {
+     "valor": -0.1463,
+     "z": -0.915,
+     "aporte_logit": 0.2886
+    },
+    "prof_diam": {
+     "valor": 0.031,
+     "z": -0.881,
+     "aporte_logit": -1.3782
+    },
+    "borde_rel": {
+     "valor": -0.0583,
+     "z": -1.194,
+     "aporte_logit": 0.2361
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.409,
+     "lon": 176.571,
+     "diam_km": 0.68,
+     "prof_m": 22,
+     "prof_diam": 0.032,
+     "borde_m": -39.6,
+     "distancia_z": 0.099
+    },
+    {
+     "sitio": "Polo sur (85-90°S)",
+     "lat": -87.923,
+     "lon": -80.772,
+     "diam_km": 0.68,
+     "prof_m": 22,
+     "prof_diam": 0.033,
+     "borde_m": -37.5,
+     "distancia_z": 0.143
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -81.93,
+     "lon": -108.827,
+     "diam_km": 0.75,
+     "prof_m": 27,
+     "prof_diam": 0.036,
+     "borde_m": -42.9,
+     "distancia_z": 0.154
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Cráter Jezero",
+     "lat": 18.691,
+     "lon": 78.12,
+     "diam_km": 0.78,
+     "prof_m": 22,
+     "prof_diam": 0.028,
+     "borde_m": -46.3,
+     "distancia_z": 0.175,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Cráter Gale",
+     "lat": -5.388,
+     "lon": 138.636,
+     "diam_km": 0.78,
+     "prof_m": 21,
+     "prof_diam": 0.027,
+     "borde_m": -46.7,
+     "distancia_z": 0.196,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Gusev (Spirit)",
+     "lat": -15.268,
+     "lon": 175.542,
+     "diam_km": 0.64,
+     "prof_m": 24,
+     "prof_diam": 0.038,
+     "borde_m": -34.3,
+     "distancia_z": 0.301
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.4723,
+    "terreno": 0.885,
+    "superficie": 0.2766,
+    "clima": 0.3986,
+    "total": 0.4636,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.5277,
+    "terreno": 0.321,
+    "superficie": 0.2766,
+    "clima": 0.3986,
+    "total": 0.4162,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0121": {
+  "nombre": "Depresión tipo cráter MX0121",
+  "pais": "MX",
+  "lat": 26.8434,
+  "lon": -102.8613,
+  "estado": "candidato_modelo",
+  "destino_ref": "jezero",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 5.288,
+   "prof_m": 29.8,
+   "prof_diam": 0.0056,
+   "borde_m": -87.0
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": -2.5281,
+   "P_Luna": 0.0739,
+   "aportes": {
+    "log_diam": {
+     "valor": 0.7233,
+     "z": 2.513,
+     "aporte_logit": -0.7926
+    },
+    "prof_diam": {
+     "valor": 0.0056,
+     "z": -1.557,
+     "aporte_logit": -2.435
+    },
+    "borde_rel": {
+     "valor": -0.0165,
+     "z": 0.219,
+     "aporte_logit": -0.0433
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -80.811,
+     "lon": -29.337,
+     "diam_km": 5.8,
+     "prof_m": 73,
+     "prof_diam": 0.013,
+     "borde_m": -84.3,
+     "distancia_z": 0.253
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -80.878,
+     "lon": -116.765,
+     "diam_km": 5.18,
+     "prof_m": 48,
+     "prof_diam": 0.009,
+     "borde_m": -49.3,
+     "distancia_z": 0.256
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -81.672,
+     "lon": 21.537,
+     "diam_km": 5.37,
+     "prof_m": 89,
+     "prof_diam": 0.017,
+     "borde_m": -81.2,
+     "distancia_z": 0.296
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Cráter Jezero",
+     "lat": 18.363,
+     "lon": 77.184,
+     "diam_km": 5.6,
+     "prof_m": 64,
+     "prof_diam": 0.011,
+     "borde_m": -63.4,
+     "distancia_z": 0.252,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Cráter Jezero",
+     "lat": 19.124,
+     "lon": 76.702,
+     "diam_km": 4.35,
+     "prof_m": 64,
+     "prof_diam": 0.015,
+     "borde_m": -63.4,
+     "distancia_z": 0.419,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Meridiani (Opportunity)",
+     "lat": -1.672,
+     "lon": -4.916,
+     "diam_km": 4.81,
+     "prof_m": 51,
+     "prof_diam": 0.011,
+     "borde_m": -18.0,
+     "distancia_z": 0.478
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.0739,
+    "terreno": 0.53,
+    "superficie": 0.2962,
+    "clima": 0.3433,
+    "total": 0.1953,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.9261,
+    "terreno": 0.6844,
+    "superficie": 0.2962,
+    "clima": 0.3433,
+    "total": 0.558,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0123": {
+  "nombre": "Depresión tipo cráter MX0123",
+  "pais": "MX",
+  "lat": 26.7873,
+  "lon": -103.3454,
+  "estado": "candidato_modelo",
+  "destino_ref": "jezero",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 0.638,
+   "prof_m": 21.4,
+   "prof_diam": 0.0335,
+   "borde_m": 6.9
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": -0.4034,
+   "P_Luna": 0.4005,
+   "aportes": {
+    "log_diam": {
+     "valor": -0.1952,
+     "z": -1.108,
+     "aporte_logit": 0.3494
+    },
+    "prof_diam": {
+     "valor": 0.0335,
+     "z": -0.812,
+     "aporte_logit": -1.2701
+    },
+    "borde_rel": {
+     "valor": 0.0108,
+     "z": 1.14,
+     "aporte_logit": -0.2254
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -84.262,
+     "lon": 89.761,
+     "diam_km": 0.64,
+     "prof_m": 21,
+     "prof_diam": 0.033,
+     "borde_m": 8.3,
+     "distancia_z": 0.075
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -83.066,
+     "lon": -27.414,
+     "diam_km": 0.64,
+     "prof_m": 23,
+     "prof_diam": 0.037,
+     "borde_m": 7.2,
+     "distancia_z": 0.088
+    },
+    {
+     "sitio": "Polo sur (85-90°S)",
+     "lat": -88.119,
+     "lon": -146.406,
+     "diam_km": 0.68,
+     "prof_m": 24,
+     "prof_diam": 0.036,
+     "borde_m": 9.4,
+     "distancia_z": 0.156
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.971,
+     "lon": -23.972,
+     "diam_km": 0.68,
+     "prof_m": 24,
+     "prof_diam": 0.035,
+     "borde_m": 1.0,
+     "distancia_z": 0.336,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.921,
+     "lon": -23.603,
+     "diam_km": 0.75,
+     "prof_m": 26,
+     "prof_diam": 0.035,
+     "borde_m": 2.5,
+     "distancia_z": 0.373,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Meridiani (Opportunity)",
+     "lat": -1.618,
+     "lon": -4.978,
+     "diam_km": 0.64,
+     "prof_m": 20,
+     "prof_diam": 0.031,
+     "borde_m": -0.2,
+     "distancia_z": 0.379
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.4005,
+    "terreno": 0.3829,
+    "superficie": 0.2484,
+    "clima": 0.3433,
+    "total": 0.3593,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.5995,
+    "terreno": 0.9474,
+    "superficie": 0.2484,
+    "clima": 0.3433,
+    "total": 0.4837,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0124": {
+  "nombre": "Depresión tipo cráter MX0124",
+  "pais": "MX",
+  "lat": 24.865,
+  "lon": -110.9678,
+  "estado": "candidato_modelo",
+  "destino_ref": "jezero",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 0.714,
+   "prof_m": 27.4,
+   "prof_diam": 0.0384,
+   "borde_m": 8.2
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": -0.2669,
+   "P_Luna": 0.4337,
+   "aportes": {
+    "log_diam": {
+     "valor": -0.1463,
+     "z": -0.915,
+     "aporte_logit": 0.2886
+    },
+    "prof_diam": {
+     "valor": 0.0384,
+     "z": -0.683,
+     "aporte_logit": -1.0684
+    },
+    "borde_rel": {
+     "valor": 0.0115,
+     "z": 1.163,
+     "aporte_logit": -0.2299
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Polo sur (85-90°S)",
+     "lat": -85.224,
+     "lon": 127.947,
+     "diam_km": 0.71,
+     "prof_m": 27,
+     "prof_diam": 0.037,
+     "borde_m": 6.5,
+     "distancia_z": 0.085
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -81.486,
+     "lon": -16.74,
+     "diam_km": 0.68,
+     "prof_m": 27,
+     "prof_diam": 0.04,
+     "borde_m": 8.1,
+     "distancia_z": 0.102
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -84.742,
+     "lon": 130.573,
+     "diam_km": 0.75,
+     "prof_m": 29,
+     "prof_diam": 0.039,
+     "borde_m": 10.3,
+     "distancia_z": 0.113
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.921,
+     "lon": -23.603,
+     "diam_km": 0.75,
+     "prof_m": 26,
+     "prof_diam": 0.035,
+     "borde_m": 2.5,
+     "distancia_z": 0.301,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.971,
+     "lon": -23.972,
+     "diam_km": 0.68,
+     "prof_m": 24,
+     "prof_diam": 0.035,
+     "borde_m": 1.0,
+     "distancia_z": 0.36,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Cráter Jezero",
+     "lat": 18.829,
+     "lon": 77.224,
+     "diam_km": 0.64,
+     "prof_m": 31,
+     "prof_diam": 0.049,
+     "borde_m": 10.0,
+     "distancia_z": 0.362,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.4337,
+    "terreno": 0.9159,
+    "superficie": 0.2243,
+    "clima": 0.4022,
+    "total": 0.4424,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.5663,
+    "terreno": 0.3961,
+    "superficie": 0.2243,
+    "clima": 0.4022,
+    "total": 0.434,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0155": {
+  "nombre": "Peñasquito (Zac.)",
+  "pais": "MX",
+  "lat": 24.6492,
+  "lon": -101.6732,
+  "estado": "candidato_modelo",
+  "destino_ref": "polo_sur_lunar",
+  "proceso": "Probable tajo minero a cielo abierto (cantera de OpenStreetMap a ≤ 2 km; por verificar)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 1.658,
+   "prof_m": 311.8,
+   "prof_diam": 0.188,
+   "borde_m": -13.6
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": 5.658,
+   "P_Luna": 0.9965,
+   "aportes": {
+    "log_diam": {
+     "valor": 0.2196,
+     "z": 0.527,
+     "aporte_logit": -0.1663
+    },
+    "prof_diam": {
+     "valor": 0.1881,
+     "z": 3.311,
+     "aporte_logit": 5.1799
+    },
+    "borde_rel": {
+     "valor": -0.0082,
+     "z": 0.497,
+     "aporte_logit": -0.0984
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Polo sur (85-90°S)",
+     "lat": -85.718,
+     "lon": -80.908,
+     "diam_km": 1.66,
+     "prof_m": 278,
+     "prof_diam": 0.167,
+     "borde_m": -11.7,
+     "distancia_z": 0.551
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -80.565,
+     "lon": -33.824,
+     "diam_km": 1.79,
+     "prof_m": 306,
+     "prof_diam": 0.171,
+     "borde_m": -29.0,
+     "distancia_z": 0.551
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -83.302,
+     "lon": -123.923,
+     "diam_km": 2.28,
+     "prof_m": 422,
+     "prof_diam": 0.185,
+     "borde_m": -23.6,
+     "distancia_z": 0.556
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Cráter Jezero",
+     "lat": 18.97,
+     "lon": 77.592,
+     "diam_km": 3.02,
+     "prof_m": 574,
+     "prof_diam": 0.19,
+     "borde_m": 46.4,
+     "distancia_z": 1.3,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Cráter Gale",
+     "lat": -5.926,
+     "lon": 138.496,
+     "diam_km": 1.32,
+     "prof_m": 185,
+     "prof_diam": 0.141,
+     "borde_m": -9.6,
+     "distancia_z": 1.327,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.484,
+     "lon": -23.526,
+     "diam_km": 1.48,
+     "prof_m": 206,
+     "prof_diam": 0.139,
+     "borde_m": 19.0,
+     "distancia_z": 1.497,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.7377,
+    "terreno": 0.6811,
+    "superficie": 0.6114,
+    "clima": 0.319,
+    "total": 0.5335,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.0026,
+    "terreno": 0.5326,
+    "superficie": 0.6114,
+    "clima": 0.319,
+    "total": 0.0537,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0158": {
+  "nombre": "Depresión tipo cráter MX0158",
+  "pais": "MX",
+  "lat": 25.7084,
+  "lon": -100.2945,
+  "estado": "candidato_modelo",
+  "destino_ref": "polo_sur_lunar",
+  "proceso": "Probable tajo minero a cielo abierto (cantera de OpenStreetMap a ≤ 2 km; por verificar)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 0.638,
+   "prof_m": 58.8,
+   "prof_diam": 0.092,
+   "borde_m": -2.5
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": 2.1421,
+   "P_Luna": 0.8949,
+   "aportes": {
+    "log_diam": {
+     "valor": -0.1952,
+     "z": -1.108,
+     "aporte_logit": 0.3494
+    },
+    "prof_diam": {
+     "valor": 0.0922,
+     "z": 0.752,
+     "aporte_logit": 1.1769
+    },
+    "borde_rel": {
+     "valor": -0.0039,
+     "z": 0.642,
+     "aporte_logit": -0.127
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Polo sur (85-90°S)",
+     "lat": -85.679,
+     "lon": 132.449,
+     "diam_km": 0.64,
+     "prof_m": 61,
+     "prof_diam": 0.095,
+     "borde_m": -2.0,
+     "distancia_z": 0.091
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -80.849,
+     "lon": 47.108,
+     "diam_km": 0.68,
+     "prof_m": 65,
+     "prof_diam": 0.096,
+     "borde_m": -1.0,
+     "distancia_z": 0.172
+    },
+    {
+     "sitio": "Polo sur (85-90°S)",
+     "lat": -85.496,
+     "lon": 140.941,
+     "diam_km": 0.68,
+     "prof_m": 59,
+     "prof_diam": 0.087,
+     "borde_m": -5.5,
+     "distancia_z": 0.217
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Cráter Gale",
+     "lat": -5.675,
+     "lon": 138.088,
+     "diam_km": 0.78,
+     "prof_m": 66,
+     "prof_diam": 0.084,
+     "borde_m": 3.8,
+     "distancia_z": 0.502,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Meridiani (Opportunity)",
+     "lat": -1.984,
+     "lon": -5.176,
+     "diam_km": 0.75,
+     "prof_m": 55,
+     "prof_diam": 0.073,
+     "borde_m": -7.7,
+     "distancia_z": 0.608
+    },
+    {
+     "sitio": "Cráter Gale",
+     "lat": -5.156,
+     "lon": 137.601,
+     "diam_km": 0.9,
+     "prof_m": 98,
+     "prof_diam": 0.109,
+     "borde_m": -6.8,
+     "distancia_z": 0.748,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.8949,
+    "terreno": 0.2285,
+    "superficie": 0.3703,
+    "clima": 0.2042,
+    "total": 0.398,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.1051,
+    "terreno": 0.6299,
+    "superficie": 0.3703,
+    "clima": 0.2042,
+    "total": 0.1967,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0172": {
+  "nombre": "Depresión tipo cráter MX0172",
+  "pais": "MX",
+  "lat": 24.059,
+  "lon": -103.6454,
+  "estado": "candidato_modelo",
+  "destino_ref": "jezero",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 1.596,
+   "prof_m": 21.9,
+   "prof_diam": 0.0137,
+   "borde_m": -9.4
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": -1.6143,
+   "P_Luna": 0.166,
+   "aportes": {
+    "log_diam": {
+     "valor": 0.203,
+     "z": 0.462,
+     "aporte_logit": -0.1457
+    },
+    "prof_diam": {
+     "valor": 0.0137,
+     "z": -1.341,
+     "aporte_logit": -2.0975
+    },
+    "borde_rel": {
+     "valor": -0.0059,
+     "z": 0.576,
+     "aporte_logit": -0.1138
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Polo sur (85-90°S)",
+     "lat": -88.344,
+     "lon": -133.837,
+     "diam_km": 1.66,
+     "prof_m": 23,
+     "prof_diam": 0.014,
+     "borde_m": -11.4,
+     "distancia_z": 0.075
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -81.431,
+     "lon": 177.217,
+     "diam_km": 1.58,
+     "prof_m": 24,
+     "prof_diam": 0.015,
+     "borde_m": -5.0,
+     "distancia_z": 0.101
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -83.091,
+     "lon": 118.756,
+     "diam_km": 1.64,
+     "prof_m": 24,
+     "prof_diam": 0.015,
+     "borde_m": -14.0,
+     "distancia_z": 0.106
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Gusev (Spirit)",
+     "lat": -15.137,
+     "lon": 174.974,
+     "diam_km": 1.56,
+     "prof_m": 21,
+     "prof_diam": 0.013,
+     "borde_m": -9.0,
+     "distancia_z": 0.036
+    },
+    {
+     "sitio": "Gusev (Spirit)",
+     "lat": -15.147,
+     "lon": 175.11,
+     "diam_km": 1.6,
+     "prof_m": 21,
+     "prof_diam": 0.013,
+     "borde_m": -7.8,
+     "distancia_z": 0.037
+    },
+    {
+     "sitio": "Cráter Gale",
+     "lat": -5.715,
+     "lon": 138.173,
+     "diam_km": 1.58,
+     "prof_m": 26,
+     "prof_diam": 0.016,
+     "borde_m": -8.2,
+     "distancia_z": 0.079,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.166,
+    "terreno": 0.2614,
+    "superficie": 0.6053,
+    "clima": 0.2894,
+    "total": 0.2457,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.834,
+    "terreno": 0.7207,
+    "superficie": 0.6053,
+    "clima": 0.2894,
+    "total": 0.5456,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0181": {
+  "nombre": "Depresión tipo cráter MX0181",
+  "pais": "MX",
+  "lat": 23.5153,
+  "lon": -102.8073,
+  "estado": "candidato_modelo",
+  "destino_ref": "jezero",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 2.441,
+   "prof_m": 28.8,
+   "prof_diam": 0.0118,
+   "borde_m": -4.8
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": -1.9502,
+   "P_Luna": 0.1245,
+   "aportes": {
+    "log_diam": {
+     "valor": 0.3876,
+     "z": 1.189,
+     "aporte_logit": -0.3752
+    },
+    "prof_diam": {
+     "valor": 0.0118,
+     "z": -1.392,
+     "aporte_logit": -2.1778
+    },
+    "borde_rel": {
+     "valor": -0.002,
+     "z": 0.708,
+     "aporte_logit": -0.14
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.385,
+     "lon": 119.239,
+     "diam_km": 2.33,
+     "prof_m": 24,
+     "prof_diam": 0.01,
+     "borde_m": -18.4,
+     "distancia_z": 0.219
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -83.722,
+     "lon": -155.945,
+     "diam_km": 2.37,
+     "prof_m": 22,
+     "prof_diam": 0.009,
+     "borde_m": -19.3,
+     "distancia_z": 0.225
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.759,
+     "lon": 131.739,
+     "diam_km": 2.27,
+     "prof_m": 24,
+     "prof_diam": 0.011,
+     "borde_m": -18.2,
+     "distancia_z": 0.242
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Cráter Jezero",
+     "lat": 18.425,
+     "lon": 77.747,
+     "diam_km": 2.47,
+     "prof_m": 31,
+     "prof_diam": 0.013,
+     "borde_m": -9.4,
+     "distancia_z": 0.068,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.945,
+     "lon": -24.035,
+     "diam_km": 2.3,
+     "prof_m": 21,
+     "prof_diam": 0.009,
+     "borde_m": -3.9,
+     "distancia_z": 0.124,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Cráter Gale",
+     "lat": -4.606,
+     "lon": 138.228,
+     "diam_km": 2.3,
+     "prof_m": 35,
+     "prof_diam": 0.015,
+     "borde_m": -7.5,
+     "distancia_z": 0.143,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.1245,
+    "terreno": 0.2038,
+    "superficie": 0.2873,
+    "clima": 0.3055,
+    "total": 0.1995,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.8755,
+    "terreno": 0.5618,
+    "superficie": 0.2873,
+    "clima": 0.3055,
+    "total": 0.5069,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0207": {
+  "nombre": "Real de Ángeles (Zac.)",
+  "pais": "MX",
+  "lat": 22.4145,
+  "lon": -101.9109,
+  "estado": "candidato_modelo",
+  "destino_ref": "polo_sur_lunar",
+  "proceso": "Probable tajo minero a cielo abierto (cantera de OpenStreetMap a ≤ 2 km; por verificar)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 0.93,
+   "prof_m": 269.2,
+   "prof_diam": 0.2893,
+   "borde_m": -11.4
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": 10.2302,
+   "P_Luna": 1.0,
+   "aportes": {
+    "log_diam": {
+     "valor": -0.0315,
+     "z": -0.463,
+     "aporte_logit": 0.1459
+    },
+    "prof_diam": {
+     "valor": 0.2895,
+     "z": 6.018,
+     "aporte_logit": 9.4128
+    },
+    "borde_rel": {
+     "valor": -0.0123,
+     "z": 0.36,
+     "aporte_logit": -0.0713
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -81.407,
+     "lon": -122.71,
+     "diam_km": 1.11,
+     "prof_m": 254,
+     "prof_diam": 0.229,
+     "borde_m": 2.1,
+     "distancia_z": 1.698
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -83.983,
+     "lon": 162.584,
+     "diam_km": 0.75,
+     "prof_m": 168,
+     "prof_diam": 0.224,
+     "borde_m": -15.7,
+     "distancia_z": 1.811
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -80.992,
+     "lon": -95.177,
+     "diam_km": 1.76,
+     "prof_m": 413,
+     "prof_diam": 0.234,
+     "borde_m": 37.4,
+     "distancia_z": 2.153
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Cráter Jezero",
+     "lat": 18.97,
+     "lon": 77.592,
+     "diam_km": 3.02,
+     "prof_m": 574,
+     "prof_diam": 0.19,
+     "borde_m": 46.4,
+     "distancia_z": 3.459,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Oxia Planum",
+     "lat": 18.674,
+     "lon": -23.577,
+     "diam_km": 1.13,
+     "prof_m": 172,
+     "prof_diam": 0.152,
+     "borde_m": -68.0,
+     "distancia_z": 4.014,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Cráter Gale",
+     "lat": -5.926,
+     "lon": 138.496,
+     "diam_km": 1.32,
+     "prof_m": 185,
+     "prof_diam": 0.141,
+     "borde_m": -9.6,
+     "distancia_z": 4.021,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.0841,
+    "terreno": 0.313,
+    "superficie": 0.6271,
+    "clima": 0.289,
+    "total": 0.1929,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.0,
+    "terreno": 0.8629,
+    "superficie": 0.6271,
+    "clima": 0.289,
+    "total": 0.0002,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0261": {
+  "nombre": "Hoya Rincón de Parangueo",
+  "pais": "MX",
+  "lat": 20.4316,
+  "lon": -101.2492,
+  "estado": "candidato_modelo",
+  "destino_ref": "polo_sur_lunar",
+  "proceso": "Volcánico: maar del catálogo de cráteres conocidos de México",
+  "novedoso": false,
+  "medidas": {
+   "diam_km": 1.373,
+   "prof_m": 104.5,
+   "prof_diam": 0.0762,
+   "borde_m": 23.2
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": 0.9191,
+   "P_Luna": 0.7149,
+   "aportes": {
+    "log_diam": {
+     "valor": 0.1377,
+     "z": 0.204,
+     "aporte_logit": -0.0645
+    },
+    "prof_diam": {
+     "valor": 0.0761,
+     "z": 0.324,
+     "aporte_logit": 0.5068
+    },
+    "borde_rel": {
+     "valor": 0.0169,
+     "z": 1.346,
+     "aporte_logit": -0.2661
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.402,
+     "lon": 120.337,
+     "diam_km": 1.35,
+     "prof_m": 105,
+     "prof_diam": 0.078,
+     "borde_m": 24.5,
+     "distancia_z": 0.061
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -81.851,
+     "lon": 91.013,
+     "diam_km": 1.35,
+     "prof_m": 102,
+     "prof_diam": 0.075,
+     "borde_m": 19.4,
+     "distancia_z": 0.094
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -80.551,
+     "lon": -81.514,
+     "diam_km": 1.26,
+     "prof_m": 94,
+     "prof_diam": 0.075,
+     "borde_m": 17.1,
+     "distancia_z": 0.19
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Gusev (Spirit)",
+     "lat": -15.16,
+     "lon": 175.192,
+     "diam_km": 1.08,
+     "prof_m": 80,
+     "prof_diam": 0.074,
+     "borde_m": 2.0,
+     "distancia_z": 0.655
+    },
+    {
+     "sitio": "Cráter Jezero",
+     "lat": 18.129,
+     "lon": 77.18,
+     "diam_km": 1.48,
+     "prof_m": 139,
+     "prof_diam": 0.094,
+     "borde_m": 6.1,
+     "distancia_z": 0.655,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.75,
+     "lon": -23.936,
+     "diam_km": 1.82,
+     "prof_m": 153,
+     "prof_diam": 0.084,
+     "borde_m": 7.3,
+     "distancia_z": 0.684,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.7149,
+    "terreno": 0.3261,
+    "superficie": 0.3245,
+    "clima": 0.2112,
+    "total": 0.3833,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.2851,
+    "terreno": 0.8991,
+    "superficie": 0.3245,
+    "clima": 0.2112,
+    "total": 0.3089,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0312": {
+  "nombre": "Depresión tipo cráter MX0312",
+  "pais": "MX",
+  "lat": 19.4362,
+  "lon": -101.7366,
+  "estado": "candidato_modelo",
+  "destino_ref": "jezero",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 4.186,
+   "prof_m": 26.8,
+   "prof_diam": 0.0064,
+   "borde_m": -46.3
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": -2.4059,
+   "P_Luna": 0.0827,
+   "aportes": {
+    "log_diam": {
+     "valor": 0.6218,
+     "z": 2.113,
+     "aporte_logit": -0.6664
+    },
+    "prof_diam": {
+     "valor": 0.0064,
+     "z": -1.536,
+     "aporte_logit": -2.403
+    },
+    "borde_rel": {
+     "valor": -0.0111,
+     "z": 0.401,
+     "aporte_logit": -0.0793
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -81.543,
+     "lon": -162.085,
+     "diam_km": 4.48,
+     "prof_m": 46,
+     "prof_diam": 0.01,
+     "borde_m": -44.6,
+     "distancia_z": 0.159
+    },
+    {
+     "sitio": "Polo sur (85-90°S)",
+     "lat": -87.685,
+     "lon": -83.253,
+     "diam_km": 4.46,
+     "prof_m": 52,
+     "prof_diam": 0.012,
+     "borde_m": -54.5,
+     "distancia_z": 0.179
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -80.739,
+     "lon": 164.121,
+     "diam_km": 4.47,
+     "prof_m": 63,
+     "prof_diam": 0.014,
+     "borde_m": -56.5,
+     "distancia_z": 0.241
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Gusev (Spirit)",
+     "lat": -14.119,
+     "lon": 176.098,
+     "diam_km": 4.43,
+     "prof_m": 45,
+     "prof_diam": 0.01,
+     "borde_m": -20.7,
+     "distancia_z": 0.258
+    },
+    {
+     "sitio": "Cráter Jezero",
+     "lat": 19.124,
+     "lon": 76.702,
+     "diam_km": 4.35,
+     "prof_m": 64,
+     "prof_diam": 0.015,
+     "borde_m": -63.4,
+     "distancia_z": 0.26,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Cráter Gale",
+     "lat": -4.952,
+     "lon": 137.081,
+     "diam_km": 4.15,
+     "prof_m": 34,
+     "prof_diam": 0.008,
+     "borde_m": -12.8,
+     "distancia_z": 0.274,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.0827,
+    "terreno": 0.6347,
+    "superficie": 0.6233,
+    "clima": 0.1913,
+    "total": 0.1843,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.9173,
+    "terreno": 0.5716,
+    "superficie": 0.6233,
+    "clima": 0.1913,
+    "total": 0.4749,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0383": {
+  "nombre": "Depresión tipo cráter MX0383",
+  "pais": "MX",
+  "lat": 18.621,
+  "lon": -99.2677,
+  "estado": "candidato_modelo",
+  "destino_ref": "jezero",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 3.749,
+   "prof_m": 58.1,
+   "prof_diam": 0.0155,
+   "borde_m": -4.2
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": -2.0331,
+   "P_Luna": 0.1158,
+   "aportes": {
+    "log_diam": {
+     "valor": 0.5739,
+     "z": 1.924,
+     "aporte_logit": -0.6069
+    },
+    "prof_diam": {
+     "valor": 0.0155,
+     "z": -1.294,
+     "aporte_logit": -2.0234
+    },
+    "borde_rel": {
+     "valor": -0.0011,
+     "z": 0.737,
+     "aporte_logit": -0.1457
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -81.749,
+     "lon": -162.699,
+     "diam_km": 3.65,
+     "prof_m": 64,
+     "prof_diam": 0.018,
+     "borde_m": -13.1,
+     "distancia_z": 0.109
+    },
+    {
+     "sitio": "Polo sur (85-90°S)",
+     "lat": -86.849,
+     "lon": -114.455,
+     "diam_km": 3.67,
+     "prof_m": 44,
+     "prof_diam": 0.012,
+     "borde_m": -11.4,
+     "distancia_z": 0.119
+    },
+    {
+     "sitio": "Polo sur (85-90°S)",
+     "lat": -86.996,
+     "lon": -70.93,
+     "diam_km": 4.06,
+     "prof_m": 50,
+     "prof_diam": 0.012,
+     "borde_m": -4.5,
+     "distancia_z": 0.159
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Gusev (Spirit)",
+     "lat": -14.757,
+     "lon": 175.761,
+     "diam_km": 3.73,
+     "prof_m": 55,
+     "prof_diam": 0.015,
+     "borde_m": -8.1,
+     "distancia_z": 0.041
+    },
+    {
+     "sitio": "Meridiani (Opportunity)",
+     "lat": -2.639,
+     "lon": -6.066,
+     "diam_km": 3.44,
+     "prof_m": 72,
+     "prof_diam": 0.021,
+     "borde_m": -6.0,
+     "distancia_z": 0.209
+    },
+    {
+     "sitio": "Chryse (Viking 1)",
+     "lat": 22.238,
+     "lon": -47.452,
+     "diam_km": 4.23,
+     "prof_m": 63,
+     "prof_diam": 0.015,
+     "borde_m": -6.8,
+     "distancia_z": 0.21
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.1158,
+    "terreno": 0.3606,
+    "superficie": 0.8964,
+    "clima": 0.1416,
+    "total": 0.1808,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.8842,
+    "terreno": 0.994,
+    "superficie": 0.8964,
+    "clima": 0.1416,
+    "total": 0.4746,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "mx0457": {
+  "nombre": "Depresión tipo cráter MX0457",
+  "pais": "MX",
+  "lat": 17.9849,
+  "lon": -94.6961,
+  "estado": "candidato_modelo",
+  "destino_ref": "jezero",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
+  "novedoso": true,
+  "medidas": {
+   "diam_km": 0.782,
+   "prof_m": 22.9,
+   "prof_diam": 0.0293,
+   "borde_m": -9.5
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": -0.5376,
+   "P_Luna": 0.3687,
+   "aportes": {
+    "log_diam": {
+     "valor": -0.1068,
+     "z": -0.759,
+     "aporte_logit": 0.2395
+    },
+    "prof_diam": {
+     "valor": 0.0293,
+     "z": -0.926,
+     "aporte_logit": -1.4479
+    },
+    "borde_rel": {
+     "valor": -0.0121,
+     "z": 0.364,
+     "aporte_logit": -0.072
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -82.477,
+     "lon": -172.369,
+     "diam_km": 0.78,
+     "prof_m": 24,
+     "prof_diam": 0.03,
+     "borde_m": -7.6,
+     "distancia_z": 0.084
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -84.883,
+     "lon": 11.377,
+     "diam_km": 0.75,
+     "prof_m": 21,
+     "prof_diam": 0.028,
+     "borde_m": -8.0,
+     "distancia_z": 0.1
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -81.415,
+     "lon": -157.258,
+     "diam_km": 0.78,
+     "prof_m": 21,
+     "prof_diam": 0.026,
+     "borde_m": -11.6,
+     "distancia_z": 0.119
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Meridiani (Opportunity)",
+     "lat": -1.599,
+     "lon": -5.188,
+     "diam_km": 0.78,
+     "prof_m": 23,
+     "prof_diam": 0.029,
+     "borde_m": -9.6,
+     "distancia_z": 0.004
+    },
+    {
+     "sitio": "Meridiani (Opportunity)",
+     "lat": -1.965,
+     "lon": -5.599,
+     "diam_km": 0.78,
+     "prof_m": 24,
+     "prof_diam": 0.031,
+     "borde_m": -10.4,
+     "distancia_z": 0.054
+    },
+    {
+     "sitio": "Meridiani (Opportunity)",
+     "lat": -2.782,
+     "lon": -6.141,
+     "diam_km": 0.81,
+     "prof_m": 25,
+     "prof_diam": 0.031,
+     "borde_m": -10.5,
+     "distancia_z": 0.083
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.3687,
+    "terreno": 0.2295,
+    "superficie": 0.3175,
+    "clima": 0.0387,
+    "total": 0.1539,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.6313,
+    "terreno": 0.6327,
+    "superficie": 0.3175,
+    "clima": 0.0387,
+    "total": 0.2221,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ },
+ "pinacate": {
+  "nombre": "Campo volcánico El Pinacate",
+  "pais": "MX",
+  "lat": 31.84444,
+  "lon": -113.39111,
+  "estado": "documentado",
+  "destino_ref": "jezero",
+  "proceso": "Vulcanismo basáltico y cráteres",
+  "novedoso": false,
+  "medidas": {
+   "diam_km": 1.445,
+   "prof_m": 201.1,
+   "prof_diam": 0.1392,
+   "borde_m": 19.3
+  },
+  "forma_explicada": {
+   "intercepto": 0.7428,
+   "logit_luna": 3.5474,
+   "P_Luna": 0.972,
+   "aportes": {
+    "log_diam": {
+     "valor": 0.1599,
+     "z": 0.292,
+     "aporte_logit": -0.0921
+    },
+    "prof_diam": {
+     "valor": 0.1392,
+     "z": 2.007,
+     "aporte_logit": 3.1391
+    },
+    "borde_rel": {
+     "valor": 0.0134,
+     "z": 1.226,
+     "aporte_logit": -0.2424
+    }
+   }
+  },
+  "gemelos": {
+   "Luna": [
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -80.728,
+     "lon": -80.783,
+     "diam_km": 1.35,
+     "prof_m": 180,
+     "prof_diam": 0.133,
+     "borde_m": 18.2,
+     "distancia_z": 0.208
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -80.891,
+     "lon": -80.595,
+     "diam_km": 1.6,
+     "prof_m": 214,
+     "prof_diam": 0.134,
+     "borde_m": 18.0,
+     "distancia_z": 0.224
+    },
+    {
+     "sitio": "Anillo 80-85°S",
+     "lat": -80.505,
+     "lon": -85.605,
+     "diam_km": 1.43,
+     "prof_m": 211,
+     "prof_diam": 0.148,
+     "borde_m": 17.0,
+     "distancia_z": 0.242
+    }
+   ],
+   "Marte": [
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.484,
+     "lon": -23.526,
+     "diam_km": 1.48,
+     "prof_m": 206,
+     "prof_diam": 0.139,
+     "borde_m": 19.0,
+     "distancia_z": 0.045,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Oxia Planum",
+     "lat": 17.715,
+     "lon": -23.57,
+     "diam_km": 1.43,
+     "prof_m": 181,
+     "prof_diam": 0.127,
+     "borde_m": 12.8,
+     "distancia_z": 0.362,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    },
+    {
+     "sitio": "Cráter Jezero",
+     "lat": 18.317,
+     "lon": 76.631,
+     "diam_km": 1.24,
+     "prof_m": 147,
+     "prof_diam": 0.119,
+     "borde_m": 17.2,
+     "distancia_z": 0.603,
+     "coord_nota": "centro del recorte por verificar contra el nomenclátor IAU (analisis/03)"
+    }
+   ]
+  },
+  "dimensiones": {
+   "polo_sur_lunar": {
+    "forma": 0.972,
+    "terreno": 0.2586,
+    "superficie": 0.4023,
+    "clima": 0.388,
+    "total": 0.529,
+    "confianza": 1.0,
+    "vetado": false
+   },
+   "jezero": {
+    "forma": 0.028,
+    "terreno": 0.7128,
+    "superficie": 0.4023,
+    "clima": 0.388,
+    "total": 0.149,
+    "confianza": 1.0,
+    "vetado": false
+   }
+  }
+ }
+}

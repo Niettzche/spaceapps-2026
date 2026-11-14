@@ -41,6 +41,31 @@ Barrido sistemático de México que detecta formas tipo cráter y las mide con *
 
 Qué cubre ya del reto: métrica de similitud, búsqueda sistemática, sitios nuevos (no los análogos clásicos) y app interactiva.
 
+## Cómo encontramos los análogos (resumen para el equipo y el pitch)
+
+Cifras del 14 de noviembre de 2026. Cada paso dice de dónde sale el número.
+
+1. **El relieve de los tres mundos, a la misma escala.** Tierra: Copernicus DEM GLO-30 (ESA, 30 m). Luna: LOLA `ldem_80s_80m` (sonda LRO de NASA, 80 m, polo sur). Marte: mosaico HRSC + MOLA (ESA/NASA vía USGS, 200 m), en 8 sitios de aterrizaje. Los tres se llevan a **200 m por píxel** y pasan por **el mismo código** (`analisis/00`–`03`), para que las diferencias sean del terreno y no de los datos.
+2. **Buscar hoyos "como si lloviera".** El detector (`analisis/07_buscador_crateres.py`) recorre el relieve en ventanas de 12 km, rellena cada ventana hasta el punto por donde se derramaría el agua y mide lo que quedó bajo el agua. Se queda con lo que tiene forma de cráter: 0.6 a 10 km de diámetro, al menos 20 m de profundidad y redondez ≥ 0.6. Detalle en la sección siguiente. Resultado: **5,208 depresiones en México, 668 tipo cráter**; 1,056 cráteres en el polo sur lunar; 596 en Marte.
+3. **Quitar lo que no sirve.** Con la vegetación de MODIS (NASA, NDVI p90 < 0.35) se dejan solo zonas áridas. El 71 % de las 668 estaba en sierras húmedas del sur: son dolinas y cañadas reales, no cráteres (`informe/validacion_detector.pdf`). Quedan **47 candidatos áridos en México** (46 si se recalcula desde `hoyas_mexico.csv`: ahí el NDVI se muestreó a 250 m en vez de 500 m, celda 14 frente a celda 09, y tres cráteres cruzan el umbral de 0.35 en uno u otro sentido: MX0015, MX0090 y MX0206). Con OpenStreetMap se marca cuáles están a ≤ 2 km de una cantera o mina (no confirma que lo sean).
+4. **Repetir en otros desiertos.** El mismo detector en Atacama, Arizona (incluye el norte de Sonora) y Arabia occidental: **283 cráteres más, 263 áridos** (`analisis/16_busqueda_global.py`). Es una búsqueda global **mínima**: 3 de las 10 regiones priorizadas, no "todo el planeta".
+5. **Comprobar que el detector funciona.** Encuentra **9 de 11** cráteres mexicanos conocidos y el **40 %** de un catálogo de 70 volcánicos con fuente (`ciencia_datos/03`); los que no encuentra tienen lago o son muy chicos o someros. Encuentra **9 de 10** cráteres de impacto del mundo (8 válidos), con Meteor Crater a ~0.1 km de su posición (116 m en `ciencia_datos/datos/impactos_tierra.csv`, columna `a_km_del_centro`).
+6. **Medir qué tan lunar o marciano es cada candidato.** La variable que más separa los mundos es **profundidad/diámetro** (Luna 0.060, México árido 0.034, Marte 0.027). Un modelo explicable entrenado solo con cráteres de la Luna y de Marte los distingue con **78 %** de exactitud balanceada (`ciencia_datos/02`–`03`). Además (**preliminar**: los datos están en el PR de perfiles radiales y aún no en el repo), para cada candidato se busca su **gemelo lunar por perfil a 80 m** (el de corte radial más parecido entre los 1,056 del polo sur) y se compara **zona por zona**: fondo, pared, borde y alrededor (`analisis` celdas 18–19, visor local).
+7. **Elegir los mejores.** Un buen análogo se parece en **varias zonas y variables a la vez**, está en zona árida y es accesible. De ahí salen dos hallazgos:
+   - **Minas a cielo abierto** (México, Arizona, Atacama): más hondas que el 99.75 % de los cráteres lunares de su tamaño (de 1,975 cráteres lunares de 0.7–1.2 km entre 80 y 90° S —polo sur y anillo—, solo 0.25 % pasa de d/D 0.2) y que Meteor Crater (0.126). Por perfiles a 80 m (**preliminar**, aún no en el repo) se parecen en pared y borde y **no en el fondo**: la analogía se rompe por exceso. De los 21 cráteres áridos globales con d/D ≥ 0.15, 14 están junto a una cantera. Nombres de minas por verificar.
+   - **Cráteres volcánicos como El Elegante, Sykes y MacDougal (Pinacate)**: por perfiles a 80 m (**preliminar**, aún no en el repo) coinciden con un cráter lunar en todas sus zonas.
+
+   Cuidado al presentarlo: como el gemelo se elige entre 1,056 cráteres, casi siempre hay uno parecido. Lo más informativo es **dónde no se parece**.
+
+### El paso 2 en detalle: cómo el detector encuentra un hoyo
+
+- **Rellenar.** En cada ventana de 60 × 60 píxeles (12 km) se calcula el relieve "lleno de agua" con una reconstrucción morfológica por erosión (`skimage.morphology.reconstruction`): el agua sube en cada hoyo hasta el punto más bajo de su orilla, por donde se derramaría. La **profundidad** en cada píxel es "relleno − terreno".
+- **Separar hoyos.** Los píxeles con más de 5 m de agua forman manchas; cada mancha conectada es una depresión candidata.
+- **Medir cada una.** Área → diámetro equivalente (`2·√(área/π)`); profundidad máxima; **redondez** = qué tanto llena su caja × qué tan cuadrada es la caja; **borde** = altura media de un anillo justo afuera menos la de un anillo más lejano.
+- **Filtrar.** Se queda si mide 0.6–10 km, tiene ≥ 20 m de profundidad y redondez ≥ 0.6.
+- **No contar dos veces.** Las ventanas se traslapan cada 6 km; si dos detecciones se enciman se conserva la más completa.
+- **Límites:** a 200 m no ve nada menor de ~0.6 km; un cráter con lago se mide hasta el agua, no hasta el fondo; la profundidad se mide hasta el punto de derrame del borde (el más bajo), no hasta la cresta, así que en bordes disparejos sale menor; y en sierras quebradas encuentra dolinas y cañadas cerradas que cumplen la forma sin ser cráteres (por eso el filtro árido).
+
 ## Entrega (hackathon 14–15 de noviembre de 2026)
 
 **Cierre del envío: domingo 15 de noviembre, 23:59 hora local** (según resultados de búsqueda; confirmar en la guía oficial: https://www.spaceappschallenge.org/resources/project-submission-guide/). No se aceptan cambios después. Meta interna: enviar el domingo a las 18:00.
