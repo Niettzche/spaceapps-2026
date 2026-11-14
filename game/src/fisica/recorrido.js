@@ -6,6 +6,7 @@ import { superficieEn, alturaEn, PLANO_FINAL_M } from './perfil.js';
 import { Robot } from './robot.js';
 import { Controles } from './controles.js';
 import { Hud } from './hud.js';
+import { notaSuelo } from './suelos.js';
 import { Telemetria, construirResultado } from './telemetria.js';
 import { Efectos } from './efectos.js';
 import { AspectoRobot, crearFondo, claveDeFondo, sprite, tira } from './aspecto.js';
@@ -67,7 +68,11 @@ export class Recorrido {
     cam.startFollow(this.robot, false, 0.12, 0.12, -m(6), m(1));
 
     this.controles = new Controles(scene);
-    this.hud = new Hud(scene, { titulo: o.titulo, subtitulo: o.subtitulo, aviso: o.perfil.ilustrativo ? `⚠ ${o.perfil.nota}` : o.perfil.nota });
+    // Origen del agarre del suelo + aviso del nivel. El suelo va primero: es corto y el HUD corta el aviso a 3 líneas,
+    // así los valores provisionales (P) siempre se declaran en pantalla.
+    const avisoNivel = o.perfil.ilustrativo ? `⚠ ${o.perfil.nota}` : o.perfil.nota;
+    const avisoSuelo = notaSuelo(o.mundo, o.perfil.superficies);
+    this.hud = new Hud(scene, { titulo: o.titulo, subtitulo: o.subtitulo, aviso: [avisoSuelo && `${avisoSuelo}.`, avisoNivel].filter(Boolean).join(' ') });
     this._botonAbandonar();
   }
 

@@ -117,13 +117,26 @@ caso('feedback: no recomienda lo que ya tiene', () => {
 console.log(`${n} casos OK`);
 
 // Agarre real del suelo (suelos.js)
-import { agarreSuelo, rangoAgarreSuelo } from './suelos.js';
-caso('suelo: Marte drift tan(18°) ≈ 0.325; Tierra sin dato = 1; roca de Marte con tope 1', () => {
+import { agarreSuelo, rangoAgarreSuelo, sueloProvisional, notaSuelo, AGARRE_PROVISIONAL, USAR_SUELO_TIERRA } from './suelos.js';
+caso('suelo: Marte drift tan(18°) ≈ 0.325; roca de Marte con tope 1; sin dato = provisional (P)', () => {
   assert.ok(Math.abs(agarreSuelo('marte', 'arena') - Math.tan((18 * Math.PI) / 180)) < 1e-9);
-  assert.equal(agarreSuelo('tierra', 'arena'), 1);
   assert.equal(agarreSuelo('marte', 'roca'), 1);
   const [a, b] = rangoAgarreSuelo('luna', 'arena');
   assert.ok(a > 0.57 && b < 1.2);
+  assert.equal(agarreSuelo('tierra', 'roca'), AGARRE_PROVISIONAL);
+  assert.equal(sueloProvisional('tierra', 'compacto'), true);
+  assert.equal(sueloProvisional('luna', 'roca'), true);
+});
+caso('suelo: arena de duna de la Tierra = tan(31°) con fuente (BM-004), o provisional si se desactiva', () => {
+  if (USAR_SUELO_TIERRA) {
+    assert.ok(Math.abs(agarreSuelo('tierra', 'arena') - Math.tan((31 * Math.PI) / 180)) < 1e-9); // ≈ 0.601
+    assert.equal(sueloProvisional('tierra', 'arena'), false);
+  } else {
+    assert.equal(agarreSuelo('tierra', 'arena'), AGARRE_PROVISIONAL);
+  }
+  const nota = notaSuelo('tierra', [{ tipo: 'arena' }, { tipo: 'roca' }]);
+  assert.ok(nota.includes('roca: agarre provisional (P)'));
+  assert.equal(notaSuelo('tierra', []), null);
 });
 console.log(`${n} casos OK (con suelos)`);
 
