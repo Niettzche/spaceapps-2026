@@ -2,6 +2,8 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { RANURAS, DISENO_POR_DEFECTO, resumen, validar, comoMapa, comoDiseno, piezasPara } from './diseno.js';
+import { MASA_CARGA_KG } from '../../fisica/diseno.js';
+import { gastoPorSegundo } from '../../fisica/energia.js';
 
 const catalogo = JSON.parse(readFileSync(new URL('../../content/parts.json', import.meta.url), 'utf-8'));
 const PRESUPUESTO = 1000;
@@ -34,11 +36,28 @@ caso('camino dorado: ruedas anchas en ambos ejes = 890 y válido', () => {
   assert.deepEqual(validar(d, catalogo, PRESUPUESTO), []);
 });
 
-caso('agarre = el peor de los dos ejes (la posición importa)', () => {
-  const d = con({ rueda_del: 'rueda_ancha' });
-  const a = resumen(d, catalogo).agarre;
-  assert.equal(a.arena, 0.4);
-  assert.equal(resumen(con({ rueda_del: 'rueda_ancha', rueda_tras: 'rueda_ancha' }), catalogo).agarre.arena, 0.9);
+caso('agarre = promedio de los ejes; mezclar ruedas avisa (con las dos anchas es más seguro)', () => {
+  const mezcla = resumen(con({ rueda_del: 'rueda_ancha' }), catalogo);
+  assert.equal(mezcla.agarre.arena, 0.65); // (0.9 + 0.4) / 2: el eje ancho sí aporta
+  assert.equal(mezcla.agarre_ejes.del.arena, 0.9);
+  assert.equal(mezcla.agarre_ejes.tras.arena, 0.4);
+  assert.equal(mezcla.ejes_distintos, true);
+  const dosAnchas = resumen(con({ rueda_del: 'rueda_ancha', rueda_tras: 'rueda_ancha' }), catalogo);
+  assert.equal(dosAnchas.agarre.arena, 0.9);
+  assert.equal(dosAnchas.ejes_distintos, false);
+  assert.ok(dosAnchas.agarre.arena > mezcla.agarre.arena);
+});
+
+caso('la carga (10 kg) baja la autonomía pero no cambia costo ni masa del robot', () => {
+  const sin = resumen(DISENO_POR_DEFECTO, catalogo);
+  const conCarga = resumen(DISENO_POR_DEFECTO, catalogo, { masaCarga: MASA_CARGA_KG });
+  assert.equal(MASA_CARGA_KG, 10);
+  assert.equal(conCarga.masa, 59); // contrato con la física: masa = solo el robot
+  assert.equal(conCarga.costo, sin.costo);
+  assert.equal(conCarga.masa_con_carga, 69);
+  // misma regla que fisica/energia.js: 100 / (0.6 × (1 + 69/100)) ≈ 98.6 s
+  assert.ok(Math.abs(conCarga.autonomia_s - 100 / gastoPorSegundo({ consumo: 0.6 }, 69, 1)) < 1e-9);
+  assert.ok(conCarga.autonomia_s < sin.autonomia_s);
 });
 
 caso('exceder el presupuesto bloquea', () => {

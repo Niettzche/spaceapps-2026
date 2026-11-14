@@ -2,6 +2,7 @@
 // Contrato con el frente juego (docs/juego/ESPECIFICACION.md §3):
 //   partida.diseno = [{ ranura, pieza }]; cada ranura de rueda es un eje y cobra 2 × costo y 2 × masa.
 // Todos los números que salen de aquí son VALORES DE JUEGO, no datos de ingeniería.
+import { gastoPorSegundo } from '../../fisica/energia.js'; // misma regla de energía que la física (sin ciclo de imports)
 
 export const RANURAS = [
   { id: 'chasis', nombre: 'Chasis', sistema: 'estructura', obligatoria: true, multiplicador: 1 },
@@ -55,11 +56,13 @@ export function comoDiseno(mapa) {
 
 /**
  * Propiedades del robot que salen del diseño (valores de juego).
- * agarre: el MENOR de los dos ejes por superficie (el eje que peor agarra limita al robot).
- * autonomia_s: segundos a acelerador pleno con la regla de energía del frente juego (§6):
- *   gasto por segundo = consumo × (1 + masa_total / 100).
+ * masa: solo el robot (la física suma la carga aparte; no cambiar este significado).
+ * agarre: PROMEDIO de los dos ejes por superficie. En la física cada rueda usa su propio agarre, así que los dos ejes aportan;
+ *   agarre_ejes da el valor de cada eje y ejes_distintos avisa que mezclar ruedas es menos seguro (p. ej. dos anchas en arena).
+ * autonomia_s: segundos a acelerador pleno con la regla de energía de la física (fisica/energia.js), con la masa del robot
+ *   más `masaCarga` (la carga que se entrega, MASA_CARGA_KG del frente juego).
  */
-export function resumen(diseno, catalogo) {
+export function resumen(diseno, catalogo, { masaCarga = 0 } = {}) {
   const porId = Object.fromEntries(catalogo.map((p) => [p.id, p]));
   const m = comoMapa(diseno);
   const pieza = (id) => porId[m[id]] || null;
@@ -73,28 +76,38 @@ export function resumen(diseno, catalogo) {
   }
   const del = pieza('rueda_del');
   const tras = pieza('rueda_tras');
+  const agarreDe = (p, s) => (p && p.agarre && typeof p.agarre[s] === 'number' ? p.agarre[s] : null);
   const agarre = {};
+  const agarreEjes = { del: {}, tras: {} };
   for (const s of SUPERFICIES) {
-    const v = [del, tras].filter((p) => p && p.agarre && typeof p.agarre[s] === 'number').map((p) => p.agarre[s]);
-    agarre[s] = v.length === 2 ? Math.min(...v) : null;
+    const d = agarreDe(del, s);
+    const t = agarreDe(tras, s);
+    agarreEjes.del[s] = d;
+    agarreEjes.tras[s] = t;
+    agarre[s] = d != null && t != null ? Math.round(((d + t) / 2) * 100) / 100 : null;
   }
+  const ejesDistintos = Boolean(del && tras && del.id !== tras.id);
   const chasis = pieza('chasis');
   const motor = pieza('motor');
   const bateria = pieza('bateria');
   const carga = pieza('carga');
   const consumo = motor ? motor.consumo ?? null : null;
   const capacidad = bateria ? bateria.capacidad ?? null : null;
-  const gasto = consumo != null ? consumo * (1 + masa / 100) : null;
+  const masaConCarga = masa + masaCarga;
+  const gasto = motor && consumo != null ? gastoPorSegundo(motor, masaConCarga, 1) : null;
   return {
     costo,
     masa,
+    masa_con_carga: masaConCarga,
     agarre,
+    agarre_ejes: agarreEjes,
+    ejes_distintos: ejesDistintos,
     resistencia: chasis ? chasis.resistencia ?? null : null,
     fuerza: motor ? motor.fuerza ?? null : null,
     consumo,
     capacidad,
     proteccion: carga ? carga.proteccion ?? null : null,
-    fuerza_por_masa: motor && masa > 0 ? motor.fuerza / masa : null,
+    fuerza_por_masa: motor && masaConCarga > 0 ? motor.fuerza / masaConCarga : null,
     autonomia_s: capacidad != null && gasto ? capacidad / gasto : null,
   };
 }
@@ -116,7 +129,7 @@ export function validar(diseno, catalogo, presupuesto) {
   for (const r of RANURAS) {
     if (r.obligatoria && !vistas.has(r.id)) errores.push(`Falta: ${r.nombre}`);
   }
-  const { costo } = resumen(diseno, catalogo);
+  const { costo } = resumen(diseno, catalogo); // el costo no depende de la carga
   if (costo > presupuesto) errores.push(`Excede el presupuesto por ${costo - presupuesto} créditos`);
   return errores;
 }
