@@ -5,20 +5,69 @@
   "type": "array",
   "items": {
     "type": "object",
-    "required": ["id", "nombre", "sistema", "costo", "masa", "nota"],
+    "required": [
+      "id",
+      "nombre",
+      "sistema",
+      "costo",
+      "masa",
+      "nota"
+    ],
     "properties": {
-      "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
-      "nombre": { "type": "string" },
-      "sistema": { "enum": ["estructura", "movilidad", "energia", "potencia", "carga", "modulo"] },
-      "costo": { "type": "number", "minimum": 0 },
-      "masa": { "type": "number", "minimum": 0 },
-      "agarre": { "type": "object", "additionalProperties": { "type": "number" } },
-      "resistencia": { "type": "number" },
-      "capacidad": { "type": "number" },
-      "fuerza": { "type": "number" },
-      "consumo": { "type": "number" },
-      "proteccion": { "type": "number" },
-      "nota": { "type": "string" }
+      "id": {
+        "type": "string",
+        "pattern": "^[a-z0-9_]+$"
+      },
+      "nombre": {
+        "type": "string"
+      },
+      "sistema": {
+        "enum": [
+          "estructura",
+          "movilidad",
+          "energia",
+          "potencia",
+          "carga",
+          "modulo"
+        ]
+      },
+      "costo": {
+        "type": "number",
+        "minimum": 0
+      },
+      "masa": {
+        "type": "number",
+        "minimum": 0
+      },
+      "agarre": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "number"
+        }
+      },
+      "resistencia": {
+        "type": "number"
+      },
+      "capacidad": {
+        "type": "number"
+      },
+      "fuerza": {
+        "type": "number"
+      },
+      "consumo": {
+        "type": "number"
+      },
+      "proteccion": {
+        "type": "number"
+      },
+      "nota": {
+        "type": "string"
+      },
+      "radio_m": {
+        "type": "number",
+        "exclusiveMinimum": 0,
+        "description": "Radio de rueda en metros (valor de juego)."
+      }
     }
   }
 }

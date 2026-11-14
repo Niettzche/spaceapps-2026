@@ -1,16 +1,26 @@
-# React + Vite
+﻿# Cráter Gemelo · project website
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React + Vite explorer for Misión Cero. English initially; Spanish available through the language switch. Includes project overview, terrain quiz, candidate sites, interactive map, method, sources and companion-game entry point.
 
-Currently, two official plugins are available:
+## Run and build
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Use a supported Node.js LTS (22.12+).
 
-## React Compiler
+```sh
+npm ci
+npm run dev
+npm run build
+npm run preview
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Deploy the static `dist/` output. For subdirectory hosting, use `npm run build -- --base=/your-path/`.
 
-## Expanding the Oxlint configuration
+## Companion game
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+Set `VITE_GAME_URL` to the game's HTTP(S) URL or relative path before building. Without it, the page shows the game as pending integration. The quiz works independently. The game requires its own build in `../game`; the website build does not include it.
+
+## Data and review
+
+`public/data/` belongs to the model team. Preserve the data and demonstration labels. The optional `sitios.json` shortlist may be absent. The other five JSON files are required; loading failures show a retry action while the overview remains visible. Map tiles require Internet access.
+
+Review: both languages, quiz/restart, map filters, both sheet types, mobile layout, keyboard access, and failed data requests followed by retry. The full rover mission requires validation by the game team.
