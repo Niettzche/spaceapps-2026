@@ -41,6 +41,18 @@ Barrido sistemático de México que detecta formas tipo cráter y las mide con *
 
 Qué cubre ya del reto: métrica de similitud, búsqueda sistemática, sitios nuevos (no los análogos clásicos) y app interactiva.
 
+## Entrega (hackathon 14–15 de noviembre de 2026)
+
+**Cierre del envío: domingo 15 de noviembre, 23:59 hora local** (según resultados de búsqueda; confirmar en la guía oficial: https://www.spaceappschallenge.org/resources/project-submission-guide/). No se aceptan cambios después. Meta interna: enviar el domingo a las 18:00.
+
+Lo que pide el envío (según la guía 2025; confirmar si cambió en 2026):
+- [ ] Título y resumen del proyecto.
+- [ ] Demo: video de 30 s como máximo **o** hasta 7 diapositivas (con portada), en un enlace **público** (YouTube, Drive, GitHub). No se sube al sitio de Space Apps.
+- [ ] Enlace final al proyecto, **público**. El repo hoy es privado: hacerlo público o publicar una copia y desplegar la página web.
+- [ ] Descripción: qué hace, cómo funciona, beneficios, qué datos de la NASA y de otras agencias usa (LOLA, HRSC+MOLA, Copernicus GLO-30 de la ESA, MODIS, OpenStreetMap, GVP), referencias.
+- [ ] Declarar el uso de IA (Claude en análisis, código y redacción).
+- Criterios de evaluación: impacto, creatividad, validez, relevancia y presentación.
+
 ## Pendientes y mejoras propuestas
 
 - [ ] **Más de un eje de similitud.** Hoy el puntaje es sobre todo de forma y relieve (`06_puntaje_forma.py`). Candidatos:
