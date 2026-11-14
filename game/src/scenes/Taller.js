@@ -46,7 +46,7 @@ const VALIDACION_Y = 352;
 const VALIDACION_MAX_Y = 462;
 
 function datoClave(p) {
-  if (p.agarre) return `agarre  arena ${f2(p.agarre.arena)} · roca ${f2(p.agarre.roca)} · compacto ${f2(p.agarre.compacto)}`;
+  if (p.agarre) return `agarre rueda  arena ${f2(p.agarre.arena)} · roca ${f2(p.agarre.roca)} · compacto ${f2(p.agarre.compacto)}`;
   if (p.sistema === 'estructura') return `resistencia ${p.resistencia}`;
   if (p.sistema === 'potencia') return `fuerza ${p.fuerza} · consumo ${p.consumo}/s`;
   if (p.sistema === 'energia') return `capacidad ${p.capacidad}`;
@@ -280,7 +280,9 @@ export default class Taller extends Phaser.Scene {
           ? 'Ejes distintos: con las dos anchas es más seguro.'
           : 'Ejes distintos: con las dos ruedas iguales es más seguro.']
         : []),
-      `Agarre (promedio de ejes): arena ${f2(a.arena)} · roca ${f2(a.roca)} · compacto ${f2(a.compacto)}`,
+      // El agarre que muestra el taller es el de la PIEZA; en la física se multiplica por el del suelo (fisica/suelos.js).
+      `Agarre rueda (prom. ejes): arena ${f2(a.arena)} · roca ${f2(a.roca)} · compacto ${f2(a.compacto)}`,
+      'En la prueba se multiplica por el agarre del suelo.',
       `Resistencia ${res.resistencia ?? '—'} · Protección de carga ${res.proteccion != null ? Math.round(res.proteccion * 100) + ' %' : '—'}`,
       `Fuerza/masa ${res.fuerza_por_masa != null ? res.fuerza_por_masa.toFixed(2) : '—'} · `
         + `Autonomía ≈ ${res.autonomia_s != null ? Math.round(res.autonomia_s) + ' s a fondo' : '—'} con carga (P)`,
