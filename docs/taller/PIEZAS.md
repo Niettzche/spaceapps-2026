@@ -62,4 +62,7 @@ suelo y se hunde menos en arena suelta. Así se justifica en el juego la rueda a
   - Regolito lunar: n 1, k_c 1.4, k_φ 820 (Draft): la misma NASA TM advierte que **no existen parámetros de Bekker reales del
     regolito lunar**; los de la era Apolo son estimaciones a partir de Surveyor.
   - Polvo marciano (drift) y lava: siguen en Gap. Lo más cercano es el simulante M90 (S63), que no es polvo real.
-- Cada cambio quedó en la hoja **Review Log** (RV-094…RV-130) y las fuentes nuevas en **Sources** (S59–S70).
+- **Gravedad de Marte (decisión del equipo, 14 nov):** el juego usa **3.71 m/s²**, gravedad ecuatorial de NASA JPL
+  ([SSD, Planetary Physical Parameters](https://ssd.jpl.nasa.gov/planets/phys_par.html)), fila nueva Mars!MR-056. El 3.73 de
+  MR-001 es la media global de la Mars Fact Sheet: son convenciones distintas, no un error (`docs/DECISIONES.md`).
+- Cada cambio quedó en la hoja **Review Log** (RV-094…RV-136) y las fuentes nuevas en **Sources** (S59–S71).

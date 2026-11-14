@@ -26,6 +26,10 @@
     aviso "con las dos anchas es más seguro".
   - Correcciones en `PIEZAS.md` tras revisar las fuentes: Opportunity se hundió "más de 10 cm" (no "hasta los rines");
     "cada rueda con su propio motor" ahora cita la página de componentes de Perseverance.
+  - Gravedad de Marte cerrada en el libro de datos según la decisión del equipo: el juego usa 3.71 (ecuatorial, NASA JPL,
+    Mars!MR-056, S71); el 3.73 de MR-001 queda como media global de referencia. Flag del Index actualizado.
+- [x] Uso de IA en el frente taller (para `docs/USO_IA.md`, dueño: integración): la investigación de piezas, el libro de datos
+      (búsqueda y verificación de fuentes) y el código del taller se hicieron con Claude Code; cada dato se revisó contra su fuente.
 
 ## En curso
 - Modelo de precios: **sin decidir** (Excel por kg de material, mínimo 665, contra `parts.json` por pieza, mínimo 730).
