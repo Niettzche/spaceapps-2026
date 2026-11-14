@@ -163,7 +163,7 @@ img.ancha {{ width: 100%; max-width: 175mm; display: block; margin: 2mm 0; }}
 
 <div class="caja alerta">
 <p><b>En corto.</b> El detector <b>sí encuentra los cráteres que ya conocemos</b>: 9 de 11 cráteres mexicanos documentados, sin decirle dónde estaban. Pero en una muestra al azar de sus detecciones nuevas, <b>casi ninguna parece un cráter real</b>.</p>
-<p>La razón principal está en los datos: el <b>{round(n_veg / R['n_mexico'] * 100)} % de las {R['n_mexico']} detecciones cae en vegetación densa</b>. El modelo de elevación que usamos mide la superficie, con todo y copas de árboles, y en sierras con selva eso produce hoyos que no existen. Solo {n_arid} detecciones caen en zonas áridas, y ahí están todos los cráteres y minas reales.</p>
+<p>El patrón es claro: el <b>{round(n_veg / R['n_mexico'] * 100)} % de las {R['n_mexico']} detecciones cae en vegetación densa</b>, sobre todo en sierras muy quebradas del sur. Ahí el detector confunde huecos del terreno (cañadas, dolinas kársticas, cabeceras de valle) con cráteres. Solo {n_arid} detecciones caen en zonas áridas, y ahí están todos los cráteres y minas reales.</p>
 <p><b>Qué hacer:</b> quedarnos con las detecciones en zonas áridas (o validarlas a mano), cambiar las cifras de la página y presentar el resultado con honestidad. El detalle está en la sección 5.</p>
 </div>
 
@@ -209,7 +209,7 @@ img.ancha {{ width: 100%; max-width: 175mm; display: block; margin: 2mm 0; }}
 <h2 class="salto">4. Dónde caen las detecciones</h2>
 <img class="ancha" src="datos/ndvi.png">
 <p>{n_veg} de {R['n_mexico']} detecciones están en vegetación densa (NDVI mayor a 0.7), sobre todo en Chiapas, Oaxaca, la Huasteca y la Sierra Madre. Por franja de latitud: {', '.join(f"{k.replace('(', '').replace(']', '').replace(', ', '–')}°N: {v}" for k, v in R['lat_bandas'].items())}.</p>
-<p><b>Por qué pasa:</b> Copernicus GLO-30 es un modelo de <i>superficie</i> hecho con radar. Sobre bosque mide la altura de las copas, y los claros, cañadas y huecos del dosel parecen hoyos cerrados. Además, en sierra muy quebrada, promediar a 200 m crea “cuencas” que no existen. En desierto, donde no hay árboles, la superficie es el suelo y el detector funciona.</p>
+<p><b>Por qué pasa:</b> primero sospechamos de los árboles, porque Copernicus GLO-30 mide la superficie con todo y copas. Lo probamos: repetimos la detección con <b>FABDEM</b> (el mismo Copernicus con bosques y edificios quitados) en cuatro zonas de selva y dos áridas. En selva bajó de 181 a 153 detecciones, solo un 15 % menos, y en las zonas áridas conservó los 4 cráteres reales. <b>Los árboles no son la causa principal.</b> La causa es el propio terreno: en sierra kárstica o muy disectada hay muchas depresiones cerradas reales (dolinas, cañadas cerradas) que, a 200 m por píxel, cumplen nuestras reglas de tamaño, profundidad y redondez. Son hoyos reales, pero no cráteres. En desierto no hay tanto de eso y el detector funciona.</p>
 <img class="ancha" src="datos/dd.png">
 <p>Profundidad contra diámetro. Los puntos grises son la Luna; los rojos, Marte; los azules, todas las detecciones de México. Los círculos ocres son las {n_arid} detecciones en zonas áridas: ahí están los cráteres del Pinacate y las minas, que son las más profundas.</p>
 
@@ -223,7 +223,7 @@ img.ancha {{ width: 100%; max-width: 175mm; display: block; margin: 2mm 0; }}
 <li><b>Revisar a mano esas {n_arid}</b> y marcar cuáles son cráteres, minas o falsos. Con eso la página muestra solo lo validado y la cifra se puede defender.</li>
 <li><b>Cambiar los textos de la página</b>: “668 formas tipo cráter” pasa a “N formas tipo cráter validadas en zonas áridas”, y se cuenta esta lección en “Método” (un juez la valora: muestra que medimos nuestro propio error).</li>
 <li><b>Validar el detector en la Luna</b> contra el catálogo publicado de Robbins (cráteres lunares de 1 km o más). Ahí no hay vegetación, así que es una prueba limpia de precisión y exhaustividad.</li>
-<li><b>Opcional:</b> repetir con un modelo de terreno desnudo (por ejemplo FABDEM, que le quita árboles y edificios a Copernicus) para recuperar zonas con vegetación.</li>
+<li><b>Descartado:</b> cambiar a un modelo sin árboles (FABDEM). Ya lo probamos y solo quita un 15 % de las detecciones en selva. Filtrar por vegetación o por zona árida es lo que funciona.</li>
 </ol>
 
 <h3>Detecciones en el polo sur lunar (muestra al azar)</h3>
