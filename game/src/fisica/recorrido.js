@@ -7,6 +7,7 @@ import { Robot } from './robot.js';
 import { Controles } from './controles.js';
 import { Hud } from './hud.js';
 import { Telemetria, construirResultado } from './telemetria.js';
+import { Efectos } from './efectos.js';
 
 const FONDO = { tierra: '#7f9fbf', marte: '#b98a6a', luna: '#05060b' }; // provisional hasta los fondos de arte
 const SEG_QUIETO_ENTREGA = 2; // la entrega exige 2 s detenido en la zona
@@ -49,7 +50,11 @@ export class Recorrido {
     // Robot sobre el plano de inicio.
     const x0 = xMundo(6);
     const y0 = yMundo(alturaEn(o.perfil, 6)) - m(1.6);
-    this.robot = new Robot(scene, x0, y0, o.diseno, o.piezas, (tipo, detalle) => this.telemetria.registrar(this.robot?.t ?? 0, tipo, detalle));
+    this.robot = new Robot(scene, x0, y0, o.diseno, o.piezas, (tipo, detalle) => {
+      this.telemetria.registrar(this.robot?.t ?? 0, tipo, detalle);
+      this.efectos?.alTelemetria(tipo, detalle); // efectos en la rueda, el chasis o la carga
+    });
+    this.efectos = new Efectos(scene, { mundo: o.mundo, gravedad: o.gravedad, robot: this.robot, superficieDe: this.superficieDe });
     this.g = scene.add.graphics().setDepth(10);
 
     const cam = scene.cameras.main;
@@ -94,6 +99,7 @@ export class Recorrido {
     const acelerador = this.terminado ? 0 : this.controles.acelerador();
     r.actualizar(delta, acelerador, this.superficieDe);
     r.dibujar(this.g);
+    this.efectos.actualizar(delta, r); // polvo de ruedas y arena al patinar
     const estado = r.estado();
     const x_m = (r.x - this.xMundo(0)) / PX_POR_M;
     this.hud.actualizar(estado, { distancia_m: r.distancia_m, meta_m: this.meta_m - 6 });
@@ -122,6 +128,7 @@ export class Recorrido {
     if (this.terminado) return;
     this.terminado = true;
     const r = this.robot;
+    if (exito) this._efectoFin(motivo);
     if (!exito) this.telemetria.registrar(r.t, 'fallo', motivo);
     const estado = r.estado();
     const resultado = construirResultado({
@@ -147,7 +154,17 @@ export class Recorrido {
     }));
   }
 
+  /** Celebración en la meta (bandera) o en la entrega (carga). */
+  _efectoFin(motivo) {
+    const r = this.robot;
+    const enMeta = motivo === 'meta';
+    const x = enMeta ? this.xMundo(this.meta_m) : r.carga.position.x;
+    const y = enMeta ? this.terreno.yMundo(alturaEn(this.o.perfil, this.meta_m)) - m(4) : r.carga.position.y - m(0.5);
+    this.efectos.emitir({ tipo: motivo, x, y, superficie: this.superficieDe(x) });
+  }
+
   destruir() {
+    this.efectos?.destruir();
     this.robot.destruir();
   }
 }
