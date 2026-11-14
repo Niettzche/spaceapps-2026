@@ -82,6 +82,7 @@ Lo que pide el envío (según la guía 2025; confirmar si cambió en 2026):
 | 2026-11-14 | Validar con grupos espaciales (`StratifiedGroupKFold`, bloques de ~50 km) y exactitud balanceada; puntajes de análogo siempre fuera de pliegue | Evita resultados inflados por cráteres vecinos y por el desbalance (4,288 lunares contra 47 terrestres) |
 | 2026-11-14 | Sin `elev_m` como variable | Cada cuerpo tiene su propio nivel de referencia; sería fuga de información |
 | 2026-11-14 | Etiquetas de la Tierra desde fuentes externas (OSM para minas, catálogo de cráteres volcánicos con fuente), no a ojo; puntaje principal = Luna contra Marte + distancia a la nube planetaria | La revisión visual a 200 m no es confiable y las etiquetas con fuente se pueden defender ante los jueces |
+| 2026-11-14 | **Cambio de enfoque:** el modelo de clasificación deja de ser el producto y pasa a ser evidencia (árbol = explicación de las reglas; Luna contra Marte = métrica de similitud), y se congela. El producto son 5–8 sitios con gemelo, puntaje, uso para Artemis y dónde se rompe. Hallazgo principal propuesto: tajos mineros áridos como análogo operativo del polo sur; segundo: maars no propuestos antes como análogos (por verificar en la literatura). Perfiles, más resolución, DeepMoon y dolinas quedan para después del hackathon | Cierra el 15 de noviembre; el jurado evalúa sitios, justificación y presentación, no la exactitud del clasificador |
 
 ## Bitácora
 
