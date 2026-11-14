@@ -1,22 +1,47 @@
 import Phaser from 'phaser';
-import { titulo, boton, nota } from './ui.js';
-import { ESCALA_GRAVEDAD } from '../config/world.js';
-import { DESTINOS } from '../data.js';
+import { UMBRAL_INTEGRIDAD } from '../config/world.js';
+import { DESTINOS, PIEZAS } from '../data.js';
 import { partida } from '../main.js';
+import { Recorrido } from '../fisica/recorrido.js';
+import { perfilDeDestino } from '../fisica/perfil.js';
+import { DISENO_POR_DEFECTO } from '../fisica/diseno.js';
+import { exponerParaPruebas } from '../fisica/depuracion.js';
 
-// Dueño: frente juego. Misión en el destino con gravedad real; entregar el suministro al astronauta.
+// Dueño: frente juego. Misión en el destino elegido (Luna o Marte) con su gravedad real: entregar el suministro.
+// Victoria: carga en la zona con integridad ≥ UMBRAL_INTEGRIDAD y robot detenido 2 s. Ver ESPECIFICACION.md §10.
 export default class Mision extends Phaser.Scene {
-  constructor() { super('Mision'); }
+  constructor() {
+    super('Mision');
+    exponerParaPruebas('Mision', this);
+  }
 
   create() {
-    const destino = DESTINOS[partida.destino];
-    titulo(this, 'Misión', `${destino.nombre} · gravedad ${destino.gravedad_ms2} m/s²`);
-    this.matter.world.setGravity(0, destino.gravedad_ms2 * ESCALA_GRAVEDAD);
-    this.matter.world.setBounds(0, 0, 960, 540);
-    this.matter.add.rectangle(480, 470, 960, 40, { isStatic: true });
-    this.matter.add.rectangle(200, 300, 80, 30, { friction: 0.4 });
-    // TODO: terreno del destino (MOLA/LOLA), zona de entrega, condición de victoria (integridad ≥ UMBRAL_INTEGRIDAD, detenido 2 s).
-    boton(this, 860, 60, 'Ver resultados', () => this.scene.start('Resultados'));
-    nota(this, 'Plantilla: la gravedad del destino se aplica solo aquí.');
+    const destino = DESTINOS[partida.destino] ?? DESTINOS.jezero;
+    const diseno = partida.diseno?.length ? partida.diseno : DISENO_POR_DEFECTO;
+    const intentos = partida.resultados.filter((r) => r.tipo === 'mision' && r.resultado.destino === destino.id).length + 1;
+
+    this.recorrido = new Recorrido(this, {
+      perfil: perfilDeDestino(destino),
+      mundo: destino.mundo,
+      gravedad: destino.gravedad_ms2,
+      diseno,
+      piezas: PIEZAS,
+      modo: 'mision',
+      titulo: `Misión · ${destino.nombre}`,
+      subtitulo: `Gravedad ${destino.gravedad_ms2} m/s² · entrega con carga ≥ ${Math.round(UMBRAL_INTEGRIDAD * 100)} % y robot detenido 2 s · intento ${intentos}`,
+      sitioId: partida.sitio?.id ?? null,
+      destinoId: destino.id,
+      intentos,
+      umbralIntegridad: UMBRAL_INTEGRIDAD,
+      alTerminar: (registro) => {
+        partida.resultados.push(registro);
+        this.scene.start('Resultados');
+      },
+    });
+    this.events.once('shutdown', () => this.recorrido.destruir());
+  }
+
+  update(time, delta) {
+    this.recorrido?.actualizar(time, delta);
   }
 }
