@@ -1,42 +1,40 @@
 # Estado — Arte
 
-> Lo actualiza SOLO este frente. Rama: `feat/arte`.
+> Lo actualiza SOLO este frente. Rama: `feat/arte` (PR #26) y `feat/arte-b` (prioridad B, PR aparte).
 
 **Responsable:** Mauricio  ·  **Agente:** Claude Code / Codex
-**Última actualización:** 14 nov 2026, 16:40
+**Última actualización:** 14 nov 2026, 17:30
 
 ## Hecho
-- **Estilo, resolución y tipografía** documentados en `assets/README.md`: 320 × 180 × 3, 8 px = 1 m, contorno de 1 px, tramado Bayer,
-  fuentes `mini`/`big` de pixelfx (MIT). Paletas por mundo en `assets/paletas.json`.
-- **Sprites de prioridad A** (`docs/juego/ASSETS_ARTE.md` §3), con los nombres y cuadros de la tabla de §5:
-  - Robot: `chasis_ligero` (24 × 6, normal + dañado), `rueda_estandar` (7 × 7 × 4), `rueda_ancha` (8 × 8 × 4, llanta gruesa con surcos), `soporte_basico` (10 × 2).
-    Las ruedas tienen una marca naranja que avanza 90° por cuadro en sentido horario.
-  - `carga` (7 × 5 × 3: entera, dañada, crítica), `astronauta` (14 cuadros de 10 × 17: reposo, saluda, celebra; mira a la izquierda),
-    `meta` (8 × 16 × 4, ondea), `zona_entrega` (16 × 4, repetible).
-  - Terreno: `tierra_arena` (16 × 16) y `tierra_arena_borde` (16 × 4), repetibles.
-  - Fondos de 3 capas, 320 × 180, repetibles a lo ancho: `dunas` (Samalayuca al atardecer), `marte` (Jezero, mesetas del borde del cráter), `luna`
-    (polo sur: cielo negro, la Tierra baja, luz rasante desde la izquierda).
-  - Efectos hechos con pixelfx (pasan `check.mjs`): `fx_polvo_arena` y `fx_patinaje`, más variantes `_marte` y `_luna` con la paleta de cada mundo.
-  - UI: íconos de barra 8 × 8 (energía, carga, chasis), marco de barra 9-slice, botón genérico 9-slice (normal y presionado),
-    botones táctiles ◀ ▶ 24 × 24 (normal y presionado).
-- **Íconos 16 × 16 de las 12 piezas** del taller en `assets/iconos/<id>.png` (ids de `parts.json`).
-- Todo se genera con código: `node assets/fuente/generar.mjs` (ver `assets/README.md`). `npm run build` del juego compila con el arte.
-- PR #14 cerrado (GIF de 36 MB). Los GIF de MARSCEPTION ligeros viven en `docs/media/` de la rama `feat/arte-marsception-ligero`.
+- **PR #26 (prioridad A):** estilo, paletas y tipografía (`assets/README.md`), robot ligero, ruedas estándar y ancha, soporte básico, carga,
+  astronauta, meta, zona de entrega, `tierra_arena`, fondos `dunas`/`marte`/`luna`, efectos de polvo y patinaje, UI e íconos de las 12 piezas.
+- **Prioridad B (rama `feat/arte-b`), en el orden de impacto que pidió el frente juego:**
+  1. Tiles 16 × 16 + borde 16 × 4: `marte_arena`, `luna_arena`, `tierra_roca`, `tierra_compacto`, y también `marte_roca`, `marte_compacto` y `luna_roca`.
+  2. Fondos de 3 capas: `desierto` (tarde dorada, sierras y mesetas; lo usan todos los sitios sin fondo propio) y `lava` (Pinacate: conos de ceniza y coladas de basalto).
+  3. Piezas: `chasis_reforzado` (24 × 7, normal + dañado), `rueda_tacos` (7 × 7 × 4, tacos que giran) y `soporte_amortiguado` (10 × 4, con resortes).
+  4. Escenario: `base` (hábitat 40 × 24) y `baliza` (4 × 8 × 4, parpadea).
+  5. Efectos con pixelfx: `fx_golpe_chasis`, `fx_golpe_carga`, `fx_chasis_destruido`, `fx_energia_agotada` (+ `_luna` con humo claro para que se vea
+     sobre el cielo negro), `fx_entrega` y `fx_meta`. El juego dibuja estos efectos centrados, así que cada lienzo tiene el origen en su centro.
+- **Pantalla de título 320 × 180:** `assets/titulo/titulo.png` (Marte, logotipo y lema) y `titulo_fondo.png` (sin texto, para poner botones o texto con código).
+- **Paleta gris de la Luna** definida y documentada en `assets/README.md` y `assets/paletas.json`.
+- Comprobado con la misma lógica de `aspecto.js`: las 13 entradas de su tabla existen y se cortan en los cuadros correctos; están todos los tiles y fondos
+  de la guía salvo `luna_compacto` (no existe en la guía). `npm run build` compila.
 
 ## En curso
-- Revisar el arte dentro del juego corriendo (`npm run dev`), sobre todo la altura del polvo respecto al suelo y el tamaño del astronauta.
+- Esperando la revisión del #26 por el frente juego para corregir lo que el juego no reconozca.
 
 ## Siguiente
-- [ ] Prioridad B: `chasis_reforzado`, `rueda_tacos`, `soporte_amortiguado`, `base`, `baliza`, tiles de Marte y Luna, fondos `lava` y `desierto`,
-      efectos de golpe, carga perdida, destrucción y entrega, estrellas y panel de resultados.
-- [ ] Ajustar la UI a la paleta base del título que propone el PR #25 (lavanda para la UI, morados del espacio) si el equipo la confirma.
+- [ ] Correcciones de la revisión del #26.
+- [ ] Verlo en el juego corriendo: altura del polvo, tamaño del astronauta, posición de los efectos.
+- [ ] Prioridad C: calcomanías de motor, batería y panel sobre el chasis; estrellas y panel de resultados (B en la guía); aviso "terreno ilustrativo".
 - [ ] Tarjetas del expediente.
 
 ## Bloqueos / necesito de otro frente
-- **Frente juego:** `game/src/fisica/aspecto.js` indexa `assets/**` por nombre sin carpeta, y los íconos del taller (`iconos/rueda_ancha.png`...)
-  repiten nombres de sprites. Hoy funciona porque los sprites están en `entidades/` (va antes que `iconos/`), pero sale un aviso de "nombre repetido"
-  por cada pieza. Propuesta: que el índice de `aspecto.js` ignore `assets/iconos/` (el Taller ya los carga con su propio glob).
-- Los nombres de la UI (`ui_*`) aún no los usa ningún código: el frente que dibuje el HUD y los botones puede tomarlos de `assets/ui/`.
+- **Frente juego:** `aspecto.js` indexa `assets/**` por nombre sin carpeta y los íconos del taller repiten nombres de sprites. Funciona (los sprites
+  están en `entidades/`, que va antes que `iconos/`), pero sale un aviso de "nombre repetido" por pieza. Propuesta: que el índice ignore `assets/iconos/`.
+- **Frente expediente (Menú):** la pantalla de título está en `assets/titulo/`; el Menú todavía no la usa.
+- **Frente juego, docs:** en `docs/juego/ASSETS_ARTE.md` §1 la paleta de la Luna dice "por definir con Mauricio": ya está definida en `assets/README.md`.
+- Los `ui_*` aún no los usa ningún código.
 
 ## Cambios que propongo a contratos o AGENTS.md (los aplica el integrador)
 - Ninguno.
