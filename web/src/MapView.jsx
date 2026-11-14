@@ -1,8 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import * as maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
 
-const COLORS = { con_borde: '#1f6f78', mina: '#c7921a', sin_borde: '#6f7378' }
+// Ruta explícita del worker: el empaquetado de Vite rompe la que MapLibre calcula sola.
+maplibregl.setWorkerUrl(workerUrl)
+
+const COLORS = { con_borde: '#1f6f78', mina: '#c7921a', sin_borde: '#26282c' }
 const GIBS = 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/ASTER_GDEM_Greyscale_Shaded_Relief/default/GoogleMapsCompatible_Level12/{z}/{y}/{x}.jpg'
 
 export default function MapView({ t, craters, plains, hasSheet, onOpen, activeId }) {
@@ -26,7 +30,7 @@ export default function MapView({ t, craters, plains, hasSheet, onOpen, activeId
       m.addLayer({ id: 'dots', type: 'circle', source: 'craters', paint: {
         'circle-radius': ['interpolate', ['linear'], ['zoom'], 4, ['case', ['==', ['get', 'sheet'], 1], 4.5, 2.2], 10, ['case', ['==', ['get', 'sheet'], 1], 11, 6]],
         'circle-color': ['match', ['get', 't'], 'con_borde', COLORS.con_borde, 'mina', COLORS.mina, COLORS.sin_borde],
-        'circle-opacity': ['case', ['==', ['get', 'sheet'], 1], 0.95, 0.6],
+        'circle-opacity': ['case', ['==', ['get', 'sheet'], 1], 0.95, 0.75],
         'circle-stroke-color': '#f3f1ec', 'circle-stroke-width': ['case', ['==', ['get', 'sheet'], 1], 1.6, 0],
       } })
       m.on('click', 'dots', (e) => { const p = e.features[0].properties; if (p.sheet) onOpen(p.id) })
