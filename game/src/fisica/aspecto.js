@@ -8,7 +8,9 @@
 import { ZOOM_ARTE } from './escala.js';
 import { UMBRAL_INTEGRIDAD } from '../config/world.js';
 
-const archivos = import.meta.glob('../../../assets/**/*.{png,json}', { eager: true, query: '?url', import: 'default' });
+// Sin assets/iconos/: son los íconos 16 × 16 del taller (los carga Taller.js) y se llaman igual que las piezas
+// (rueda_tacos, chasis_reforzado...). Si entraran aquí, una pieza sin sprite propio usaría su ícono como sprite.
+const archivos = import.meta.glob(['../../../assets/**/*.{png,json}', '!../../../assets/iconos/**'], { eager: true, query: '?url', import: 'default' });
 
 const PREFIJO = 'arte:'; // las texturas de Phaser son globales: el prefijo evita choques con otras escenas
 const FPS = 8; // velocidad de las animaciones de tira (P)
