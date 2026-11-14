@@ -3,30 +3,27 @@
 > Lo actualiza SOLO este frente. Rama: `feat/juego`.
 
 **Responsable:** Edmundo  ·  **Agente:** Claude Code / Codex
-**Última actualización:** 14 nov, tarde
+**Última actualización:** 14 nov, 16:45
 
 ## Hecho
-- Especificación v1 del frente: `docs/juego/ESPECIFICACION.md`
-- Lógica con figuras provisionales (sin arte) en `game/src/fisica/` y `game/src/feedback/`:
-  terreno desde perfil real o ilustrativo declarado, robot de 4 ruedas (2 visibles) desde `partida.diseno`, carga suelta,
-  agarre por superficie, patinaje, energía, daño, volcado, telemetría `Result`, controles de teclado y táctil, HUD, cámara.
-- Escenas `Prueba`, `Mision` y `Resultados` funcionando con puntuación (máx. 1,000), estrellas y feedback por reglas.
-- Camino dorado de la prueba verificado sin interfaz: rueda estándar patina en dunas y falla; rueda ancha llega a la meta.
-- Pruebas de funciones puras: `node game/src/fisica/fisica.test.mjs` (11 casos).
+- Especificación (`docs/juego/ESPECIFICACION.md`) y guía de arte (`docs/juego/ASSETS_ARTE.md`, con medidas, paleta y cómo entra el arte).
+- Lógica completa con figuras provisionales en `game/src/fisica/` y `game/src/feedback/`: terreno real (tramo de 250 m) o ilustrativo declarado,
+  robot de 4 ruedas (2 visibles), carga suelta, agarre por pieza × agarre real del suelo (Apolo, Viking), patinaje, energía, daño por sacudidas,
+  volcado, telemetría `Result`, controles teclado/táctil, HUD, cámara.
+- Recreaciones declaradas: caras de duna (~32°) en arena y bloques de roca en roca, solo en la Tierra.
+- Efectos (polvo, arena al patinar, golpes, explosión, celebración) y ganchos de sprites con respaldo a figuras.
+- Escenas Prueba, Mision y Resultados (puntuación máx. 1,000, estrellas, feedback por reglas, transiciones irA).
+- Diseño unificado con taller (una sola fuente de reglas).
+- Verificado sin interfaz con niveles reales de data/: Samalayuca estándar falla / ancha llega (59 s); Pinacate ancha se atasca en roca,
+  tacos pasa; Luna ancha entrega, estándar no; Marte entrega con ambas (Jezero casi plano). Soporte amortiguado: carga 94 % vs 82 %.
+- Pruebas: `node game/src/fisica/fisica.test.mjs` (20 casos).
 
 ## En curso
-- Balance de la misión (Luna y Marte): con batería chica todavía no se completa.
+- Prueba del camino completo con todas las escenas (Menú → Expediente → Taller → Prueba → Resultados → Misión).
 
 ## Siguiente
-- [ ] Robot físico (4 ruedas, 2 visibles) a partir de partida.diseno, con acelerar/frenar en teclado y táctil (`fisica/robot.js`)
-- [ ] Terreno desde perfil_elevacion_m + generador procedural declarado "terreno ilustrativo" (`fisica/terreno.js`)
-- [ ] Agarre por superficie y detección de patinaje
-- [ ] Energía por acelerador, daño por impacto e integridad de la carga (telemetría Result)
-- [ ] Prueba: pasa al llegar al final del recorrido
-- [ ] Misión en Luna o Marte: zona de entrega, victoria/derrota
-- [ ] Puntuación (máx. 1,000) y estrellas en Resultados
-- [ ] Feedback por reglas en `game/src/feedback/`
-- [ ] Integrar efectos de pixelfx con arte (después de la lógica)
+- [ ] Integrar sprites y efectos de arte cuando lleguen a `assets/`.
+- [ ] Ajustes que salgan de la prueba del camino completo.
 
 ## Bloqueos / necesito de otro frente
 - Taller (Leo): ranuras `chasis, rueda_del, rueda_tras, motor, bateria, carga, modulo`; ruedas cobran × 2

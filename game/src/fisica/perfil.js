@@ -172,6 +172,10 @@ const PENDIENTE_MAX_VENTANA = 30;
 // reposo de la arena (~30–34°). Se agregan solo en tramos de arena de sitios terrestres. (P)
 const DUNA = { periodo: 28, subida: 0.22, alturaMin: 3.6, alturaVar: 0.8, anguloRef: 32 };
 
+// Bloques de roca recreados (recreación declarada): el DEM de 30 m tampoco resuelve rocas sueltas de medio metro.
+// Se agregan solo en tramos de roca de sitios terrestres; dan golpes a la carga (el soporte amortiguado sirve). (P)
+const ROCA = { separacion: 6, ancho: 1.2, alturaMin: 0.22, alturaVar: 0.18 };
+
 /** Ventana de `largo` m dentro de [0, total]: la de mayor pendiente media cuya pendiente máxima no pase el límite. */
 function elegirVentana(elev, total, largo, paso) {
   if (total <= largo) return { desde: 0, hasta: total };
@@ -200,7 +204,7 @@ function elegirVentana(elev, total, largo, paso) {
  * Con `dunasRecreadas`, se agregan caras de duna en los tramos de arena, marcadas como recreación.
  */
 export function perfilDesdeElevaciones(elevaciones, {
-  paso_m = PASO_REAL_DEFECTO_M, exageracion = 1, superficies, fuente = null, ventana_m = VENTANA_REAL_M, dunasRecreadas = false, semilla = 1,
+  paso_m = PASO_REAL_DEFECTO_M, exageracion = 1, superficies, fuente = null, ventana_m = VENTANA_REAL_M, dunasRecreadas = false, rocasRecreadas = false, semilla = 1,
 } = {}) {
   const e0 = elevaciones[0];
   const total = paso_m * (elevaciones.length - 1);
@@ -228,7 +232,15 @@ export function perfilDesdeElevaciones(elevaciones, {
     return alturasDuna[k] * (t < DUNA.subida ? t / DUNA.subida : (1 - t) / (1 - DUNA.subida));
   };
   const hayDunas = dunasRecreadas && tramos.some((t) => t.tipo === 'arena');
-  const elev = (x) => elevReal(v.desde + x) - elevReal(v.desde) + duna(x);
+  const alturasRoca = Array.from({ length: Math.ceil(largoJugable / ROCA.separacion) + 1 }, () => ROCA.alturaMin + r() * ROCA.alturaVar);
+  const roca = (x) => {
+    if (!rocasRecreadas || tipoEn(x) !== 'roca') return 0;
+    const k = Math.floor(x / ROCA.separacion);
+    const local = x - k * ROCA.separacion;
+    return local < ROCA.ancho ? alturasRoca[k] * Math.sin((Math.PI * local) / ROCA.ancho) : 0;
+  };
+  const hayRocas = rocasRecreadas && tramos.some((t) => t.tipo === 'roca');
+  const elev = (x) => elevReal(v.desde + x) - elevReal(v.desde) + duna(x) + roca(x);
 
   const base = conPlanos(elev, largoJugable);
   const km = (mts) => (mts >= 1000 ? `${(mts / 1000).toFixed(1)} km` : `${Math.round(mts)} m`);
@@ -237,6 +249,7 @@ export function perfilDesdeElevaciones(elevaciones, {
     total > largoJugable ? `tramo real de ${km(largoJugable)} (desde el m ${Math.round(v.desde)}) de un transecto de ${km(total)}` : null,
     exageracion !== 1 ? `exageración vertical ×${exageracion}` : null,
     hayDunas ? `caras de duna recreadas (~${DUNA.anguloRef}°, ángulo de reposo de la arena; el modelo de 30 m no las resuelve)` : null,
+    hayRocas ? 'bloques de roca recreados (~0.5 m; el modelo de 30 m no resuelve rocas sueltas)' : null,
     'inicio y meta planos = recreación',
   ].filter(Boolean);
   return {
@@ -247,7 +260,7 @@ export function perfilDesdeElevaciones(elevaciones, {
     nota: partes.join(' · '),
     tipo: 'real',
     ventana: { desde_m: v.desde, hasta_m: v.hasta, transecto_m: total },
-    recreacion: hayDunas ? [{ tipo: 'cara_duna', recreacion: true }] : [],
+    recreacion: [...(hayDunas ? [{ tipo: 'cara_duna', recreacion: true }] : []), ...(hayRocas ? [{ tipo: 'bloque_roca', recreacion: true }] : [])],
   };
 }
 
@@ -273,6 +286,7 @@ export function perfilDeSitio(sitio) {
       superficies: tramosDeNivel(nivel),
       fuente: nivel.fuente,
       dunasRecreadas: true,
+      rocasRecreadas: true,
       semilla: semillaDe(sitio.id),
     });
   }

@@ -89,6 +89,10 @@
 - Chasis: vida = `resistencia` de la pieza; en 0 → derrota por destrucción.
 - Carga: recibe `daño × (1 − proteccion)` del soporte; integridad de 1.0 a 0.
 
+- **Sacudidas (daño principal a la carga):** la suspensión absorbe los choques y la carga nunca deja de tocar el soporte, así que
+  la carga se daña por la aceleración brusca del chasis: sacudida suavizada > 4 g → pierde (g − 4) × 0.25 por segundo × (1 − protección). (P)
+  Medido: Samalayuca con rueda ancha → carga 82 % con soporte básico, 94 % con amortiguado; Pinacate con tacos 96 % / 99 %; misiones 98 %.
+
 ## 8. Terreno y superficie
 
 - Si el sitio tiene `nivel.perfil_elevacion_m`, se usa ese perfil con su `exageracion_vertical` y la compresión horizontal declarada.
@@ -97,6 +101,9 @@
 - **Caras de duna recreadas:** en tramos de arena de sitios terrestres se agregan caras de duna de ~32° (ángulo de reposo de la arena), porque el modelo de 30 m no las resuelve. Se declaran en pantalla y en `perfil.recreacion`. Verificado con el perfil real de Samalayuca: la rueda estándar patina y se queda sin energía; la ancha llega a la meta en ~64 s.
 - Acepta `superficies [{desde, hasta}]` y `superficie_tramos [{desde_m, hasta_m}]` (formato de `ciencia_datos/datos/niveles.json`).
 - Superficie **por tramo**: `nivel.superficies = [{ desde, hasta, tipo }]` en metros, `tipo` ∈ `arena | roca | compacto` (propuesta de esquema).
+- **Bloques de roca recreados:** en tramos de roca de sitios terrestres, bloques de ~0.2–0.4 m cada 6 m (el modelo de 30 m no resuelve rocas
+  sueltas), declarados en pantalla y en `perfil.recreacion`. Resultado: en Pinacate la rueda ancha (agarre en roca 0.5) se atasca y la de tacos o
+  la estándar pasan: la rueda buena para arena es mala en roca.
 - Obstáculos agregados para jugar llevan `recreacion: true`.
 
 ## 9. Prueba terrestre

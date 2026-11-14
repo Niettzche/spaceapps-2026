@@ -4,7 +4,7 @@ import Phaser from 'phaser';
 import { m, velAMs, msAVel } from './escala.js';
 import { resolverDiseno, MASA_CARGA_KG, RUEDAS_POR_RANURA } from './diseno.js';
 import { gastoPorSegundo } from './energia.js';
-import { danioChasis, danioCarga, UMBRAL_CARGA_MS } from './danio.js';
+import { danioChasis, danioCarga, danioSacudida, UMBRAL_CARGA_MS } from './danio.js';
 import { agarreSuelo } from './suelos.js';
 
 const M = Phaser.Physics.Matter.Matter;
@@ -128,6 +128,8 @@ export class Robot {
     this.tVolcado = 0;
     this.xInicio = this.chasis.position.x;
     this.velocidadMs = 0;
+    this.sacudida = 0; // g, suavizada
+    this.vPrevia = null;
 
     this._alColisionar = (ev) => this._colisiones(ev, true);
     this._alActiva = (ev) => this._colisiones(ev, false);
@@ -267,6 +269,19 @@ export class Robot {
       this.volcado = true;
       this.alEvento('volcado', '');
     }
+
+    // Sacudidas del chasis (g) → daño a la carga atenuado por la protección del soporte.
+    const v = M.Body.getVelocity(this.chasis);
+    if (this.vPrevia && dt > 0) {
+      const g = velAMs(Math.hypot(v.x - this.vPrevia.x, v.y - this.vPrevia.y)) / dt / 9.81;
+      this.sacudida = 0.6 * this.sacudida + 0.4 * g;
+      const d = this.cargaPerdida ? 0 : danioSacudida(this.sacudida, dt, this.piezas.carga.proteccion ?? 0);
+      if (d > 0) {
+        this.integridad = Math.max(0, this.integridad - d);
+        this.alEvento('golpe_carga', `sacudida ${Math.round(this.sacudida)} g`);
+      }
+    }
+    this.vPrevia = { x: v.x, y: v.y };
 
     // Carga muy lejos del chasis = perdida.
     if (!this.cargaPerdida && M.Vector.magnitude(M.Vector.sub(this.carga.position, this.chasis.position)) > m(CARGA_LEJOS_M)) {
