@@ -364,3 +364,5 @@ propuestas de usuarios) · 10 s cierre. Preparar respuestas para: "¿qué modelo
 
 Hora exacta del pitch · asignar una persona a cada frente · tercer sitio · nivel jugable de la Luna en el MVP sí/no · nombre final y paleta · tipo de suministro · ¿usar LLM en la demo o solo reglas?
 · ¿el "generador de video" mencionado en la reunión es para el tráiler?
+· **Destino del MVP:** Luna (polo sur, Artemis) o Marte (Jezero). Los datos del detector favorecen la Luna.
+· **Nombre:** "Misión Cero" (juego) y "Cráter Gemelo" (página/explorador), o uno solo.
