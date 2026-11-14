@@ -169,6 +169,7 @@ figcaption {{ font-size: 8.5pt; color: #444; margin-top: 1mm; }}
 <p>Cinco quedan fuera <b>por exceso</b>: son más hondos que casi cualquier cráter lunar de su tamaño (las minas y Sykes). Dos, por lo contrario: son <b>cuencas grandes y casi planas</b> (una de ellas es una presa con agua), sin equivalente en la nube.</p>
 <h3>Los verificados</h3>
 <table><tr><th>Sitio</th><th>Grupo</th><th class="n">D (km)</th><th class="n">d/D</th><th class="n">P_Luna</th><th>Dentro de la nube</th></tr>{''.join(fila_ver(r) for r in ver.itertuples())}</table>
+<p style="font-size:8.5pt;color:#555">Los nombres de las minas se asignaron por coordenadas y están por verificar.</p>
 <p>Los cráteres naturales verificados salen <b>más lunares que marcianos</b> (El Elegante 0.94, Sykes 0.99, Rincón de Parangueo 0.65); MacDougal y Cerro Colorado quedan a medio camino. Las minas salen casi 100 % “lunares”, porque lo que el modelo usa para decir Luna es d/D alto.</p>
 
 <h2 class="salto">5. Dónde se rompe la analogía</h2>
