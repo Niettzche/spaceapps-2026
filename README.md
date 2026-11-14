@@ -1,3 +1,33 @@
+# Misión Cero — NASA Space Apps 2026 (sede UDEM)
+
+Buscador de análogos terrestres con datos de la NASA + juego web 2D para probar robots antes de ir a Marte o la Luna.
+**Contexto completo para personas y agentes: [AGENTS.md](AGENTS.md).**
+
+## Arranque rápido (cada integrante)
+
+```bash
+git clone <URL-del-repo> && cd <repo>
+git checkout feat/<tu-frente>        # modelo | juego | taller | expediente | arte
+```
+Abre tu agente (Claude Code o Codex) en la carpeta del repo y pégale el prompt de `docs/prompts/<tu-frente>.md`.
+
+## Ejecutar
+
+```bash
+# Juego
+cd game && npm install && npm run dev          # http://localhost:5173
+# Modelo y pruebas
+pip install -r model/requirements.txt
+python model/validate_data.py && python -m pytest -q model/tests
+# API (opcional; el juego funciona sin ella)
+pip install -r api/requirements.txt && uvicorn api.main:app --reload
+```
+
+## Reglas cortas
+Rama propia → PR a `main` · solo tus carpetas · no inventar datos · sin secretos · actualiza `docs/estado/<frente>.md`.
+
+---
+
 # Space Apps 2026 · Análogos terrestres de la Luna y Marte
 
 Reto: *Identify Earth locations that analog the permanent Moon base locations and Mars* (NASA Space Apps Challenge 2026).

@@ -10,3 +10,12 @@ respaldo/
 informe/datos/
 informe/validacion.html
 informe/modelos_explicables.html
+
+# Misión Cero (kit)
+node_modules/
+dist/
+.env
+*.env.local
+.pytest_cache/
+api/propuestas.db
+CLAUDE.local.md
