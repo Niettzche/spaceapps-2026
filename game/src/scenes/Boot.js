@@ -13,7 +13,7 @@ export default class Boot extends Phaser.Scene {
   preload() {
     this.errores = [];
     this.assets = listaDeAssets().filter((a) => a.url);
-    texto(this, 480, 200, 'MISIÓN CERO', { size: 28, origen: [0.5, 0.5] });
+    texto(this, 480, 200, 'MARSCEPTION', { size: 28, origen: [0.5, 0.5] });
     this.add.rectangle(180, 270, 600, 16).setOrigin(0, 0.5).setStrokeStyle(1, COLOR.borde);
     const barra = this.add.rectangle(180, 270, 0, 16, 0xffd166).setOrigin(0, 0.5);
     const pct = texto(this, 480, 240, 'Cargando 0 %', { size: 16, origen: [0.5, 0.5] });

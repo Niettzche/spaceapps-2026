@@ -7,8 +7,7 @@ import { GRAVEDAD, TICKETS_POR_PARTIDA } from '../config/world.js';
 import { elegirSitio, sitioPagado } from './expediente/guardado.js';
 import { DESTINO_POR_DEFECTO, urlFicha } from './expediente/config.js';
 import {
-  sitiosParaDestino, filasComparacion, limitesDe, formatoValor, formatoPorcentaje, esDemostracion, recortar, SIN_DATO,
-} from './expediente/logica.js';
+  sitiosParaDestino, filasComparacion, limitesDe, formatoValor, formatoPorcentaje, esDemostracion, recortar, SIN_DATO, esMina } from './expediente/logica.js';
 import { ESTADOS, MUNDOS, PRUEBAS } from './expediente/textos.js';
 
 // Dueño: frente expediente. Comparación 1 a 1: sitio terrestre (izq.) vs destino (der.), misma variable y unidad,
@@ -63,7 +62,7 @@ export default class Expediente extends Phaser.Scene {
       const marca = s.id === this.seleccion?.id ? '● ' : '';
       const b = add(boton(this, 20, y, `${marca}${recortar(s.nombre, 30)}`, () => this.seleccionar(s),
         { size: 13, origen: [0, 0], marco: false, color: s.id === this.seleccion?.id ? COLOR.texto : COLOR.acento }));
-      const est = ESTADOS[s.estado] || { texto: s.estado, color: COLOR.tenue };
+      const est = (esMina(s) && ESTADOS.mina) || ESTADOS[s.estado] || { texto: s.estado, color: COLOR.tenue };
       const total = typeof s.similitud?.total === 'number' ? formatoPorcentaje(s.similitud.total) : null;
       const sub = [est.texto, s.prueba_util ? `prueba: ${PRUEBAS[s.prueba_util] || s.prueba_util}` : null, total].filter(Boolean).join(' · ');
       add(texto(this, 34, y + 17, recortar(sub, 38), { size: 10, color: esDemostracion(s) ? COLOR.alerta : COLOR.muyTenue }));
@@ -107,7 +106,7 @@ export default class Expediente extends Phaser.Scene {
     }
 
     // Encabezado del sitio
-    const est = ESTADOS[s.estado] || { texto: s.estado, color: COLOR.tenue };
+    const est = (esMina(s) && ESTADOS.mina) || ESTADOS[s.estado] || { texto: s.estado, color: COLOR.tenue };
     add(texto(this, X0, 12, recortar(s.nombre, 42), { size: 18 }));
     const coord = typeof s.lat === 'number' && typeof s.lon === 'number' ? `${s.lat.toFixed(3)}, ${s.lon.toFixed(3)}` : 'coordenadas: sin dato';
     add(texto(this, X0, 36, `${est.texto} · ${s.pais || 'país: sin dato'} · ${coord}${s.novedoso === true ? ' · NOVEDOSO' : ''}`,

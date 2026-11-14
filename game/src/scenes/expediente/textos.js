@@ -19,6 +19,8 @@ export const ESTADOS = {
   candidato_modelo: { texto: 'CANDIDATO DEL MODELO', color: '#ffd166' },
   propuesto_usuario: { texto: 'PROPUESTO POR USUARIO', color: '#9aa4c7' },
   ilustrativo: { texto: 'ILUSTRATIVO', color: '#ef476f' },
+  // No es un estado del contrato: se muestra en lugar del estado cuando el sitio es un tajo minero (esMina).
+  mina: { texto: 'ANÁLOGO OPERATIVO (MINA)', color: '#f2701f' },
 };
 
 export const LIMITES = {

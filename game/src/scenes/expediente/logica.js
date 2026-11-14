@@ -14,6 +14,11 @@ const REF_FORMA = {
   marte: 'Cráteres de Marte: HRSC+MOLA blend, 200 m',
 };
 
+/** ¿Es un tajo minero (análogo operativo, no geológico)? Lo dicen los datos del modelo en `proceso`. */
+export function esMina(sitio) {
+  return /tajo minero|mina a cielo abierto/i.test(sitio?.proceso || '');
+}
+
 export function esDemostracion(sitio) {
   return !!sitio && (sitio.estado === 'ilustrativo' || sitio.demo === true);
 }
@@ -91,7 +96,7 @@ export function filasComparacion(sitio, destino) {
     const mismaUnidad = !(tierra && dest && dest.valor != null && tierra.unidad !== dest.unidad);
     return {
       clave,
-      etiqueta: etiquetaVariable(clave),
+      etiqueta: clave === 'forma' && esMina(sitio) ? 'Forma del tajo minero' : etiquetaVariable(clave),
       tierra,
       destino: dest,
       similitud: typeof sim[clave] === 'number' ? sim[clave] : null,

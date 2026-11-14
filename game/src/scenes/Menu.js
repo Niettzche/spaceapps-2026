@@ -32,7 +32,7 @@ export default class Menu extends Phaser.Scene {
   }
 
   vistaPrincipal() {
-    texto(this, 480, 70, 'MISIÓN CERO', { size: 36, origen: [0.5, 0.5] });
+    texto(this, 480, 70, 'MARSCEPTION', { size: 36, origen: [0.5, 0.5] });
     texto(this, 480, 112, 'Prueba tu robot en un análogo de la Tierra antes de mandarlo a la Luna o a Marte',
       { size: 14, color: COLOR.tenue, origen: [0.5, 0.5] });
 
