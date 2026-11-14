@@ -12,3 +12,4 @@
 - 14 nov · web/ = página pública del proyecto en inglés; el juego no duplica mapa ni fichas · evitar trabajo duplicado.
 - 14 nov · Alcance global (zonas áridas del mundo); México como caso destacado · el reto pide buscar en cualquier lugar de la Tierra.
 - 14 nov · Destinos finales: Luna (polo sur, Artemis) y Marte (Jezero); el jugador elige · cubrir las dos mitades del reto (los datos del detector favorecen la Luna).
+- 14 nov · Arte en pixel art 2D, vista lateral, todo propio (ver assets/README.md) · lo definen los frentes de arte y juego.
