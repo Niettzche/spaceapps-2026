@@ -10,6 +10,9 @@
 
 ## 1. Qué estamos construyendo (en una frase)
 
+> **Nombre del juego: MARSCEPTION** (decisión del 14 nov). "Misión Cero" queda como nombre interno del repositorio.
+> Lema de la pantalla de título: *Train on Earth. Land on the Moon / Mars. Run it anywhere.*
+
 Un **buscador de análogos terrestres basado en datos de la NASA** (el modelo) + un **juego web 2D** donde el jugador usa esos
 análogos para probar un robot antes de mandarlo a Marte o a la Luna a entregar un suministro a un astronauta.
 
@@ -361,7 +364,7 @@ propuestas de usuarios) · 10 s cierre. Preparar respuestas para: "¿qué modelo
 - [ ] Video de ≤30 s (o ≤7 diapositivas) con subtítulos en inglés.
 - [ ] Página del proyecto en inglés: descripción, datos de NASA usados (con enlaces), otras fuentes, herramientas.
 - [ ] `docs/METODOLOGIA.md`: variables, fórmula, validación y límites.
-- [ ] Declarar uso de IA si la plataforma lo pide (usamos Claude Code / Codex).
+- [ ] Declarar uso de IA si la plataforma lo pide (usamos Claude Code / Codex en código y documentación, y Claude en el arte de MARSCEPTION).
 - [ ] Repositorio público con README.
 - [ ] Subido antes de las 21:00 del domingo (límite real 23:59).
 
@@ -380,6 +383,5 @@ propuestas de usuarios) · 10 s cierre. Preparar respuestas para: "¿qué modelo
 
 ## 16. Pendientes que decide el equipo (no los decidas tú, agente)
 
-Hora exacta del pitch · tercer sitio · sitio análogo del camino lunar · qué destino se muestra en el tráiler · nombre final y paleta · tipo de suministro · ¿usar LLM en la demo o solo reglas?
+Hora exacta del pitch · tercer sitio · sitio análogo del camino lunar · qué destino se muestra en el tráiler · paleta final · tipo de suministro · ¿usar LLM en la demo o solo reglas?
 · ¿el "generador de video" mencionado en la reunión es para el tráiler?
-· **Nombre:** "Misión Cero" (juego) y "Cráter Gemelo" (página/explorador), o uno solo.

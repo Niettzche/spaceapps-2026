@@ -217,7 +217,46 @@
     ],
     "fuente": "Copernicus DEM GLO-30 (ESA), muestreo a 30 m; transecto de 4000 m, rumbo 90°, paso 33.6 m",
     "exageracion_vertical": null,
-    "obstaculos": []
+    "obstaculos": [],
+    "paso_m": 33.6134,
+    "superficies": [
+      {
+        "desde": 0.0,
+        "hasta": 120.0,
+        "tipo": "compacto"
+      },
+      {
+        "desde": 120.0,
+        "hasta": 390.0,
+        "tipo": "roca"
+      },
+      {
+        "desde": 390.0,
+        "hasta": 1140.0,
+        "tipo": "compacto"
+      },
+      {
+        "desde": 1140.0,
+        "hasta": 2100.0,
+        "tipo": "roca"
+      },
+      {
+        "desde": 2100.0,
+        "hasta": 2250.0,
+        "tipo": "compacto"
+      },
+      {
+        "desde": 2250.0,
+        "hasta": 2880.0,
+        "tipo": "roca"
+      },
+      {
+        "desde": 2880.0,
+        "hasta": 3999.6,
+        "tipo": "compacto"
+      }
+    ],
+    "superficies_nota": "Superficie: clasificación por reglas, no medición directa. arena si arena del suelo ≥ 65 %; si no, roca si rugosidad local (desv. est. en 90 m) > 2 m o pendiente > 15°; si no, compacto. Fuente: Copernicus DEM GLO-30 (rugosidad y pendiente); OpenLandMap SOL_SAND-WFRACTION v02, 0 cm (arena del suelo, 250 m) (ciencia_datos/datos/niveles.json, analisis/21)."
   },
   "nota": "Coordenada: Smithsonian GVP, subrasgos de Pinacate (vn=341001): cráter El Elegante 31°50′40″N 113°23′28″W. Documentado como análogo: viajes de entrenamiento de geología de 1965–1967 y de la tripulación del Apolo 14 (Shepard y Mitchell) del 14 al 18 de febrero de 1970 (Phinney 2015, NASA SP-2015-626). Otras detecciones del campo (MacDougal MX0007, Sykes MX0010, Cerro Colorado MX0012, MX0009, MX0011) se agregan aquí en vez de exportarse como candidatos. Forma frente al otro destino (polo_sur_lunar): 0.972."
 }

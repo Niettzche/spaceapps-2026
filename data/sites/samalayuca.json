@@ -182,7 +182,16 @@
     ],
     "fuente": "Copernicus DEM GLO-30 (ESA), muestreo a 30 m; transecto de 3000 m, rumbo 90°, paso 25.2 m",
     "exageracion_vertical": null,
-    "obstaculos": []
+    "obstaculos": [],
+    "paso_m": 25.2101,
+    "superficies": [
+      {
+        "desde": 0.0,
+        "hasta": 3000.0,
+        "tipo": "arena"
+      }
+    ],
+    "superficies_nota": "Superficie: clasificación por reglas, no medición directa. arena si arena del suelo ≥ 65 %; si no, roca si rugosidad local (desv. est. en 90 m) > 2 m o pendiente > 15°; si no, compacto. Fuente: Copernicus DEM GLO-30 (rugosidad y pendiente); OpenLandMap SOL_SAND-WFRACTION v02, 0 cm (arena del suelo, 250 m) (ciencia_datos/datos/niveles.json, analisis/21)."
   },
   "nota": "Coordenada: centro del campo de dunas, N 31°15′49″ W 106°23′43″ (Domínguez-Acosta, Langford y Gill 2023, Bol. Soc. Geol. Mex. 75(3) A240823, doi:10.18268/BSGM2023v75n3a240823); ESA WorldCover 2021: suelo desnudo. No se encontró literatura que trate a Samalayuca como análogo planetario (búsqueda del 14 nov 2026); el análogo eólico mexicano documentado es el Gran Desierto de Altar, a más de 700 km. No tiene cráter: la forma no aplica y la similitud usa solo las dimensiones complementarias."
 }
