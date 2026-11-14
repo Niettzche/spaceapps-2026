@@ -1,0 +1,60 @@
+{
+  "id": "samalayuca",
+  "nombre": "Médanos de Samalayuca",
+  "pais": "MX",
+  "lat": null,
+  "lon": null,
+  "estado": "ilustrativo",
+  "destino_ref": "jezero",
+  "prueba_util": "agarre",
+  "uso_exploracion": null,
+  "proceso": "Dunas formadas por viento (procesos eólicos)",
+  "novedoso": null,
+  "variables": {
+    "oscilacion_termica": {
+      "valor": null,
+      "unidad": "K",
+      "fuente": "NASA POWER T2M_RANGE",
+      "fecha": null,
+      "nota": "PENDIENTE: capturar con fuente verificada"
+    },
+    "precipitacion": {
+      "valor": null,
+      "unidad": "mm/día",
+      "fuente": "NASA POWER PRECTOTCORR",
+      "fecha": null,
+      "nota": "PENDIENTE: capturar con fuente verificada"
+    },
+    "ndvi": {
+      "valor": null,
+      "unidad": "-",
+      "fuente": "MODIS MOD13Q1",
+      "fecha": null,
+      "nota": "PENDIENTE: capturar con fuente verificada"
+    },
+    "pendiente": {
+      "valor": null,
+      "unidad": "grados",
+      "fuente": "SRTM",
+      "fecha": null,
+      "nota": "PENDIENTE: capturar con fuente verificada"
+    }
+  },
+  "similitud": {
+    "total": null,
+    "por_dimension": {},
+    "confianza": null
+  },
+  "limites": [
+    "gravedad",
+    "presion_atmosferica",
+    "radiacion"
+  ],
+  "nivel": {
+    "perfil_elevacion_m": [],
+    "fuente": null,
+    "exageracion_vertical": null,
+    "obstaculos": []
+  },
+  "nota": "Plantilla: el frente de modelo reemplaza los null con datos reales y cambia el estado."
+}

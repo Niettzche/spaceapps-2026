@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "target.schema.json",
+  "title": "Target — destino lunar o marciano",
+  "type": "object",
+  "required": ["id", "nombre", "mundo", "gravedad_ms2", "variables"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+    "nombre": { "type": "string" },
+    "mundo": { "enum": ["marte", "luna"] },
+    "gravedad_ms2": { "type": "number" },
+    "variables": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["valor", "unidad", "fuente"],
+        "properties": {
+          "valor": { "type": ["number", "null"] },
+          "unidad": { "type": "string" },
+          "fuente": { "type": "string" },
+          "fecha": { "type": ["string", "null"] },
+          "nota": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "no_reproducible_en_tierra": { "type": "array", "items": { "type": "string" } }
+  }
+}

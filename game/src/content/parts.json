@@ -1,0 +1,124 @@
+[
+  {
+    "id": "rueda_estandar",
+    "nombre": "Rueda estándar",
+    "sistema": "movilidad",
+    "costo": 80,
+    "masa": 6,
+    "agarre": {
+      "arena": 0.4,
+      "roca": 0.6,
+      "compacto": 0.8
+    },
+    "nota": "valor de juego (provisional, balancear)"
+  },
+  {
+    "id": "rueda_ancha",
+    "nombre": "Rueda ancha para arena",
+    "sistema": "movilidad",
+    "costo": 120,
+    "masa": 8,
+    "agarre": {
+      "arena": 0.9,
+      "roca": 0.5,
+      "compacto": 0.7
+    },
+    "nota": "valor de juego (provisional, balancear)"
+  },
+  {
+    "id": "rueda_tacos",
+    "nombre": "Rueda rígida con tacos",
+    "sistema": "movilidad",
+    "costo": 140,
+    "masa": 9,
+    "agarre": {
+      "arena": 0.6,
+      "roca": 0.9,
+      "compacto": 0.7
+    },
+    "nota": "valor de juego (provisional, balancear)"
+  },
+  {
+    "id": "chasis_ligero",
+    "nombre": "Chasis ligero",
+    "sistema": "estructura",
+    "costo": 150,
+    "masa": 20,
+    "resistencia": 40,
+    "nota": "valor de juego (provisional, balancear)"
+  },
+  {
+    "id": "chasis_reforzado",
+    "nombre": "Chasis reforzado",
+    "sistema": "estructura",
+    "costo": 260,
+    "masa": 35,
+    "resistencia": 80,
+    "nota": "valor de juego (provisional, balancear)"
+  },
+  {
+    "id": "bateria_chica",
+    "nombre": "Batería chica",
+    "sistema": "energia",
+    "costo": 90,
+    "masa": 5,
+    "capacidad": 100,
+    "nota": "valor de juego (provisional, balancear)"
+  },
+  {
+    "id": "bateria_grande",
+    "nombre": "Batería grande",
+    "sistema": "energia",
+    "costo": 170,
+    "masa": 11,
+    "capacidad": 220,
+    "nota": "valor de juego (provisional, balancear)"
+  },
+  {
+    "id": "motor_eficiente",
+    "nombre": "Motor eficiente",
+    "sistema": "potencia",
+    "costo": 110,
+    "masa": 7,
+    "fuerza": 50,
+    "consumo": 0.6,
+    "nota": "valor de juego (provisional, balancear)"
+  },
+  {
+    "id": "motor_potente",
+    "nombre": "Motor potente",
+    "sistema": "potencia",
+    "costo": 180,
+    "masa": 10,
+    "fuerza": 90,
+    "consumo": 1.2,
+    "nota": "valor de juego (provisional, balancear)"
+  },
+  {
+    "id": "soporte_basico",
+    "nombre": "Soporte de carga básico",
+    "sistema": "carga",
+    "costo": 60,
+    "masa": 3,
+    "proteccion": 0.4,
+    "nota": "valor de juego (provisional, balancear)"
+  },
+  {
+    "id": "soporte_amortiguado",
+    "nombre": "Soporte de carga amortiguado",
+    "sistema": "carga",
+    "costo": 130,
+    "masa": 6,
+    "proteccion": 0.8,
+    "nota": "valor de juego (provisional, balancear)"
+  },
+  {
+    "id": "panel_solar",
+    "nombre": "Panel solar (opcional)",
+    "sistema": "modulo",
+    "costo": 150,
+    "masa": 4,
+    "capacidad": 40,
+    "nota": "valor de juego (provisional, balancear)"
+  }
+]

@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "site.schema.json",
+  "title": "Site — ubicación terrestre",
+  "type": "object",
+  "required": ["id", "nombre", "estado", "destino_ref", "variables", "similitud", "limites"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+    "nombre": { "type": "string" },
+    "pais": { "type": ["string", "null"] },
+    "lat": { "type": ["number", "null"], "minimum": -90, "maximum": 90 },
+    "lon": { "type": ["number", "null"], "minimum": -180, "maximum": 180 },
+    "estado": { "enum": ["documentado", "candidato_modelo", "propuesto_usuario", "ilustrativo"] },
+    "destino_ref": { "type": "string" },
+    "prueba_util": { "enum": ["agarre", "relieve", "energia", null] },
+    "uso_exploracion": { "type": ["string", "null"] },
+    "proceso": { "type": ["string", "null"] },
+    "novedoso": { "type": ["boolean", "null"] },
+    "variables": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/variable" }
+    },
+    "similitud": {
+      "type": "object",
+      "properties": {
+        "total": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "por_dimension": { "type": "object", "additionalProperties": { "type": ["number", "null"] } },
+        "confianza": { "type": ["number", "null"], "minimum": 0, "maximum": 1 }
+      }
+    },
+    "limites": { "type": "array", "items": { "type": "string" } },
+    "nivel": {
+      "type": "object",
+      "properties": {
+        "perfil_elevacion_m": { "type": "array", "items": { "type": "number" } },
+        "fuente": { "type": ["string", "null"] },
+        "exageracion_vertical": { "type": ["number", "null"] },
+        "obstaculos": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["tipo", "recreacion"],
+            "properties": { "tipo": { "type": "string" }, "x": { "type": "number" }, "recreacion": { "const": true } }
+          }
+        }
+      }
+    },
+    "nota": { "type": ["string", "null"] }
+  },
+  "$defs": {
+    "variable": {
+      "type": "object",
+      "required": ["valor", "unidad", "fuente"],
+      "properties": {
+        "valor": { "type": ["number", "null"] },
+        "unidad": { "type": "string" },
+        "fuente": { "type": "string" },
+        "fecha": { "type": ["string", "null"] },
+        "nota": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

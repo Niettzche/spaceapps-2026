@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "part.schema.json",
+  "title": "Parts — catálogo de piezas (valores de juego)",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["id", "nombre", "sistema", "costo", "masa", "nota"],
+    "properties": {
+      "id": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+      "nombre": { "type": "string" },
+      "sistema": { "enum": ["estructura", "movilidad", "energia", "potencia", "carga", "modulo"] },
+      "costo": { "type": "number", "minimum": 0 },
+      "masa": { "type": "number", "minimum": 0 },
+      "agarre": { "type": "object", "additionalProperties": { "type": "number" } },
+      "resistencia": { "type": "number" },
+      "capacidad": { "type": "number" },
+      "fuerza": { "type": "number" },
+      "consumo": { "type": "number" },
+      "proteccion": { "type": "number" },
+      "nota": { "type": "string" }
+    }
+  }
+}

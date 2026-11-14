@@ -1,0 +1,75 @@
+{
+  "descripcion": "Análogos conocidos: controles positivos y referencia para marcar 'novedoso'.",
+  "analogos": [
+    {
+      "nombre": "Desierto de Atacama",
+      "pais": "CL",
+      "lat": null,
+      "lon": null,
+      "nota": "análogo conocido; coordenadas por capturar"
+    },
+    {
+      "nombre": "Valles Secos de McMurdo",
+      "pais": "AQ",
+      "lat": null,
+      "lon": null,
+      "nota": "análogo conocido; coordenadas por capturar"
+    },
+    {
+      "nombre": "Cráter Haughton, isla Devon",
+      "pais": "CA",
+      "lat": null,
+      "lon": null,
+      "nota": "análogo conocido; coordenadas por capturar"
+    },
+    {
+      "nombre": "Death Valley",
+      "pais": "US",
+      "lat": null,
+      "lon": null,
+      "nota": "análogo conocido; coordenadas por capturar"
+    },
+    {
+      "nombre": "Islandia (campos de lava)",
+      "pais": "IS",
+      "lat": null,
+      "lon": null,
+      "nota": "análogo conocido; coordenadas por capturar"
+    },
+    {
+      "nombre": "Hawái (Mauna Kea / Kilauea)",
+      "pais": "US",
+      "lat": null,
+      "lon": null,
+      "nota": "análogo conocido; coordenadas por capturar"
+    },
+    {
+      "nombre": "Desierto de Mojave",
+      "pais": "US",
+      "lat": null,
+      "lon": null,
+      "nota": "análogo conocido; coordenadas por capturar"
+    },
+    {
+      "nombre": "Río Tinto",
+      "pais": "ES",
+      "lat": null,
+      "lon": null,
+      "nota": "análogo conocido; coordenadas por capturar"
+    },
+    {
+      "nombre": "Meteor Crater",
+      "pais": "US",
+      "lat": null,
+      "lon": null,
+      "nota": "análogo conocido; coordenadas por capturar"
+    },
+    {
+      "nombre": "Desierto de Utah (MDRS)",
+      "pais": "US",
+      "lat": null,
+      "lon": null,
+      "nota": "análogo conocido; coordenadas por capturar"
+    }
+  ]
+}

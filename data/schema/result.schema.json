@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "result.schema.json",
+  "title": "Result — telemetría de una partida",
+  "type": "object",
+  "required": ["sitio", "destino", "diseno", "distancia_m", "entrega", "integridad_carga", "energia_restante", "costo", "intentos", "eventos"],
+  "properties": {
+    "sitio": { "type": ["string", "null"] },
+    "destino": { "type": "string" },
+    "diseno": { "type": "array", "items": { "type": "object", "properties": { "ranura": { "type": "string" }, "pieza": { "type": "string" } } } },
+    "distancia_m": { "type": "number" },
+    "entrega": { "type": "boolean" },
+    "integridad_carga": { "type": "number", "minimum": 0, "maximum": 1 },
+    "energia_restante": { "type": "number", "minimum": 0, "maximum": 1 },
+    "costo": { "type": "number" },
+    "intentos": { "type": "integer", "minimum": 1 },
+    "eventos": { "type": "array", "items": { "type": "object", "properties": { "t": { "type": "number" }, "tipo": { "type": "string" }, "detalle": { "type": "string" } } } }
+  }
+}

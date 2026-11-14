@@ -1,0 +1,25 @@
+name: Validar
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  datos-y-modelo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -r model/requirements.txt
+      - run: python model/validate_data.py
+      - run: python -m pytest -q model/tests
+  juego:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: npm ci
+        working-directory: game
+      - run: npm run build
+        working-directory: game

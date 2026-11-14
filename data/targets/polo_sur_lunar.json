@@ -1,0 +1,42 @@
+{
+  "id": "polo_sur_lunar",
+  "nombre": "Región candidata de Artemis, polo sur lunar",
+  "mundo": "luna",
+  "gravedad_ms2": 1.62,
+  "variables": {
+    "oscilacion_termica": {
+      "valor": null,
+      "unidad": "K",
+      "fuente": "LRO Diviner (PENDIENTE)",
+      "fecha": null,
+      "nota": "PENDIENTE: capturar con fuente verificada"
+    },
+    "precipitacion": {
+      "valor": 0,
+      "unidad": "mm/día",
+      "fuente": "Sin atmósfera",
+      "fecha": null,
+      "nota": null
+    },
+    "ndvi": {
+      "valor": 0,
+      "unidad": "-",
+      "fuente": "Sin vegetación",
+      "fecha": null,
+      "nota": null
+    },
+    "pendiente": {
+      "valor": null,
+      "unidad": "grados",
+      "fuente": "LRO LOLA (PENDIENTE)",
+      "fecha": null,
+      "nota": "PENDIENTE: capturar con fuente verificada"
+    }
+  },
+  "no_reproducible_en_tierra": [
+    "gravedad",
+    "vacio",
+    "radiacion",
+    "iluminacion_polar_rasante"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "descripcion": "Controles negativos: deben salir con similitud cercana a 0.",
+  "controles": [
+    {
+      "nombre": "Amazonas (selva)",
+      "lat": null,
+      "lon": null
+    },
+    {
+      "nombre": "Cuenca del Congo (selva)",
+      "lat": null,
+      "lon": null
+    },
+    {
+      "nombre": "Zona agrícola húmeda",
+      "lat": null,
+      "lon": null
+    }
+  ]
+}

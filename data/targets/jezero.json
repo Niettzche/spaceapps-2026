@@ -1,0 +1,41 @@
+{
+  "id": "jezero",
+  "nombre": "Cráter Jezero (Marte)",
+  "mundo": "marte",
+  "gravedad_ms2": 3.71,
+  "variables": {
+    "oscilacion_termica": {
+      "valor": null,
+      "unidad": "K",
+      "fuente": "Perseverance MEDA / literatura (PENDIENTE)",
+      "fecha": null,
+      "nota": "PENDIENTE: capturar con fuente verificada"
+    },
+    "precipitacion": {
+      "valor": 0,
+      "unidad": "mm/día",
+      "fuente": "Sin precipitación líquida en Marte actual",
+      "fecha": null,
+      "nota": null
+    },
+    "ndvi": {
+      "valor": 0,
+      "unidad": "-",
+      "fuente": "Sin vegetación",
+      "fecha": null,
+      "nota": null
+    },
+    "pendiente": {
+      "valor": null,
+      "unidad": "grados",
+      "fuente": "MOLA / HRSC DTM (PENDIENTE)",
+      "fecha": null,
+      "nota": "PENDIENTE: capturar con fuente verificada"
+    }
+  },
+  "no_reproducible_en_tierra": [
+    "gravedad",
+    "presion_atmosferica",
+    "radiacion"
+  ]
+}
