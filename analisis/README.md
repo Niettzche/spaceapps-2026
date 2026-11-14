@@ -30,7 +30,7 @@ Este cuaderno busca en todo México **formas del terreno parecidas a cráteres**
 | 19 | **Gemelo lunar por perfil**: el cráter del polo sur con el corte más parecido, y comparación por zonas | `perfiles_radiales.json` |
 | 20 | Relieves para la vista 3D | (visor local) |
 | 21 | **Niveles del juego**: perfil real y superficie por tramo | `niveles.json` |
-| 22 | **Iluminación polar** (sol a 1.5°, sombra permanente) y **geología** (índices máfico y de cuarzo, ASTER GED) | `iluminacion_geologia.csv` |
+| 22 | **Iluminación polar** (sol a 1.5°, sombra permanente) y **geología** (índices máfico y de cuarzo, ASTER GED; el polo sur lunar es anortosita, no basalto: el índice compara con los mares lunares) | `iluminacion_geologia.csv` |
 | 99 | Descarga los zip al equipo | — |
 
 ## De dónde salen los datos

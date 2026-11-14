@@ -4,6 +4,8 @@
 #     Mismo cálculo y misma resolución (80 m) en el candidato de la Tierra y en su gemelo lunar por perfil. Es un experimento:
 #     ningún lugar de la Tierra tiene ese sol; mide si la FORMA del cráter guardaría sombra (donde la Luna conserva hielo).
 # (b) Índice máfico (Ninomiya 2003) y de cuarzo con ASTER GED v3 (NASA/JPL, emisividad térmica, 100 m): roca basáltica frente a cuarzosa.
+#     Ojo: el polo sur lunar es de tierras altas (anortosita, rica en plagioclasa), no de basalto. El índice máfico compara con los MARES
+#     lunares y separa basalto de arena cuarzosa; no hace a ningún sitio análogo de la composición del polo sur.
 from scipy.ndimage import map_coordinates
 ELEV_SOL, N_AZ, L_SOMBRA = 1.5, 36, 5000.0           # grados, azimuts, alcance de la búsqueda del horizonte (m)
 

@@ -183,7 +183,7 @@
     "fuente": "Copernicus DEM GLO-30 (ESA), muestreo a 30 m; transecto de 3000 m, rumbo 90°, paso 25.2 m",
     "exageracion_vertical": null,
     "obstaculos": [],
-    "paso_m": 25.21,
+    "paso_m": 25.2101,
     "superficies": [
       {
         "desde": 0.0,
