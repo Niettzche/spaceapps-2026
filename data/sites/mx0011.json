@@ -105,5 +105,5 @@
     "exageracion_vertical": null,
     "obstaculos": []
   },
-  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Cráter Gale (Marte), 0.78 km, 34 m, d/D 0.043."
+  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Cráter Gale (Marte), 0.78 km, 34 m, d/D 0.043. Etiqueta de IA: hondonada_eolica_o_duna, confianza 0.55 (claude -p sobre Sentinel-2 y relieve; 29 de 33 aciertos en la validación, ciencia_datos/etiquetado_ia)."
 }

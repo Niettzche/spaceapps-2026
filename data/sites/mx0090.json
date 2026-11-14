@@ -9,7 +9,7 @@
   "prueba_util": null,
   "uso_exploracion": "Candidato a verificar en campo: navegación y movilidad dentro de una depresión tipo cráter",
   "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
-  "novedoso": true,
+  "novedoso": null,
   "variables": {
     "forma": {
       "valor": 0.5279,
@@ -105,5 +105,5 @@
     "exageracion_vertical": null,
     "obstaculos": []
   },
-  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Cráter Gale (Marte), 0.71 km, 23 m, d/D 0.032."
+  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Cráter Gale (Marte), 0.71 km, 23 m, d/D 0.032. Etiqueta de IA: sin etiqueta (no se etiquetó este candidato); tipo no verificado. novedoso: null (sin etiqueta; no verificado como cráter)."
 }

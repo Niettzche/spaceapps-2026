@@ -9,7 +9,7 @@
   "prueba_util": null,
   "uso_exploracion": "Análogo operativo, no geológico: probar navegación y movilidad de rovers en paredes empinadas, excavación (ISRU) y operación con sombra en el fondo del tajo",
   "proceso": "Probable tajo minero a cielo abierto (cantera de OpenStreetMap a ≤ 2 km; por verificar)",
-  "novedoso": true,
+  "novedoso": null,
   "variables": {
     "forma": {
       "valor": 0.0845,
@@ -244,5 +244,5 @@
     ],
     "superficies_nota": "Superficie: clasificación por reglas, no medición directa. arena si arena del suelo ≥ 65 %; si no, roca si rugosidad local (desv. est. en 90 m) > 2 m o pendiente > 15°; si no, compacto. Fuente: Copernicus DEM GLO-30 (rugosidad y pendiente); OpenLandMap SOL_SAND-WFRACTION v02, 0 cm (arena del suelo, 250 m) (ciencia_datos/datos/niveles.json, analisis/21)."
   },
-  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Anillo 80-85°S (Luna), 1.11 km, 254 m, d/D 0.229, en -81.407, -122.71. Nombre por verificar: se asignó en analisis/09 por cercanía a una mina o cantera de OpenStreetMap; no se cotejó con un inventario minero oficial."
+  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Anillo 80-85°S (Luna), 1.11 km, 254 m, d/D 0.229, en -81.407, -122.71. Nombre por verificar: se asignó en analisis/09 por cercanía a una mina o cantera de OpenStreetMap; no se cotejó con un inventario minero oficial. Etiqueta de IA: mina_o_cantera, confianza 0.60 (claude -p sobre Sentinel-2 y relieve; 29 de 33 aciertos en la validación, ciencia_datos/etiquetado_ia). novedoso: null (confianza de la IA 0.60 < 0.7; no verificado como cráter)."
 }
