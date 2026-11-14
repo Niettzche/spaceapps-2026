@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import useSheet from './useSheet'
 
 // Bars are drawn on a shared scale so the Mexican crater and its lunar twin can be compared by length.
 function Pair({ label, a, b, unit, digits = 0 }) {
@@ -14,14 +14,7 @@ function Pair({ label, a, b, unit, digits = 0 }) {
 }
 
 export default function Sheet({ t, f, imgBase, onClose }) {
-  const ref = useRef(null)
-  useEffect(() => {
-    const d = ref.current
-    if (!d.open) d.showModal()
-    const close = () => onClose()
-    d.addEventListener('close', close)
-    return () => d.removeEventListener('close', close)
-  }, [onClose])
+  const { ref, close, onBackdrop } = useSheet(onClose)
 
   const g = f.gemelo
   const mine = f.tipo === 'mina'
@@ -34,7 +27,7 @@ export default function Sheet({ t, f, imgBase, onClose }) {
   ].filter(Boolean)
 
   return (
-    <dialog ref={ref} className="sheet" onClick={(e) => { if (e.target === ref.current) ref.current.close() }}>
+    <dialog ref={ref} className="sheet" onClick={onBackdrop}>
       <article>
         <header>
           <div>
@@ -42,7 +35,7 @@ export default function Sheet({ t, f, imgBase, onClose }) {
             <p className="kind"><i className={`dot ${f.tipo}`} />{t.kind[f.tipo]}</p>
             <p className="status">{mine || (named && !f.conocido) ? t.unverified : f.conocido ? t.known : t.new_}</p>
           </div>
-          <button className="ghost" onClick={() => ref.current.close()}>{t.close}</button>
+          <button className="ghost" onClick={close}>{t.close}</button>
         </header>
 
         <div className="twins">

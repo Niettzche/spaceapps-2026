@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import useSheet from './useSheet'
 
 // Texts in sitios.json may be a plain string or { es, en }.
 const tx = (v, lang) => (v == null ? '' : typeof v === 'string' ? v : v[lang] ?? v.es ?? v.en ?? '')
@@ -6,7 +7,8 @@ const tx = (v, lang) => (v == null ? '' : typeof v === 'string' ? v : v[lang] ??
 const ROLES = ['hallazgo principal', 'segundo hallazgo', 'control']
 const EJES = ['forma', 'borde', 'material', 'gravedad', 'vacio', 'radiacion', 'temperatura', 'luz']
 const LEVEL_CLASS = { funciona: 'ok', parcial: 'part', 'no aplica': 'na' }
-const fmt = (v, d) => (v == null ? '—' : Number(v).toFixed(d))
+// Typographic minus for negative values (rim heights below the surroundings).
+const fmt = (v, d) => (v == null ? '—' : Number(v).toFixed(d).replace(/^-/, '−'))
 const sortEjes = (list) => [...(list || [])].sort((a, b) => EJES.indexOf(a.eje) - EJES.indexOf(b.eje))
 
 // Where the site sits between a Mars-like (0) and a Moon-like (1) crater, according to the Moon vs Mars model.
@@ -44,10 +46,10 @@ function Strip({ t, list }) {
   )
 }
 
-function Card({ t, s, imgBase, onOpen, onShowMap }) {
+function Card({ t, s, i, imgBase, onOpen, onShowMap }) {
   const m = s.medidas || {}
   return (
-    <article className="card">
+    <article className="card" style={{ '--i': i }}>
       <button className="cardimg" onClick={() => onOpen(s.id)} aria-label={`${t.open_site}: ${s.nombre}`}>
         {s.imagenes?.relieve ? <img src={imgBase + s.imagenes.relieve} alt="" width="320" height="320" loading="lazy" /> : <span className="noimg">{t.img_none}</span>}
       </button>
@@ -71,6 +73,39 @@ function Card({ t, s, imgBase, onOpen, onShowMap }) {
   )
 }
 
+// Marks a card grid so its cards rise in once, the first time it scrolls into view.
+function useReveal() {
+  const ref = useRef(null)
+  useEffect(() => {
+    const el = ref.current
+    if (!el || !('IntersectionObserver' in window)) return
+    const r = el.getBoundingClientRect()
+    if (r.top < window.innerHeight && r.bottom > 0) return // already on screen: no entrance
+    el.dataset.reveal = 'wait'
+    const io = new IntersectionObserver(([e]) => {
+      if (!e.isIntersecting) return
+      el.dataset.reveal = 'in'
+      io.disconnect()
+    }, { rootMargin: '0px 0px -60px 0px' })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
+  return ref
+}
+
+function Group({ t, rol, list, imgBase, onOpen, onShowMap }) {
+  const ref = useReveal()
+  return (
+    <div className="group">
+      <h3>{t.rol[rol]}</h3>
+      <p className="grouplede">{t.rol_p[rol]}</p>
+      <div className="cards" ref={ref}>
+        {list.map((s, i) => <Card key={s.id} t={t} s={s} i={i} imgBase={imgBase} onOpen={onOpen} onShowMap={onShowMap} />)}
+      </div>
+    </div>
+  )
+}
+
 export default function Sites({ t, sites, imgBase, onOpen, onShowMap }) {
   if (!sites.length) return null
   const demo = sites.some((s) => s.demo)
@@ -88,30 +123,14 @@ export default function Sites({ t, sites, imgBase, onOpen, onShowMap }) {
       {ROLES.map((rol) => {
         const list = sites.filter((s) => s.rol === rol)
         if (!list.length) return null
-        return (
-          <div key={rol} className="group">
-            <h3>{t.rol[rol]}</h3>
-            <p className="grouplede">{t.rol_p[rol]}</p>
-            <div className="cards">
-              {list.map((s) => <Card key={s.id} t={t} s={s} imgBase={imgBase} onOpen={onOpen} onShowMap={onShowMap} />)}
-            </div>
-          </div>
-        )
+        return <Group key={rol} t={t} rol={rol} list={list} imgBase={imgBase} onOpen={onOpen} onShowMap={onShowMap} />
       })}
     </section>
   )
 }
 
 export function SiteSheet({ t, s, imgBase, onClose, onShowMap }) {
-  const ref = useRef(null)
-  useEffect(() => {
-    const d = ref.current
-    if (!d.open) d.showModal()
-    const close = () => onClose()
-    d.addEventListener('close', close)
-    return () => d.removeEventListener('close', close)
-  }, [onClose])
-
+  const { ref, close, onBackdrop } = useSheet(onClose)
   const m = s.medidas || {}
   const g = s.gemelo || {}
   const sim = s.similitud || {}
@@ -126,16 +145,16 @@ export function SiteSheet({ t, s, imgBase, onClose, onShowMap }) {
   const where = (la, lo) => (la == null ? '' : `${la.toFixed(3)}°, ${lo.toFixed(3)}°`)
 
   return (
-    <dialog ref={ref} className="sheet sitesheet" onClick={(e) => { if (e.target === ref.current) ref.current.close() }}>
+    <dialog ref={ref} className="sheet sitesheet" aria-labelledby={`site-${s.id}`} onClick={onBackdrop}>
       <article>
-        <header>
-          <div>
-            <p className="rolechip">{t.rol[s.rol] || s.rol}{s.demo && <span className="demochip">{t.demo_title}</span>}</p>
-            <h2>{s.nombre}</h2>
-            <p className="kind"><i className={`dot ${s.tipo === 'mina' ? 'mina' : 'con_borde'}`} />{t.site_kind[s.tipo] || s.tipo} · {s.estado}</p>
-          </div>
-          <button className="ghost" onClick={() => ref.current.close()}>{t.close}</button>
-        </header>
+        <div className="sheetbar">
+          <p className="rolechip">{t.rol[s.rol] || s.rol}{s.demo && <span className="demochip">{t.demo_title}</span>}</p>
+          <button className="ghost" onClick={close}>{t.close}</button>
+        </div>
+        <div className="sitehead">
+          <h2 id={`site-${s.id}`}>{s.nombre}</h2>
+          <p className="kind"><i className={`dot ${s.tipo === 'mina' ? 'mina' : 'con_borde'}`} />{t.site_kind[s.tipo] || s.tipo} · {s.estado}</p>
+        </div>
 
         <p className="summary">{tx(s.resumen, t.lang)}</p>
 
@@ -184,7 +203,7 @@ export function SiteSheet({ t, s, imgBase, onClose, onShowMap }) {
         </ul>
 
         <div className="row">
-          <button className="primary" onClick={() => { onShowMap(s); ref.current.close() }}>{t.show_map}</button>
+          <button className="primary" onClick={() => close().then(() => onShowMap(s))}>{t.show_map}</button>
           <a className="ghost" href={`https://www.google.com/maps/@${s.lat},${s.lon},3500m/data=!3m1!1e3`} target="_blank" rel="noreferrer">{t.open_sat}</a>
         </div>
       </article>
