@@ -5,7 +5,7 @@ geología (ASTER), clima (NASA POWER), etiqueta de IA verificada y, donde existe
 Después propone una lista corta (AGENTS.md §6.4 c) con reglas declaradas. La lista es una PROPUESTA: la decide el equipo.
 
 Uso (desde la raíz del repo):  python3 ciencia_datos/05_fichas_integradas.py
-Salidas: ciencia_datos/salidas/fichas_integradas.csv, ciencia_datos/salidas/lista_corta.csv, ciencia_datos/salidas/lista_corta.md
+Salidas: ciencia_datos/salidas/fichas_integradas.csv, lista_corta.csv, lista_corta.md y naturales_nuevos.csv
 """
 import json, math
 from pathlib import Path
@@ -80,12 +80,26 @@ md = ["# Lista corta propuesta (provisional, la decide el equipo)", "",
 md += [f"- {k}: {v}" for k, v in REGLAS.items()]
 md += ["", "| Papel | id | Lugar | D (km) | d/D | IA | Dif. perfil fondo/pared/borde | Sombra polar (Tierra / gemelo) | Ya conocido |", "|---|---|---|---|---|---|---|---|---|"]
 for r in LC.itertuples():
-    lugar = (r.nombre if isinstance(r.nombre, str) and r.nombre else "sin nombre") + f", {r.region} ({r.lat:.3f}, {r.lon:.3f})"
+    if isinstance(r.nombre, str) and r.nombre:
+        nom = r.nombre + (" (nombre por verificar)" if r.etiqueta_ia == "mina_o_cantera" else "")
+    elif r.conocido_como:
+        nom = r.conocido_como.split(" (")[0]
+    else:
+        nom = "sin nombre"
+    lugar = nom + f", {r.region} ({r.lat:.3f}, {r.lon:.3f})"
     md.append(f"| {r.papel} | {r.id} | {lugar} | {r.diam_km:.2f} | {r.prof_diam:.3f} | {r.etiqueta_ia} ({r.conf_ia}) | "
               f"{r.dif_fondo:.4f} / {r.dif_pared:.4f} / {r.dif_borde:.4f} | {r.sombra_crater_tierra:.2f} / {r.sombra_crater_luna:.2f} | {r.conocido_como or 'no'} |")
-nuevos_nat = int((nat.conocido_como == "").sum())
-md += ["", f"**Lectura principal:** de los {len(nat)} cráteres naturales, {len(nat) - nuevos_nat} ya son análogos conocidos (El Pinacate, Meteor Crater): funcionan como **controles** de que el método encuentra lo que debe. "
-       f"Ningún cráter natural nuevo pasó las reglas. **Lo novedoso son los tajos mineros**, presentes en {mn.region.nunique()} regiones: análogo operativo de pendientes extremas, con la analogía rota por exceso de profundidad (sobre todo en el fondo)."]
+# Lectura principal: se genera de los datos (no se escribe a mano)
+base_nat = base[base.etiqueta_ia.isin(["crater_volcanico", "crater_impacto"])].sort_values("dif_media")
+nuevos = base_nat[base_nat.conocido_como == ""]
+conocidos_en_lista = int((nat.conocido_como != "").sum())
+lista_nuevos = "; ".join(f"{r.id} ({r.region}, dif. {r.dif_media:.4f})" for r in nuevos.itertuples())
+md += ["", f"**Lectura principal:** {len(base_nat)} cráteres naturales pasan la regla base; {len(nuevos)} de ellos **no están en ninguna lista de análogos conocidos** "
+       f"y son candidatos nuevos a revisar: {lista_nuevos}. Los {len(nat)} de la lista corta son los de perfil más parecido y {conocidos_en_lista} ya son análogos conocidos, "
+       f"así que también funcionan como **controles** de que el método encuentra lo que debe. Si el equipo quiere, los nuevos mejor puntuados pueden entrar a la lista. "
+       f"Ojo: \"no está en la lista\" no significa \"nunca usado\". `data/known_analogs.json` tiene 20 sitios, y algunos de estos caen en campos volcánicos usados para entrenamiento (por ejemplo, G00176 en el campo volcánico de San Francisco, Arizona); hay que verificarlos en la literatura antes de llamarlos novedosos. "
+       f"Los **tajos mineros** ({mn.region.nunique()} regiones) son el otro hallazgo: análogo operativo de pendientes extremas, con la analogía rota por exceso de profundidad, sobre todo en el fondo."]
+pd.DataFrame(nuevos[["id", "region", "lat", "lon", "diam_km", "prof_diam", "etiqueta_ia", "conf_ia", "dif_media", "sombra_crater_tierra", "razon_ia"]]).to_csv(S / "naturales_nuevos.csv", index=False)
 md += ["", "**Cómo leerla:**",
        "- *Dif. perfil*: diferencia media con su gemelo lunar por zona, en profundidad/diámetro (mediana de todos los candidatos ≈ 0.002; criterio provisional del visor: < 0.015).",
        "- *Sombra polar*: fracción del cráter en sombra permanente si estuviera en el polo sur (Sol a 1.5°). Es un experimento: ningún lugar de la Tierra tiene ese Sol.",
