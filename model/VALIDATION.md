@@ -58,7 +58,7 @@ Modelo: regresión logística Luna contra Marte con 4,288 cráteres lunares y 57
 | Roter Kamm | 1.82 | 0.0347 | 0.275 | 5.33 | sí |
 | Talemzane | 1.37 | 0.0199 | 0.205 | 3.37 | sí |
 
-**Detector frente a cráteres volcánicos conocidos de México** (`ciencia_datos/datos/crateres_conocidos_mx.csv`, 70 cráteres con fuente): de 62 en el rango del detector, encuentra el 40 % y el 32 % pasa el filtro tipo cráter. No detectados: 15 con lago (el DEM ve el espejo de agua), 3 menores de 0.6 km y 22 por otras razones (islas, coordenadas desplazadas, poca profundidad). Ver `informe/validacion_detector.pdf`.
+**Detector frente a cráteres volcánicos conocidos de México** (`ciencia_datos/datos/crateres_conocidos_mx.csv`, 70 cráteres con fuente, 66 con coordenadas): de 62 en el rango del detector (0.6–10 km o sin diámetro), encuentra el 40% y el 32% pasa el filtro tipo cráter. No detectados: 15 con lago (el DEM ve el espejo de agua), 3 menores de 0.6 km y 22 por otras razones (islas, coordenadas desplazadas, poca profundidad). Mismo cotejo que `ciencia_datos/03_etiquetas_por_fuentes.ipynb` (radio de 2.5 km; una depresión cuenta una sola vez).
 
 ## Límites que siempre se declaran
 
