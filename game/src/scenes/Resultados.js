@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { titulo, boton, nota } from './ui.js';
+import { titulo, boton, nota, irA } from './ui.js';
 import { PRESUPUESTO_INICIAL } from '../config/world.js';
 import { partida } from '../main.js';
 import { recomendar } from '../feedback/reglas.js';
@@ -30,7 +30,7 @@ export default class Resultados extends Phaser.Scene {
     const registro = partida.resultados[partida.resultados.length - 1];
     if (!registro) {
       titulo(this, 'Resultados', 'Todavía no hay pruebas ni misiones.');
-      boton(this, 480, 440, 'Menú', () => this.scene.start('Menu'));
+      boton(this, 480, 440, 'Menú', () => irA(this, 'Menu'));
       return;
     }
     const { tipo, exito, motivo, resultado, ilustrativo } = registro;
@@ -58,13 +58,13 @@ export default class Resultados extends Phaser.Scene {
 
     const yb = 440;
     if (esMision) {
-      boton(this, 250, yb, 'Reintentar misión', () => this.scene.start('Mision'));
-      boton(this, 520, yb, 'Volver al taller', () => this.scene.start('Taller'));
-      boton(this, 760, yb, 'Menú', () => this.scene.start('Menu'));
+      boton(this, 250, yb, 'Reintentar misión', () => irA(this, 'Mision'));
+      boton(this, 520, yb, 'Volver al taller', () => irA(this, 'Taller'));
+      boton(this, 760, yb, 'Menú', () => irA(this, 'Menu'));
     } else {
-      boton(this, 210, yb, 'Volver al taller', () => this.scene.start('Taller'));
-      boton(this, 460, yb, 'Probar otra vez', () => this.scene.start('Prueba'));
-      boton(this, 730, yb, exito ? 'Lanzar misión' : 'Lanzar misión sin superar', () => this.scene.start('Mision'));
+      boton(this, 210, yb, 'Volver al taller', () => irA(this, 'Taller'));
+      boton(this, 460, yb, 'Probar otra vez', () => irA(this, 'Prueba'));
+      boton(this, 730, yb, exito ? 'Lanzar misión' : 'Lanzar misión sin superar', () => irA(this, 'Mision'));
     }
     const avisos = ['La puntuación es de juego, no evidencia científica.'];
     if (ilustrativo) avisos.push('Terreno ilustrativo: no es un perfil medido.');
