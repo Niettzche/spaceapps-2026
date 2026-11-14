@@ -185,6 +185,18 @@ export function perfilDesdeElevaciones(elevaciones, { paso_m = PASO_REAL_DEFECTO
   };
 }
 
+/**
+ * Tramos de superficie de un nivel. Acepta `superficies: [{desde, hasta, tipo}]` (especificación de juego)
+ * y `superficie_tramos: [{desde_m, hasta_m, tipo}]` (formato de ciencia_datos/datos/niveles.json del frente modelo).
+ */
+export function tramosDeNivel(nivel) {
+  const crudos = nivel?.superficies ?? nivel?.superficie_tramos;
+  if (!Array.isArray(crudos) || !crudos.length) return undefined;
+  return crudos
+    .map((t) => ({ desde: t.desde ?? t.desde_m, hasta: t.hasta ?? t.hasta_m, tipo: t.tipo }))
+    .filter((t) => Number.isFinite(t.desde) && Number.isFinite(t.hasta) && SUPERFICIES.includes(t.tipo));
+}
+
 /** Perfil de la prueba terrestre de un sitio: real si existe, si no ilustrativo según su prueba_util. */
 export function perfilDeSitio(sitio) {
   const nivel = sitio?.nivel;
@@ -192,7 +204,7 @@ export function perfilDeSitio(sitio) {
     return perfilDesdeElevaciones(nivel.perfil_elevacion_m, {
       paso_m: nivel.paso_m ?? PASO_REAL_DEFECTO_M,
       exageracion: nivel.exageracion_vertical ?? 1,
-      superficies: nivel.superficies,
+      superficies: tramosDeNivel(nivel),
       fuente: nivel.fuente,
     });
   }
@@ -206,7 +218,7 @@ export function perfilDeDestino(destino) {
     return perfilDesdeElevaciones(nivel.perfil_elevacion_m, {
       paso_m: nivel.paso_m ?? PASO_REAL_DEFECTO_M,
       exageracion: nivel.exageracion_vertical ?? 1,
-      superficies: nivel.superficies,
+      superficies: tramosDeNivel(nivel),
       fuente: nivel.fuente,
     });
   }

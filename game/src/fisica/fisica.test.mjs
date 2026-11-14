@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolverDiseno, DISENO_POR_DEFECTO } from './diseno.js';
-import { generarPerfil, perfilDesdeElevaciones, superficieEn, alturaEn, pendienteMaxima } from './perfil.js';
+import { generarPerfil, perfilDesdeElevaciones, perfilDeSitio, superficieEn, alturaEn, pendienteMaxima } from './perfil.js';
 import { danioCarga, danioChasis } from './danio.js';
 import { gastoPorSegundo } from './energia.js';
 import { puntuar } from '../feedback/puntuacion.js';
@@ -26,6 +26,12 @@ caso('perfil real: paso, exageración y planos de inicio/fin', () => {
   assert.equal(p.ilustrativo, false);
   assert.equal(alturaEn(p, 18 + 10), 20);
   assert.equal(superficieEn(p, 1), 'compacto');
+});
+caso('nivel con formato de niveles.json (superficie_tramos, desde_m)', () => {
+  const p = perfilDeSitio({ id: 'x', nivel: { perfil_elevacion_m: [0, 1, 2, 3], paso_m: 30, superficie_tramos: [{ desde_m: 0, hasta_m: 60, tipo: 'roca' }, { desde_m: 60, hasta_m: 90, tipo: 'arena' }] } });
+  assert.equal(p.ilustrativo, false);
+  assert.equal(superficieEn(p, 18 + 10), 'roca');
+  assert.equal(superficieEn(p, 18 + 70), 'arena');
 });
 caso('daño: bajo el umbral no daña; protección reduce', () => {
   assert.equal(danioChasis(3), 0);
