@@ -158,7 +158,7 @@ figcaption {{ font-size: 8.5pt; color: #444; margin-top: 1mm; }}
 <h2 class="salto">4. El puntaje Luna contra Marte, con México como invitado</h2>
 <p>Como las etiquetas de la Tierra son pocas y ruidosas, cambiamos la pregunta: entrenamos <b>solo con Luna y Marte</b> (datos limpios) y a cada cráter de México le preguntamos dos cosas.</p>
 <ol>
-<li><b>¿Más lunar o más marciano?</b> La probabilidad <code>P_Luna</code> del modelo Luna-contra-Marte, que separa los dos mundos el <b>75–77 %</b> de las veces.</li>
+<li><b>¿Más lunar o más marciano?</b> La probabilidad <code>P_Luna</code> del modelo Luna-contra-Marte, que separa los dos mundos el <b>75–77 %</b> de las veces con 3 sitios marcianos (<b>78 %</b> con 8 sitios; ver sección 6) con 3 sitios marcianos (<b>78 %</b> con 8; sección 6).</li>
 <li><b>¿Cae dentro del rango planetario?</b> Distancia de Mahalanobis robusta a la nube de cráteres de Luna y Marte. Si queda dentro del 95 %, en forma es un análogo plausible.</li>
 </ol>
 <img class="media" src="{SAL}/mexico_sobre_luna_marte.png">
@@ -174,7 +174,7 @@ figcaption {{ font-size: 8.5pt; color: #444; margin-top: 1mm; }}
 <h3>En forma (lo que sí medimos)</h3>
 <ul>
 <li><b>Los tajos mineros son demasiado hondos.</b> Real de Ángeles tiene d/D de 0.29; casi ningún cráter lunar de su tamaño pasa de 0.2 a esta resolución. Sirven para probar <i>operación en pendientes extremas</i>, no para imitar un cráter lunar típico. Además son escalonados (bancos de mina), no tazones.</li>
-<li><b>Los bordes mexicanos casi no sobresalen.</b> Un cráter de impacto lunar tiene borde levantado; los maars y las dolinas, no. Para probar cómo se sube un borde, México se queda corto.</li>
+<li><b>El borde no sirve como criterio de parecido con la Luna.</b> Medido a 200 m, el “borde” de los cráteres lunares sale <b>negativo</b> (mediana −23 m; Marte −15 m): el promedio del anillo alrededor queda por debajo del terreno lejano, porque a esta resolución el borde real, angosto, se pierde. Dentro de la Tierra el borde sí separa orígenes: los impactos terrestres tienen borde levantado (+8 a +34 m) y los maars, dolinas y tajos casi no. Pero comparar el borde de México con el de la Luna sería comparar cosas medidas distinto.</li>
 <li><b>Los cráteres marcianos de referencia son someros</b> (rellenos de sedimento). Los cráteres mexicanos áridos se parecen más a ellos en d/D, pero no en origen.</li>
 <li><b>A 200 m todo lo menor a 0.6 km es invisible</b>, y la mitad de los cráteres tiene tan pocos píxeles que su forma en planta es ruido.</li>
 <li><b>Instrumentos distintos.</b> Parte de la diferencia entre la Luna y Marte puede venir de LOLA frente a HRSC + MOLA, no del terreno.</li>
@@ -187,12 +187,32 @@ figcaption {{ font-size: 8.5pt; color: #444; margin-top: 1mm; }}
 <tr><td>Temperatura y luz</td><td>Sol rasante; sombra permanente cerca de 40 K</td><td>Fría</td><td>Desierto caliente</td><td>Probar de noche con luz rasante artificial; el frío extremo no se replica.</td></tr>
 <tr><td>Suelo</td><td>Regolito fino, filoso, sin agua</td><td>Polvo con óxidos y percloratos</td><td>Basalto (Pinacate), roca de mina</td><td>Pinacate se parece en basalto; la mina, en material excavado y suelto.</td></tr></table>
 
-<h2>6. El detector frente a cráteres conocidos (pendiente)</h2>
-<p>Se está armando un catálogo de 40 a 80 maars y cráteres de México con coordenadas y fuentes citables (Global Volcanism Program, artículos). El notebook <code>ciencia_datos/03</code> lo cotejará contra <b>todas</b> las depresiones que encontró el detector (5,208, incluidas las que no pasan el filtro) para medir cuántos detecta y cuántos deja fuera el filtro. Esta sección se completa cuando llegue el catálogo.</p>
+<h2 class="salto">6. El detector frente a cráteres conocidos</h2>
+<p>Para no depender de coordenadas de memoria, se armó un <b>catálogo de 70 cráteres volcánicos de México</b> con fuente citable (Global Volcanism Program y artículos); 66 tienen coordenadas, y cada una se comprobó contra el relieve SRTM de 30 m (<code>ciencia_datos/03_etiquetas_por_fuentes.ipynb</code>). Se cotejó contra <b>las 5,208 depresiones</b> que encontró el detector, incluidas las que no pasan el filtro.</p>
+<table><tr><th>Resultado (62 cráteres en el rango de 0.6–10 km o sin diámetro reportado)</th><th class="n">Cráteres</th></tr>
+<tr><td>Detectado y pasa el filtro “tipo cráter”</td><td class="n">20 (32 %)</td></tr>
+<tr><td>Detectado, pero no pasa el filtro</td><td class="n">6</td></tr>
+<tr><td>No detectado: tiene lago (el relieve ve el agua, no el fondo)</td><td class="n">15</td></tr>
+<tr><td>No detectado: otras razones (islas fuera del barrido, coordenadas desplazadas 1–2 km entre fuentes, menos de 20 m de profundidad aparente)</td><td class="n">22</td></tr>
+<tr><td><i>Aparte: más chicos que 0.6 km, invisibles a 200 m</i></td><td class="n"><i>3</i></td></tr></table>
+<p>En total el detector encuentra el <b>40 %</b> de los cráteres volcánicos del catálogo en su rango. Las fallas tienen causas claras y casi todas son límites del método (agua, tamaño, profundidad), no del cráter.</p>
+<h3>Cráteres de impacto de la Tierra</h3>
+<p>El mismo detector, sobre Copernicus a 200 m, alrededor de 10 cráteres de impacto conocidos (coordenadas aproximadas, por verificar contra el Earth Impact Database): encuentra <b>9 de 10</b>, todos a menos de 0.35 km del centro. Brent (Canadá, erosionado, con bosque y lagos) no aparece, y en Xiuyan (China) la depresión hallada no coincide en tamaño, así que se excluyó.</p>
+<img class="media" src="{SAL}/impactos_y_minas.png">
+<div class="caja"><p><b>Los 8 impactos válidos caen dentro de la nube Luna + Marte</b>, y Meteor Crater (Arizona) sale muy “lunar” (P_Luna 0.96). <b>Las 4 minas más hondas de México (d/D de 0.19 a 0.29) son más hondas que Meteor Crater (0.126)</b>, el cráter de impacto fresco más famoso de la Tierra: por eso quedan fuera de la nube por exceso.</p></div>
+<h3>Los volcánicos sobre la nube</h3>
+<img class="media" src="{SAL}/fuentes_sobre_luna_marte.png">
+<ul>
+<li><b>90 % de los volcánicos detectados cae dentro de la nube</b> Luna + Marte: en forma, son análogos plausibles.</li>
+<li>Quedan fuera <b>Sykes</b> y <b>El Chichón</b>, por ser más hondos que casi cualquier cráter lunar de su tamaño.</li>
+<li><b>Santa María del Oro, Tepetiltic y el Xalapazco de Los Humeros</b> salen “marcianos”: anchos y planos, como los cráteres rellenos de Marte.</li>
+<li>Como etiquetas para el modelo de tres clases, los 20 volcánicos <b>no lo mejoran</b> (56–59 %). Confirma la decisión: el modelo es evidencia, no el producto.</li>
+</ul>
+<h3>Marte con más sitios</h3>
+<p>Se añadieron 5 sitios de aterrizaje (Meridiani, Gusev, Chryse, Elysium y Utopia) con el mismo recorte; Elysium y Utopia se dejaron fuera por tener muy pocos cráteres y relieve muy liso (posible zona solo MOLA). Con <b>8 sitios</b> marcianos, el modelo Luna contra Marte acierta el <b>78 %</b>. Probado en un sitio marciano que nunca vio, acierta entre <b>70 % (Gale) y 92 % (Meridiani)</b>: la diferencia Luna–Marte no depende de un solo sitio.</p>
 
 <h2>7. Siguientes pasos</h2>
 <ol>
-<li><b>Catálogo de cráteres con fuentes</b> → etiquetas confiables para la Tierra y la sección 6.</li>
 <li><b>Elegir la lista corta de 5 a 8 sitios</b> (minas áridas, Pinacate, maars del catálogo) con su gemelo, puntaje, uso para Artemis y dónde se rompe.</li>
 <li><b>Verificar en la literatura</b> que los maars elegidos no se hayan propuesto antes como análogos, y confirmar los nombres de las minas.</li>
 <li><b>Ajustar la página web</b>: la lista corta como producto, el árbol y el puntaje como evidencia, y las cifras corregidas.</li>
