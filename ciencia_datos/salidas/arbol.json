@@ -1,0 +1,140 @@
+{
+ "descripcion": "Árbol de profundidad 3 que separa cráteres de Luna, Marte y Tierra (México árido). 'si' = variable <= umbral.",
+ "variables": {
+  "log_diam": "log10 diámetro (km)",
+  "prof_diam": "profundidad / diámetro",
+  "borde_rel": "borde / diámetro",
+  "relleno": "relleno",
+  "aspecto": "aspecto"
+ },
+ "exactitud_balanceada_cv": 0.508,
+ "arbol": {
+  "hoja": false,
+  "variable": "prof_diam",
+  "umbral": 0.0387,
+  "n": 4619,
+  "si": {
+   "hoja": false,
+   "variable": "borde_rel",
+   "umbral": -0.0059,
+   "n": 1156,
+   "si": {
+    "hoja": false,
+    "variable": "relleno",
+    "umbral": 0.8638,
+    "n": 922,
+    "si": {
+     "hoja": true,
+     "clase": "Marte",
+     "prob": {
+      "Luna": 0.216,
+      "Marte": 0.417,
+      "Tierra": 0.367
+     },
+     "n": 430
+    },
+    "no": {
+     "hoja": true,
+     "clase": "Marte",
+     "prob": {
+      "Luna": 0.139,
+      "Marte": 0.755,
+      "Tierra": 0.106
+     },
+     "n": 492
+    }
+   },
+   "no": {
+    "hoja": false,
+    "variable": "relleno",
+    "umbral": 0.779,
+    "n": 234,
+    "si": {
+     "hoja": true,
+     "clase": "Tierra",
+     "prob": {
+      "Luna": 0.054,
+      "Marte": 0.098,
+      "Tierra": 0.848
+     },
+     "n": 75
+    },
+    "no": {
+     "hoja": true,
+     "clase": "Tierra",
+     "prob": {
+      "Luna": 0.097,
+      "Marte": 0.45,
+      "Tierra": 0.453
+     },
+     "n": 159
+    }
+   }
+  },
+  "no": {
+   "hoja": false,
+   "variable": "borde_rel",
+   "umbral": -0.0177,
+   "n": 3463,
+   "si": {
+    "hoja": false,
+    "variable": "prof_diam",
+    "umbral": 0.0467,
+    "n": 1809,
+    "si": {
+     "hoja": true,
+     "clase": "Luna",
+     "prob": {
+      "Luna": 0.446,
+      "Marte": 0.203,
+      "Tierra": 0.351
+     },
+     "n": 241
+    },
+    "no": {
+     "hoja": true,
+     "clase": "Luna",
+     "prob": {
+      "Luna": 0.844,
+      "Marte": 0.156,
+      "Tierra": 0.0
+     },
+     "n": 1568
+    }
+   },
+   "no": {
+    "hoja": false,
+    "variable": "prof_diam",
+    "umbral": 0.1878,
+    "n": 1654,
+    "si": {
+     "hoja": true,
+     "clase": "Luna",
+     "prob": {
+      "Luna": 0.461,
+      "Marte": 0.164,
+      "Tierra": 0.375
+     },
+     "n": 1622
+    },
+    "no": {
+     "hoja": true,
+     "clase": "Tierra",
+     "prob": {
+      "Luna": 0.052,
+      "Marte": 0.03,
+      "Tierra": 0.917
+     },
+     "n": 32
+    }
+   }
+  }
+ },
+ "importancia_permutacion": {
+  "log_diam": 0.0,
+  "prof_diam": 0.255,
+  "borde_rel": 0.098,
+  "relleno": 0.0,
+  "aspecto": 0.0
+ }
+}

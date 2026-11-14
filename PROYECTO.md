@@ -52,13 +52,22 @@ Qué cubre ya del reto: métrica de similitud, búsqueda sistemática, sitios nu
 - [ ] **Incertidumbre y sensibilidad.** ¿Cambia el ranking si cambiamos la resolución o los umbrales?
 - [ ] **Conexión con Artemis.** Por sitio, decir qué se podría probar ahí: rovers, navegación, construcción, recursos.
 - [ ] Revisar en la página del reto los entregables concretos (video, demo, repositorio) y la fecha límite.
+- [ ] **Quitar los falsos cráteres de selva desde el origen.** 472 de 668 detecciones de México están en selva (NDVI > 0.7) y son copas de árboles en Copernicus GLO-30. Probar FABDEM (`projects/sat-io/open-datasets/FABDEM`, Copernicus sin bosques ni edificios; licencia no comercial) o, como mínimo, enmascarar por NDVI. Lo está probando la sesión del Colab.
+- [ ] **Etiquetar a mano las 47 detecciones áridas** del informe (`informe/validacion_detector.pdf`). Son la clase "Tierra" de los modelos explicables; hoy tienen ruido (unas 14 son reales).
+- [ ] **Modelos explicables** (`ciencia_datos/01_modelos_explicables.ipynb`). Hecha la primera versión; volver a correr cuando haya etiquetas limpias o datos con FABDEM. Exporta `ciencia_datos/salidas/arbol.json` para la capa "método" de la web (falta conectarlo).
+- [ ] *(Opcional, si sobra tiempo)* **DeepMoon** (Silburt et al., 2019): red de detección de cráteres entrenada con LOLA. Pasarla sobre México para preguntar qué ve como cráter una red que solo conoce la Luna. Apuesta para el "sorpréndannos".
 
 ## Decisiones
 
 | Fecha | Decisión | Por qué |
 |---|---|---|
 | — | Comparar los tres cuerpos a 200 m con el mismo detector | Una comparación justa y reproducible |
+| 2026-11-14 | Usar modelos explicables (árbol de decisión poco profundo, regresión logística), no redes neuronales, para separar Luna, Marte y Tierra | Hay pocos cráteres terrestres confiables (decenas) y el reto pide justificar la analogía y decir dónde se rompe |
+| 2026-11-14 | Antes de modelar, limpiar los datos (FABDEM o máscara de NDVI) | Con las 668 detecciones el modelo aprende a reconocer selva, no cráteres terrestres (comprobado en el notebook) |
+| 2026-11-14 | Validar con grupos espaciales (`StratifiedGroupKFold`, bloques de ~50 km) y exactitud balanceada; puntajes de análogo siempre fuera de pliegue | Evita resultados inflados por cráteres vecinos y por el desbalance (4,288 lunares contra 47 terrestres) |
+| 2026-11-14 | Sin `elev_m` como variable | Cada cuerpo tiene su propio nivel de referencia; sería fuga de información |
 
 ## Bitácora
 
 - **2026-11-14:** se revisó la transcripción del video del autor. Se definió el reto principal y las mejoras propuestas (arriba).
+- **2026-11-14:** primer notebook de modelos explicables (`ciencia_datos/01_modelos_explicables.ipynb`, datos copiados en `ciencia_datos/datos/` porque `respaldo/` no está en git). Con Tierra = 47 detecciones áridas: regresión logística 55 % y árbol de profundidad 3 51 % de exactitud balanceada fuera de pliegue (al azar: 32 %). La regla principal es profundidad / diámetro (Luna 0.060, México árido 0.034, Marte 0.027); la segunda, la altura del borde. Las formas se traslapan mucho: en forma, los cráteres áridos de México son análogos creíbles. Las minas (Real de Ángeles, Peñasquito) y MacDougal salen "lunares". Entrenado con las 668, el modelo llama Tierra al 60 % de la selva y solo al 28 % de lo árido: aprende la selva.
