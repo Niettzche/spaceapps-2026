@@ -33,7 +33,7 @@
   dentro de la nube de forma.
 
 ## En curso
-- Integrar `ciencia_datos/datos/global_crateres.csv` (283 cráteres en Atacama, Arizona y Arabia; PR #3) a `scan.py`, quitando los duplicados del Pinacate.
+- `model/scan.py --global`: los 12 mejores en forma de `global_crateres.csv` (Atacama 6, Arizona 6; Arabia ninguno en el top), sin duplicados de México a ≤1 km. 9 de 12 están junto a una cantera: el patrón de las minas se repite fuera de México. g00174 y g00176 (campo volcánico de San Francisco, AZ) quedan con novedoso null por verificar.
 
 ## Siguiente
 - [ ] Regenerar `web/public/data/sitios.json` desde `data/sites` (quitar `demo: true`).

@@ -11,7 +11,8 @@ ciencia_datos/datos/hoyas_mexico.csv). Aquí:
 4. destino_ref = el cuerpo al que más se parece su forma (Luna → polo_sur_lunar, Marte → jezero).
 5. novedoso = no coincide con data/known_analogs.json (a menos de 50 km).
 
-Uso:  uv run python -m model.scan            (tarda unos minutos: consulta NASA POWER y Earth Engine por sitio)
+Uso:  uv run python -m model.scan            (México; tarda unos minutos: consulta NASA POWER y Earth Engine por sitio)
+      uv run python -m model.scan --global   (los N_GLOBAL mejores de ciencia_datos/datos/global_crateres.csv)
 
 Alcance global (AGENTS.md §6.4, decisión del 14 nov): este script cubre México, el caso destacado. Para el resto del mundo, el
 mismo detector se corre en regiones áridas priorizadas (Sahara, Arabia, Atacama, Australia interior, Gobi, Kalahari, suroeste de
@@ -23,6 +24,7 @@ from __future__ import annotations
 import json
 import math
 import pathlib
+import sys
 from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
@@ -84,6 +86,38 @@ def candidatos() -> pd.DataFrame:
     return c
 
 
+# Candidatos en zonas con antecedente de análogo sin coordenada con fuente en known_analogs: novedoso queda null
+FUENTE_APOLO_AZ = ("USGS, 'Walk in the footsteps of the Apollo astronauts: a field guide to northern Arizona astronaut training sites' "
+                   "(https://www.usgs.gov/publications/walk-footsteps-apollo-astronauts-a-field-guide-northern-arizona-astronaut-training)")
+POR_VERIFICAR = {
+    "g00174": f"en el campo volcánico de San Francisco (Arizona), que tiene sitios de entrenamiento de geología del Apolo ({FUENTE_APOLO_AZ})",
+    "g00176": f"en el campo volcánico de San Francisco (Arizona), que tiene sitios de entrenamiento de geología del Apolo ({FUENTE_APOLO_AZ})",
+}
+
+PAIS_REGION = {"Atacama": "CL", "Arizona": "US", "Arabia": "SA"}
+N_GLOBAL = 12   # (P) cuántos candidatos globales se exportan (AGENTS.md §6.4 c: pocos sitios finales, México destacado)
+
+
+def candidatos_globales(n: int = N_GLOBAL) -> pd.DataFrame:
+    """Cráteres del mismo detector en otras zonas áridas (ciencia_datos/datos/global_crateres.csv, analisis/16).
+
+    Se quedan los áridos tipo cráter, se quitan los que repiten una detección de México a menos de 1 km (el cuadro de
+    Arizona incluye el norte de Sonora y el Pinacate) y se exportan los n con mejor forma frente a su destino.
+    """
+    g = pd.read_csv(DATOS / "global_crateres.csv")
+    g = g[g.crater.astype(bool) & g.arido.astype(bool)].copy()
+    h = pd.read_csv(DATOS / "hoyas_mexico.csv")
+    dmin = [km(la, lo, h.lat.to_numpy(), h.lon.to_numpy()).min() for la, lo in zip(g.lat, g.lon)]
+    g = g[np.array(dmin) > 1.0].copy()
+    pf = forma.puntuar(g.diam_km, g.prof_m, g.borde_m)
+    g["forma_mejor"] = np.maximum(pf.forma_polo_sur_lunar.to_numpy(), pf.forma_jezero.to_numpy())
+    g = g.nlargest(n, "forma_mejor").reset_index(drop=True)
+    g["cid"] = g.gid
+    g["pais"] = g.region.map(lambda r: next((v for k, v in PAIS_REGION.items() if k in r), None))
+    g["nombre_catalogo"] = None; g["tipo_catalogo"] = None; g["nombre_previo"] = None
+    return g
+
+
 def analogos_conocidos() -> list[tuple[str, float, float]]:
     js = json.loads((RAIZ / "data" / "known_analogs.json").read_text(encoding="utf-8"))
     return [(a["nombre"], a["lat"], a["lon"]) for a in js.get("analogos", []) if a.get("lat") is not None]
@@ -101,7 +135,7 @@ def construir_sitio(r: pd.Series, targets: dict, ref: pd.DataFrame, conocidos: l
                     " Nombre por verificar: se asignó en analisis/09 por cercanía a una mina o cantera de OpenStreetMap; "
                     "no se cotejó con un inventario minero oficial.")
     if es_mina:
-        proceso = "Excavación artificial: tajo minero a cielo abierto (cantera a menos de 2 km en OpenStreetMap)"
+        proceso = "Probable tajo minero a cielo abierto (cantera de OpenStreetMap a ≤ 2 km; por verificar)"
         uso = ("Análogo operativo, no geológico: probar navegación y movilidad de rovers en paredes empinadas, "
                "excavación (ISRU) y operación con sombra en el fondo del tajo")
     elif r.tipo_catalogo:
@@ -133,11 +167,14 @@ def construir_sitio(r: pd.Series, targets: dict, ref: pd.DataFrame, conocidos: l
                 not any(km(r.lat, r.lon, la, lo) <= RADIO_ANALOGO_KM for _, la, lo in conocidos))
     aviso_novedoso = (" novedoso: pendiente; data/known_analogs.json todavía no tiene coordenadas con fuente."
                       if novedoso is None else "")
+    if str(r.cid).lower() in POR_VERIFICAR:
+        novedoso = None
+        aviso_novedoso = f" novedoso: por verificar; está {POR_VERIFICAR[str(r.cid).lower()]}."
     g = gemelo(cuerpo, float(r.diam_km), float(r.prof_diam), ref)
     return {
         "id": str(r.cid).lower(),
-        "nombre": nombre or f"Depresión tipo cráter {r.cid}",
-        "pais": "MX", "lat": round(float(r.lat), 5), "lon": round(float(r.lon), 5),
+        "nombre": nombre or (f"Depresión tipo cráter {r.cid}" + (f" ({r.region})" if isinstance(r.get("region"), str) else "")),
+        "pais": r.get("pais") or "MX", "lat": round(float(r.lat), 5), "lon": round(float(r.lon), 5),
         "estado": "candidato_modelo", "destino_ref": destino, "prueba_util": None,
         "uso_exploracion": uso, "proceso": proceso, "novedoso": novedoso,
         "variables": variables,
@@ -160,6 +197,9 @@ def main():
     c = c[c.km_pinacate > RADIO_PINACATE_KM].reset_index(drop=True)
     print(f"Candidatos áridos: {len(c) + len(pin)}; del Pinacate (van al sitio curado): {len(pin)}; a exportar: {len(c)}")
     conocidos = analogos_conocidos()
+    if "--global" in sys.argv:
+        c = candidatos_globales()
+        print(f"Candidatos globales a exportar (mejor forma, sin duplicados de México): {len(c)}")
     with ThreadPoolExecutor(6) as ex:
         sitios = list(ex.map(lambda row: construir_sitio(row[1], targets, ref, conocidos), c.iterrows()))
     for s in sitios:
