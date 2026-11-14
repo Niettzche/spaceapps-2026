@@ -22,6 +22,7 @@ Este cuaderno busca en todo México **formas del terreno parecidas a cráteres**
 | 11 | **Validación 2**: imágenes de relieve y satélite de una muestra al azar | `informe/` |
 | 12 | Imágenes de **todas las detecciones en zonas áridas** (la lista que importa) | 47 sitios |
 | 13 | **Experimento**: ¿un relieve sin árboles (FABDEM) quita los falsos? | No: solo −15 % |
+| 14 | Exporta **todas** las depresiones (5,208) para `ciencia_datos/` | `hoyas_mexico.csv` |
 | 99 | Descarga los zip al equipo | — |
 
 ## De dónde salen los datos
