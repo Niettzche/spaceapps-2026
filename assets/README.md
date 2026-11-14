@@ -17,6 +17,9 @@ La lista completa, las medidas y cómo entra cada archivo al juego están en `do
 - **Pantalla de título:** morados del espacio `#0d051c` `#180630` `#240d43` `#2e0d6b`, Marte óxido `#a8593e` `#bc6240`, logotipo blanco → lavanda.
 - **Tipografía:** las fuentes `mini` (3 × 5) y `big` (5 × 7) de pixelfx (MIT). **No** usar "Patch Pixel" (su licencia no es MIT).
 
+Los diseños siguen `docs/taller/Space_Apps_Game_Data.xlsx`: hoja **Parts** para las piezas (PT-001 a PT-012) y hoja **Biomes** para terreno y fondos
+(BM-001 desierto hiperárido pedregoso → `desierto` y `tierra_compacto`; BM-003 basalto → `lava` y `tierra_roca`; BM-008 a BM-010 Luna; BM-013 a BM-017 Marte).
+
 ## Carpetas
 
 | Carpeta | Contenido |
@@ -24,8 +27,8 @@ La lista completa, las medidas y cómo entra cada archivo al juego están en `do
 | `entidades/` | robot (`chasis_ligero`, `chasis_reforzado`, `rueda_estandar`, `rueda_ancha`, `rueda_tacos`, `soporte_basico`, `soporte_amortiguado`), `carga`, `astronauta`, `meta`, `zona_entrega`, `base`, `baliza` |
 | `terreno/` | relleno 16 × 16 + `_borde` 16 × 4: `tierra_arena`, `tierra_roca`, `tierra_compacto`, `marte_arena`, `marte_roca`, `marte_compacto`, `luna_arena` |
 | `fondos/` | `fondo_<dunas|desierto|lava|marte|luna>_<1|2|3>` (320 × 180, repetibles a lo ancho) |
-| `fx/` | hojas de pixelfx con su JSON: `fx_polvo_arena`, `fx_patinaje` (+ `_marte`, `_luna`), `fx_golpe_chasis`, `fx_golpe_carga`, `fx_chasis_destruido`, `fx_energia_agotada` (+ `_luna`, humo claro), `fx_entrega`, `fx_meta`. Los que el juego dibuja centrados tienen el origen en el centro del cuadro |
-| `ui/` | `ui_icono_energia|carga|chasis` (8 × 8), `ui_marco_barra` (9-slice 6 × 6), `ui_boton[_presionado]` (9-slice 12 × 12), `ui_boton_izq|der[_presionado]` (24 × 24) |
+| `fx/` | hojas de pixelfx con su JSON. Polvo por superficie y mundo: `fx_polvo_<arena|roca|compacto>` (Tierra), `fx_polvo_marte_<arena|roca|compacto>`, `fx_polvo_luna_<arena|roca>` y `fx_polvo_marte` / `fx_polvo_luna` de respaldo (el juego busca primero `fx_<evento>_<mundo>_<superficie>`, luego `_<superficie>`, luego `_<mundo>`). `fx_patinaje` (+ `_marte`, `_luna`), `fx_carga_perdida`, `fx_golpe_chasis`, `fx_golpe_carga`, `fx_chasis_destruido`, `fx_energia_agotada` (+ `_luna`, humo claro), `fx_entrega`, `fx_meta`. Los que el juego dibuja centrados tienen el origen en el centro del cuadro |
+| `ui/` | `ui_icono_energia|carga|chasis` (8 × 8), `ui_marco_barra` (9-slice 6 × 6), `ui_boton[_presionado]` (9-slice 12 × 12), `ui_boton_izq|der[_presionado]` (24 × 24); resultados: `ui_estrella_llena|vacia` (16 × 16), `ui_panel` (9-slice 16 × 16, borde de 3 px), `ui_aviso_ilustrativo` |
 | `iconos/` | íconos 16 × 16 de las 12 piezas del taller: `iconos/<id>.png` |
 | `titulo/` | `titulo.png` (con logotipo y lema) y `titulo_fondo.png` (sin texto), 320 × 180 |
 | `fuente/` | el código que genera todo lo anterior (no lo carga el juego) |
