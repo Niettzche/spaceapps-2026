@@ -1,6 +1,6 @@
 // Genera el arte de MARSCEPTION en /assets.
 //   node assets/fuente/generar.mjs [grupo ...] [--vista carpeta]
-// Grupos: entidades, terreno, fondos, ui, iconos (sin grupos = todos).
+// Grupos: entidades, terreno, fondos, ui, iconos, titulo (sin grupos = todos).
 // --vista escribe hojas de revisión ampliadas (no van al repo).
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -9,7 +9,7 @@ import { registro, composite, core } from './comun.mjs';
 const args = process.argv.slice(2);
 const iv = args.indexOf('--vista');
 const vista = iv >= 0 ? args.splice(iv, 2)[1] : null;
-const GRUPOS = ['entidades', 'terreno', 'fondos', 'ui', 'iconos'];
+const GRUPOS = ['entidades', 'terreno', 'fondos', 'ui', 'iconos', 'titulo'];
 const pedidos = args.length ? args : GRUPOS;
 
 for (const g of pedidos) {
@@ -26,7 +26,7 @@ if (vista) {
   const porCarpeta = {};
   for (const r of registro) (porCarpeta[r.ruta.split('/')[0]] ??= []).push(r);
   for (const [carpeta, lista] of Object.entries(porCarpeta)) {
-    const zoom = carpeta === 'fondos' ? 2 : 8, pad = 6;
+    const zoom = carpeta === 'fondos' || carpeta === 'titulo' ? 3 : 8, pad = 6;
     const W = Math.max(...lista.map((r) => r.frame.w * zoom)) + pad * 2;
     const H = lista.reduce((a, r) => a + r.frame.h * zoom + pad, pad);
     const out = new Uint8ClampedArray(W * H * 4);
