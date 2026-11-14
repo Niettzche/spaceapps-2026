@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolverDiseno, DISENO_POR_DEFECTO } from './diseno.js';
-import { generarPerfil, perfilDesdeElevaciones, perfilDeSitio, superficieEn, alturaEn, pendienteMaxima } from './perfil.js';
+import { generarPerfil, perfilDesdeElevaciones, perfilDeSitio, perfilDeDestino, ventanaRepresentativa, superficieEn, alturaEn, pendienteMaxima } from './perfil.js';
 import { danioCarga, danioChasis } from './danio.js';
 import { gastoPorSegundo } from './energia.js';
 import { puntuar } from '../feedback/puntuacion.js';
@@ -45,6 +45,32 @@ caso('caras de duna recreadas solo en arena y declaradas', () => {
   const roca = perfilDesdeElevaciones(elev, { paso_m: 30, superficies: [{ desde: 0, hasta: 3000, tipo: 'roca' }], dunasRecreadas: true });
   assert.ok(pendienteMaxima(arena) > 28 && arena.recreacion.length === 1 && /recreadas/.test(arena.nota));
   assert.ok(pendienteMaxima(roca) < 1 && roca.recreacion.length === 0);
+});
+caso('misión real: ventana con la pendiente media más parecida a la típica del destino', () => {
+  // 12 segmentos de 80 m: 2° ×5, 9° ×4, 25° ×3. Objetivo 8.6° → la ventana que empieza en el segmento 5 (media 9°).
+  const grados = [2, 2, 2, 2, 2, 9, 9, 9, 9, 25, 25, 25];
+  const elev = [0];
+  for (const g of grados) elev.push(elev.at(-1) + 80 * Math.tan((g * Math.PI) / 180));
+  const v = ventanaRepresentativa(elev, 80, 250, 8.6);
+  assert.equal(v.i0, 5);
+  assert.ok(Math.abs(v.media - 9) < 1e-9);
+  assert.equal(ventanaRepresentativa(elev, 80, 250, undefined), null);
+  const p = perfilDeDestino({ id: 'x', mundo: 'luna', variables: { pendiente: { valor: 8.6 } }, nivel: { perfil_elevacion_m: elev, paso_m: 80, fuente: 'test' } });
+  assert.equal(p.ilustrativo, false);
+  assert.equal(p.ventana.desde_m, 400);
+  assert.equal(p.largo_m, 18 + 250 + 30);
+  assert.match(p.nota, /desde el m 400\) de un transecto de 960 m, elegido por su pendiente media/);
+});
+caso('misión ilustrativa: arena, inclinación media = pendiente típica del destino, sin paredes de más de 25°', () => {
+  for (const [mundo, g] of [['luna', 8.63], ['marte', 3.56]]) {
+    const p = perfilDeDestino({ id: mundo, mundo, variables: { pendiente: { valor: g, fuente: 'test' } } });
+    const jugable = p.largo_m - 18 - 30;
+    const subidaMedia = (Math.atan2(p.y_m.at(-1) - p.y_m[0], jugable) * 180) / Math.PI;
+    assert.ok(p.ilustrativo && Math.abs(subidaMedia - g) < 1, `${mundo}: ${subidaMedia}`);
+    assert.ok(pendienteMaxima(p) < 25, `${mundo}: ${pendienteMaxima(p)}`);
+    assert.equal(superficieEn(p, 30), 'arena');
+    assert.match(p.nota, /pendiente típica medida/);
+  }
 });
 caso('daño: bajo el umbral no daña; protección reduce', () => {
   assert.equal(danioChasis(3), 0);

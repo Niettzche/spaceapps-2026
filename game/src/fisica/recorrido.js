@@ -10,6 +10,7 @@ import { Telemetria, construirResultado } from './telemetria.js';
 
 const FONDO = { tierra: '#7f9fbf', marte: '#b98a6a', luna: '#05060b' }; // provisional hasta los fondos de arte
 const SEG_QUIETO_ENTREGA = 2; // la entrega exige 2 s detenido en la zona
+const SEG_SIN_ENERGIA_FIN = 5; // sin energía, la partida termina al detenerse o a los 5 s (atascado contra el borde del nivel) (P)
 const ESPERA_FIN_MS = 1400;
 
 export class Recorrido {
@@ -26,6 +27,7 @@ export class Recorrido {
     this.terminado = false;
     this.telemetria = new Telemetria();
     this.tQuieto = 0;
+    this.tSinEnergia = 0;
 
     aplicarGravedad(scene, o.gravedad);
     scene.cameras.main.setBackgroundColor(FONDO[o.mundo] ?? FONDO.tierra);
@@ -89,7 +91,11 @@ export class Recorrido {
 
   superficieDe = (xMundo) => superficieEn(this.o.perfil, (xMundo - this.xMundo(0)) / PX_POR_M);
 
-  actualizar(_time, delta) {
+  actualizar(_time, deltaCuadro) {
+    // Energía, patinaje y entrega corren con el tiempo de la física: con paso fijo (main.js), Matter avanza runner.delta
+    // por cuadro sin importar los fps. Con el delta del cuadro, a 30 fps la batería se gastaría al doble por metro.
+    const runner = this.scene.matter.world.runner;
+    const delta = runner?.isFixed ? runner.delta : deltaCuadro;
     const r = this.robot;
     const acelerador = this.terminado ? 0 : this.controles.acelerador();
     r.actualizar(delta, acelerador, this.superficieDe);
@@ -102,7 +108,8 @@ export class Recorrido {
     if (r.destruido) return this._terminar(false, 'chasis_destruido');
     if (r.cargaPerdida) return this._terminar(false, 'carga_perdida');
     if (r.volcado) return this._terminar(false, 'volcado');
-    if (r.sinEnergia && r.quieto(0.4)) return this._terminar(false, 'energia_agotada');
+    this.tSinEnergia = r.sinEnergia ? this.tSinEnergia + delta / 1000 : 0;
+    if (r.sinEnergia && (r.quieto(0.4) || this.tSinEnergia >= SEG_SIN_ENERGIA_FIN)) return this._terminar(false, 'energia_agotada');
 
     if (this.o.modo === 'prueba') {
       if (x_m >= this.meta_m) this._terminar(true, 'meta');

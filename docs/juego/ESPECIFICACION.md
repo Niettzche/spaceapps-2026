@@ -97,9 +97,23 @@
 - Gravedad del destino elegido: Luna (`polo_sur_lunar`, 1.62 m/s²) o Marte (`jezero`, 3.71 m/s²).
 - Zona de entrega al final del terreno, con el astronauta como marcador.
 - **Victoria:** carga en la zona con integridad ≥ 60 % y robot detenido 2 s.
-- **Derrota:** destrucción, pérdida de la carga o energía agotada.
-- Terreno del destino: procedural declarado (160 m jugables) hasta que el frente modelo entregue perfiles (LOLA / HRSC+MOLA).
-- **Pendiente:** balancear energía y terreno de la misión; con batería chica todavía no se completa en Luna ni Marte.
+- **Derrota:** destrucción, pérdida de la carga o energía agotada (al detenerse sin energía, o a los 5 s sin energía si queda atascado contra el borde del nivel) (P).
+- Llegar a fondo sin frenar no gana: el robot pasa la zona, choca con el borde y pierde la carga o se queda sin energía.
+- **Tiempo de juego = tiempo de física:** energía, patinaje y entrega usan el paso fijo de Matter (`runner.delta`), no el delta del cuadro. Así el balance no cambia con los fps (antes, a 30 fps la batería se gastaba al doble por metro).
+- **Terreno real** (`destino.nivel`, formato de `ciencia_datos/datos/niveles.json`): tramo real de 250 m sin deformar, elegido como la ventana cuya **pendiente media se parece más a la pendiente típica medida del destino** (`variables.pendiente`: Luna 8.63°, Marte 3.56°), no la más empinada; se declara en pantalla (desde qué metro, de qué transecto y con qué pendiente media). Polo sur lunar: m 1920 de 4.0 km, media 8.2°, sube 37 m. Jezero: m 2600 de 10.0 km, media 3.4°, baja 15 m. Sin `variables.pendiente`, se usa la regla de la prueba (la más empinada ≤ 30°).
+- **Terreno ilustrativo** (sin `nivel`, aviso "terreno ilustrativo"): todo arena salvo un afloramiento de roca en Marte, como los perfiles reales (98–100 % arena por la regla de pendiente). Luna: 240 m jugables, ladera con cráteres pequeños (≤ 1.2 m de hondo). Marte: 170 m, ondulaciones y dunas bajas. A los dos se les suma una inclinación media igual a la pendiente típica medida del destino, declarada en la nota. Sin paredes de más de ~18° (con gravedad baja, las de 25–30° tiraban la carga). (P)
+- Resultados medidos sin interfaz (paso fijo 60 Hz, acelerador a fondo y frenar al entrar 3 m en la zona; batería chica, motor eficiente, chasis ligero y soporte básico salvo donde se indica):
+
+| Destino · terreno | Rueda ancha (camino dorado) | Rueda estándar | Motor potente + rueda ancha | Estándar + batería grande |
+|---|---|---|---|---|
+| Luna · ilustrativo | entrega, 71 s, 29 % energía | sin energía a 243 de 288 m | sin energía a 240 m | entrega, 109 s, 50 % |
+| Luna · real (LOLA) | entrega, 74 s, 26 % | sin energía a 246 de 298 m | sin energía a 225 m | entrega, 115 s, 47 % |
+| Marte · ilustrativo | entrega, 43 s, 58 % | entrega, 55 s, 48 % | entrega, 32 s, 41 % | entrega, 56 s, 75 % |
+| Marte · real (HRSC+MOLA) | entrega, 53 s, 47 % | entrega, 71 s, 32 % | entrega, 38 s, 27 % | entrega, 71 s, 68 % |
+
+  Integridad de la carga 100 % en todos. A fondo sin frenar: derrota en los cuatro terrenos. La Luna es la que separa ruedas
+  (con gravedad baja, Matter da menos agarre y la rueda estándar patina todo el recorrido); Marte separa por energía y tiempo.
+  Rueda con tacos en la Luna: sin energía a ~185 m (más lenta que la estándar en regolito; por revisar con taller).
 
 ## 11. Puntuación (valor de juego)
 

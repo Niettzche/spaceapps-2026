@@ -83,26 +83,25 @@ const GENERADORES = {
       ],
     };
   },
-  // Luna (ilustrativo): llanura de regolito con un cráter a cruzar. Regolito suelto = arena (valor de juego).
+  // Luna (ilustrativo): ladera de regolito con cráteres pequeños (≤ 1.2 m de hondo, paredes ≤ ~12° sobre la ladera).
+  // La inclinación media la agrega perfilDeDestino con la pendiente típica medida del destino. Todo regolito suelto = arena,
+  // como en los perfiles reales (niveles.json: roca solo si la pendiente pasa de 20°; 98 % arena en el polo sur). (P)
+  // Sin cráteres grandes: con gravedad baja, bajar y subir paredes de 25–30° vuelca la carga. (P)
   luna(largo, r) {
-    const c = largo * (0.45 + r() * 0.1);
-    const radio = 34;
+    const crateres = [0.2, 0.5, 0.8].map((f) => ({ c: largo * (f + (r() - 0.5) * 0.08), radio: 10 + r() * 4, hondo: 0.8 + r() * 0.4 }));
+    const fase = r() * 10;
     const elev = (x) => {
-      const d = Math.abs(x - c) / radio;
-      const crater = d < 1 ? -7 * (1 - d * d) : 0;
-      const borde = Math.exp(-(((Math.abs(x - c) - radio) / 8) ** 2)) * 2;
-      return crater + borde + 0.6 * Math.sin(x / 11);
+      let y = 0.6 * Math.sin(x / 13 + fase);
+      for (const { c, radio, hondo } of crateres) {
+        const d = Math.abs(x - c) / radio;
+        if (d < 1) y -= hondo * (1 - d * d) ** 2; // cuenco suave, sin escalón en el borde
+      }
+      return y;
     };
-    return {
-      elev,
-      superficies: [
-        { desde: 0, hasta: c - radio - 6, tipo: 'arena' },
-        { desde: c - radio - 6, hasta: c + radio + 6, tipo: 'roca' },
-        { desde: c + radio + 6, hasta: largo, tipo: 'arena' },
-      ],
-    };
+    return { elev, superficies: [{ desde: 0, hasta: largo, tipo: 'arena' }] };
   },
-  // Marte (ilustrativo): llanura compacta con rocas y un campo de dunas.
+  // Marte (ilustrativo): llanura de arena con ondulaciones suaves y un campo de dunas bajas (≤ ~12° antes de la inclinación), con un afloramiento
+  // de roca. Arena casi todo, como el perfil real de Jezero (100 % arena por la regla de pendiente). (P)
   marte(largo, r) {
     const fase = r() * 10;
     const elev = (x) => {
@@ -113,9 +112,9 @@ const GENERADORES = {
     return {
       elev,
       superficies: [
-        { desde: 0, hasta: largo * 0.35, tipo: 'compacto' },
-        { desde: largo * 0.35, hasta: largo * 0.65, tipo: 'arena' },
-        { desde: largo * 0.65, hasta: largo, tipo: 'roca' },
+        { desde: 0, hasta: largo * 0.7, tipo: 'arena' },
+        { desde: largo * 0.7, hasta: largo * 0.8, tipo: 'roca' },
+        { desde: largo * 0.8, hasta: largo, tipo: 'arena' },
       ],
     };
   },
@@ -280,18 +279,80 @@ export function perfilDeSitio(sitio) {
   return generarPerfil({ tipo: TIPO_POR_PRUEBA[sitio?.prueba_util] ?? 'dunas', semilla: semillaDe(sitio?.id ?? 'sin_sitio') });
 }
 
+// Largo jugable del terreno ilustrativo de la misión por mundo (m). (P) Con batería chica y motor eficiente, la rueda ancha
+// llega con energía de sobra y la estándar (que patina en el regolito) no alcanza en la Luna.
+const LARGO_MISION_M = { luna: 240, marte: 170 };
+
+/**
+ * Tramo real de la misión (índice de inicio en el transecto): la ventana de `largo` m cuya pendiente media (en valor
+ * absoluto) más se parece a la pendiente típica medida del destino (`variables.pendiente`, mediana de cuadros de 10 km
+ * a 200 m). Así el nivel representa el terreno típico del destino y no su peor pared. Ignora ventanas con tramos de más
+ * de PENDIENTE_MAX_VENTANA. Devuelve null si no hay pendiente de referencia o el transecto es más corto que la ventana.
+ */
+export function ventanaRepresentativa(elevaciones, paso, largo, pendienteObjetivo) {
+  const segmentos = elevaciones.length - 1;
+  const k = Math.ceil(largo / paso - 1e-9); // segmentos que toca la ventana
+  if (!Number.isFinite(pendienteObjetivo) || segmentos < k || paso * segmentos <= largo) return null;
+  const pend = (i) => Math.abs(Math.atan2(elevaciones[i + 1] - elevaciones[i], paso)) * (180 / Math.PI);
+  let mejor = null;
+  for (let i0 = 0; i0 + k <= segmentos; i0++) {
+    let suma = 0;
+    let max = 0;
+    for (let j = 0; j < k; j++) {
+      const tramo = Math.min(paso, largo - j * paso); // el último segmento puede entrar solo en parte
+      suma += pend(i0 + j) * tramo;
+      max = Math.max(max, pend(i0 + j));
+    }
+    const media = suma / largo;
+    const dif = Math.abs(media - pendienteObjetivo);
+    if (max <= PENDIENTE_MAX_VENTANA && (!mejor || dif < mejor.dif)) mejor = { i0, k, media, dif };
+  }
+  return mejor;
+}
+
 /** Perfil de la misión en el destino: real si el destino lo trae (nivel), si no ilustrativo por mundo. */
 export function perfilDeDestino(destino) {
   const nivel = destino?.nivel;
   if (Array.isArray(nivel?.perfil_elevacion_m) && nivel.perfil_elevacion_m.length >= 2) {
-    return perfilDesdeElevaciones(nivel.perfil_elevacion_m, {
-      paso_m: nivel.paso_m ?? PASO_REAL_DEFECTO_M,
-      exageracion: nivel.exageracion_vertical ?? 1,
-      superficies: tramosDeNivel(nivel),
-      fuente: nivel.fuente,
+    const elev = nivel.perfil_elevacion_m;
+    const paso = nivel.paso_m ?? PASO_REAL_DEFECTO_M;
+    const exageracion = nivel.exageracion_vertical ?? 1;
+    const superficies = tramosDeNivel(nivel);
+    const opciones = { paso_m: paso, exageracion, fuente: nivel.fuente };
+    const objetivo = destino.variables?.pendiente?.valor;
+    const v = ventanaRepresentativa(elev.map((e) => e * exageracion), paso, VENTANA_REAL_M, objetivo);
+    if (!v) return perfilDesdeElevaciones(elev, { ...opciones, superficies });
+
+    // Se recorta el transecto a los k segmentos de la ventana: dentro de ese recorte la única ventana posible empieza en 0.
+    const desde = v.i0 * paso;
+    const perfil = perfilDesdeElevaciones(elev.slice(v.i0, v.i0 + v.k + 1), {
+      ...opciones,
+      superficies: superficies?.map((t) => ({ ...t, desde: t.desde - desde, hasta: t.hasta - desde })),
     });
+    const transecto = paso * (elev.length - 1);
+    const km = (mts) => (mts >= 1000 ? `${(mts / 1000).toFixed(1)} km` : `${Math.round(mts)} m`);
+    const partes = perfil.nota.split(' · ').filter((p) => !p.startsWith('tramo real de'));
+    partes.splice(1, 0, `tramo real de ${km(VENTANA_REAL_M)} (desde el m ${Math.round(desde)}) de un transecto de ${km(transecto)}, `
+      + `elegido por su pendiente media (${v.media.toFixed(1)}°), la más parecida a la típica del destino (${objetivo}°)`);
+    return { ...perfil, nota: partes.join(' · '), ventana: { desde_m: desde, hasta_m: desde + VENTANA_REAL_M, transecto_m: transecto, pendiente_media: v.media } };
   }
-  return generarPerfil({ tipo: TIPO_POR_MUNDO[destino?.mundo] ?? 'marte', semilla: semillaDe(destino?.id ?? 'destino'), largo_m: 160 });
+  const mundo = TIPO_POR_MUNDO[destino?.mundo] ?? 'marte';
+  const largo = LARGO_MISION_M[mundo];
+  const perfil = generarPerfil({ tipo: mundo, semilla: semillaDe(destino?.id ?? 'destino'), largo_m: largo });
+  // Inclinación media del terreno ilustrativo = pendiente típica medida del destino (dato real, no inventado).
+  const pendiente = destino?.variables?.pendiente?.valor;
+  if (!Number.isFinite(pendiente)) return perfil;
+  const subida = Math.tan((pendiente * Math.PI) / 180);
+  const y_m = perfil.y_m.map((y, i) => {
+    const t = Math.min(Math.max(perfil.x_m[i] - PLANO_INICIO_M, 0), largo);
+    return Number((y + t * subida).toFixed(3));
+  });
+  const fuente = destino.variables.pendiente.fuente;
+  return {
+    ...perfil,
+    y_m,
+    nota: `${perfil.nota} Inclinación media de ${pendiente}°: la pendiente típica medida del destino${fuente ? ` (${fuente})` : ''}.`,
+  };
 }
 
 /** Tipo de superficie en x (m). */
