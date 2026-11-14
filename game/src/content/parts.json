@@ -5,12 +5,13 @@
     "sistema": "movilidad",
     "costo": 80,
     "masa": 6,
+    "radio_m": 0.45,
     "agarre": {
       "arena": 0.4,
       "roca": 0.6,
       "compacto": 0.8
     },
-    "nota": "valor de juego (provisional, balancear)"
+    "nota": "valor de juego (P). Inspiración: rueda rígida de aluminio tipo Curiosity; patina en arena suelta (docs/taller/PIEZAS.md H1, H3, H4)"
   },
   {
     "id": "rueda_ancha",
@@ -18,12 +19,13 @@
     "sistema": "movilidad",
     "costo": 120,
     "masa": 8,
+    "radio_m": 0.5,
     "agarre": {
       "arena": 0.9,
       "roca": 0.5,
       "compacto": 0.7
     },
-    "nota": "valor de juego (provisional, balancear)"
+    "nota": "valor de juego (P). Inspiración: más área de contacto = menos hundimiento en arena; lecciones de Spirit y Opportunity, rueda del LRV (PIEZAS.md H3–H5)"
   },
   {
     "id": "rueda_tacos",
@@ -31,12 +33,13 @@
     "sistema": "movilidad",
     "costo": 140,
     "masa": 9,
+    "radio_m": 0.45,
     "agarre": {
       "arena": 0.6,
       "roca": 0.9,
       "compacto": 0.7
     },
-    "nota": "valor de juego (provisional, balancear)"
+    "nota": "valor de juego (P). Inspiración: garras de Curiosity y Perseverance, chevrones del LRV (PIEZAS.md H1, H5)"
   },
   {
     "id": "chasis_ligero",
@@ -45,7 +48,7 @@
     "costo": 150,
     "masa": 20,
     "resistencia": 40,
-    "nota": "valor de juego (provisional, balancear)"
+    "nota": "valor de juego (P). Compromiso masa contra robustez (PIEZAS.md H2)"
   },
   {
     "id": "chasis_reforzado",
@@ -54,7 +57,7 @@
     "costo": 260,
     "masa": 35,
     "resistencia": 80,
-    "nota": "valor de juego (provisional, balancear)"
+    "nota": "valor de juego (P). Compromiso masa contra robustez (PIEZAS.md H2)"
   },
   {
     "id": "bateria_chica",
@@ -63,7 +66,7 @@
     "costo": 90,
     "masa": 5,
     "capacidad": 100,
-    "nota": "valor de juego (provisional, balancear)"
+    "nota": "valor de juego (P). Inspiración: baterías de ion litio de los rovers (PIEZAS.md H6)"
   },
   {
     "id": "bateria_grande",
@@ -72,7 +75,7 @@
     "costo": 170,
     "masa": 11,
     "capacidad": 220,
-    "nota": "valor de juego (provisional, balancear)"
+    "nota": "valor de juego (P). Inspiración: baterías de ion litio de los rovers (PIEZAS.md H6)"
   },
   {
     "id": "motor_eficiente",
@@ -82,7 +85,7 @@
     "masa": 7,
     "fuerza": 50,
     "consumo": 0.6,
-    "nota": "valor de juego (provisional, balancear)"
+    "nota": "valor de juego (P). Compromiso fuerza contra consumo (PIEZAS.md H1)"
   },
   {
     "id": "motor_potente",
@@ -92,7 +95,7 @@
     "masa": 10,
     "fuerza": 90,
     "consumo": 1.2,
-    "nota": "valor de juego (provisional, balancear)"
+    "nota": "valor de juego (P). Compromiso fuerza contra consumo (PIEZAS.md H1)"
   },
   {
     "id": "soporte_basico",
@@ -101,7 +104,7 @@
     "costo": 60,
     "masa": 3,
     "proteccion": 0.4,
-    "nota": "valor de juego (provisional, balancear)"
+    "nota": "valor de juego (P). Mecánica de juego, sin referencia específica"
   },
   {
     "id": "soporte_amortiguado",
@@ -110,7 +113,7 @@
     "costo": 130,
     "masa": 6,
     "proteccion": 0.8,
-    "nota": "valor de juego (provisional, balancear)"
+    "nota": "valor de juego (P). Mecánica de juego, sin referencia específica"
   },
   {
     "id": "panel_solar",
@@ -119,6 +122,6 @@
     "costo": 150,
     "masa": 4,
     "capacidad": 40,
-    "nota": "valor de juego (provisional, balancear)"
+    "nota": "valor de juego (P). SIN EFECTO EN EL MVP: falta regla de iluminación (espec. de juego §6). Inspiración: Spirit y Opportunity (PIEZAS.md H7)"
   }
 ]
