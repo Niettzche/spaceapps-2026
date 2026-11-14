@@ -8,8 +8,9 @@ import { Controles } from './controles.js';
 import { Hud } from './hud.js';
 import { Telemetria, construirResultado } from './telemetria.js';
 import { Efectos } from './efectos.js';
+import { AspectoRobot, crearFondo, claveDeFondo, sprite, tira } from './aspecto.js';
 
-const FONDO = { tierra: '#7f9fbf', marte: '#b98a6a', luna: '#05060b' }; // provisional hasta los fondos de arte
+const FONDO = { tierra: '#7f9fbf', marte: '#b98a6a', luna: '#05060b' }; // color si no hay fondo de arte (fisica/aspecto.js)
 const SEG_QUIETO_ENTREGA = 2; // la entrega exige 2 s detenido en la zona
 const SEG_SIN_ENERGIA_FIN = 5; // sin energía, la partida termina al detenerse o a los 5 s (atascado contra el borde del nivel) (P)
 const ESPERA_FIN_MS = 1400;
@@ -58,9 +59,11 @@ export class Recorrido {
     });
     this.efectos = new Efectos(scene, { mundo: o.mundo, gravedad: o.gravedad, robot: this.robot, superficieDe: this.superficieDe });
     this.g = scene.add.graphics().setDepth(10);
+    this.aspecto = new AspectoRobot(scene, this.robot); // sprites de arte si existen; si no, figuras
 
     const cam = scene.cameras.main;
     cam.setBounds(izq, this.terreno.arriba - m(25), der - izq, this.terreno.abajo - this.terreno.arriba + m(25));
+    crearFondo(scene, claveDeFondo(o.mundo, o.sitioId), { x: izq, ancho: der - izq });
     cam.startFollow(this.robot, false, 0.12, 0.12, -m(6), m(1));
 
     this.controles = new Controles(scene);
@@ -73,17 +76,26 @@ export class Recorrido {
     if (this.zona) {
       const a = this.xMundo(this.zona.desde);
       const b = this.xMundo(this.zona.hasta);
-      g.fillStyle(0x4cc38a, 0.18).fillRect(a, yMeta - m(6), b - a, m(6));
-      g.lineStyle(2, 0x4cc38a, 0.8).strokeRect(a, yMeta - m(6), b - a, m(6));
-      // Astronauta provisional (1.8 m) al final de la zona.
       const xa = b - m(1.5);
-      g.fillStyle(0xffffff, 1).fillRect(xa - m(0.3), yMeta - m(1.8), m(0.6), m(1.8));
-      g.fillStyle(0x6fb3ff, 1).fillRect(xa - m(0.22), yMeta - m(1.6), m(0.44), m(0.3));
+      // Arte si existe (fisica/aspecto.js); si no, figuras provisionales. Base y baliza no tienen figura.
+      sprite(this.scene, 'base', { x: b - m(1), y: yMeta, origen: [0.5, 1], profundidad: 4 });
+      sprite(this.scene, 'baliza', { x: a, y: yMeta, origen: [0.5, 1], profundidad: 5, anim: 'parpadea' });
+      if (!tira(this.scene, 'zona_entrega', a, yMeta, b - a, 5)) {
+        g.fillStyle(0x4cc38a, 0.18).fillRect(a, yMeta - m(6), b - a, m(6));
+        g.lineStyle(2, 0x4cc38a, 0.8).strokeRect(a, yMeta - m(6), b - a, m(6));
+      }
+      this.astronauta = sprite(this.scene, 'astronauta', { x: xa, y: yMeta, origen: [0.5, 1], profundidad: 6, anim: 'reposo' });
+      if (!this.astronauta) { // astronauta provisional (1.8 m) al final de la zona
+        g.fillStyle(0xffffff, 1).fillRect(xa - m(0.3), yMeta - m(1.8), m(0.6), m(1.8));
+        g.fillStyle(0x6fb3ff, 1).fillRect(xa - m(0.22), yMeta - m(1.6), m(0.44), m(0.3));
+      }
       this.scene.add.text(a + 6, yMeta - m(6) + 4, 'ZONA DE ENTREGA', { fontFamily: 'monospace', fontSize: '12px', color: '#4cc38a' }).setDepth(5);
     } else {
       const x = this.xMundo(this.meta_m);
-      g.lineStyle(3, 0xffffff, 1).lineBetween(x, yMeta, x, yMeta - m(4));
-      g.fillStyle(0xff6b6b, 1).fillTriangle(x, yMeta - m(4), x + m(1.6), yMeta - m(3.5), x, yMeta - m(3));
+      if (!sprite(this.scene, 'meta', { x, y: yMeta, origen: [0, 1], profundidad: 5, anim: 'ondea' })) {
+        g.lineStyle(3, 0xffffff, 1).lineBetween(x, yMeta, x, yMeta - m(4));
+        g.fillStyle(0xff6b6b, 1).fillTriangle(x, yMeta - m(4), x + m(1.6), yMeta - m(3.5), x, yMeta - m(3));
+      }
       this.scene.add.text(x + 6, yMeta - m(5.2), 'META', { fontFamily: 'monospace', fontSize: '12px', color: '#ffffff' }).setDepth(5);
     }
   }
@@ -104,7 +116,7 @@ export class Recorrido {
     const r = this.robot;
     const acelerador = this.terminado ? 0 : this.controles.acelerador();
     r.actualizar(delta, acelerador, this.superficieDe);
-    r.dibujar(this.g);
+    this.aspecto.dibujar(this.g);
     this.efectos.actualizar(delta, r); // polvo de ruedas y arena al patinar
     const estado = r.estado();
     const x_m = (r.x - this.xMundo(0)) / PX_POR_M;

@@ -6,6 +6,7 @@ import { Recorrido } from '../fisica/recorrido.js';
 import { perfilDeDestino } from '../fisica/perfil.js';
 import { DISENO_POR_DEFECTO } from '../fisica/diseno.js';
 import { exponerParaPruebas } from '../fisica/depuracion.js';
+import { cargarArte } from '../fisica/aspecto.js';
 
 // Dueño: frente juego. Misión en el destino elegido (Luna o Marte) con su gravedad real: entregar el suministro.
 // Victoria: carga en la zona con integridad ≥ UMBRAL_INTEGRIDAD y robot detenido 2 s. Ver ESPECIFICACION.md §10.
@@ -13,6 +14,10 @@ export default class Mision extends Phaser.Scene {
   constructor() {
     super('Mision');
     exponerParaPruebas('Mision', this);
+  }
+
+  preload() {
+    cargarArte(this); // solo los PNG de /assets que existen (fisica/aspecto.js)
   }
 
   create() {

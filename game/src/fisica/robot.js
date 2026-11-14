@@ -292,21 +292,26 @@ export class Robot {
     return velAMs(M.Body.getSpeed(this.chasis)) < umbralMs && velAMs(M.Body.getSpeed(this.carga)) < umbralMs;
   }
 
-  /** Dibujo provisional con figuras (se reemplaza por sprites de arte). */
-  dibujar(g) {
+  /**
+   * Dibujo provisional con figuras. Con arte, fisica/aspecto.js (AspectoRobot) pone los sprites y pide omitir esas partes:
+   * omitir = { chasis, soporte, carga, ruedas: [tras, del] }.
+   */
+  dibujar(g, omitir = {}) {
     g.clear();
-    const poligono = (cuerpo, color) => {
-      for (const parte of cuerpo.parts.length > 1 ? cuerpo.parts.slice(1) : cuerpo.parts) {
-        g.fillStyle(color, 1);
-        g.fillPoints(parte.vertices, true);
-      }
-    };
-    poligono(this.chasis, this.destruido ? 0x5a3a3a : 0xdfe3ee);
+    const partes = this.chasis.parts.length > 1 ? this.chasis.parts.slice(1) : this.chasis.parts;
+    partes.forEach((parte, i) => {
+      if (i === 0 ? omitir.chasis : omitir.soporte) return; // parte 0 = base; 1 y 2 = paredes del soporte
+      g.fillStyle(this.destruido ? 0x5a3a3a : 0xdfe3ee, 1);
+      g.fillPoints(parte.vertices, true);
+    });
     const c = Phaser.Display.Color.Interpolate.ColorWithColor(
       Phaser.Display.Color.ValueToColor(0xd94a3a), Phaser.Display.Color.ValueToColor(0xffd166), 100, Math.round(this.integridad * 100));
-    g.fillStyle(this.cargaPerdida ? 0x7a4040 : Phaser.Display.Color.GetColor(c.r, c.g, c.b), 1);
-    g.fillPoints(this.carga.vertices, true);
-    for (const w of this.ruedas) {
+    if (!omitir.carga) {
+      g.fillStyle(this.cargaPerdida ? 0x7a4040 : Phaser.Display.Color.GetColor(c.r, c.g, c.b), 1);
+      g.fillPoints(this.carga.vertices, true);
+    }
+    for (const [i, w] of this.ruedas.entries()) {
+      if (omitir.ruedas?.[i]) continue;
       const { x, y } = w.cuerpo.position;
       g.fillStyle(0x2b2d3a, 1);
       g.fillCircle(x, y, w.radio);
