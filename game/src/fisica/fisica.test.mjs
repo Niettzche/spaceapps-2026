@@ -126,3 +126,16 @@ caso('suelo: Marte drift tan(18°) ≈ 0.325; Tierra sin dato = 1; roca de Marte
   assert.ok(a > 0.57 && b < 1.2);
 });
 console.log(`${n} casos OK (con suelos)`);
+
+// Dónde se rompe la analogía (feedback/analogia.js)
+import { compararAnalogia } from '../feedback/analogia.js';
+caso('analogía: gravedad, patinaje y límites del destino', () => {
+  const prueba = { resultado: { distancia_m: 250, energia_restante: 0.4, eventos: [{ t: 1, tipo: 'patinaje', detalle: 'arena' }] } };
+  const mision = { resultado: { distancia_m: 250, energia_restante: 0.2, eventos: [{ t: 1, tipo: 'patinaje' }, { t: 4, tipo: 'patinaje' }] } };
+  const luna = { mundo: 'luna', gravedad_ms2: 1.62, no_reproducible_en_tierra: ['gravedad', 'vacio', 'radiacion'] };
+  const l = compararAnalogia(prueba, mision, luna);
+  assert.ok(l[0].includes('1.62') && l.some((x) => x.includes('1 momentos en la prueba, 2 en la misión')));
+  assert.ok(l.some((x) => x.includes('vacío, radiación')) && l.some((x) => x.includes('regolito')));
+  assert.ok(compararAnalogia(null, mision, luna).some((x) => x.includes('Sin una prueba')));
+});
+console.log(`${n} casos OK (con analogía)`);

@@ -153,6 +153,16 @@ Cada recomendación sale de un evento real de la partida:
 | Energía agotada | Batería grande o motor eficiente |
 | Chasis destruido | Chasis reforzado |
 
+## 12b. Dónde se rompe la analogía (pantalla de resultados de la misión)
+
+`game/src/feedback/analogia.js` compara la última prueba terrestre con la misión, con la telemetría real de ambas:
+gravedad (Tierra vs destino), momentos de patinaje, batería por cada 100 m, suelo medido del destino (suelos.js) y lo que
+la Tierra no puede reproducir (`no_reproducible_en_tierra` del target). Es la respuesta en vivo a "dónde se rompe la analogía".
+
+## Teclado en resultados
+
+Botones numerados 1–3 y Enter = siguiente paso sugerido (prueba fallida → taller; prueba superada → misión; misión cumplida → menú).
+
 ## 13. Transiciones y reinicio
 
 - Transición común `irA(escena, destino)` con fundido; todos los frentes la usan en lugar de `scene.start` (propuesta para `ui.js`).
