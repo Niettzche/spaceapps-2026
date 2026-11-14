@@ -1,0 +1,259 @@
+{
+ "frames": [
+  {
+   "filename": "polvo-arena 0",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 14
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 14
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 14
+   },
+   "duration": 67
+  },
+  {
+   "filename": "polvo-arena 1",
+   "frame": {
+    "x": 24,
+    "y": 0,
+    "w": 24,
+    "h": 14
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 14
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 14
+   },
+   "duration": 67
+  },
+  {
+   "filename": "polvo-arena 2",
+   "frame": {
+    "x": 48,
+    "y": 0,
+    "w": 24,
+    "h": 14
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 14
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 14
+   },
+   "duration": 67
+  },
+  {
+   "filename": "polvo-arena 3",
+   "frame": {
+    "x": 0,
+    "y": 14,
+    "w": 24,
+    "h": 14
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 14
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 14
+   },
+   "duration": 67
+  },
+  {
+   "filename": "polvo-arena 4",
+   "frame": {
+    "x": 24,
+    "y": 14,
+    "w": 24,
+    "h": 14
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 14
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 14
+   },
+   "duration": 67
+  },
+  {
+   "filename": "polvo-arena 5",
+   "frame": {
+    "x": 48,
+    "y": 14,
+    "w": 24,
+    "h": 14
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 14
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 14
+   },
+   "duration": 67
+  },
+  {
+   "filename": "polvo-arena 6",
+   "frame": {
+    "x": 0,
+    "y": 28,
+    "w": 24,
+    "h": 14
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 14
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 14
+   },
+   "duration": 67
+  },
+  {
+   "filename": "polvo-arena 7",
+   "frame": {
+    "x": 24,
+    "y": 28,
+    "w": 24,
+    "h": 14
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 14
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 14
+   },
+   "duration": 67
+  },
+  {
+   "filename": "polvo-arena 8",
+   "frame": {
+    "x": 48,
+    "y": 28,
+    "w": 24,
+    "h": 14
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 14
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 14
+   },
+   "duration": 67
+  },
+  {
+   "filename": "polvo-arena 9",
+   "frame": {
+    "x": 0,
+    "y": 42,
+    "w": 24,
+    "h": 14
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 14
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 14
+   },
+   "duration": 67
+  }
+ ],
+ "meta": {
+  "app": "https://github.com/patch-gg/pixelfx",
+  "version": "1",
+  "image": "polvo-arena.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 72,
+   "h": 56
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "polvo-arena",
+    "from": 0,
+    "to": 9,
+    "direction": "forward"
+   }
+  ],
+  "pixelfx": {
+   "id": "marsception/polvo-arena",
+   "name": "Polvo de arena",
+   "fps": 15,
+   "loop": false,
+   "frames": 10,
+   "frameSize": [
+    24,
+    14
+   ],
+   "pivot": [
+    12,
+    12
+   ],
+   "columns": 3
+  }
+ }
+}
