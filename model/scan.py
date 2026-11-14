@@ -86,6 +86,14 @@ def candidatos() -> pd.DataFrame:
     return c
 
 
+# Candidatos en zonas con antecedente de análogo sin coordenada con fuente en known_analogs: novedoso queda null
+FUENTE_APOLO_AZ = ("USGS, 'Walk in the footsteps of the Apollo astronauts: a field guide to northern Arizona astronaut training sites' "
+                   "(https://www.usgs.gov/publications/walk-footsteps-apollo-astronauts-a-field-guide-northern-arizona-astronaut-training)")
+POR_VERIFICAR = {
+    "g00174": f"en el campo volcánico de San Francisco (Arizona), que tiene sitios de entrenamiento de geología del Apolo ({FUENTE_APOLO_AZ})",
+    "g00176": f"en el campo volcánico de San Francisco (Arizona), que tiene sitios de entrenamiento de geología del Apolo ({FUENTE_APOLO_AZ})",
+}
+
 PAIS_REGION = {"Atacama": "CL", "Arizona": "US", "Arabia": "SA"}
 N_GLOBAL = 12   # (P) cuántos candidatos globales se exportan (AGENTS.md §6.4 c: pocos sitios finales, México destacado)
 
@@ -127,7 +135,7 @@ def construir_sitio(r: pd.Series, targets: dict, ref: pd.DataFrame, conocidos: l
                     " Nombre por verificar: se asignó en analisis/09 por cercanía a una mina o cantera de OpenStreetMap; "
                     "no se cotejó con un inventario minero oficial.")
     if es_mina:
-        proceso = "Excavación artificial: tajo minero a cielo abierto (cantera a menos de 2 km en OpenStreetMap)"
+        proceso = "Probable tajo minero a cielo abierto (cantera de OpenStreetMap a ≤ 2 km; por verificar)"
         uso = ("Análogo operativo, no geológico: probar navegación y movilidad de rovers en paredes empinadas, "
                "excavación (ISRU) y operación con sombra en el fondo del tajo")
     elif r.tipo_catalogo:
@@ -159,6 +167,9 @@ def construir_sitio(r: pd.Series, targets: dict, ref: pd.DataFrame, conocidos: l
                 not any(km(r.lat, r.lon, la, lo) <= RADIO_ANALOGO_KM for _, la, lo in conocidos))
     aviso_novedoso = (" novedoso: pendiente; data/known_analogs.json todavía no tiene coordenadas con fuente."
                       if novedoso is None else "")
+    if str(r.cid).lower() in POR_VERIFICAR:
+        novedoso = None
+        aviso_novedoso = f" novedoso: por verificar; está {POR_VERIFICAR[str(r.cid).lower()]}."
     g = gemelo(cuerpo, float(r.diam_km), float(r.prof_diam), ref)
     return {
         "id": str(r.cid).lower(),
