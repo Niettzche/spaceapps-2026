@@ -101,8 +101,8 @@ for r in tierra.itertuples():
 json.dump(juego, open(f"{WEB}/juego.json", "w"), ensure_ascii=False)
 
 # --- Tablas y código, y zip final ---
+c.to_csv(f"{OUT}/crateres_mexico.csv", index=False)
 for f in ("crateres_mexico.csv", "hoyas_referencia.csv", "candidatos_mexico_10km.csv", "referencias_luna_marte_10km.csv"):
-    c.to_csv(f"{OUT}/crateres_mexico.csv", index=False)
     if os.path.exists(f"{OUT}/{f}"): shutil.copy(f"{OUT}/{f}", f"{WEB}/{f}")
 get_ipython().run_line_magic("history", f"-f {WEB}/codigo_sesion.py")
 z = shutil.make_archive("/content/web_data", "zip", WEB)

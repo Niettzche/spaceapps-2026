@@ -51,7 +51,6 @@ c["pct_lunar_prof_diam"] = np.searchsorted(np.sort(L.prof_diam.values), c.prof_d
 # (f) Conocidos frente a nuevos
 kx, ky = to_xy.transform([v[1] for v in CONOCIDOS.values()], [v[0] for v in CONOCIDOS.values()])
 c["km_conocido"] = (cKDTree(np.c_[kx, ky]).query(c[["x", "y"]].values)[0] / 1000).round(1)
-c["conocido"] = (c.km_conocido <= 5) | (c.km_pinacate <= 40) if "km_pinacate" in c else (c.km_conocido <= 5)
 xp, yp = to_xy.transform(CONTROL["El Pinacate"][1], CONTROL["El Pinacate"][0])
 c["km_pinacate"] = (np.hypot(c.x - xp, c.y - yp) / 1000).round(0)
 c["conocido"] = (c.km_conocido <= 5) | (c.km_pinacate <= 40)

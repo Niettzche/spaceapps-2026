@@ -6,7 +6,7 @@ Barrido sistemático de México que encuentra formas tipo cráter, las mide con 
 
 ## Estructura
 
-- `analisis/` — celdas del cuaderno de Colab, en orden (`00` a `10`). Corren en Google Colab con Earth Engine.
+- `analisis/` — el cuaderno de Colab documentado (`analogos_mexico.ipynb`), su código por celda (`00` a `13`) y un README con los datos y sus fuentes.
 - `web/` — página (Vite + React + MapLibre): juego "¿Tierra, Luna o Marte?", mapa, fichas y método. Los datos van en `web/public/data/` (los genera `analisis/10_exportar_web.py`).
 
 ## Datos
