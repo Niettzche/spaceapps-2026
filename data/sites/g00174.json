@@ -1,0 +1,111 @@
+{
+  "id": "g00174",
+  "nombre": "Depresión tipo cráter G00174 (Arizona (EE. UU.))",
+  "pais": "US",
+  "lat": 35.9512,
+  "lon": -111.667,
+  "estado": "candidato_modelo",
+  "destino_ref": "polo_sur_lunar",
+  "prueba_util": null,
+  "uso_exploracion": "Candidato a verificar en campo: navegación y movilidad dentro de una depresión tipo cráter",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
+  "novedoso": null,
+  "variables": {
+    "forma": {
+      "valor": 0.9931,
+      "unidad": "0-1",
+      "fuente": "Modelo explicable Luna contra Marte (regresión logística, 3 variables) + distancia a la nube Luna+Marte",
+      "fecha": "2026-11-14",
+      "nota": "P(Luna)=0.9931, distancia a la nube=18.597; dentro del 95 % de la nube de cráteres Luna+Marte"
+    },
+    "diametro": {
+      "valor": 0.903,
+      "unidad": "km",
+      "fuente": "Copernicus DEM GLO-30 (ESA), remuestreado a 200 m; detector analisis/07_buscador_crateres.py",
+      "fecha": null,
+      "nota": null
+    },
+    "profundidad": {
+      "valor": 144.3,
+      "unidad": "m",
+      "fuente": "Copernicus DEM GLO-30 (ESA), remuestreado a 200 m; detector analisis/07_buscador_crateres.py",
+      "fecha": null,
+      "nota": null
+    },
+    "profundidad_diametro": {
+      "valor": 0.1599,
+      "unidad": "-",
+      "fuente": "Copernicus DEM GLO-30 (ESA), remuestreado a 200 m; detector analisis/07_buscador_crateres.py",
+      "fecha": null,
+      "nota": null
+    },
+    "borde": {
+      "valor": -28.2,
+      "unidad": "m",
+      "fuente": "Copernicus DEM GLO-30 (ESA), remuestreado a 200 m; detector analisis/07_buscador_crateres.py",
+      "fecha": null,
+      "nota": "a 200 m el borde lunar medido es negativo (mediana −23 m): no se usa como criterio de parecido"
+    },
+    "ndvi_p90": {
+      "valor": 0.225,
+      "unidad": "-",
+      "fuente": "MODIS MOD13Q1 percentil 90, 2021-2025 (Earth Engine)",
+      "fecha": null,
+      "nota": "filtro de zonas áridas del detector: < 0.35"
+    },
+    "oscilacion_termica": {
+      "valor": 14.36,
+      "unidad": "K",
+      "fuente": "NASA POWER T2M_RANGE (climatología anual)",
+      "fecha": "2001-2025",
+      "nota": "25-year Meteorological and Solar Monthly & Annual Climatologies (January 2001 - December 2025)"
+    },
+    "precipitacion": {
+      "valor": 0.86,
+      "unidad": "mm/día",
+      "fuente": "NASA POWER PRECTOTCORR (climatología anual)",
+      "fecha": "2001-2025",
+      "nota": "25-year Meteorological and Solar Monthly & Annual Climatologies (January 2001 - December 2025)"
+    },
+    "ndvi": {
+      "valor": 0.1932,
+      "unidad": "-",
+      "fuente": "MODIS MOD13Q1 (Google Earth Engine, MODIS/061/MOD13Q1)",
+      "fecha": "2021-2025",
+      "nota": "media del píxel de 250 m"
+    },
+    "pendiente": {
+      "valor": 10.736,
+      "unidad": "grados",
+      "fuente": "Copernicus DEM GLO-30 (ESA, versión 2024_1) promediado a 200 m, Google Earth Engine",
+      "fecha": null,
+      "nota": "media de la pendiente en un cuadro de 10 km centrado en el punto"
+    }
+  },
+  "similitud": {
+    "total": 0.5598,
+    "por_dimension": {
+      "forma": 0.9931,
+      "oscilacion_termica": 0.2775,
+      "precipitacion": 0.4232,
+      "ndvi": 0.2758,
+      "pendiente": 0.6563
+    },
+    "confianza": 1.0
+  },
+  "limites": [
+    "gravedad",
+    "presion_atmosferica",
+    "radiacion",
+    "vacio",
+    "iluminacion_polar_rasante",
+    "oscilacion_termica: destino por encima del máximo terrestre (176.0 > 40.0); se compara contra el extremo"
+  ],
+  "nivel": {
+    "perfil_elevacion_m": [],
+    "fuente": null,
+    "exageracion_vertical": null,
+    "obstaculos": []
+  },
+  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Anillo 80-85°S (Luna), 0.9 km, 146 m, d/D 0.162, en -83.101, 141.844. novedoso: por verificar. Cae en el campo volcánico de San Francisco (Arizona), zona usada en el entrenamiento de geología del Apolo; falta agregarla a data/known_analogs.json con coordenada y fuente."
+}
