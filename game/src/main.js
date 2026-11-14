@@ -24,6 +24,8 @@ new Phaser.Game({
   parent: 'app',
   backgroundColor: '#0b0d17',
   pixelArt: true,
+  // Matter usa paso fijo: limitar también los updates en monitores de 120/144 Hz.
+  fps: { target: 60, limit: 60 },
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH, width: 960, height: 540 },
   physics: { default: 'matter', matter: { runner: { isFixed: true }, gravity: { y: 1 }, debug: false } },
   scene: [Boot, Menu, Expediente, Explorador, Taller, Prueba, Mision, Resultados],
