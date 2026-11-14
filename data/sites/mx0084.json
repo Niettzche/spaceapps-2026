@@ -107,5 +107,5 @@
     "exageracion_vertical": null,
     "obstaculos": []
   },
-  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Anillo 80-85°S (Luna), 0.81 km, 167 m, d/D 0.206, en -81.838, 161.12."
+  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Anillo 80-85°S (Luna), 0.81 km, 167 m, d/D 0.206, en -81.838, 161.12. Nombre por verificar: se asignó en analisis/09 por cercanía a una mina o cantera de OpenStreetMap; no se cotejó con un inventario minero oficial."
 }

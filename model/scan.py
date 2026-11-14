@@ -97,6 +97,9 @@ def construir_sitio(r: pd.Series, targets: dict, ref: pd.DataFrame, conocidos: l
     tierra = features.variables_tierra(float(r.lat), float(r.lon))
     es_mina = bool(r.km_mina <= 2.0)
     nombre = r.nombre_catalogo or (r.nombre_previo if isinstance(r.nombre_previo, str) else None)
+    aviso_nombre = ("" if r.nombre_catalogo or not nombre else
+                    " Nombre por verificar: se asignó en analisis/09 por cercanía a una mina o cantera de OpenStreetMap; "
+                    "no se cotejó con un inventario minero oficial.")
     if es_mina:
         proceso = "Excavación artificial: tajo minero a cielo abierto (cantera a menos de 2 km en OpenStreetMap)"
         uso = ("Análogo operativo, no geológico: probar navegación y movilidad de rovers en paredes empinadas, "
@@ -140,7 +143,7 @@ def construir_sitio(r: pd.Series, targets: dict, ref: pd.DataFrame, conocidos: l
         "nota": (f"Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de {g['sitio']} ({g['cuerpo']}), "
                  f"{g['diam_km']} km, {g['prof_m']} m, d/D {g['prof_diam']}"
                  + (f", en {g['lat']}, {g['lon']}" if g["lat"] is not None else "")
-                 + (f". Errores al medir: {'; '.join(tierra['errores'])}" if tierra["errores"] else "") + "."),
+                 + (f". Errores al medir: {'; '.join(tierra['errores'])}" if tierra["errores"] else "") + "." + aviso_nombre),
     }
 
 
