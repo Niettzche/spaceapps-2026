@@ -1,6 +1,9 @@
 // Sprites de prioridad A (docs/juego/ASSETS_ARTE.md §3): robot, carga, astronauta, meta y zona de entrega.
 // Se dibuja el interior y el contorno de 1 px sale automático (comun.contorno).
-import { tira, filas, BASE } from './comun.mjs';
+import { tira, filas, BASE, hex } from './comun.mjs';
+
+const BASE_HEX = {};
+const hexDe = (c) => hex(c);
 
 // Van en assets/entidades/: los íconos del taller (assets/iconos/<id>.png) usan los mismos nombres
 // y el índice del juego toma el primero por orden de ruta ("entidades" < "iconos").
@@ -139,9 +142,91 @@ export function generar() {
   });
 
   // ---- zona_entrega: 16 × 4, repetible a lo ancho (franjas de peligro sobre una placa).
+  generarB();
+
   tira(D + 'zona_entrega.png', 16, 4, 1, (p) => {
     const rows = [0, 1, 2].map((y) => Array.from({ length: 16 }, (_, x) => ((x + y) % 8 < 4 ? 'y' : 'k')).join(''));
     rows.push('dddddddddddddddd');
     filas(p, rows);
   }, { contorno: false });
+}
+
+// ---------------------------------------------------------------- prioridad B
+export function generarB() {
+  // ---- chasis_reforzado: 24 × 7, 2 cuadros (normal, dañado). Placas atornilladas, más alto que el ligero.
+  const reforzado = [
+    [
+      '........................',
+      '.hhhhhhhhhhhhhhhhhhhhhY.',
+      '.cklllllloooollllllllky.',
+      '.mmmmmmdmmmmmmmdmmmmmmy.',
+      '.mkmmmmdmmmmmmmdmmmmmkm.',
+      '.dddddddddddddddddddddd.',
+      '........................',
+    ],
+    [
+      '........................',
+      '.hhhhhhhh.hhhhhhxhhhhdd.',
+      '.ckllkllOOOxllllllkllkd.',
+      '.mmmmmmdmmkmmmxxdmmmmmd.',
+      '.mkmmmmdmmmmmmmdmmkmmkm.',
+      '.ddddddddddxddddddddddd.',
+      '........................',
+    ],
+  ];
+  tira(D + 'chasis_reforzado.png', 24, 7, 2, (p, i) => filas(p, reforzado[i]));
+
+  // ---- rueda_tacos: 7 × 7, 4 cuadros. Tacos alternos en la llanta que avanzan 90° (3 posiciones) por cuadro, horario.
+  const borde = [[2, 1], [3, 1], [4, 1], [5, 2], [5, 3], [5, 4], [4, 5], [3, 5], [2, 5], [1, 4], [1, 3], [1, 2]];
+  const marcas = [[3, 2], [4, 3], [3, 4], [2, 3]];
+  tira(D + 'rueda_tacos.png', 7, 7, 4, (p, i) => {
+    const r = ['.......', '.......', '...m...', '..mhm..', '...m...', '.......', '.......'].map((s) => [...s]);
+    borde.forEach(([x, y], j) => { r[y][x] = (j + i * 3) % 2 === 0 ? (j < 6 ? 'T' : 't') : 'g'; });
+    for (const [x, y] of [[2, 2], [4, 2], [2, 4], [4, 4]]) r[y][x] = 'd';
+    const [mx, my] = marcas[i];
+    r[my][mx] = 'o';
+    filas(p, r.map((a) => a.join('')));
+  });
+
+  // ---- soporte_amortiguado: 10 × 4, paredes de 0.45 m y resortes bajo la bandeja.
+  tira(D + 'soporte_amortiguado.png', 10, 4, 1, (p) => filas(p, ['hl......lh', 'mO......Om', 'mmmmmmmmmm', 'yOy....yOy']), { contorno: false });
+
+  // ---- base (hábitat): 40 × 24, detrás de la zona de entrega. Origen: centro inferior.
+  tira(D + 'base.png', 40, 24, 1, (p) => {
+    const L = (k) => BASE[k];
+    for (let y = 0; y < 24; y++) for (let x = 0; x < 40; x++) {
+      let k = null;
+      // módulo cilíndrico con cúpula
+      const cx = 18, top = 9;
+      const enCupula = y >= 4 && y < top && Math.hypot((x + 0.5 - cx) / 13, (y + 0.5 - top) / 5.5) <= 1;
+      const enCuerpo = x >= 5 && x <= 31 && y >= top && y <= 20;
+      if (enCupula || enCuerpo) {
+        k = 'l';
+        if (enCupula && (y === 4 || Math.hypot((x - 0.5 - cx) / 13, (y - 0.5 - top) / 5.5) > 1)) k = 'h';   // brillo de la cúpula
+        if (enCuerpo && x === 5) k = 'c';                                                                        // luz de borde
+        if (enCuerpo && x >= 29) k = 'm';
+        if (y === 11 || y === 12) k = 'o';                                                                       // franja naranja
+        if (y === 20) k = 'd';
+        if (x >= 8 && x <= 12 && y >= 13 && y <= 19) k = x === 8 || y === 13 ? 'm' : 'd';                       // puerta
+        if (x === 11 && y === 16) k = 'y';                                                                       // luz de la puerta
+        for (const wx of [18, 25]) {                                                                             // ventanas
+          const d = Math.hypot(x + 0.5 - wx, y + 0.5 - 16);
+          if (d < 2.3) k = d < 1.2 && x < wx ? 'V' : 'v';
+        }
+      }
+      if (x >= 3 && x <= 33 && y >= 21 && y <= 22) k = y === 21 ? 'm' : 'd';                                   // plataforma
+      if ((x === 7 || x === 29) && y === 23) k = 'd';                                                            // patas
+      if (x === 27 && y >= 0 && y < 6) k = y === 0 ? 'r' : 'l';                                                  // antena con luz roja
+      if (x >= 33 && x <= 38 && y >= 10 && y <= 15) {                                                            // panel solar lateral
+        const yy = y - 10 + Math.floor((x - 33) / 3);
+        if (yy >= 0 && yy < 5) k = (x + yy) % 3 === 0 ? 'v' : yy === 0 ? 'S' : 's';
+      }
+      if (x === 32 && y >= 14 && y <= 15) k = 'm';                                                               // brazo del panel
+      if (k) p.px(x, y, BASE_HEX[k] ?? (BASE_HEX[k] = hexDe(L(k))));
+    }
+  });
+
+  // ---- baliza: 4 × 8, 4 cuadros (parpadea). Origen: centro inferior.
+  const luz = ['Y', 'y', 'O', 'O'];
+  tira(D + 'baliza.png', 4, 8, 4, (p, i) => filas(p, ['....', '.' + luz[i] + luz[i] + '.', '.' + (i === 0 ? 'Y' : luz[i]) + (i < 2 ? 'o' : 'O') + '.', '.ml.', '.ml.', '.ml.', '.dd.', '....']));
 }

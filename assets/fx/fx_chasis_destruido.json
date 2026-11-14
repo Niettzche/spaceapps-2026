@@ -1,0 +1,721 @@
+{
+ "frames": [
+  {
+   "filename": "chasis-destruido 0",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 88
+   },
+   "duration": 67
+  },
+  {
+   "filename": "chasis-destruido 1",
+   "frame": {
+    "x": 80,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 88
+   },
+   "duration": 67
+  },
+  {
+   "filename": "chasis-destruido 2",
+   "frame": {
+    "x": 160,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 88
+   },
+   "duration": 67
+  },
+  {
+   "filename": "chasis-destruido 3",
+   "frame": {
+    "x": 240,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 88
+   },
+   "duration": 67
+  },
+  {
+   "filename": "chasis-destruido 4",
+   "frame": {
+    "x": 320,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 88
+   },
+   "duration": 67
+  },
+  {
+   "filename": "chasis-destruido 5",
+   "frame": {
+    "x": 400,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 88
+   },
+   "duration": 67
+  },
+  {
+   "filename": "chasis-destruido 6",
+   "frame": {
+    "x": 0,
+    "y": 88,
+    "w": 80,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 88
+   },
+   "duration": 67
+  },
+  {
+   "filename": "chasis-destruido 7",
+   "frame": {
+    "x": 80,
+    "y": 88,
+    "w": 80,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 88
+   },
+   "duration": 67
+  },
+  {
+   "filename": "chasis-destruido 8",
+   "frame": {
+    "x": 160,
+    "y": 88,
+    "w": 80,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 88
+   },
+   "duration": 67
+  },
+  {
+   "filename": "chasis-destruido 9",
+   "frame": {
+    "x": 240,
+    "y": 88,
+    "w": 80,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 88
+   },
+   "duration": 67
+  },
+  {
+   "filename": "chasis-destruido 10",
+   "frame": {
+    "x": 320,
+    "y": 88,
+    "w": 80,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 88
+   },
+   "duration": 67
+  },
+  {
+   "filename": "chasis-destruido 11",
+   "frame": {
+    "x": 400,
+    "y": 88,
+    "w": 80,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 88
+   },
+   "duration": 67
+  },
+  {
+   "filename": "chasis-destruido 12",
+   "frame": {
+    "x": 0,
+    "y": 176,
+    "w": 80,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 88
+   },
+   "duration": 67
+  },
+  {
+   "filename": "chasis-destruido 13",
+   "frame": {
+    "x": 80,
+    "y": 176,
+    "w": 80,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 88
+   },
+   "duration": 67
+  },
+  {
+   "filename": "chasis-destruido 14",
+   "frame": {
+    "x": 160,
+    "y": 176,
+    "w": 80,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 88
+   },
+   "duration": 67
+  },
+  {
+   "filename": "chasis-destruido 15",
+   "frame": {
+    "x": 240,
+    "y": 176,
+    "w": 80,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 88
+   },
+   "duration": 67
+  },
+  {
+   "filename": "chasis-destruido 16",
+   "frame": {
+    "x": 320,
+    "y": 176,
+    "w": 80,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 88
+   },
+   "duration": 67
+  },
+  {
+   "filename": "chasis-destruido 17",
+   "frame": {
+    "x": 400,
+    "y": 176,
+    "w": 80,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 88
+   },
+   "duration": 67
+  },
+  {
+   "filename": "chasis-destruido 18",
+   "frame": {
+    "x": 0,
+    "y": 264,
+    "w": 80,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 88
+   },
+   "duration": 67
+  },
+  {
+   "filename": "chasis-destruido 19",
+   "frame": {
+    "x": 80,
+    "y": 264,
+    "w": 80,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 88
+   },
+   "duration": 67
+  },
+  {
+   "filename": "chasis-destruido 20",
+   "frame": {
+    "x": 160,
+    "y": 264,
+    "w": 80,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 88
+   },
+   "duration": 67
+  },
+  {
+   "filename": "chasis-destruido 21",
+   "frame": {
+    "x": 240,
+    "y": 264,
+    "w": 80,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 88
+   },
+   "duration": 67
+  },
+  {
+   "filename": "chasis-destruido 22",
+   "frame": {
+    "x": 320,
+    "y": 264,
+    "w": 80,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 88
+   },
+   "duration": 67
+  },
+  {
+   "filename": "chasis-destruido 23",
+   "frame": {
+    "x": 400,
+    "y": 264,
+    "w": 80,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 88
+   },
+   "duration": 67
+  },
+  {
+   "filename": "chasis-destruido 24",
+   "frame": {
+    "x": 0,
+    "y": 352,
+    "w": 80,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 88
+   },
+   "duration": 67
+  },
+  {
+   "filename": "chasis-destruido 25",
+   "frame": {
+    "x": 80,
+    "y": 352,
+    "w": 80,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 88
+   },
+   "duration": 67
+  },
+  {
+   "filename": "chasis-destruido 26",
+   "frame": {
+    "x": 160,
+    "y": 352,
+    "w": 80,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 88
+   },
+   "duration": 67
+  },
+  {
+   "filename": "chasis-destruido 27",
+   "frame": {
+    "x": 240,
+    "y": 352,
+    "w": 80,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 88
+   },
+   "duration": 67
+  },
+  {
+   "filename": "chasis-destruido 28",
+   "frame": {
+    "x": 320,
+    "y": 352,
+    "w": 80,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 88
+   },
+   "duration": 67
+  },
+  {
+   "filename": "chasis-destruido 29",
+   "frame": {
+    "x": 400,
+    "y": 352,
+    "w": 80,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 88
+   },
+   "duration": 67
+  },
+  {
+   "filename": "chasis-destruido 30",
+   "frame": {
+    "x": 0,
+    "y": 440,
+    "w": 80,
+    "h": 88
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 80,
+    "h": 88
+   },
+   "sourceSize": {
+    "w": 80,
+    "h": 88
+   },
+   "duration": 67
+  }
+ ],
+ "meta": {
+  "app": "https://github.com/patch-gg/pixelfx",
+  "version": "1",
+  "image": "chasis-destruido.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 480,
+   "h": 528
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "chasis-destruido",
+    "from": 0,
+    "to": 30,
+    "direction": "forward"
+   }
+  ],
+  "pixelfx": {
+   "id": "marsception/chasis-destruido",
+   "name": "Chasis destruido",
+   "fps": 15,
+   "loop": false,
+   "frames": 31,
+   "frameSize": [
+    80,
+    88
+   ],
+   "pivot": [
+    40,
+    44
+   ],
+   "columns": 6
+  }
+ }
+}

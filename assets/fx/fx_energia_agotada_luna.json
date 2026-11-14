@@ -1,0 +1,523 @@
+{
+ "frames": [
+  {
+   "filename": "energia-agotada 0",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 60
+   },
+   "duration": 67
+  },
+  {
+   "filename": "energia-agotada 1",
+   "frame": {
+    "x": 28,
+    "y": 0,
+    "w": 28,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 60
+   },
+   "duration": 67
+  },
+  {
+   "filename": "energia-agotada 2",
+   "frame": {
+    "x": 56,
+    "y": 0,
+    "w": 28,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 60
+   },
+   "duration": 67
+  },
+  {
+   "filename": "energia-agotada 3",
+   "frame": {
+    "x": 84,
+    "y": 0,
+    "w": 28,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 60
+   },
+   "duration": 67
+  },
+  {
+   "filename": "energia-agotada 4",
+   "frame": {
+    "x": 112,
+    "y": 0,
+    "w": 28,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 60
+   },
+   "duration": 67
+  },
+  {
+   "filename": "energia-agotada 5",
+   "frame": {
+    "x": 140,
+    "y": 0,
+    "w": 28,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 60
+   },
+   "duration": 67
+  },
+  {
+   "filename": "energia-agotada 6",
+   "frame": {
+    "x": 168,
+    "y": 0,
+    "w": 28,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 60
+   },
+   "duration": 67
+  },
+  {
+   "filename": "energia-agotada 7",
+   "frame": {
+    "x": 0,
+    "y": 60,
+    "w": 28,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 60
+   },
+   "duration": 67
+  },
+  {
+   "filename": "energia-agotada 8",
+   "frame": {
+    "x": 28,
+    "y": 60,
+    "w": 28,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 60
+   },
+   "duration": 67
+  },
+  {
+   "filename": "energia-agotada 9",
+   "frame": {
+    "x": 56,
+    "y": 60,
+    "w": 28,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 60
+   },
+   "duration": 67
+  },
+  {
+   "filename": "energia-agotada 10",
+   "frame": {
+    "x": 84,
+    "y": 60,
+    "w": 28,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 60
+   },
+   "duration": 67
+  },
+  {
+   "filename": "energia-agotada 11",
+   "frame": {
+    "x": 112,
+    "y": 60,
+    "w": 28,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 60
+   },
+   "duration": 67
+  },
+  {
+   "filename": "energia-agotada 12",
+   "frame": {
+    "x": 140,
+    "y": 60,
+    "w": 28,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 60
+   },
+   "duration": 67
+  },
+  {
+   "filename": "energia-agotada 13",
+   "frame": {
+    "x": 168,
+    "y": 60,
+    "w": 28,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 60
+   },
+   "duration": 67
+  },
+  {
+   "filename": "energia-agotada 14",
+   "frame": {
+    "x": 0,
+    "y": 120,
+    "w": 28,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 60
+   },
+   "duration": 67
+  },
+  {
+   "filename": "energia-agotada 15",
+   "frame": {
+    "x": 28,
+    "y": 120,
+    "w": 28,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 60
+   },
+   "duration": 67
+  },
+  {
+   "filename": "energia-agotada 16",
+   "frame": {
+    "x": 56,
+    "y": 120,
+    "w": 28,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 60
+   },
+   "duration": 67
+  },
+  {
+   "filename": "energia-agotada 17",
+   "frame": {
+    "x": 84,
+    "y": 120,
+    "w": 28,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 60
+   },
+   "duration": 67
+  },
+  {
+   "filename": "energia-agotada 18",
+   "frame": {
+    "x": 112,
+    "y": 120,
+    "w": 28,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 60
+   },
+   "duration": 67
+  },
+  {
+   "filename": "energia-agotada 19",
+   "frame": {
+    "x": 140,
+    "y": 120,
+    "w": 28,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 60
+   },
+   "duration": 67
+  },
+  {
+   "filename": "energia-agotada 20",
+   "frame": {
+    "x": 168,
+    "y": 120,
+    "w": 28,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 60
+   },
+   "duration": 67
+  },
+  {
+   "filename": "energia-agotada 21",
+   "frame": {
+    "x": 0,
+    "y": 180,
+    "w": 28,
+    "h": 60
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 60
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 60
+   },
+   "duration": 67
+  }
+ ],
+ "meta": {
+  "app": "https://github.com/patch-gg/pixelfx",
+  "version": "1",
+  "image": "energia-agotada.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 196,
+   "h": 240
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "energia-agotada",
+    "from": 0,
+    "to": 21,
+    "direction": "forward"
+   }
+  ],
+  "pixelfx": {
+   "id": "marsception/energia-agotada",
+   "name": "Energía agotada",
+   "fps": 15,
+   "loop": false,
+   "frames": 22,
+   "frameSize": [
+    28,
+    60
+   ],
+   "pivot": [
+    14,
+    30
+   ],
+   "columns": 7
+  }
+ }
+}
