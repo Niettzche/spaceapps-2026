@@ -33,7 +33,7 @@ export const FRICCION_ESTATICA = 1;
 export const friccionDeAgarre = (agarre) => agarre * agarre;
 
 const PATINA_MS = 1.0; // diferencia rueda–suelo (m/s) a partir de la cual se considera patinaje
-const PATINA_SEG = 0.35;
+export const PATINA_SEG = 0.35; // exportada para los efectos (efectos.js)
 const CONTACTO_RECIENTE_SEG = 0.15; // la suspensión hace rebotar la rueda: cuenta el contacto reciente
 const SIN_FUERZA_MS = 0.3;
 const SIN_FUERZA_SEG = 1.5;

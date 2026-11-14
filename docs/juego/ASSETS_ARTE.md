@@ -83,6 +83,27 @@ El terreno es un polígono con pendientes: el relleno se repite como textura y e
 | Humo y apagado del motor | `energia_agotada` | C |
 | Celebración de entrega | `entrega` | B |
 
+#### Efectos: nombre de archivo → evento
+
+El juego (`game/src/fisica/efectos.js`) busca al compilar archivos `fx_*.png` (y su `.json` del mismo nombre, opcional) en cualquier carpeta de `assets/`.
+Si existe la hoja, la reproduce en lugar del efecto provisional de partículas; si no existe, no pide nada (sin 404).
+
+| Archivo | Evento del juego | Dónde aparece |
+|---|---|---|
+| `fx_polvo_<superficie>` (`fx_polvo_arena`, `fx_polvo_roca`, `fx_polvo_compacto`) | `polvo`: rueda en el suelo con velocidad (frecuencia ∝ velocidad) | punto de contacto de cada rueda |
+| `fx_patinaje` | `patinaje`: rueda que patina (chorro continuo de arena) | borde trasero de la rueda que patina |
+| `fx_golpe_chasis` | `golpe_chasis` (chispas si la superficie es roca) | punto más bajo del chasis |
+| `fx_golpe_carga` | `golpe_carga` (destello) | centro de la carga |
+| `fx_carga_perdida` | `carga_perdida` | centro de la carga |
+| `fx_chasis_destruido` | `chasis_destruido` (explosión o desarme) | punto más bajo del chasis |
+| `fx_energia_agotada` | `energia_agotada` (humo) | centro del chasis |
+| `fx_entrega` | `entrega` (celebración) | sobre la carga |
+| `fx_meta` | `meta` (prueba superada) | punta de la bandera |
+
+- Variantes opcionales, de la más específica a la general: `fx_<evento>_<mundo>_<superficie>`, `fx_<evento>_<superficie>`, `fx_<evento>_<mundo>`, `fx_<evento>` (mundo: `tierra`, `marte`, `luna`).
+- Con JSON (pixelfx `--sheet` o Aseprite): los cuadros se reproducen en orden natural de nombre, a 1000 / `duration` del primer cuadro (15 fps si no hay). Sin JSON: tira horizontal de cuadros cuadrados (alto = ancho de cada cuadro).
+- Se dibujan a 1 px de arte (× 3 en pantalla). `polvo` y `patinaje`: origen abajo al centro y dibujados con el polvo saliendo **hacia la izquierda** (robot avanzando a la derecha); el juego los voltea si va en reversa. El resto: origen al centro.
+
 ### Interfaz
 | Asset | Medida | Prioridad |
 |---|---|---|
