@@ -13,7 +13,8 @@
 Un **buscador de análogos terrestres basado en datos de la NASA** (el modelo) + un **juego web 2D** donde el jugador usa esos
 análogos para probar un robot antes de mandarlo a Marte o a la Luna a entregar un suministro a un astronauta.
 
-- **El modelo es el núcleo.** Identifica y caracteriza lugares de la Tierra parecidos a un destino lunar o marciano.
+- **El modelo es el núcleo.** Identifica y caracteriza lugares de **todo el mundo** parecidos a un destino lunar o marciano,
+  con una búsqueda global en zonas áridas (§6.4). México es el caso destacado (validación completa e Impacto Local), no el límite.
 - **El juego es el valor agregado.** "La información ya existe; el chiste es experimentar con ella en un entorno controlado."
 - Reto: *Identify Earth Locations that Analog the Permanent Moon Base Locations and Mars*.
 
@@ -73,7 +74,7 @@ La gravedad del destino **no** se atribuye al análogo terrestre: esa es justo u
 El modelo tiene dos partes, y así se presenta:
 
 1. **Similitud de forma (núcleo, `analisis/` + `ciencia_datos/`):** un detector de depresiones tipo cráter corre con el mismo código y a
-   la misma resolución (200 m) sobre México, el polo sur lunar y Marte. Después, **modelos explicables entrenados con cráteres de la Luna
+   la misma resolución (200 m) sobre la Tierra (hoy México, validado; se extiende a regiones áridas del mundo, §6.4), el polo sur lunar y Marte. Después, **modelos explicables entrenados con cráteres de la Luna
    y de Marte** (árbol de decisión poco profundo y regresión logística, Luna contra Marte) separan los dos cuerpos con **75–77 % de
    exactitud balanceada** fuera de pliegue (validación por grupos espaciales, `ciencia_datos/02`); con 8 sitios de Marte, 78 %
    (`ciencia_datos/03`). El puntaje de un cráter mexicano combina ese modelo con su distancia a la nube Luna+Marte. La regla principal
@@ -103,6 +104,12 @@ aunque el juego del MVP solo tenga nivel de Marte. Así cubrimos las dos mitades
 Endpoints a verificar el sábado: API de NASA POWER (climatología por punto) y servicio de subconjuntos MODIS de ORNL DAAC.
 Los valores del destino se capturan una vez en `data/targets/*.json` **con fuente, fecha y unidad**.
 
+Fuentes globales **por verificar** (no usarlas ni citarlas hasta confirmar acceso, licencia y cobertura):
+- **Base de datos de estructuras de impacto terrestres** → controles positivos globales del detector. Candidata: Earth Impact Database
+  (Planetary and Space Science Centre, Univ. de New Brunswick).
+- **Inventario global de minería a cielo abierto** → respaldo del hallazgo de minas fuera de México. Candidatas: Maus et al. (2022,
+  *Scientific Data*) y Tang y Werner (2023, *Communications Earth & Environment*). OpenStreetMap (`landuse=quarry`) ya se usa en México.
+
 ### 6.3 Cálculo
 
 - **Forma:** puntaje en [0, 1] del modelo Luna contra Marte + distancia a la nube Luna+Marte (`ciencia_datos/`). Es la dimensión
@@ -125,11 +132,19 @@ Los valores del destino se capturan una vez en `data/targets/*.json` **con fuent
 
 1. **Curadas y validadas:** 3 sitios del MVP (dunas → agarre; campo de lava → relieve; desierto con pendiente → energía).
    Candidatos a verificar: Samalayuca (Chih.), Pinacate (Son.) y uno más. Estado: `documentado` o `candidato_modelo`.
-2. **Escaneo sistemático:** el detector (`analisis/07_buscador_crateres.py`) ya recorre todo México; se filtran las zonas áridas,
-   se calcula la similitud y se guarda el top-N que no esté en la lista de análogos conocidos → `candidato_modelo`
-   (ver §8.1). Es el "descubrimiento" del pitch.
+2. **Búsqueda global en zonas áridas (3 pasos):** es el "descubrimiento" del pitch.
+   - **(a) Máscara global de zonas áridas** con el filtro de vegetación del detector (MODIS MOD13Q1, NDVI p90 < 0.35).
+   - **(b) Detector a 200 m en regiones áridas priorizadas:** Sahara, península arábiga, Atacama, interior de Australia, Gobi,
+     Kalahari, suroeste de EE. UU., meseta iraní, desierto de Thar y norte de México. Mismo código que `analisis/07_buscador_crateres.py`.
+   - **(c) 5 a 8 sitios finales globales**, con similitud, gemelo lunar o marciano, uso para la exploración y dónde se rompe la analogía.
+     Los que no estén en la lista de análogos conocidos → `candidato_modelo` con `novedoso: true` (ver §8.1).
+   - **México es el caso destacado:** ahí la validación está completa (9 de 11 cráteres conocidos, 47 candidatos áridos) y apunta al
+     premio de Impacto Local. No es el límite del alcance.
+   - **Regla para el pitch:** decir "búsqueda global en zonas áridas" con las cifras reales (regiones cubiertas, detecciones, sitios).
+     **Nunca** decir "escaneamos todo el planeta".
    La lista vive en `data/known_analogs.json` (Atacama, Valles Secos de McMurdo, cráter Haughton, Death Valley, Islandia, Hawái,
    desierto de Mojave, Río Tinto, etc.) y sirve para dos cosas: controles positivos de la validación y marcar `novedoso: true`.
+   Varias regiones priorizadas (Atacama, suroeste de EE. UU.) contienen análogos famosos: ahí solo cuenta como novedoso lo que no esté en la lista.
 3. **Propuestas de usuarios (explorador libre):** el usuario da una coordenada → la API calcula la similitud en vivo →
    si supera el umbral (P: 0.6) puede proponer el sitio → se guarda como `propuesto_usuario` (pendiente de revisión).
    Un sitio aprobado se vuelve jugable automáticamente: su nivel se genera con el perfil de elevación real del DEM.
@@ -215,12 +230,13 @@ Estrellas por rangos. La puntuación del juego **no** es evidencia científica.
 ### 8.1 Módulos existentes: el núcleo del modelo
 
 El **detector de cráteres** (`analisis/` + `ciencia_datos/`) **es el núcleo del modelo de análogos** (§6): con datos reales mide la forma
-de cada depresión de México con el mismo código y a la misma resolución (200 m) que los cráteres del polo sur lunar y de Marte.
+de cada depresión terrestre con el mismo código y a la misma resolución (200 m) que los cráteres del polo sur lunar y de Marte.
+Hoy está corrido y validado en México (caso destacado); la extensión a las regiones áridas del mundo sigue §6.4.
 `/model` es la capa que convierte esos resultados (más las dimensiones complementarias) en `data/sites/`. **No se borra ni se reescribe.**
 
 | Carpeta | Qué es | Dueño | Conexión con Misión Cero |
 |---|---|---|---|
-| `analisis/` | Celdas de Colab (Earth Engine) `00`–`15`: detector de depresiones tipo cráter en México, el polo sur lunar (LOLA) y Marte (HRSC+MOLA), todo a 200 m con el mismo código | modelo | Escaneo sistemático (§6.4, punto 2): sus candidatos se exportan a `data/sites/` |
+| `analisis/` | Celdas de Colab (Earth Engine) `00`–`15`: detector de depresiones tipo cráter en México (hoy), el polo sur lunar (LOLA) y Marte (HRSC+MOLA), todo a 200 m con el mismo código | modelo | Búsqueda global en zonas áridas (§6.4, punto 2): sus candidatos se exportan a `data/sites/` |
 | `ciencia_datos/` | Notebooks de modelos explicables (árbol, regresión logística Luna contra Marte) y sus salidas | modelo | Similitud de forma y evidencia de validación → `model/VALIDATION.md` y `docs/METODOLOGIA.md` |
 | `informe/` | Generadores y PDF de validación del detector y de los modelos | modelo | Respaldo para el pitch y la metodología |
 | `web/` | Página Vite + React + MapLibre, bilingüe (en/es): quiz, mapa de detecciones, fichas con gemelo lunar, sitios destacados, método | integración (Alan): estructura y publicación. `web/public/data/`: modelo | Página pública del proyecto en inglés (§14). Enlaza al juego (`game/`); no se fusiona con él |
@@ -256,7 +272,7 @@ cp docs/estado/_plantilla.md docs/estado/<frente>.md
 
 | # | Frente | Rama | Carpetas que posee | Entregable mínimo |
 |---|---|---|---|---|
-| 1 | Modelo, datos y API del modelo | feat/modelo | /model, /data/targets, /data/sites, /data/known_analogs.json, /api (/score, /submit), /analisis, /ciencia_datos, /informe, /PROYECTO.md, /web/public/data | Variables reales de 3 sitios, 2 destinos, validación, escaneo de México, endpoints |
+| 1 | Modelo, datos y API del modelo | feat/modelo | /model, /data/targets, /data/sites, /data/known_analogs.json, /api (/score, /submit), /analisis, /ciencia_datos, /informe, /PROYECTO.md, /web/public/data | Variables reales de 3 sitios, 2 destinos, validación, búsqueda global en zonas áridas (§6.4) con México como caso destacado, endpoints |
 | 2 | Juego: física, prueba y misión | feat/juego | /game/src/scenes/Prueba, Mision, Resultados, /game/src/feedback | Recorrido con perfil real, gravedad, victoria/derrota, puntuación, feedback por reglas |
 | 3 | Taller y piezas | feat/taller | /game/src/scenes/Taller, /game/src/content/parts.json | Investigación de ruedas/materiales, armado con ranuras, presupuesto, validación del diseño |
 | 4 | Expediente, explorador y menú | feat/expediente | /game/src/scenes/Boot, Menu, Expediente, Explorador | Pantalla de carga, comparación 1 a 1, consulta de coordenadas y propuesta de sitio |
@@ -325,7 +341,7 @@ Lo que se muestre como funcional debe funcionar en este camino; lo que sea visi�
 | Explicar qué es análogo, qué tanto y dónde se rompe | Similitud por dimensión + `limites` + lo que la Tierra no puede probar | §6.3, §5 |
 | Cómo ayuda a preparar la exploración | `uso_exploracion` por sitio + el juego: probar un rover antes de la misión | §7, §4 |
 | Ir más allá de la similitud visual | Variables medidas, no imágenes; veto por vegetación | §6.3 |
-| Buscar más allá de los análogos famosos | Escaneo de México + `novedoso` contra `known_analogs.json` | §6.4 |
+| Buscar más allá de los análogos famosos | Búsqueda global en zonas áridas (máscara MODIS + detector en regiones priorizadas) + `novedoso` contra `known_analogs.json` | §6.4 |
 | Escala fina (un cráter, un valle) | Puntos y transectos concretos, con resolución declarada | §6.5 |
 | Procesos, no solo lugares | Campo `proceso` (ej. dunas eólicas) | §7 |
 | Reconocer los límites de la Tierra | Gravedad, presión, radiación, vacío siempre declarados | §6.3 |
@@ -334,7 +350,7 @@ Lo que se muestre como funcional debe funcionar en este camino; lo que sea visi�
 
 **Pitch de 2 minutos (estructura de la sede: el reto, la solución, por qué importa):**
 15 s el reto ("la Tierra puede entrenarte para Marte… pero no en todo") · 45 s tráiler del camino dorado ·
-30 s el modelo y su validación (datos NASA, controles negativos, sitio novedoso) · 20 s por qué importa (educación + catálogo abierto +
+30 s el modelo y su validación (datos NASA, búsqueda global en zonas áridas con cifras reales, controles negativos, sitio novedoso) · 20 s por qué importa (educación + catálogo abierto +
 propuestas de usuarios) · 10 s cierre. Preparar respuestas para: "¿qué modelo es?", "¿de dónde salen los números?", "¿qué no puede probar la Tierra?".
 
 ## 14. Checklist de entrega

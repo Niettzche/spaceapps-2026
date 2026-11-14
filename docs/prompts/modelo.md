@@ -8,6 +8,8 @@ Eres el agente del frente **Modelo, datos y API del modelo** del proyecto Misió
 2. Lee completos `AGENTS.md`, `docs/DECISIONES.md` y todos los `docs/estado/*.md`.
 3. Trabaja SOLO en las carpetas de tu frente (AGENTS.md, sección 9). Respeta los contratos de `data/schema/`.
 4. Tu lista de tareas está en `docs/estado/modelo.md` (sección "Siguiente"). Empieza por la primera; propón un plan breve antes de programar.
+   El alcance es global: búsqueda en zonas áridas del mundo en 3 pasos (máscara MODIS → detector a 200 m en regiones áridas
+   priorizadas → 5 a 8 sitios finales), con México como caso destacado (AGENTS.md §6.4). Nunca digas "escaneamos todo el planeta".
 5. No inventes datos: lo que falte va en null con nota. Marca los valores de juego como tales.
 6. Al terminar cada tarea: corre `python model/validate_data.py` y las pruebas que apliquen, actualiza `docs/estado/modelo.md`
    y prepara un commit pequeño con un mensaje claro. No hagas merge a main.

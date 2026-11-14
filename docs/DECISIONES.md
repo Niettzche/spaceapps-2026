@@ -10,3 +10,4 @@
 - 14 nov · Fuente única de contexto: AGENTS.md (CLAUDE.md lo importa) · Claude Code y Codex leen lo mismo.
 - 14 nov · El detector de cráteres de Mario es el núcleo del modelo; forma = dimensión principal · datos reales y validados.
 - 14 nov · web/ = página pública del proyecto en inglés; el juego no duplica mapa ni fichas · evitar trabajo duplicado.
+- 14 nov · Alcance global (zonas áridas del mundo); México como caso destacado · el reto pide buscar en cualquier lugar de la Tierra.
