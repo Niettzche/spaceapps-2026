@@ -1,0 +1,457 @@
+{
+ "frames": [
+  {
+   "filename": "entrega 0",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 64
+   },
+   "duration": 67
+  },
+  {
+   "filename": "entrega 1",
+   "frame": {
+    "x": 60,
+    "y": 0,
+    "w": 60,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 64
+   },
+   "duration": 67
+  },
+  {
+   "filename": "entrega 2",
+   "frame": {
+    "x": 120,
+    "y": 0,
+    "w": 60,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 64
+   },
+   "duration": 67
+  },
+  {
+   "filename": "entrega 3",
+   "frame": {
+    "x": 180,
+    "y": 0,
+    "w": 60,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 64
+   },
+   "duration": 67
+  },
+  {
+   "filename": "entrega 4",
+   "frame": {
+    "x": 240,
+    "y": 0,
+    "w": 60,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 64
+   },
+   "duration": 67
+  },
+  {
+   "filename": "entrega 5",
+   "frame": {
+    "x": 0,
+    "y": 64,
+    "w": 60,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 64
+   },
+   "duration": 67
+  },
+  {
+   "filename": "entrega 6",
+   "frame": {
+    "x": 60,
+    "y": 64,
+    "w": 60,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 64
+   },
+   "duration": 67
+  },
+  {
+   "filename": "entrega 7",
+   "frame": {
+    "x": 120,
+    "y": 64,
+    "w": 60,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 64
+   },
+   "duration": 67
+  },
+  {
+   "filename": "entrega 8",
+   "frame": {
+    "x": 180,
+    "y": 64,
+    "w": 60,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 64
+   },
+   "duration": 67
+  },
+  {
+   "filename": "entrega 9",
+   "frame": {
+    "x": 240,
+    "y": 64,
+    "w": 60,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 64
+   },
+   "duration": 67
+  },
+  {
+   "filename": "entrega 10",
+   "frame": {
+    "x": 0,
+    "y": 128,
+    "w": 60,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 64
+   },
+   "duration": 67
+  },
+  {
+   "filename": "entrega 11",
+   "frame": {
+    "x": 60,
+    "y": 128,
+    "w": 60,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 64
+   },
+   "duration": 67
+  },
+  {
+   "filename": "entrega 12",
+   "frame": {
+    "x": 120,
+    "y": 128,
+    "w": 60,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 64
+   },
+   "duration": 67
+  },
+  {
+   "filename": "entrega 13",
+   "frame": {
+    "x": 180,
+    "y": 128,
+    "w": 60,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 64
+   },
+   "duration": 67
+  },
+  {
+   "filename": "entrega 14",
+   "frame": {
+    "x": 240,
+    "y": 128,
+    "w": 60,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 64
+   },
+   "duration": 67
+  },
+  {
+   "filename": "entrega 15",
+   "frame": {
+    "x": 0,
+    "y": 192,
+    "w": 60,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 64
+   },
+   "duration": 67
+  },
+  {
+   "filename": "entrega 16",
+   "frame": {
+    "x": 60,
+    "y": 192,
+    "w": 60,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 64
+   },
+   "duration": 67
+  },
+  {
+   "filename": "entrega 17",
+   "frame": {
+    "x": 120,
+    "y": 192,
+    "w": 60,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 64
+   },
+   "duration": 67
+  },
+  {
+   "filename": "entrega 18",
+   "frame": {
+    "x": 180,
+    "y": 192,
+    "w": 60,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 64
+   },
+   "duration": 67
+  }
+ ],
+ "meta": {
+  "app": "https://github.com/patch-gg/pixelfx",
+  "version": "1",
+  "image": "entrega.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 300,
+   "h": 256
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "entrega",
+    "from": 0,
+    "to": 18,
+    "direction": "forward"
+   }
+  ],
+  "pixelfx": {
+   "id": "marsception/entrega",
+   "name": "Entrega",
+   "fps": 15,
+   "loop": false,
+   "frames": 19,
+   "frameSize": [
+    60,
+    64
+   ],
+   "pivot": [
+    30,
+    32
+   ],
+   "columns": 5
+  }
+ }
+}
