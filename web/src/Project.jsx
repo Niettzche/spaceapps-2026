@@ -8,7 +8,7 @@ const copy = {
     caption: 'Rincón de Parangueo, Mexico · elevation-derived relief from Copernicus DEM (ESA), rendered with synthetic light; not a photograph. 12.8 km across, source resolution 200 m.',
     scope: 'Mexico is our validated case study. The global search has covered Atacama, Arizona and Arabia: 3 of 10 prioritized arid regions, not the entire planet.',
     steps: [
-      ['01 / DISCOVER', 'Start with terrain', 'One detector measures crater-like depressions across Earth, the lunar south pole and Mars at a shared resolution of 200 m per pixel.'],
+      ['01 / DISCOVER', 'Start with terrain', 'One detector measures crater-like depressions on Earth (Mexico + 3 arid regions), at the lunar south pole and on Mars at a shared resolution of 200 m per pixel.'],
       ['02 / COMPARE', 'Read the evidence', 'Compare depth and diameter, inspect candidate sites and see where gravity, atmosphere and radiation break the analogy.'],
       ['03 / EXPERIMENT', 'Prepare a mission', 'Misión Cero is the companion rover game: build, test on an Earth analog, then attempt a Moon or Mars delivery. Game balance is separate from scientific evidence.'],
     ],
@@ -26,7 +26,7 @@ const copy = {
     caption: 'Rincón de Parangueo, México · relieve del DEM Copernicus (ESA), con iluminación sintética; no es una fotografía. Ventana de 12.8 km, resolución de origen 200 m.',
     scope: 'México es nuestro caso validado. La búsqueda global cubre Atacama, Arizona y Arabia: 3 de 10 regiones áridas priorizadas, no todo el planeta.',
     steps: [
-      ['01 / DESCUBRIR', 'Comenzar por el terreno', 'El mismo detector mide depresiones tipo cráter en la Tierra, el polo sur lunar y Marte a una resolución común de 200 m por píxel.'],
+      ['01 / DESCUBRIR', 'Comenzar por el terreno', 'El mismo detector mide depresiones tipo cráter en la Tierra (México + 3 regiones áridas), el polo sur lunar y Marte a una resolución común de 200 m por píxel.'],
       ['02 / COMPARAR', 'Revisar la evidencia', 'Compara profundidad y diámetro, inspecciona candidatos y conoce dónde la gravedad, la atmósfera y la radiación rompen la analogía.'],
       ['03 / EXPERIMENTAR', 'Preparar una misión', 'Misión Cero es el juego de rovers complementario: construye, prueba en un análogo terrestre e intenta una entrega lunar o marciana. El balance del juego es independiente de la evidencia científica.'],
     ],

@@ -2,17 +2,17 @@
 
 ## English · submission text
 
-We used Claude Code and OpenAI Codex to assist software development, debugging, integration, testing and documentation. AI also assisted artwork creation and iteration; artwork and effects are presentation assets, not scientific observations or topographic reconstructions.
+We used Claude Code and OpenAI Codex to assist software development, debugging, integration, testing and documentation. Mauricio created the MARSCEPTION artwork with Claude; AI assisted its creation and iteration; artwork and effects are presentation assets, not scientific observations or topographic reconstructions.
 
-For data review, Claude suggested landform labels for 298 arid candidates using Sentinel-2 satellite images, shaded relief and measurements. Names and distances to OpenStreetMap mines were withheld during labeling. The recorded external check reports 29 correct labels out of 33 checked cases (88%), using the volcanic-crater catalog, OpenStreetMap and Meteor Crater. This does not estimate accuracy across all 298 candidates. Suggested labels, uncertainty and source provenance are retained; they do not prove a landform's geological origin or novelty. The analog-shape model is an explainable statistical model, separate from the AI image-labeling assistant.
+For data review, Claude suggested landform labels for 298 arid candidates using Sentinel-2 satellite images, shaded relief and measurements. Names and distances to OpenStreetMap mines were withheld during labeling. The recorded external check reports 29 correct labels out of 33 non-randomly selected checked cases (88%), using the volcanic-crater catalog, OpenStreetMap and Meteor Crater. This does not estimate accuracy across all 298 candidates. Suggested labels, uncertainty and source provenance are retained; they do not prove a landform's geological origin or novelty. The analog-shape model is an explainable statistical model, separate from the AI image-labeling assistant.
 
 NASA, ESA and other source measurements were not invented or replaced by AI output. Missing measurements remain missing. Team members remain responsible for reviewing code, claims, labels and final deliverables. Generated art is not NASA imagery and does not imply NASA endorsement.
 
 ## Español
 
-Se usaron Claude Code y Codex para apoyar código, depuración, integración, pruebas y documentación. También hubo asistencia de IA en la creación e iteración de arte; ese material es ilustrativo, no una observación científica.
+Se usaron Claude Code y Codex para apoyar código, depuración, integración, pruebas y documentación. Mauricio hizo el arte de MARSCEPTION con Claude, con asistencia de IA en su creación e iteración; ese material es ilustrativo, no una observación científica.
 
-Claude propuso etiquetas de relieve para 298 candidatos áridos a partir de imágenes Sentinel-2, relieve sombreado y medidas. No recibió nombres ni distancias a minas de OSM. La validación registrada obtiene 29/33 aciertos contra fuentes externas; no se extrapola al catálogo completo. Las etiquetas no certifican origen geológico ni novedad. El modelo estadístico explicable de forma es distinto de esta asistencia visual por IA.
+Claude propuso etiquetas de relieve para 298 candidatos áridos a partir de imágenes Sentinel-2, relieve sombreado y medidas. No recibió nombres ni distancias a minas de OSM. La validación registrada obtiene 29/33 aciertos contra fuentes externas en 33 casos seleccionados de forma no aleatoria; no se extrapola al catálogo completo. Las etiquetas no certifican origen geológico ni novedad. El modelo estadístico explicable de forma es distinto de esta asistencia visual por IA.
 
 Los datos faltantes no se rellenan con invenciones. El equipo mantiene la responsabilidad de revisión de datos, afirmaciones y productos. La declaración deberá copiarse al campo de uso de IA de la plataforma de entrega.
 
