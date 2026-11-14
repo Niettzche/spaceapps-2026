@@ -33,7 +33,7 @@ export default class Mision extends Phaser.Scene {
       piezas: PIEZAS,
       modo: 'mision',
       titulo: `Misión · ${destino.nombre}`,
-      subtitulo: `Gravedad ${destino.gravedad_ms2} m/s² · entrega con carga ≥ ${Math.round(UMBRAL_INTEGRIDAD * 100)} % y robot detenido 2 s · intento ${intentos}`,
+      subtitulo: `Gravedad ${destino.gravedad_ms2} m/s² · entrega con carga ≥ ${Math.round(UMBRAL_INTEGRIDAD * 100)} % · intento ${intentos}`,
       sitioId: partida.sitio?.id ?? null,
       destinoId: destino.id,
       intentos,
