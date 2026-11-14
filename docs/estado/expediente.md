@@ -36,10 +36,22 @@
   (Tierra / destino / similitud, con fuente), límites y errores de la API. Si la API no responde: aviso claro y el juego sigue.
   Probado con la API local (`uvicorn api.main:app`): ~60 s por punto, por eso la espera máxima es 90 s (`ESPERA_API_MS`).
 
+- [x] Explorador: "Proponer sitio" (POST /submit) solo si la API permite y la similitud total ≥ 0.6 (`UMBRAL_PROPUESTA`, P);
+  nombre obligatorio (3–80 caracteres), alias opcional con aviso de no poner datos personales; confirma `propuesto_usuario`
+  o explica el fallo. Probado de punta a punta con la API local.
+
 ## En curso
+- (nada)
 
 ## Siguiente
-- [ ] Explorador: botón "Proponer sitio" → POST /submit (solo si la similitud ≥ 0.6)
+- [ ] Cuando el arte esté listo: fondos y tipografía en Boot/Menú/Expediente (hoy texto monoespaciado provisional)
+- [ ] Revisar el Expediente con los datos reales cuando `feat/modelo` llegue a `main`
+
+## Cómo probar
+- `cd game && npm run dev` → Menú → Nueva partida → Marte → Médanos de Samalayuca → Gastar 1 ticket y probar → Taller.
+- Pruebas de lógica: `cd game && node --test src/scenes/expediente/pruebas/`
+- Explorador con API: desde la raíz `ALLOWED_ORIGINS=http://localhost:5173 uvicorn api.main:app --port 8000`.
+  Opcional: `game/.env.local` con `VITE_API_URL=...` y `VITE_WEB_URL=...`.
 
 ## Bloqueos / necesito de otro frente
 - **Modelo/API (Mario):** en `main`, `/score` para (31.84, -113.39) devolvió total 0.60 con confianza 0.25 (solo precipitación;

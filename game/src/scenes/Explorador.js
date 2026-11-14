@@ -2,8 +2,8 @@ import Phaser from 'phaser';
 import { SITIOS, DESTINOS } from '../data.js';
 import { partida } from '../main.js';
 import { ORDEN_DESTINOS, DESTINO_POR_DEFECTO, UMBRAL_PROPUESTA } from './expediente/config.js';
-import { consultarPunto, API_URL } from './expediente/api.js';
-import { validarCoordenadas, formatoValor, formatoPorcentaje, SIN_DATO } from './expediente/logica.js';
+import { consultarPunto, proponerSitio, API_URL } from './expediente/api.js';
+import { validarCoordenadas, formatoValor, formatoPorcentaje, puedeProponer, validarNombrePropuesta, SIN_DATO } from './expediente/logica.js';
 import { MUNDOS, etiquetaVariable, etiquetaLimite } from './expediente/textos.js';
 import { crearCapa, el, ESTILOS } from './expediente/capa.js';
 
@@ -151,6 +151,58 @@ export default class Explorador extends Phaser.Scene {
       ]),
       el('p', {}, [el('strong', {}, 'Lo que la Tierra no puede probar: '), limites.length ? limites.join(' · ') : SIN_DATO]),
       ...notas.map((n) => el('p', { class: 'nota' }, n)),
+      this.bloquePropuesta(d, punto),
     );
+  }
+
+  // "Proponer sitio" solo aparece si la API lo permite Y la similitud total alcanza el umbral (P: 0.6).
+  bloquePropuesta(d, punto) {
+    const total = d?.similitud?.total;
+    if (!puedeProponer(d, UMBRAL_PROPUESTA)) {
+      return el('p', { class: 'nota propuesta' }, `Para proponer el sitio la similitud total debe llegar a ${Math.round(UMBRAL_PROPUESTA * 100)} % `
+        + `(este punto: ${formatoPorcentaje(total)}).`);
+    }
+    const nombre = el('input', { id: 'mc-nombre', type: 'text', maxlength: 80, autocomplete: 'off', placeholder: 'ej. Cráter sin nombre al sur de…' });
+    const autor = el('input', { id: 'mc-autor', type: 'text', maxlength: 60, autocomplete: 'off', placeholder: 'opcional' });
+    const enviar = el('button', { type: 'submit', class: 'primario' }, 'Proponer sitio');
+    const error = el('p', { class: 'error', role: 'alert' });
+    const salida = el('div', { 'aria-live': 'polite' });
+    const form = el('form', { class: 'propuesta', novalidate: true }, [
+      el('strong', {}, 'Proponer este sitio'),
+      el('p', { class: 'ayuda' }, 'Se guarda como "propuesto por usuario", pendiente de revisión del equipo. '
+        + 'No es un análogo confirmado. El alias es opcional y se guarda con la propuesta: no pongas datos personales.'),
+      el('div', { class: 'fila' }, [
+        el('label', { for: 'mc-nombre' }, ['Nombre del sitio', nombre]),
+        el('label', { for: 'mc-autor' }, ['Tu alias', autor]),
+        enviar,
+      ]),
+      error, salida,
+    ]);
+    form.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      error.textContent = '';
+      const v = validarNombrePropuesta(nombre.value);
+      if (!v.ok) { error.textContent = v.error; nombre.focus(); return; }
+      enviar.disabled = true;
+      salida.replaceChildren(el('p', { class: 'estado' }, 'Enviando propuesta… la API vuelve a calcular la similitud (puede tardar un minuto).'));
+      const r = await proponerSitio({ ...punto, nombre: v.nombre, autor: autor.value.trim() || null }, { senal: this.consulta?.signal });
+      if (!this.capa) return;
+      if (r.ok) {
+        nombre.disabled = true; autor.disabled = true;
+        salida.replaceChildren(el('div', { class: 'ok' }, [
+          el('strong', {}, '¡Propuesta enviada!'),
+          el('p', {}, `"${v.nombre}" quedó como ${r.datos?.estado || 'propuesto_usuario'} con similitud `
+            + `${formatoPorcentaje(r.datos?.similitud?.total)}. Si el equipo la aprueba, se vuelve jugable.`),
+        ]));
+        return;
+      }
+      enviar.disabled = false;
+      const sinApi = r.tipo === 'red' || r.tipo === 'espera';
+      salida.replaceChildren(el('div', { class: 'aviso' }, [
+        el('strong', {}, sinApi ? 'La API no responde: la propuesta no se guardó.' : 'La API no aceptó la propuesta.'),
+        el('p', {}, r.mensaje),
+      ]));
+    });
+    return form;
   }
 }
