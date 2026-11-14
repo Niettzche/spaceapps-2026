@@ -13,6 +13,9 @@ import { AspectoRobot, crearFondo, claveDeFondo, sprite, tira } from './aspecto.
 
 const FONDO = { tierra: '#7f9fbf', marte: '#b98a6a', luna: '#05060b' }; // color si no hay fondo de arte (fisica/aspecto.js)
 const SEG_QUIETO_ENTREGA = 2; // la entrega exige 2 s detenido en la zona
+// Atasco: si el robot no gana 1.5 m de avance en 15 s, la prueba termina (evita esperar a que se agote la batería). (P)
+const SEG_ATASCO = 15;
+const M_AVANCE_ATASCO = 1.5;
 const SEG_SIN_ENERGIA_FIN = 5; // sin energía, la partida termina al detenerse o a los 5 s (atascado contra el borde del nivel) (P)
 const ESPERA_FIN_MS = 1400;
 
@@ -31,6 +34,8 @@ export class Recorrido {
     this.telemetria = new Telemetria();
     this.tQuieto = 0;
     this.tSinEnergia = 0;
+    this.mejorX = -Infinity; // mejor avance (m) y tiempo en que se logró, para detectar atascos
+    this.tMejorX = 0;
 
     aplicarGravedad(scene, o.gravedad);
     scene.cameras.main.setBackgroundColor(FONDO[o.mundo] ?? FONDO.tierra);
@@ -133,6 +138,10 @@ export class Recorrido {
     if (r.volcado) return this._terminar(false, 'volcado');
     this.tSinEnergia = r.sinEnergia ? this.tSinEnergia + delta / 1000 : 0;
     if (r.sinEnergia && (r.quieto(0.4) || this.tSinEnergia >= SEG_SIN_ENERGIA_FIN)) return this._terminar(false, 'energia_agotada');
+    // Atasco: sin avanzar a pesar de seguir en marcha (p. ej. patinando contra una duna).
+    if (x_m > this.mejorX + M_AVANCE_ATASCO) { this.mejorX = x_m; this.tMejorX = r.t; }
+    else if (acelerador === 0) this.tMejorX += delta / 1000; // quieto a propósito no cuenta como atasco
+    if (!this.zonaAlcanzada(x_m) && r.t - this.tMejorX > SEG_ATASCO) return this._terminar(false, 'atascado');
 
     if (this.o.modo === 'prueba') {
       if (x_m >= this.meta_m) this._terminar(true, 'meta');
@@ -146,6 +155,11 @@ export class Recorrido {
       if (estado.integridad >= this.o.umbralIntegridad) this._terminar(true, 'entrega');
       else this._terminar(false, 'carga_danada');
     }
+  }
+
+  /** ¿Está en la zona de entrega (misión)? Ahí detenerse es lo esperado, no un atasco. */
+  zonaAlcanzada(x_m) {
+    return Boolean(this.zona) && x_m >= this.zona.desde - 2;
   }
 
   _terminar(exito, motivo) {
@@ -169,7 +183,7 @@ export class Recorrido {
     });
     const textos = {
       meta: '¡Prueba superada!', entrega: '¡Entrega completada!', chasis_destruido: 'Chasis destruido',
-      carga_perdida: 'Se perdió la carga', volcado: 'El robot volcó', energia_agotada: 'Sin energía',
+      carga_perdida: 'Se perdió la carga', volcado: 'El robot volcó', energia_agotada: 'Sin energía', atascado: 'El robot quedó atascado',
       carga_danada: 'La carga llegó muy dañada', abandono: 'Prueba abandonada',
     };
     this.hud.mostrar(textos[motivo] ?? motivo);

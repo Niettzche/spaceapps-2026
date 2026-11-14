@@ -112,6 +112,10 @@
 - **Pasa** si el robot llega al **final del recorrido** con chasis y carga vivos.
 - Genera telemetría (eventos) para el feedback.
 
+- **Atasco:** si el robot acelera sin ganar 1.5 m de avance en 15 s, la prueba termina ("quedó atascado"); estar quieto a propósito no cuenta. (P)
+  En Samalayuca con rueda estándar la prueba falla a los ~60 s de juego en vez de ~99 s.
+- **Prueba de punta a punta:** `game/e2e/camino_dorado.mjs` (clics y teclado reales, Marte y Luna). Última corrida: 25/25 pasos OK.
+
 ## 10. Misión
 
 - Gravedad del destino elegido: Luna (`polo_sur_lunar`, 1.62 m/s²) o Marte (`jezero`, 3.71 m/s²).

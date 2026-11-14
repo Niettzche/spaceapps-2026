@@ -17,6 +17,7 @@ const MOTIVOS = {
   carga_perdida: 'La carga se cayó.',
   volcado: 'El robot volcó.',
   energia_agotada: 'Se acabó la energía.',
+  atascado: 'Quedó atascado: no avanzó en 15 s.',
   carga_danada: 'Llegó, pero la carga está por debajo del mínimo.',
   abandono: 'Se abandonó el recorrido.',
 };
