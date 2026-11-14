@@ -1,43 +1,47 @@
 # Estado — Taller y piezas
 
-> Lo actualiza SOLO este frente. Rama: `feat/taller`.
+> Lo actualiza SOLO este frente. Rama: `feat/taller` (ronda 3: `feat/taller-datos`).
 
 **Responsable:** Leo  ·  **Agente:** Claude Code / Codex
-**Última actualización:** 14 nov 2026 (ronda 2, tras el merge de #7 y #12)
+**Última actualización:** 14 nov 2026 (ronda 3, tras el merge de #16 y #21)
 
 ## Hecho
 - [x] Investigación de ruedas, chasis, energía y materiales reales con fuentes NASA/JPL/Smithsonian → `docs/taller/PIEZAS.md`
 - [x] `parts.json`: mismos `id` y números (cuadran 730 / 890); notas con inspiración real; `radio_m` en ruedas (valor de juego);
       `panel_solar` marcado "sin efecto en el MVP"
 - [x] Reglas del diseño sin Phaser: `game/src/scenes/Taller/diseno.js` (`RANURAS`, `DISENO_POR_DEFECTO`, `resumen()`, `validar()`)
-      + prueba `node game/src/scenes/Taller/diseno.test.mjs` (13 casos)
+      + prueba `node game/src/scenes/Taller/diseno.test.mjs` (14 casos)
 - [x] Escena Taller: 7 ranuras del contrato del frente juego, ruedas = eje × 2 (costo y masa), presupuesto visible,
       validación (estructura, movilidad, energía, carga, presupuesto), quitar/restablecer, teclado completo
 - [x] Guarda `partida.diseno = [{ ranura, pieza }]` al continuar (bloqueado si el diseño no es válido)
-- [x] Ronda 2 (pedido de integración):
-  - Usa `irA(this, 'Prueba')` de `ui.js` (fundido común); el build ya no avisa.
-  - El texto de validación ya no se encima con los botones: zona fija y = 352–462, errores resumidos con "(+N más)"
-    si no caben en 2 líneas y el resumen se recorta desde el final. "Quitar" pasó a la línea del título del catálogo.
-  - Íconos 16 × 16 de las piezas: se muestran en el catálogo (× 2), en las ranuras (× 1) y dentro de las ruedas (× 2)
-    en cuanto existan; sin ícono, la pieza se ve solo con texto. Probado con íconos de prueba locales (no subidos).
+- [x] Ronda 2 (pedido de integración): `irA()`, validación sin encimarse con los botones, íconos 16 × 16 con respaldo de texto.
+- [x] Ronda 3 (pedido de integración):
+  - **Libro de datos** lleno y subido a `docs/taller/Space_Apps_Game_Data.xlsx` (mismo archivo que el original del equipo):
+    hoja Parts (PT-001…PT-012 = `parts.json`), φ de arena de duna (BM-004, 28–34°) y de escoria de lava (BM-003, 25–32°)
+    con fuente, constantes de Bekker (arena seca; lunar aproximado), fuentes S59–S70 y Review Log RV-094…RV-130.
+    Resumen en `docs/taller/PIEZAS.md` §4.
+  - **Autonomía con carga**: suma los 10 kg (`MASA_CARGA_KG` de `fisica/diseno.js`) y usa `gastoPorSegundo()` de
+    `fisica/energia.js` (misma regla que la física). `resumen().masa` sigue siendo solo el robot.
+  - **Regla de ejes**: agarre = promedio de los dos ejes (como en la física, cada rueda aporta); si los ejes son distintos,
+    aviso "con las dos anchas es más seguro".
+  - Correcciones en `PIEZAS.md` tras revisar las fuentes: Opportunity se hundió "más de 10 cm" (no "hasta los rines");
+    "cada rueda con su propio motor" ahora cita la página de componentes de Perseverance.
 
 ## En curso
--
+- Modelo de precios: **sin decidir** (Excel por kg de material, mínimo 665, contra `parts.json` por pieza, mínimo 730).
+  La hoja Parts refleja `parts.json` (lo que usa el juego). No se unifica hasta que el equipo elija.
 
 ## Siguiente
-- [ ] Regla del peor eje: **en espera** de la verificación de integración ("rueda ancha solo adelante" en la física). No se cambia antes.
-- [ ] Probar el camino dorado completo con `fisica/robot.js` del frente juego (estándar patina en dunas → ancha pasa)
+- [ ] Probar el camino dorado completo en la física (estándar patina en dunas → ancha pasa) con los φ nuevos, si juego los usa
 - [ ] Balance fino con telemetría real (agarre, consumo) junto con el frente juego
 
 ## Bloqueos / necesito de otro frente
-- Arte (Mauricio): íconos de las 12 piezas, 16 × 16, PNG transparente, en **`assets/iconos/<id_de_pieza>.png`**
-  (ej. `assets/iconos/rueda_ancha.png`). Carpeta propia para no chocar con el sprite de rueda `assets/rueda_ancha.png`
-  (tira de 4 cuadros). Ids: `rueda_estandar`, `rueda_ancha`, `rueda_tacos`, `chasis_ligero`, `chasis_reforzado`,
-  `bateria_chica`, `bateria_grande`, `motor_eficiente`, `motor_potente`, `soporte_basico`, `soporte_amortiguado`, `panel_solar`.
-  El Boot los precarga solo (clave `iconos/<id>`); si hay `assets/manifest.json`, el Taller carga los que falten.
-- Juego (Edmundo): `fisica/robot.js` puede importar `RANURAS`, `DISENO_POR_DEFECTO` y `resumen()` de
-  `game/src/scenes/Taller/diseno.js` para no duplicar reglas.
+- Juego (Edmundo): `fisica/suelos.js` tiene `tierra: { arena: null, roca: null }` "Gap en el libro de datos". Ya hay dato:
+  arena de duna BM-004 φ 28–34° (tan = 0.53–0.67) y escoria de lava BM-003 φ 25–32° (0.47–0.62). Son genéricos, no
+  medidos en Samalayuca ni Pinacate. Decide él si los usa.
+- Arte (Mauricio): íconos de las 12 piezas, 16 × 16, PNG transparente, en **`assets/iconos/<id_de_pieza>.png`**.
+  Ids: `rueda_estandar`, `rueda_ancha`, `rueda_tacos`, `chasis_ligero`, `chasis_reforzado`, `bateria_chica`,
+  `bateria_grande`, `motor_eficiente`, `motor_potente`, `soporte_basico`, `soporte_amortiguado`, `panel_solar`.
 
 ## Cambios que propongo a contratos o AGENTS.md (los aplica el integrador)
-- ~~`radio_m` en `part.schema.json`~~ y ~~carpetas del taller en §9~~: aplicados por integración.
 - `docs/juego/ASSETS_ARTE.md` (dueño: juego): anotar la ruta `assets/iconos/<id>.png` en la fila "Íconos de las 12 piezas".
