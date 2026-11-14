@@ -17,7 +17,7 @@ const copy = {
     play: 'Open Misión Cero', pending: 'Game preview coming soon', pendingText: 'The rover game is being integrated. You can already explore the map and play the terrain quiz above.',
     sources: 'Open data. Explicit limits.',
     sourceText: 'The current terrain comparison uses these sources. A similar landform does not establish matching geology, environmental conditions or safe field access.',
-    repo: 'Source code', ai: 'AI-assisted code and documentation. Candidate sites require scientific review.',
+    repo: 'Source code', ai: 'AI assisted code, documentation, artwork and image-based terrain labeling. Labels were checked against external sources; candidates still require scientific review.',
   },
   es: {
     title: 'La próxima misión empieza en la Tierra.',
@@ -35,7 +35,7 @@ const copy = {
     play: 'Abrir Misión Cero', pending: 'Próximamente: juego de rovers', pendingText: 'El juego de rovers está en integración. Ya puedes explorar el mapa y jugar el quiz de terrenos de arriba.',
     sources: 'Datos abiertos. Límites explícitos.',
     sourceText: 'La comparación actual del terreno utiliza estas fuentes. Una forma similar no demuestra que coincidan la geología o el ambiente, ni garantiza acceso seguro al sitio.',
-    repo: 'Código fuente', ai: 'Código y documentación asistidos por IA. Los sitios candidatos requieren revisión científica.',
+    repo: 'Código fuente', ai: 'IA en código, documentación, arte y etiquetado visual del terreno. Etiquetas contrastadas con fuentes; los candidatos requieren revisión científica.',
   },
 }
 
@@ -78,6 +78,12 @@ export function ProjectFooter({ lang }) {
       <div>{gameUrl ? <a className="primary" href={gameUrl}>{c.play} ↗</a> : <><strong>{c.pending}</strong><p>{c.pendingText}</p></>}</div>
     </section>
     <section className="project-sources" id="fuentes" aria-labelledby="sources-title">
+      <h2>{lang === 'en' ? 'The idea in 30 seconds' : 'La idea en 30 segundos'}</h2>
+      <video controls preload="none" style={{ width: '100%', maxWidth: '960px', margin: '24px 0' }} aria-label={lang === 'en' ? 'Project overview with English captions' : 'Resumen del proyecto con subtítulos en inglés'}>
+        <source src={import.meta.env.BASE_URL + 'media/mision-cero-30s-en.mp4'} type="video/mp4" />
+        <track kind="captions" src={import.meta.env.BASE_URL + 'media/mision-cero-30s-en.vtt'} srcLang="en" label="English" default />
+      </video>
+      <p>{lang === 'en' ? 'Visual explanation, not a recording of a rover mission.' : 'Explicación visual; no es una grabación de una misión del rover.'}</p>
       <h2 id="sources-title">{c.sources}</h2><p>{c.sourceText}</p>
       <p>{lang === 'en' ? 'Built with' : 'Herramientas'}: <a href="https://earthengine.google.com/">Google Earth Engine</a> · <a href="https://react.dev/">React</a> · <a href="https://vite.dev/">Vite</a> · <a href="https://maplibre.org/">MapLibre</a>.</p>
       <ul>{sources.map(([name, url]) => <li key={name}><a href={url} target="_blank" rel="noreferrer">{name} ↗</a></li>)}</ul>

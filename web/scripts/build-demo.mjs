@@ -18,6 +18,6 @@ function build(dir, env, extraBase) {
   if (result.status !== 0) process.exit(result.status || 1);
 }
 build(web, { VITE_GAME_URL: base + 'game/' }, base);
-build(game, {}, base + 'game/');
+build(game, { VITE_WEB_URL: process.env.VITE_WEB_URL || base, VITE_API_URL: process.env.VITE_API_URL || base + 'api' }, base + 'game/');
 cpSync(path.join(game, 'dist'), path.join(web, 'dist/game'), { recursive: true });
 console.log('VPS demo ready in web/dist: website at ' + base + ', game at ' + base + 'game/');

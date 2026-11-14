@@ -1,5 +1,32 @@
-# Metodología (1 página, para el público y los jueces)
+# Metodología · Misión Cero / Cráter Gemelo
 
-TODO(integración + modelo): variables y fuentes NASA, fórmula de similitud, recorte al extremo terrestre, veto, validación,
-tres vías de identificación (curadas, escaneo, propuestas) y límites (gravedad, presión, radiación, vacío).
-Al final: versión en inglés para la página del proyecto.
+Versión de entrega: 14 noviembre 2026. Pesos y umbrales son provisionales. La búsqueda identifica candidatos para revisión, no certifica sitios de entrenamiento.
+
+## Español
+
+**Pregunta y alcance.** ¿Qué terrenos terrestres permiten ensayar parte de una operación lunar o marciana? México es el caso validado; la búsqueda global ha cubierto Atacama, Arizona y Arabia, 3 de 10 regiones áridas priorizadas. No se ha escaneado todo el planeta. Hay sitios curados, candidatos del detector y propuestas de usuarios pendientes de revisión; una propuesta no equivale a un sitio validado.
+
+**Datos y forma.** El mismo detector mide depresiones en Copernicus DEM GLO-30 (ESA), LOLA/LRO (NASA, polo sur lunar) y HRSC+MOLA (ESA/NASA vía USGS), comparadas a 200 m por píxel. MODIS (NASA) aporta vegetación, cobertura y albedo; NASA POWER aporta clima. El filtro árido usa NDVI p90 < 0.35. Se comparan diámetro, profundidad/diámetro y borde/diámetro con un modelo explicable Luna contra Marte y distancia a la nube de referencia. A esta resolución, el borde lunar no es una evidencia independiente fiable de semejanza. No se infiere composición a partir del parecido de forma.
+
+**Similitud complementaria.** Para clima y pendiente: `s = exp(-abs(tierra − objetivo)/escala)`. El objetivo fuera del rango terrestre se recorta al extremo y se declara ese límite. El total es una media geométrica ponderada de las dimensiones disponibles: forma 0.40, oscilación térmica 0.20, precipitación 0.15, NDVI 0.10 y pendiente 0.15. Se omiten datos faltantes, se renormalizan pesos y baja la confianza. Si la similitud NDVI cae por debajo de 0.05, el total es cero. Confianza representa cobertura de dimensiones, no probabilidad de acierto. El puntaje de forma combina probabilidad del clasificador y distancia a la nube; el total no es una probabilidad de éxito de misión.
+
+**Validación por componente.** El informe del detector mexicano registra 9 de 11 cráteres conocidos; en el catálogo volcánico ampliado, la recuperación es 40 % de 62 estructuras en rango, con lagos y tamaño como límites. El clasificador Luna/Marte alcanza alrededor de 78 % de exactitud balanceada con grupos espaciales. El comparador complementario supera 3/3 controles negativos y 9/20 análogos conocidos: no valida todas las clases de analogía. El etiquetado asistido por IA acierta 29/33 casos cotejados con fuentes externas (88 %); no implica 88 % de acierto en todos los candidatos. Son evaluaciones diferentes, no una sola cifra de exactitud.
+
+**Del sitio al juego.** Los perfiles DEM usan `paso_m` y `superficies: [{desde,hasta,tipo}]`, con distancias en metros. La superficie es una clasificación por reglas, no una medición directa. Las caras de duna, rocas y zonas planas añadidas se declaran como recreación. Escala, balance, daño y puntuación son valores de juego. La gravedad nominal es Tierra 9.81, Marte 3.71 y Luna 1.62 m/s²; el juego aplica un factor común de balance y conserva sus proporciones. La Tierra no reproduce gravedad de destino, vacío, presión, radiación ni frío de sombra lunar. El permiso de acceso a un terreno tampoco se deduce del puntaje.
+
+## English
+
+**Scope and method.** We identify candidate Earth terrain for selected lunar and Martian operations. Mexico is the validated case study; the global search covers Atacama, Arizona and Arabia, three of ten prioritized arid regions. Curated sites, model candidates and unreviewed user proposals have distinct status. One detector compares Earth Copernicus DEM (ESA), lunar LOLA/LRO (NASA) and Martian HRSC+MOLA (ESA/NASA/USGS) at 200 m resolution. NASA MODIS provides vegetation, land cover and albedo; NASA POWER provides climate. An arid mask uses NDVI p90 < 0.35. An explainable Moon-versus-Mars model and distance to the reference cloud describe crater shape; shape does not establish matching composition.
+
+**Score.** Complementary dimensions use `exp(-abs(earth − target)/scale)`, with unreachable target values clipped to Earth limits and explicitly flagged. The weighted geometric mean uses shape 0.40, daily temperature range 0.20, precipitation 0.15, NDVI 0.10 and slope 0.15. Missing values are omitted, weights renormalized and confidence reduced. NDVI similarity below 0.05 vetoes the total. Confidence measures data coverage; neither confidence nor total score is a probability of mission success.
+
+**Evidence and limits.** Distinct evaluations: 9/11 documented Mexican craters in the original detector report; 40% recovery in the wider 62-structure volcanic catalog; about 78% spatially grouped balanced accuracy for Moon/Mars classification; 3/3 negative and 9/20 known-analog controls for the complementary comparator; 29/33 externally checked AI-assisted labels. These results must not be conflated or generalized to unverified sites. Real DEM transects underpin game terrain, while added rocks, dune faces, gravity scaling and robot balance are declared game approximations. No Earth location reproduces lunar vacuum, target gravity, radiation or all thermal conditions. Field access and operational suitability require separate review.
+
+## Sources and reproducibility
+
+- [Model validation](../model/VALIDATION.md), [score implementation](../model/score.py), [integrated shortlist](../ciencia_datos/salidas/lista_corta.md), [AI-label validation](../ciencia_datos/etiquetado_ia/validacion.txt).
+- [NASA POWER](https://power.larc.nasa.gov/), [MODIS](https://modis.gsfc.nasa.gov/data/), [LRO LOLA](https://pds-geosciences.wustl.edu/missions/lro/lola.htm), [Copernicus DEM](https://dataspace.copernicus.eu/), [USGS HRSC+MOLA](https://astrogeology.usgs.gov/), [NASA GIBS](https://www.earthdata.nasa.gov/eosdis/science-system-description/eosdis-standard-services/gibs).
+- Contextual checks: [Smithsonian GVP](https://volcano.si.edu/), [OpenStreetMap](https://www.openstreetmap.org/). Processing: Earth Engine and Python; interface: React, Vite, MapLibre, Phaser/Matter.
+- Mars convention: [NASA JPL equatorial gravity, 3.71](https://ssd.jpl.nasa.gov/planets/phys_par.html); [NASA mean gravity, 3.73](https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html). The demo uses 3.71 consistently.
+
+**AI disclosure.** Claude Code and Codex assisted code and documentation; AI-assisted art is disclosed as artwork, not measured terrain. Claude also suggested terrain labels from satellite and shaded-relief images, checked against external catalogs/OSM. Labels retain uncertainty and require review. See [AI disclosure](USO_IA.md).

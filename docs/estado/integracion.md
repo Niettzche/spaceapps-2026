@@ -1,35 +1,37 @@
 # Estado — Integración, pitch y entrega
 
-Responsable: Alan · Agente: Codex · Rama: main (integración completada por PR)
-Actualizado: 2026-11-14
+Responsable: Alan · Agente: Codex · Actualización: 2026-11-14
 
 ## Hecho
-- PR #7 integrado con merge commit, tras CI en verde.
-- Web bilingüe, inglés inicial, mapa y quiz preservados. Hero real de Rincón de Parangueo con fuente, escala e iluminación sintética declaradas.
-- Alcance: Atacama, Arizona y Arabia, 3/10 regiones priorizadas; fuentes GIBS y GVP y herramientas agregadas.
-- Expediente recibe solo sitios con perfil válido o estado distinto de candidato_modelo. Catálogo completo conservado por separado.
-- Esquema: paso_m positivo, superficies en metros (arena/roca/compacto), radio_m positivo.
-- Transición irA con fundido protegido contra doble activación; Matter runner fijo; reiniciarPartida conserva identidad y limpia estado previo.
-- §9 actualizado para fisica, feedback y carpetas de taller; puntuación confirmada: 1000 máximo, estrellas en 750 y 900.
-- Solicitado a Mario en PR #4 completar paso_m y superficies de Pinacate y Samalayuca desde niveles.json.
-- Build conjunto para VPS: web en / y juego en /game/, con bases y VITE_GAME_URL coordinadas; instrucciones en web/DEPLOY.md.
-- Validación JSON y 5 pruebas del modelo pasan; compilación web/juego y 13 casos del taller pasan.
+- #21 actualizado con feat/juego y mergeado, incluyendo fps target/limit 60 y runner fijo. #16 de Leo mergeado. #14 sigue abierto, sin integrar.
+- Se recibieron luego 20bea74 y ea8984f (sacudidas/rocas y guía de arte); incluidos en la rama de seguimiento feat/integracion-entrega.
+- Prueba de límite con Phaser real y reloj sintético a 60/120/144/240 Hz: ningún caso supera 60 updates/s.
+- Marte conserva 3.71 m/s² (gravedad ecuatorial NASA JPL). 3.73 es la convención media de la Mars Fact Sheet, documentada como alternativa distinta.
+- Pruebas locales: 20 casos de física/juego, 13 de taller, 9 de Expediente, regresión de fps y enlaces web pasan. JSON válido y 5 pruebas del modelo pasan.
+- Web y juego compilan juntos. Sitios curados ya contienen paso_m y superficies canónicas del esquema; superficie_tramos queda como formato del archivo de origen, que el juego acepta por compatibilidad.
+- Web abre ?sitio=<id> y admite ficha= para fichas antiguas. Los sitios de data/sites tienen ficha propia con fuentes, unidades y valores faltantes explícitos.
+- Build conjunto configura VITE_WEB_URL, VITE_API_URL y VITE_GAME_URL sin secretos, coordinados con DEMO_BASE.
+- METODOLOGIA.md bilingüe, ENTREGA_EN.md, GUION_PITCH.md y USO_IA.md completados. §14 y pie de web declaran IA en código, documentación, arte y etiquetado.
+- Video explicativo de 29.90 s, H.264 1280×720, 30 fps, subtítulos en inglés, generado y revisado visualmente. No es captura de una partida. Fuente de arte: rama ligera, sin mergear #14 ni precargar GIF pesado.
+- Regresiones de juego/fps y build/enlaces de web probados localmente. GitHub rechazó actualizar workflows por falta de scope workflow; se conservó la configuración de CI existente.
 
-- Filtro verificado sobre datos integrados: 3 sitios jugables / 56 sitios totales. CI de main en verde (0f91d64).
-- Comprobaciones adicionales: reinicio idempotente, transición protegida e imagen existente.
+## Camino dorado y límites de verificación
+- Edmundo reporta verificación sin interfaz con data/ real: Samalayuca estándar falla, ancha llega en 59 s; Luna y Marte entregan con batería chica.
+- Integración ejecutó las pruebas y builds mencionados; NO certifica aún el recorrido visual completo en navegador, porque la conexión al preview local estuvo bloqueada. Hace falta recorrer carga → destino → ficha → ticket → taller → prueba → feedback → misión → entrega → puntuación en la máquina del pitch.
+- El video es explicativo; no sustituye esa verificación ni acredita operación en un rover real.
 
 ## Siguiente
-- Stack #2 → #4 → #5 → #6 integrado en ese orden, todos reapuntados a main y con merge commits.
-- Prueba visual y camino dorado de ambas misiones con los frentes correspondientes.
-- Desplegar al VPS cuando estén disponibles host, usuario SSH y directorio/dominio.
-- Metodología final, tráiler y entrega.
+- Revisar e integrar seguimiento de entrega, incluido el último avance de juego posterior a #21.
+- Prueba visual en escritorio/táctil y nueva partida: comprobar que no duplica recursos.
+- Página en inglés y juego publicados: completar con el VPS.
+- Subir el MP4 a un enlace público; copiar links a ENTREGA_EN.md y plataforma oficial.
+- Confirmar derechos y créditos finales de arte, accesibilidad pública del repo y envío oficial antes de la meta interna.
 
 ## Bloqueos / necesito de otro frente
-- VPS sin datos de conexión; no se publicó.
-- Mario debe completar paso_m y superficies en sitios curados.
-- Preview local inaccesible desde navegador de esta sesión.
-- Lint: dos advertencias previas de efectos en MapView; bundles grandes del mapa y Phaser.
-- Dependencias existentes del juego: npm audit reporta una vulnerabilidad moderada y una alta; no se aplicaron actualizaciones incompatibles durante integración.
+- Completar con el VPS. No se publicó ni se asumió dominio.
+- No hay enlace público del video todavía.
+- Web lint mantiene dos advertencias previas de efectos en MapView.jsx; bundles grandes del mapa y Phaser.
 
-## Cambios a contratos / AGENTS.md
-- Los campos nuevos del esquema y la puntuación están documentados en docs/DECISIONES.md.
+## Contratos / decisiones
+- superficies [{desde,hasta,tipo}] y paso_m en data/; geometría de origen puede conservar superficie_tramos. No mezclar sus nombres al exportar al esquema.
+- docs/DECISIONES.md registra fps, convención de gravedad, puntuación (1000 máximo; estrellas 750/900) y despliegue.

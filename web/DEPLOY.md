@@ -26,4 +26,6 @@ location /game/ { try_files $uri $uri/ =404; }
 
 Verify `/`, `/game/`, website JSON and images, both destinations, game reset and mobile controls. The game and web use no client-side path routing, so missing asset requests must return 404 rather than HTML. External map tiles still require Internet access.
 
-Publication is pending the owner's VPS connection details; this document does not change any server configuration.
+Demo defaults: `VITE_WEB_URL=/`, `VITE_API_URL=/api`, `VITE_GAME_URL=/game/`. The script coordinates these with `DEMO_BASE` and accepts explicit `VITE_WEB_URL` / `VITE_API_URL` overrides. These are public URLs, never API tokens. Forward `/api/` to FastAPI while stripping the `/api` prefix; the static game still works if the API is unavailable.
+
+Publication: **completar con el VPS**. No public deployment has been assumed; this document does not change server configuration.
