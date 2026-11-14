@@ -13,3 +13,7 @@
 - 14 nov · Alcance global (zonas áridas del mundo); México como caso destacado · el reto pide buscar en cualquier lugar de la Tierra.
 - 14 nov · Destinos finales: Luna (polo sur, Artemis) y Marte (Jezero); el jugador elige · cubrir las dos mitades del reto (los datos del detector favorecen la Luna).
 - 14 nov · Arte en pixel art 2D, vista lateral, todo propio (ver assets/README.md) · lo definen los frentes de arte y juego.
+
+- 14 nov · Integración confirma puntuación: máximo 1,000; sin entrega 0 puntos/estrellas; entrega 1 estrella, 2 desde 750 y 3 desde 900. Valores de juego.
+- 14 nov · Publicación acordada: VPS del usuario, web en raíz y juego en /game/; acceso SSH, dominio y directorio pendientes. VITE_GAME_URL=/game/ y build del juego con --base=/game/.
+- 14 nov · Expediente usa sitios con perfil de al menos dos muestras o estado distinto de candidato_modelo; el catálogo científico completo se mantiene en TODOS_LOS_SITIOS.

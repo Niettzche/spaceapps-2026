@@ -204,7 +204,7 @@ Todos los frentes leen y escriben estos formatos. Ejemplos mínimos:
 ```
 
 **Puntuación visible (P):** entrega 500 + integridad de carga × 3 + energía restante × 1 + presupuesto ahorrado × 1 (en %).
-Estrellas por rangos. La puntuación del juego **no** es evidencia científica.
+Confirmado por integración: máximo 1,000 puntos; 1 estrella por entrega, 2 desde 750 y 3 desde 900. Sin entrega: 0 puntos y 0 estrellas. La puntuación del juego **no** es evidencia científica.
 
 ## 8. Arquitectura y stack
 
@@ -274,8 +274,8 @@ cp docs/estado/_plantilla.md docs/estado/<frente>.md
 | # | Frente | Rama | Carpetas que posee | Entregable mínimo |
 |---|---|---|---|---|
 | 1 | Modelo, datos y API del modelo | feat/modelo | /model, /data/targets, /data/sites, /data/known_analogs.json, /api (/score, /submit), /analisis, /ciencia_datos, /informe, /PROYECTO.md, /web/public/data | Variables reales de 3 sitios, 2 destinos, validación, búsqueda global en zonas áridas (§6.4) con México como caso destacado, endpoints |
-| 2 | Juego: física, prueba y misión | feat/juego | /game/src/scenes/Prueba, Mision, Resultados, /game/src/feedback | Recorrido con perfil real, gravedad, victoria/derrota, puntuación, feedback por reglas |
-| 3 | Taller y piezas | feat/taller | /game/src/scenes/Taller, /game/src/content/parts.json | Investigación de ruedas/materiales, armado con ranuras, presupuesto, validación del diseño |
+| 2 | Juego: física, prueba y misión | feat/juego | /game/src/scenes/Prueba, Mision, Resultados, /game/src/fisica/, /game/src/feedback/ | Recorrido con perfil real, gravedad, victoria/derrota, puntuación, feedback por reglas |
+| 3 | Taller y piezas | feat/taller | /game/src/scenes/Taller.js, /game/src/scenes/Taller/, /game/src/content/parts.json, /docs/taller/ | Investigación de ruedas/materiales, armado con ranuras, presupuesto, validación del diseño |
 | 4 | Expediente, explorador y menú | feat/expediente | /game/src/scenes/Boot, Menu, Expediente, Explorador | Pantalla de carga, comparación 1 a 1, consulta de coordenadas y propuesta de sitio |
 | 5 | Arte | feat/arte | /assets | Estilo, robot y piezas, 3 fondos de sitio + 1 de Marte, UI, tarjetas del expediente |
 | 6 | Integración, pitch y entrega | main | /AGENTS.md, /CLAUDE.md, /data/schema, /docs/DECISIONES.md, /web (salvo /web/public/data) | Merges, camino dorado, metodología, tráiler, página en inglés, entrega |
