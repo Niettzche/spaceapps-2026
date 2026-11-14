@@ -79,6 +79,11 @@ export class Recorrido {
     const avisoSuelo = notaSuelo(o.mundo, o.perfil.superficies);
     this.hud = new Hud(scene, { titulo: o.titulo, subtitulo: o.subtitulo, aviso: [avisoSuelo && `${avisoSuelo}.`, avisoNivel].filter(Boolean).join(' ') });
     this._botonAbandonar();
+    // Instrucciones al empezar: objetivo + controles (teclado y táctil). Esc abandona.
+    const controles = '→ / D acelerar   ← / A frenar   (táctil: ▶ ◀)   Esc abandonar';
+    if (o.modo === 'prueba') this.hud.instrucciones('Prueba en la Tierra: llega a la META con la carga', [controles]);
+    else this.hud.instrucciones('Misión: entrega el suministro', ['Frena y detente 2 s dentro de la ZONA DE ENTREGA con la carga ≥ 60 %', controles]);
+    scene.input.keyboard.on('keydown-ESC', () => this._terminar(false, 'abandono'));
   }
 
   _dibujarMeta(yMeta) {
@@ -125,6 +130,7 @@ export class Recorrido {
     const delta = runner?.isFixed ? runner.delta : deltaCuadro;
     const r = this.robot;
     const acelerador = this.terminado ? 0 : this.controles.acelerador();
+    if (acelerador !== 0) this.hud.ocultarInstrucciones();
     r.actualizar(delta, acelerador, this.superficieDe);
     this.aspecto.dibujar(this.g);
     this.efectos.actualizar(delta, r); // polvo de ruedas y arena al patinar

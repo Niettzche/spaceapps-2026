@@ -45,6 +45,8 @@ const PARALAJE = [0, 0.2, 0.5]; // capas 1 (cielo fijo), 2 (lejana), 3 (cercana)
 // Índice nombre → { png, json } (URLs que resuelve Vite).
 const indice = {};
 for (const [ruta, url] of Object.entries(archivos)) {
+  // Íconos del taller (iconos/) y pantalla de título (titulo/) los cargan otras escenas y repiten nombres de piezas.
+  if (/\/(iconos|titulo)\//.test(ruta)) continue;
   const [, nombre, ext] = ruta.match(/([^/]+)\.(png|json)$/) ?? [];
   if (!nombre) continue;
   indice[nombre] ??= {};

@@ -47,4 +47,24 @@ export class Hud {
   mostrar(texto) {
     this.mensaje.setText(texto);
   }
+
+  /** Panel de instrucciones al empezar (objetivo y controles). Se quita con ocultarInstrucciones() o solo a los 6 s. */
+  instrucciones(titulo, lineas) {
+    const s = this.scene;
+    const fijo = (o) => o.setScrollFactor(0).setDepth(96);
+    const texto = fijo(s.add.text(480, 175, [titulo, '', ...lineas].join('\n'), {
+      fontFamily: 'monospace', fontSize: '15px', color: '#ffffff', align: 'center', lineSpacing: 6,
+    }).setOrigin(0.5));
+    const fondo = fijo(s.add.rectangle(480, 175, texto.width + 48, texto.height + 32, 0x0b0d17, 0.85).setStrokeStyle(2, 0xffd166, 0.8));
+    texto.setDepth(97);
+    this.panel = [fondo, texto];
+    s.time.delayedCall(6000, () => this.ocultarInstrucciones());
+  }
+
+  ocultarInstrucciones() {
+    if (!this.panel) return;
+    const panel = this.panel;
+    this.panel = null;
+    this.scene.tweens.add({ targets: panel, alpha: 0, duration: 250, onComplete: () => panel.forEach((o) => o.destroy()) });
+  }
 }
