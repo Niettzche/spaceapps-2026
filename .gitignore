@@ -7,3 +7,5 @@ respaldo/
 .ipynb_checkpoints/
 .DS_Store
 .qa/
+informe/datos/
+informe/validacion.html
