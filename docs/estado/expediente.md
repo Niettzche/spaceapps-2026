@@ -28,13 +28,14 @@
 - [x] Botón "Ficha completa ↗" que abre web/ en otra pestaña con `?sitio=<id>` (y `&ficha=MX0007` para detecciones del detector).
   La URL sale de `VITE_WEB_URL` (archivo `game/.env.local`, no se sube); sin ella el botón aparece deshabilitado ("sin enlace").
 
+- [x] Pantalla "¿De dónde salen los números?" en español e inglés (3 páginas: fuentes, cálculo, validación/límites/valores
+  de juego). Todo el contenido sale de AGENTS.md; si cambian cifras o fuentes, actualizar `game/src/scenes/expediente/numeros.js`.
+
 ## En curso
-- [ ] Pantalla "¿De dónde salen los números?" (es/en)
+- [ ] Explorador: formulario lat/lon → POST /score
 
 ## Siguiente
-- [ ] Tickets de prueba (3 por partida)
-- [ ] Explorador: consulta de coordenadas → /score → /submit
-- [ ] Pantalla '¿De dónde salen los números?'
+- [ ] Explorador: botón "Proponer sitio" → POST /submit (solo si la similitud ≥ 0.6)
 
 ## Bloqueos / necesito de otro frente
 - **Arte:** Boot precarga solo lo que haya en `/assets`. Si se necesitan hojas de sprites, crear `assets/manifest.json`
