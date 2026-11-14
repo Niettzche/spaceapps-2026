@@ -164,24 +164,91 @@ export function generarPerfil({ tipo = 'dunas', semilla = 1, largo_m = 240 } = {
   };
 }
 
-/** Perfil a partir de un arreglo de elevaciones reales (m), con su paso y exageración vertical declarados. */
-export function perfilDesdeElevaciones(elevaciones, { paso_m = PASO_REAL_DEFECTO_M, exageracion = 1, superficies, fuente = null } = {}) {
+// Largo jugable de un tramo real (m): un nivel de 2 a 3 minutos. Se toma a escala real, sin deformar. (P)
+export const VENTANA_REAL_M = 250;
+// Pendiente máxima admitida al elegir la ventana: tramos más empinados (paredes de cráter o de tajo) no se pueden subir. (P)
+const PENDIENTE_MAX_VENTANA = 30;
+
+// Caras de duna recreadas (recreación declarada): el DEM de 30 m no resuelve la cara de una duna, que llega al ángulo de
+// reposo de la arena (~30–34°). Se agregan solo en tramos de arena de sitios terrestres. (P)
+const DUNA = { periodo: 28, subida: 0.22, alturaMin: 3.6, alturaVar: 0.8, anguloRef: 32 };
+
+/** Ventana de `largo` m dentro de [0, total]: la de mayor pendiente media cuya pendiente máxima no pase el límite. */
+function elegirVentana(elev, total, largo, paso) {
+  if (total <= largo) return { desde: 0, hasta: total };
+  const pend = (a, b) => Math.abs(Math.atan2(elev(b) - elev(a), b - a)) * (180 / Math.PI);
+  let mejor = null;
+  for (let d = 0; d + largo <= total + 1e-9; d += paso) {
+    let suma = 0;
+    let max = 0;
+    for (let x = d; x < d + largo; x += paso) {
+      const p = pend(x, Math.min(x + paso, d + largo));
+      suma += p;
+      max = Math.max(max, p);
+    }
+    const candidata = { desde: d, hasta: d + largo, media: suma / Math.ceil(largo / paso), max };
+    const valida = max <= PENDIENTE_MAX_VENTANA;
+    if (!mejor || (valida && (!mejor.valida || candidata.media > mejor.media)) || (!valida && !mejor.valida && candidata.max < mejor.max)) {
+      mejor = { ...candidata, valida };
+    }
+  }
+  return mejor;
+}
+
+/**
+ * Perfil a partir de elevaciones reales (m) con su paso y exageración vertical declarados.
+ * Si el transecto es más largo que `ventana_m`, se usa un tramo real de ese largo, sin deformar.
+ * Con `dunasRecreadas`, se agregan caras de duna en los tramos de arena, marcadas como recreación.
+ */
+export function perfilDesdeElevaciones(elevaciones, {
+  paso_m = PASO_REAL_DEFECTO_M, exageracion = 1, superficies, fuente = null, ventana_m = VENTANA_REAL_M, dunasRecreadas = false, semilla = 1,
+} = {}) {
   const e0 = elevaciones[0];
-  const largoJugable = paso_m * (elevaciones.length - 1);
-  const elev = (x) => {
-    const i = Math.min(Math.floor(x / paso_m), elevaciones.length - 2);
+  const total = paso_m * (elevaciones.length - 1);
+  const elevReal = (x) => {
+    const i = Math.max(0, Math.min(Math.floor(x / paso_m), elevaciones.length - 2));
     const t = (x - i * paso_m) / paso_m;
     return ((elevaciones[i] * (1 - t) + elevaciones[i + 1] * t) - e0) * exageracion;
   };
+  const v = elegirVentana(elevReal, total, ventana_m, paso_m);
+  const largoJugable = v.hasta - v.desde;
+  const tramosTotales = superficies?.length ? superficies : [{ desde: 0, hasta: total, tipo: 'compacto' }];
+  // Tramos dentro de la ventana, en coordenadas de la ventana.
+  const tramos = tramosTotales
+    .map((t) => ({ ...t, desde: Math.max(t.desde, v.desde) - v.desde, hasta: Math.min(t.hasta, v.hasta) - v.desde }))
+    .filter((t) => t.hasta > t.desde);
+  if (!tramos.length) tramos.push({ desde: 0, hasta: largoJugable, tipo: 'compacto' });
+  const tipoEn = (x) => tramos.find((t) => x >= t.desde && x < t.hasta)?.tipo ?? tramos[tramos.length - 1].tipo;
+
+  const r = aleatorio(semilla);
+  const alturasDuna = Array.from({ length: Math.ceil(largoJugable / DUNA.periodo) + 1 }, () => DUNA.alturaMin + r() * DUNA.alturaVar);
+  const duna = (x) => {
+    if (!dunasRecreadas || tipoEn(x) !== 'arena') return 0;
+    const k = Math.floor(x / DUNA.periodo);
+    const t = (x % DUNA.periodo) / DUNA.periodo;
+    return alturasDuna[k] * (t < DUNA.subida ? t / DUNA.subida : (1 - t) / (1 - DUNA.subida));
+  };
+  const hayDunas = dunasRecreadas && tramos.some((t) => t.tipo === 'arena');
+  const elev = (x) => elevReal(v.desde + x) - elevReal(v.desde) + duna(x);
+
   const base = conPlanos(elev, largoJugable);
-  const tramos = superficies?.length ? superficies : [{ desde: 0, hasta: largoJugable, tipo: 'compacto' }];
+  const km = (mts) => (mts >= 1000 ? `${(mts / 1000).toFixed(1)} km` : `${Math.round(mts)} m`);
+  const partes = [
+    `Perfil medido (${fuente ?? 'fuente sin declarar'})`,
+    total > largoJugable ? `tramo real de ${km(largoJugable)} (desde el m ${Math.round(v.desde)}) de un transecto de ${km(total)}` : null,
+    exageracion !== 1 ? `exageración vertical ×${exageracion}` : null,
+    hayDunas ? `caras de duna recreadas (~${DUNA.anguloRef}°, ángulo de reposo de la arena; el modelo de 30 m no las resuelve)` : null,
+    'inicio y meta planos = recreación',
+  ].filter(Boolean);
   return {
     ...base,
     superficies: desplazarSuperficies(tramos, PLANO_INICIO_M, base.largo_m),
     ilustrativo: false,
     fuente,
-    nota: `Perfil medido (${fuente ?? 'fuente sin declarar'}), exageración vertical ×${exageracion}; inicio y meta planos = recreación.`,
+    nota: partes.join(' · '),
     tipo: 'real',
+    ventana: { desde_m: v.desde, hasta_m: v.hasta, transecto_m: total },
+    recreacion: hayDunas ? [{ tipo: 'cara_duna', recreacion: true }] : [],
   };
 }
 
@@ -206,6 +273,8 @@ export function perfilDeSitio(sitio) {
       exageracion: nivel.exageracion_vertical ?? 1,
       superficies: tramosDeNivel(nivel),
       fuente: nivel.fuente,
+      dunasRecreadas: true,
+      semilla: semillaDe(sitio.id),
     });
   }
   return generarPerfil({ tipo: TIPO_POR_PRUEBA[sitio?.prueba_util] ?? 'dunas', semilla: semillaDe(sitio?.id ?? 'sin_sitio') });

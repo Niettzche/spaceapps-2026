@@ -80,6 +80,9 @@
 
 - Si el sitio tiene `nivel.perfil_elevacion_m`, se usa ese perfil con su `exageracion_vertical` y la compresión horizontal declarada.
 - Si no, **generador procedural con semilla fija** por tipo (dunas, lava, pendiente, cráter), con aviso en pantalla **"terreno ilustrativo"**.
+- **Perfil real largo (3–10 km):** se usa un **tramo real de 250 m sin deformar** (la ventana de mayor pendiente media con pendiente máxima ≤ 30°); en pantalla se declara "tramo real de 250 m (desde el m X) de un transecto de Y km".
+- **Caras de duna recreadas:** en tramos de arena de sitios terrestres se agregan caras de duna de ~32° (ángulo de reposo de la arena), porque el modelo de 30 m no las resuelve. Se declaran en pantalla y en `perfil.recreacion`. Verificado con el perfil real de Samalayuca: la rueda estándar patina y se queda sin energía; la ancha llega a la meta en ~64 s.
+- Acepta `superficies [{desde, hasta}]` y `superficie_tramos [{desde_m, hasta_m}]` (formato de `ciencia_datos/datos/niveles.json`).
 - Superficie **por tramo**: `nivel.superficies = [{ desde, hasta, tipo }]` en metros, `tipo` ∈ `arena | roca | compacto` (propuesta de esquema).
 - Obstáculos agregados para jugar llevan `recreacion: true`.
 

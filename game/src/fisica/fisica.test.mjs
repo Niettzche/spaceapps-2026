@@ -33,6 +33,19 @@ caso('nivel con formato de niveles.json (superficie_tramos, desde_m)', () => {
   assert.equal(superficieEn(p, 18 + 10), 'roca');
   assert.equal(superficieEn(p, 18 + 70), 'arena');
 });
+caso('transecto largo: ventana real de 250 m sin deformar', () => {
+  const elev = Array.from({ length: 101 }, (_, i) => Math.sin(i / 5) * 3);
+  const p = perfilDesdeElevaciones(elev, { paso_m: 30 });
+  assert.equal(p.ventana.hasta_m - p.ventana.desde_m, 250);
+  assert.match(p.nota, /tramo real de 250 m/);
+});
+caso('caras de duna recreadas solo en arena y declaradas', () => {
+  const elev = Array.from({ length: 101 }, () => 0);
+  const arena = perfilDesdeElevaciones(elev, { paso_m: 30, superficies: [{ desde: 0, hasta: 3000, tipo: 'arena' }], dunasRecreadas: true });
+  const roca = perfilDesdeElevaciones(elev, { paso_m: 30, superficies: [{ desde: 0, hasta: 3000, tipo: 'roca' }], dunasRecreadas: true });
+  assert.ok(pendienteMaxima(arena) > 28 && arena.recreacion.length === 1 && /recreadas/.test(arena.nota));
+  assert.ok(pendienteMaxima(roca) < 1 && roca.recreacion.length === 0);
+});
 caso('daño: bajo el umbral no daña; protección reduce', () => {
   assert.equal(danioChasis(3), 0);
   assert.ok(danioCarga(4, 0.8) < danioCarga(4, 0.4));
