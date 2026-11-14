@@ -112,6 +112,10 @@
 - **Pasa** si el robot llega al **final del recorrido** con chasis y carga vivos.
 - Genera telemetría (eventos) para el feedback.
 
+- **Atasco:** si el robot acelera sin ganar 1.5 m de avance en 15 s, la prueba termina ("quedó atascado"); estar quieto a propósito no cuenta. (P)
+  En Samalayuca con rueda estándar la prueba falla a los ~60 s de juego en vez de ~99 s.
+- **Prueba de punta a punta:** `game/e2e/camino_dorado.mjs` (clics y teclado reales, Marte y Luna). Última corrida: 25/25 pasos OK.
+
 ## 10. Misión
 
 - Gravedad del destino elegido: Luna (`polo_sur_lunar`, 1.62 m/s²) o Marte (`jezero`, 3.71 m/s²).
@@ -149,9 +153,19 @@ Cada recomendación sale de un evento real de la partida:
 |---|---|
 | `patinaje` en arena con rueda estándar | Cambiar a rueda ancha |
 | No sube una pendiente (se detiene acelerando) | Motor potente o rueda con tacos |
-| Daño a la carga | Soporte amortiguado |
+| Daño a la carga (integridad final < 90 %) o carga perdida | Soporte amortiguado |
 | Energía agotada | Batería grande o motor eficiente |
 | Chasis destruido | Chasis reforzado |
+
+## 12b. Dónde se rompe la analogía (pantalla de resultados de la misión)
+
+`game/src/feedback/analogia.js` compara la última prueba terrestre con la misión, con la telemetría real de ambas:
+gravedad (Tierra vs destino), momentos de patinaje, batería por cada 100 m, suelo medido del destino (suelos.js) y lo que
+la Tierra no puede reproducir (`no_reproducible_en_tierra` del target). Es la respuesta en vivo a "dónde se rompe la analogía".
+
+## Teclado en resultados
+
+Botones numerados 1–3 y Enter = siguiente paso sugerido (prueba fallida → taller; prueba superada → misión; misión cumplida → menú).
 
 ## 13. Transiciones y reinicio
 
