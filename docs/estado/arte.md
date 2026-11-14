@@ -2,7 +2,7 @@
 
 > Lo actualiza SOLO este frente. Rama: `feat/arte`.
 
-**Responsable:** (por asignar)  ·  **Agente:** Claude Code / Codex
+**Responsable:** Mauricio  ·  **Agente:** Claude Code / Codex
 **Última actualización:** (fecha y hora)
 
 ## Hecho

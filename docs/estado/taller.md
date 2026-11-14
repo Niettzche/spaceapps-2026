@@ -2,7 +2,7 @@
 
 > Lo actualiza SOLO este frente. Rama: `feat/taller`.
 
-**Responsable:** (por asignar)  ·  **Agente:** Claude Code / Codex
+**Responsable:** Leo  ·  **Agente:** Claude Code / Codex
 **Última actualización:** (fecha y hora)
 
 ## Hecho
