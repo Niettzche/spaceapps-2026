@@ -5,6 +5,7 @@ Notebooks de modelado sobre los cráteres que detecta `analisis/07_buscador_crat
 | Notebook | Qué hace |
 |---|---|
 | `01_modelos_explicables.ipynb` | Preprocesamiento, visualización y modelos explicables (árbol de decisión, regresión logística) que separan cráteres de Luna, Marte y Tierra; puntaje de análogo fuera de pliegue para México. [Abrir en Colab](https://colab.research.google.com/github/Niettzche/spaceapps-2026/blob/main/ciencia_datos/01_modelos_explicables.ipynb) |
+| `02_diagnostico_y_mejoras.ipynb` | Revisa por qué el `01` no da más: desbalance (atendido), etiquetas de la Tierra (el cuello de botella), cráteres demasiado chicos, anillo lunar. Propone un puntaje nuevo: modelo Luna contra Marte y distancia a la nube planetaria, sin depender de etiquetas terrestres. [Abrir en Colab](https://colab.research.google.com/github/Niettzche/spaceapps-2026/blob/main/ciencia_datos/02_diagnostico_y_mejoras.ipynb) |
 
 - `datos/`: copia de `respaldo/web_data/crateres_mexico.csv` y `hoyas_referencia.csv` (`respaldo/` no está en git). Si se regeneran, volver a copiarlos.
 - `salidas/`: gráficas, `arbol.json` (reglas del árbol para la web) y `puntaje_analogo_mexico.csv`. Las regenera el notebook.
