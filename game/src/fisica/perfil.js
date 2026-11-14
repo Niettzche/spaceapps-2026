@@ -62,7 +62,7 @@ const GENERADORES = {
       const i = Math.floor(x / 12);
       const t = (x % 12) / 12;
       const suave = t < 0.8 ? 0 : (t - 0.8) / 0.2;
-      return bloques[i] * (1 - suave) + bloques[i + 1] * suave + 0.25 * Math.sin(x * 1.7);
+      return bloques[i] * (1 - suave) + (bloques[i + 1] ?? bloques[i]) * suave + 0.25 * Math.sin(x * 1.7); // x = largo: no hay bloque siguiente
     };
     return { elev, superficies: [{ desde: 0, hasta: largo, tipo: 'roca' }] };
   },
