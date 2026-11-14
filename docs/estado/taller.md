@@ -35,18 +35,20 @@
       presupuesto 1,000), que es con el que se calibró el camino dorado. El precio por kilo de material del libro de datos queda
       como mejora posterior (se puede mencionar en el pitch). Registrado en el libro de datos (Index A34, Materials A2,
       RV-137/138); falta que integración lo anote en `docs/DECISIONES.md`.
-- [x] **Propuesta para juego** (rama `feat/taller-agarre`, no va a `feat/juego`): `suelos.js` con la arena de duna de la Tierra
-      (BM-004, con fuente), `AGARRE_PROVISIONAL = 1` (P) explícito donde no hay φ, y el HUD lo declara en pantalla
-      ("Suelo: arena: agarre provisional (P)"). `USAR_SUELO_TIERRA = false` por defecto: con φ 31° la ancha queda en ≈ 0.49
-      (≈ 26°) y las caras de duna recreadas son de ~30–34°, así que el camino dorado probablemente se rompería. Con `false`
-      se comporta igual que main. 21 pruebas de física pasan. Reemplaza el borrador del worktree local `mc-juego-agarre`.
+- [x] **Agarre del suelo de la Tierra (propuesta del taller, integrada por juego en `feat/juego`, commit a19c380)**: `suelos.js`
+      con la arena de duna (BM-004, con fuente), `AGARRE_PROVISIONAL = 1` (P) explícito donde no hay φ, y el HUD lo declara en
+      pantalla. Queda **apagado** (`USAR_SUELO_TIERRA = false`): juego confirmó que con la arena real la ancha no sube la cara
+      de ~33°, y que con las dunas en su orientación real (subir por barlovento ~10°, bajar por sotavento ~33°) también llega
+      la estándar (68 s contra 54 s de la ancha), así que el camino dorado deja de distinguir las ruedas. Ramas y worktree
+      temporales (`feat/taller-agarre`, `mc-juego-agarre`, `feat/taller` local) borrados.
 - [x] Las dos observaciones de juego sobre #16 ya están resueltas en #23: la regla del "peor eje" ahora es el promedio de
       ejes con aviso, y la autonomía ya incluye los 10 kg de carga (99 s, igual que la física).
 
+- [x] **Gravedad de Marte: 3.71** (ecuatorial, NASA JPL SSD), ya registrada por integración; juego está de acuerdo. El libro de
+      datos ya la marca como la que usa el juego (MR-056); 3.73 queda como media de referencia (MR-001). Nada que cambiar.
+
 ## En curso
-- Gravedad de Marte: integración registró **3.71** (ecuatorial, NASA JPL SSD) en `docs/DECISIONES.md`; juego recomienda
-  **3.73** (media, NASA Fact Sheet S01). Las dos son citables y están en el libro de datos (MR-056 y MR-001). Decide el
-  equipo; si cambia a 3.73, el taller actualiza MR-056/MR-001 y el Index A28.
+- #23 en revisión del lado de juego.
 
 ## Siguiente
 - Corridas de verificación (las corre juego en `game/e2e/`; resultados esperados según el reporte de juego):
@@ -62,14 +64,13 @@
   | 7 | Misión Luna, batería chica | Entrega |
   | 8 | Misión Jezero, batería chica | Entrega (repetir si la gravedad cambia a 3.73) |
 
-  Si juego activa `USAR_SUELO_TIERRA`, hay que repetir 1–6.
+  Si juego activa `USAR_SUELO_TIERRA`, hay que repetir 1–6 (y voltear las dunas a su orientación real cambia el resultado de 1).
 - [ ] Balance fino con telemetría real (agarre, consumo) junto con el frente juego
 
 ## Bloqueos / necesito de otro frente
-- Juego (Edmundo): revisar la rama `feat/taller-agarre` y quedarse con lo que sume. Datos disponibles en el libro de datos:
-  arena de duna BM-004 φ 28–34° (tan = 0.53–0.67), escoria de lava BM-003 φ 25–32° (no corresponde a los tramos de roca o
-  compacto de Pinacate) y Bekker de arena seca. Para "Jezero como Spirit" falta Bekker del polvo de Marte (BM-013, Gap).
-- Integración (Alan): anotar en `docs/DECISIONES.md` el modelo de precios por pieza para el MVP.
+- Integración (Alan): anotar en `docs/DECISIONES.md` el modelo de precios por pieza para el MVP (acordado taller + juego), y en
+  `docs/METODOLOGIA.md` el límite acordado con juego: **sin Bekker para el polvo de Marte** (no hay valores reales publicados;
+  NASA/TM-20250006958 dice lo mismo del regolito lunar), así que el juego no simula hundimiento. Fila BM-013 del libro de datos.
 - Arte (Mauricio): íconos de las 12 piezas, 16 × 16, PNG transparente, en **`assets/iconos/<id_de_pieza>.png`**.
   Ids: `rueda_estandar`, `rueda_ancha`, `rueda_tacos`, `chasis_ligero`, `chasis_reforzado`, `bateria_chica`,
   `bateria_grande`, `motor_eficiente`, `motor_potente`, `soporte_basico`, `soporte_amortiguado`, `panel_solar`.
