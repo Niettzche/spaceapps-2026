@@ -15,8 +15,11 @@
   de `feat/modelo-fichas` (29 Marte, 27 Luna).
 - [x] Pruebas de lógica: `cd game && node --test src/scenes/expediente/pruebas/`
 
+- [x] Expediente: recuadro "Lo que la Tierra no puede probar" (une `no_reproducible_en_tierra` del destino y `limites` del sitio;
+  gravedad con su valor y la nota de que solo se simula en la misión); las notas largas de `limites` salen como "Límite del cálculo"
+
 ## En curso
-- [ ] Límites y `no_reproducible_en_tierra` en el Expediente
+- [ ] Tickets y paso al Taller con `partida.sitio`
 
 ## Siguiente
 - [ ] Tickets de prueba (3 por partida)

@@ -2,9 +2,10 @@ import Phaser from 'phaser';
 import { SITIOS, DESTINOS } from '../data.js';
 import { partida } from '../main.js';
 import { COLOR, texto, boton, panel, Teclado } from './expediente/interfaz.js';
+import { GRAVEDAD } from '../config/world.js';
 import { DESTINO_POR_DEFECTO } from './expediente/config.js';
 import {
-  sitiosParaDestino, filasComparacion, formatoValor, formatoPorcentaje, esDemostracion, recortar, SIN_DATO,
+  sitiosParaDestino, filasComparacion, limitesDe, formatoValor, formatoPorcentaje, esDemostracion, recortar, SIN_DATO,
 } from './expediente/logica.js';
 import { ESTADOS, MUNDOS, PRUEBAS } from './expediente/textos.js';
 
@@ -105,7 +106,7 @@ export default class Expediente extends Phaser.Scene {
 
     // Encabezado del sitio
     const est = ESTADOS[s.estado] || { texto: s.estado, color: COLOR.tenue };
-    add(texto(this, X0, 12, recortar(s.nombre, 52), { size: 18 }));
+    add(texto(this, X0, 12, recortar(s.nombre, 42), { size: 18 }));
     const coord = typeof s.lat === 'number' && typeof s.lon === 'number' ? `${s.lat.toFixed(3)}, ${s.lon.toFixed(3)}` : 'coordenadas: sin dato';
     add(texto(this, X0, 36, `${est.texto} · ${s.pais || 'país: sin dato'} · ${coord}${s.novedoso === true ? ' · NOVEDOSO' : ''}`,
       { size: 11, color: est.color }));
@@ -153,22 +154,41 @@ export default class Expediente extends Phaser.Scene {
       add(texto(this, X0, y + 2, `Solo medido en la Tierra: ${lista}`, { size: 10, color: COLOR.tenue, ancho: X1 - X0 }));
       y += 28;
     }
-    this.yInfo = Math.max(y + 4, 330);
+    y = this.dibujarLimites(add, s, d, Math.max(y + 2, 300));
+    this.yInfo = y + 6;
     this.capaInfo = this.add.container(0, 0);
     add(this.capaInfo);
     this.mostrarInfoInicial();
     this.dibujarAcciones(add);
   }
 
-  // Caja inferior: por defecto una ayuda; al tocar una fila, fuente, fecha y nota completas de ambos lados.
+  // Lo que la Tierra no puede probar (AGENTS.md §5 y §6.3): siempre visible, nunca se atribuye al análogo.
+  dibujarLimites(add, s, d, y) {
+    const { noReproducible } = limitesDe(s, d);
+    const mundo = MUNDOS[d.mundo] || d.mundo;
+    const alto = 52;
+    add(this.add.rectangle(X0 - 4, y, X1 - X0 + 8, alto, 0x2a1a10).setOrigin(0, 0).setStrokeStyle(1, 0x6b4a2a));
+    add(texto(this, X0, y + 4, 'LO QUE LA TIERRA NO PUEDE PROBAR', { size: 11, color: COLOR.acento }));
+    const partes = noReproducible.map((l) => (l.clave === 'gravedad' && typeof d.gravedad_ms2 === 'number'
+      ? `Gravedad (${mundo} ${d.gravedad_ms2} vs Tierra ${GRAVEDAD.tierra} m/s²; solo en la misión)`
+      : l.etiqueta));
+    const linea = partes.length ? partes.join(' · ') : 'sin dato (el destino no declara límites)';
+    add(texto(this, X0, y + 20, recortar(linea, 200), { size: 11, color: COLOR.texto, ancho: X1 - X0 }));
+    return y + alto;
+  }
+
+  // Caja inferior: por defecto proceso, uso y notas del cálculo; al tocar una fila, fuente, fecha y nota de ambos lados.
   mostrarInfoInicial() {
     this.capaInfo.removeAll(true);
     const s = this.seleccion;
-    const t = `Proceso: ${s.proceso || SIN_DATO}
-Uso para la exploración: ${s.uso_exploracion || SIN_DATO}
-`
-      + 'Toca una fila (o pulsa F) para ver fuente, fecha y nota completas de cada lado.';
-    this.capaInfo.add(texto(this, X0, this.yInfo, recortar(t, 600), { size: 10, color: COLOR.muyTenue, ancho: X1 - X0 }));
+    const { notas } = limitesDe(s, this.destino);
+    const lineas = [
+      `Proceso: ${s.proceso || SIN_DATO}`,
+      `Uso para la exploración: ${s.uso_exploracion || SIN_DATO}`,
+      ...notas.map((n) => `Límite del cálculo: ${n}`),
+      'Toca una fila (o pulsa F) para ver fuente, fecha y nota completas de cada lado.',
+    ];
+    this.capaInfo.add(texto(this, X0, this.yInfo, recortar(lineas.join('\n'), 640), { size: 10, color: COLOR.muyTenue, ancho: X1 - X0 }));
   }
 
   mostrarFuentes(f) {
