@@ -24,6 +24,7 @@ Este cuaderno busca en todo México **formas del terreno parecidas a cráteres**
 | 13 | **Experimento**: ¿un relieve sin árboles (FABDEM) quita los falsos? | No: solo −15 % |
 | 14 | Exporta **todas** las depresiones (5,208) para `ciencia_datos/` | `hoyas_mexico.csv` |
 | 15 | Más referencias: **5 sitios de Marte** y **10 cráteres de impacto** de la Tierra | `hoyas_referencia.csv`, `impactos_tierra.csv` |
+| 16 | **Búsqueda global mínima**: el mismo detector en Atacama, Arizona y Arabia occidental | `global_crateres.csv` |
 | 99 | Descarga los zip al equipo | — |
 
 ## De dónde salen los datos
