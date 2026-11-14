@@ -9,7 +9,7 @@
   "prueba_util": null,
   "uso_exploracion": "Candidato a verificar en campo: navegación y movilidad dentro de una depresión tipo cráter",
   "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
-  "novedoso": true,
+  "novedoso": null,
   "variables": {
     "forma": {
       "valor": 0.9172,
@@ -105,5 +105,5 @@
     "exageracion_vertical": null,
     "obstaculos": []
   },
-  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Oxia Planum (Marte), 4.08 km, 26 m, d/D 0.006."
+  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Oxia Planum (Marte), 4.08 km, 26 m, d/D 0.006. Etiqueta de IA: presa_o_lago, confianza 0.80 (claude -p sobre Sentinel-2 y relieve; 29 de 33 aciertos en la validación, ciencia_datos/etiquetado_ia). novedoso: null (tipo según IA: presa o lago; no verificado como cráter)."
 }
