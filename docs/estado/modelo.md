@@ -3,30 +3,50 @@
 > Lo actualiza SOLO este frente. Rama: `feat/modelo`.
 
 **Responsable:** Mario  ·  **Agente:** Claude Code / Codex
-**Última actualización:** (fecha y hora)
+**Última actualización:** 14 nov 2026, 13:15
 
 ## Hecho
--
+- Detector de cráteres (núcleo del modelo, AGENTS.md §6.1 y §8.1): `analisis/00–15`. Corre igual sobre México (5,208 depresiones),
+  el polo sur lunar (LOLA, 4,288 cráteres) y Marte (HRSC+MOLA, 8 sitios y 596 cráteres), todo a 200 m.
+- Modelos explicables (`ciencia_datos/01–03`):
+  - Luna contra Marte con 78 % de exactitud balanceada (grupos espaciales); entre 70 y 92 % en un sitio de Marte nunca visto.
+  - Validación con cráteres de impacto terrestres: 8 de 8 dentro de la nube Luna+Marte.
+  - Catálogo de 70 cráteres volcánicos de México con fuente: el detector encuentra el 40 % de los que están en su rango.
+- `model/features.py`: NASA POWER verificado (T2M_RANGE y PRECTOTCORR, climatología 2001–2025). NDVI de MOD13Q1: el servicio de
+  ORNL DAAC daba 503 el 14 nov, así que se usa Earth Engine como respaldo. Pendiente y perfil de elevación desde Copernicus GLO-30
+  a 200 m, la misma resolución que la Luna y Marte. Las variables que salen de Earth Engine requieren `earthengine authenticate`.
+- `model/forma.py`: dimensión **forma**, que combina el modelo Luna contra Marte con la distancia a la nube.
+  `model/score.py` la usa con peso 0.40 (P).
+- `data/targets`: pendiente medida de Jezero (3.56°) y del polo sur lunar (8.63°), mediana de cuadros de 10 km a 200 m.
+- `model/scan.py`: **41 candidatos** áridos exportados a `data/sites/mxNNNN.json` como `candidato_modelo`.
+- `model/curados.py`: **Pinacate** con variables reales y perfil de elevación de 4 km que cruza El Elegante (`documentado`).
+- `model/validate.py`: escribe `model/VALIDATION.md`. Falta correrlo con las coordenadas con fuente.
 
 ## En curso
--
+- Oscilación térmica de Jezero (MEDA) y del polo sur (Diviner), con fuente. La está buscando un agente.
+- Coordenadas con fuente de Samalayuca, de los controles negativos y de los análogos conocidos.
 
 ## Siguiente
-- [ ] Verificar endpoints de NASA POWER y MODIS (model/features.py)
-- [ ] Implementar pendiente desde SRTM/Copernicus DEM
-- [ ] Capturar valores de Jezero y polo sur lunar con fuente (data/targets)
-- [ ] Elegir coordenadas y llenar los 3 sitios (data/sites)
-- [ ] Implementar model/validate.py con controles negativos y análogos conocidos
-- [ ] Búsqueda global en zonas áridas (AGENTS.md §6.4), en 3 pasos:
+- [ ] Llenar `oscilacion_termica` de los destinos, volver a correr `scan.py` y `curados.py`.
+- [ ] Samalayuca (agarre) con variables y perfil de dunas.
+- [ ] Correr `model/validate.py` y revisar que los controles negativos den cerca de 0.
+- [ ] Regenerar `web/public/data/sitios.json` desde `data/sites` (quitar `demo: true`).
+- [ ] Búsqueda global en zonas áridas (AGENTS.md §6.4), en 3 pasos. El paso (b) lo corre la sesión del Colab:
   - [ ] (a) Máscara global de zonas áridas con el filtro de vegetación (MODIS MOD13Q1, NDVI p90 < 0.35)
   - [ ] (b) Detector a 200 m en regiones priorizadas: Sahara, Arabia, Atacama, Australia interior, Gobi, Kalahari,
-        suroeste de EE. UU., meseta iraní, Thar, norte de México
+        suroeste de EE. UU., meseta iraní, Thar, norte de México (este último ya está hecho)
   - [ ] (c) 5 a 8 sitios finales globales en data/sites/ (México como caso destacado)
 - [ ] Verificar fuentes globales: base de datos de estructuras de impacto (controles positivos) e inventario de minería a cielo abierto
-- [ ] Perfil de elevación real por sitio para los niveles (nivel.perfil_elevacion_m)
+- [ ] API `/score`: hoy usa forma = null en puntos libres (correcto: no hay cráter medido). Probar en el VPS si Earth Engine está disponible.
 
 ## Bloqueos / necesito de otro frente
--
+- **Decisión del equipo (§16):** la forma de El Elegante da 0.97 frente al polo sur lunar y 0.03 frente a Jezero, y la similitud
+  total del Pinacate contra Jezero es 0.13. Si el MVP sigue en Jezero, el sitio de relieve no sale como buen análogo de forma.
+  Los datos favorecen la Luna como destino.
+- Tercer sitio (§16): candidatos del escaneo con buena forma y acceso, por ejemplo Cananea (mx0023, forma 0.87 frente a la Luna),
+  La Herradura (mx0019) o Peñasquito (mx0155). Son tajos mineros: análogo operativo (rovers en paredes empinadas, excavación),
+  no geológico.
 
 ## Cambios que propongo a contratos o AGENTS.md (los aplica el integrador)
--
+- `site.schema.json`: un campo opcional `gemelo` ({cuerpo, sitio, lat, lon, diam_km, prof_m}). Hoy el gemelo va como texto en `nota`.
+- `site.schema.json`: permitir `similitud_por_destino` (polo_sur_lunar y jezero), para no perder la comparación con el otro destino.
