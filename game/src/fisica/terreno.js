@@ -2,6 +2,7 @@
 import Phaser from 'phaser';
 import { m } from './escala.js';
 import { FRICCION_ESTATICA } from './robot.js';
+import { dibujarTerrenoConArte } from './aspecto.js';
 
 const M = Phaser.Physics.Matter.Matter;
 
@@ -42,19 +43,24 @@ export function construirTerreno(scene, perfil, { mundo = 'tierra', origenX = 0,
   }
   M.Composite.add(scene.matter.world.localWorld, cuerpos);
 
-  // Dibujo provisional: relleno por tramo de superficie + borde superior más claro.
-  const g = scene.add.graphics();
-  const colores = COLOR_SUPERFICIE[mundo] ?? COLOR_SUPERFICIE.tierra;
-  for (let i = 0; i < puntos.length - 1; i++) {
-    const a = puntos[i];
-    const b = puntos[i + 1];
+  // Dibujo: tiles de arte donde existan (fisica/aspecto.js); si no, relleno provisional por tramo + borde más claro.
+  const tramos = puntos.slice(0, -1).map((a, i) => {
     const xMedio = (perfil.x_m[i] + perfil.x_m[i + 1]) / 2;
-    const tipo = perfil.superficies.find((s) => xMedio >= s.desde && xMedio < s.hasta)?.tipo ?? 'compacto';
+    return { a, b: puntos[i + 1], tipo: perfil.superficies.find((s) => xMedio >= s.desde && xMedio < s.hasta)?.tipo ?? 'compacto' };
+  });
+  const g = scene.add.graphics();
+  const conArte = dibujarTerrenoConArte(scene, mundo, tramos, abajo + m(40));
+  const colores = COLOR_SUPERFICIE[mundo] ?? COLOR_SUPERFICIE.tierra;
+  for (const { a, b, tipo } of tramos) {
     const color = colores[tipo];
-    g.fillStyle(color, 1);
-    g.fillPoints([a, b, { x: b.x, y: abajo + m(40) }, { x: a.x, y: abajo + m(40) }], true);
-    g.lineStyle(3, Phaser.Display.Color.ValueToColor(color).lighten(25).color, 1);
-    g.lineBetween(a.x, a.y, b.x, b.y);
+    if (!conArte.relleno.has(tipo)) {
+      g.fillStyle(color, 1);
+      g.fillPoints([a, b, { x: b.x, y: abajo + m(40) }, { x: a.x, y: abajo + m(40) }], true);
+    }
+    if (!conArte.borde.has(tipo)) {
+      g.lineStyle(3, Phaser.Display.Color.ValueToColor(color).lighten(25).color, 1);
+      g.lineBetween(a.x, a.y, b.x, b.y);
+    }
   }
 
   return { cuerpos, xMundo, yMundo, ancho: xMundo(perfil.largo_m) - origenX, arriba, abajo, dibujo: g };

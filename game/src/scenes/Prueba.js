@@ -6,6 +6,7 @@ import { Recorrido } from '../fisica/recorrido.js';
 import { perfilDeSitio } from '../fisica/perfil.js';
 import { DISENO_POR_DEFECTO } from '../fisica/diseno.js';
 import { exponerParaPruebas } from '../fisica/depuracion.js';
+import { cargarArte } from '../fisica/aspecto.js';
 
 // Dueño: frente juego. Prueba terrestre: perfil del sitio (real o ilustrativo declarado) con gravedad de la Tierra.
 // El análogo nunca simula la gravedad del destino. Pasa si llega a la meta con chasis y carga. Ver ESPECIFICACION.md §9.
@@ -14,6 +15,10 @@ export default class Prueba extends Phaser.Scene {
     super('Prueba');
     exponerParaPruebas('Prueba', this);
     exponerParaPruebas('partida', partida);
+  }
+
+  preload() {
+    cargarArte(this); // solo los PNG de /assets que existen (fisica/aspecto.js)
   }
 
   create() {
