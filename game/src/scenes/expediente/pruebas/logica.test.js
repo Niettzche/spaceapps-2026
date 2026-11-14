@@ -29,14 +29,32 @@ const sitio = {
   limites: ['gravedad', 'presion', 'oscilacion_termica: destino por encima del máximo terrestre'],
 };
 
-test('sitiosParaDestino filtra por destino y pone curados primero', () => {
+test('sitiosParaDestino filtra por destino y ordena por similitud de mayor a menor', () => {
   const lista = [
-    { id: 'x', nombre: 'X', destino_ref: 'jezero', prueba_util: null, similitud: { total: 0.9 } },
-    { id: 'y', nombre: 'Y', destino_ref: 'jezero', prueba_util: 'agarre', similitud: { total: null } },
-    { id: 'z', nombre: 'Z', destino_ref: 'polo_sur_lunar', prueba_util: null, similitud: { total: 0.99 } },
-    { id: 'w', nombre: 'W', destino_ref: 'jezero', prueba_util: null, similitud: { total: null } },
+    { id: 'x', nombre: 'X', estado: 'candidato_modelo', destino_ref: 'jezero', prueba_util: null, similitud: { total: 0.9 } },
+    { id: 'y', nombre: 'Y', estado: 'documentado', destino_ref: 'jezero', prueba_util: 'agarre', similitud: { total: 0.4 } },
+    { id: 'z', nombre: 'Z', estado: 'candidato_modelo', destino_ref: 'polo_sur_lunar', prueba_util: null, similitud: { total: 0.99 } },
+    { id: 'w', nombre: 'W', estado: 'candidato_modelo', destino_ref: 'jezero', prueba_util: null, similitud: { total: null } },
   ];
-  assert.deepEqual(sitiosParaDestino(lista, 'jezero').map((s) => s.id), ['y', 'x', 'w']);
+  // Un sitio curado (y) ya no se adelanta a uno con más similitud (x).
+  assert.deepEqual(sitiosParaDestino(lista, 'jezero').map((s) => s.id), ['x', 'y', 'w']);
+});
+
+test('un sitio ilustrativo, demo o sin similitud nunca queda primero', () => {
+  const lista = [
+    // Caso de main: sitio_3 es curado (prueba_util) pero ilustrativo y sin similitud.
+    { id: 'sitio_3', nombre: 'A tercer sitio', estado: 'ilustrativo', destino_ref: 'jezero', prueba_util: 'energia', similitud: { total: null } },
+    // Ilustrativo CON similitud alta: tampoco encabeza.
+    { id: 'ilus', nombre: 'B ilustrativo', estado: 'ilustrativo', destino_ref: 'jezero', prueba_util: 'agarre', similitud: { total: 0.99 } },
+    { id: 'demo', nombre: 'C demo', estado: 'documentado', demo: true, destino_ref: 'jezero', prueba_util: null, similitud: { total: 0.95 } },
+    { id: 'pinacate', nombre: 'Pinacate', estado: 'documentado', destino_ref: 'jezero', prueba_util: 'relieve', similitud: { total: 0.149 } },
+    { id: 'samalayuca', nombre: 'Samalayuca', estado: 'candidato_modelo', destino_ref: 'jezero', prueba_util: 'agarre', similitud: { total: 0.4605 } },
+  ];
+  const ids = sitiosParaDestino(lista, 'jezero').map((s) => s.id);
+  assert.deepEqual(ids.slice(0, 2), ['samalayuca', 'pinacate']);
+  assert.deepEqual(ids.slice(2).sort(), ['demo', 'ilus', 'sitio_3']);
+  // Solo hay sitios sin similitud real: el orden es por nombre y no falla.
+  assert.deepEqual(sitiosParaDestino(lista.slice(0, 2), 'jezero').map((s) => s.id), ['sitio_3', 'ilus']);
 });
 
 test('filasComparacion: forma primero, misma variable en ambos lados, sin inventar', () => {

@@ -22,13 +22,22 @@ export function esCurado(sitio) {
   return !!sitio && sitio.prueba_util != null;
 }
 
-/** Sitios cuyo gemelo es `destinoId`. Curados primero, luego por similitud total (sin dato al final). */
+/** ¿Puede encabezar la lista? Solo si tiene similitud medida y no es de demostración. */
+export function tieneSimilitudReal(sitio) {
+  return !!sitio && !esDemostracion(sitio) && typeof sitio.similitud?.total === 'number' && Number.isFinite(sitio.similitud.total);
+}
+
+/**
+ * Sitios cuyo gemelo es `destinoId`, por similitud total de mayor a menor.
+ * Los `ilustrativo`, `demo: true` o sin similitud van siempre al final (nunca en primer lugar). Empate: por nombre.
+ */
 export function sitiosParaDestino(sitios, destinoId) {
-  const total = (s) => (typeof s?.similitud?.total === 'number' ? s.similitud.total : -1);
+  const total = (s) => (tieneSimilitudReal(s) ? s.similitud.total : -1);
   return sitios
     .filter((s) => s && s.destino_ref === destinoId)
     .slice()
-    .sort((a, b) => (esCurado(b) - esCurado(a)) || (total(b) - total(a)) || String(a.nombre).localeCompare(String(b.nombre)));
+    .sort((a, b) => (tieneSimilitudReal(b) - tieneSimilitudReal(a)) || (total(b) - total(a))
+      || String(a.nombre).localeCompare(String(b.nombre)));
 }
 
 export function formatoNumero(valor) {
