@@ -26,11 +26,11 @@
       "nota": null
     },
     "pendiente": {
-      "valor": null,
+      "valor": 3.56,
       "unidad": "grados",
-      "fuente": "MOLA / HRSC DTM (PENDIENTE)",
-      "fecha": null,
-      "nota": "PENDIENTE: capturar con fuente verificada"
+      "fuente": "Mosaico HRSC+MOLA Blend DEM 200 m (ESA/NASA, vía USGS Astrogeology)",
+      "fecha": "2026-11-14",
+      "nota": "Mediana de la pendiente media de 100 cuadros de 10 km (Cráter Jezero), calculada con el mismo código y a la misma resolución (200 m) que la Tierra (analisis/03; ciencia_datos/datos/referencias_luna_marte_10km.csv). Rango intercuartil 2.82–4.74°."
     }
   },
   "no_reproducible_en_tierra": [

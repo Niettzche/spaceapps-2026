@@ -1,0 +1,108 @@
+{
+  "id": "mx0181",
+  "nombre": "Depresión tipo cráter MX0181",
+  "pais": "MX",
+  "lat": 23.5153,
+  "lon": -102.8073,
+  "estado": "candidato_modelo",
+  "destino_ref": "jezero",
+  "prueba_util": null,
+  "uso_exploracion": "Candidato a verificar en campo: navegación y movilidad dentro de una depresión tipo cráter",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
+  "novedoso": true,
+  "variables": {
+    "forma": {
+      "valor": 0.8756,
+      "unidad": "0-1",
+      "fuente": "Modelo explicable Luna contra Marte (regresión logística, 3 variables) + distancia a la nube Luna+Marte",
+      "fecha": "2026-11-14",
+      "nota": "P(Luna)=0.1244, distancia a la nube=8.059; dentro del 95 % de la nube de cráteres Luna+Marte"
+    },
+    "diametro": {
+      "valor": 2.441,
+      "unidad": "km",
+      "fuente": "Copernicus DEM GLO-30 (ESA), remuestreado a 200 m; detector analisis/07_buscador_crateres.py",
+      "fecha": null,
+      "nota": null
+    },
+    "profundidad": {
+      "valor": 28.8,
+      "unidad": "m",
+      "fuente": "Copernicus DEM GLO-30 (ESA), remuestreado a 200 m; detector analisis/07_buscador_crateres.py",
+      "fecha": null,
+      "nota": null
+    },
+    "profundidad_diametro": {
+      "valor": 0.0118,
+      "unidad": "-",
+      "fuente": "Copernicus DEM GLO-30 (ESA), remuestreado a 200 m; detector analisis/07_buscador_crateres.py",
+      "fecha": null,
+      "nota": null
+    },
+    "borde": {
+      "valor": -4.8,
+      "unidad": "m",
+      "fuente": "Copernicus DEM GLO-30 (ESA), remuestreado a 200 m; detector analisis/07_buscador_crateres.py",
+      "fecha": null,
+      "nota": "a 200 m el borde lunar medido es negativo (mediana −23 m): no se usa como criterio de parecido"
+    },
+    "ndvi_p90": {
+      "valor": 0.296,
+      "unidad": "-",
+      "fuente": "MODIS MOD13Q1 percentil 90, 2021-2025 (Earth Engine)",
+      "fecha": null,
+      "nota": "filtro de zonas áridas del detector: < 0.35"
+    },
+    "oscilacion_termica": {
+      "valor": 16.04,
+      "unidad": "K",
+      "fuente": "NASA POWER T2M_RANGE (climatología anual)",
+      "fecha": "2001-2025",
+      "nota": "25-year Meteorological and Solar Monthly & Annual Climatologies (January 2001 - December 2025)"
+    },
+    "precipitacion": {
+      "valor": 1.17,
+      "unidad": "mm/día",
+      "fuente": "NASA POWER PRECTOTCORR (climatología anual)",
+      "fecha": "2001-2025",
+      "nota": "25-year Meteorological and Solar Monthly & Annual Climatologies (January 2001 - December 2025)"
+    },
+    "ndvi": {
+      "valor": 0.1871,
+      "unidad": "-",
+      "fuente": "MODIS MOD13Q1 (Google Earth Engine, MODIS/061/MOD13Q1)",
+      "fecha": "2021-2025",
+      "nota": "media del píxel de 250 m"
+    },
+    "pendiente": {
+      "valor": 0.677,
+      "unidad": "grados",
+      "fuente": "Copernicus DEM GLO-30 (ESA) promediado a 200 m, Google Earth Engine",
+      "fecha": "GLO-30",
+      "nota": "media de la pendiente en un cuadro de 10 km centrado en el punto"
+    }
+  },
+  "similitud": {
+    "total": 0.577,
+    "por_dimension": {
+      "forma": 0.8756,
+      "oscilacion_termica": null,
+      "precipitacion": 0.3104,
+      "ndvi": 0.2873,
+      "pendiente": 0.5618
+    },
+    "confianza": 0.8
+  },
+  "limites": [
+    "gravedad",
+    "presion_atmosferica",
+    "radiacion"
+  ],
+  "nivel": {
+    "perfil_elevacion_m": [],
+    "fuente": null,
+    "exageracion_vertical": null,
+    "obstaculos": []
+  },
+  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Cráter Jezero (Marte), 2.47 km, 31 m, d/D 0.013."
+}

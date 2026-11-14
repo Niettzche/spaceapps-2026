@@ -1,0 +1,111 @@
+{
+  "id": "mx0155",
+  "nombre": "Peñasquito (Zac.)",
+  "pais": "MX",
+  "lat": 24.6492,
+  "lon": -101.6732,
+  "estado": "candidato_modelo",
+  "destino_ref": "polo_sur_lunar",
+  "prueba_util": null,
+  "uso_exploracion": "Análogo operativo, no geológico: probar navegación y movilidad de rovers en paredes empinadas, excavación (ISRU) y operación con sombra en el fondo del tajo",
+  "proceso": "Excavación artificial: tajo minero a cielo abierto (cantera a menos de 2 km en OpenStreetMap)",
+  "novedoso": true,
+  "variables": {
+    "forma": {
+      "valor": 0.7385,
+      "unidad": "0-1",
+      "fuente": "Modelo explicable Luna contra Marte (regresión logística, 3 variables) + distancia a la nube Luna+Marte",
+      "fecha": "2026-11-14",
+      "nota": "P(Luna)=0.9965, distancia a la nube=34.255; fuera de la nube Luna+Marte (distancia 34.3 > 26.4): más hondo que casi cualquier cráter planetario de su tamaño"
+    },
+    "diametro": {
+      "valor": 1.658,
+      "unidad": "km",
+      "fuente": "Copernicus DEM GLO-30 (ESA), remuestreado a 200 m; detector analisis/07_buscador_crateres.py",
+      "fecha": null,
+      "nota": null
+    },
+    "profundidad": {
+      "valor": 311.8,
+      "unidad": "m",
+      "fuente": "Copernicus DEM GLO-30 (ESA), remuestreado a 200 m; detector analisis/07_buscador_crateres.py",
+      "fecha": null,
+      "nota": null
+    },
+    "profundidad_diametro": {
+      "valor": 0.188,
+      "unidad": "-",
+      "fuente": "Copernicus DEM GLO-30 (ESA), remuestreado a 200 m; detector analisis/07_buscador_crateres.py",
+      "fecha": null,
+      "nota": null
+    },
+    "borde": {
+      "valor": -13.6,
+      "unidad": "m",
+      "fuente": "Copernicus DEM GLO-30 (ESA), remuestreado a 200 m; detector analisis/07_buscador_crateres.py",
+      "fecha": null,
+      "nota": "a 200 m el borde lunar medido es negativo (mediana −23 m): no se usa como criterio de parecido"
+    },
+    "ndvi_p90": {
+      "valor": 0.1,
+      "unidad": "-",
+      "fuente": "MODIS MOD13Q1 percentil 90, 2021-2025 (Earth Engine)",
+      "fecha": null,
+      "nota": "filtro de zonas áridas del detector: < 0.35"
+    },
+    "oscilacion_termica": {
+      "valor": 16.06,
+      "unidad": "K",
+      "fuente": "NASA POWER T2M_RANGE (climatología anual)",
+      "fecha": "2001-2025",
+      "nota": "25-year Meteorological and Solar Monthly & Annual Climatologies (January 2001 - December 2025)"
+    },
+    "precipitacion": {
+      "valor": 1.07,
+      "unidad": "mm/día",
+      "fuente": "NASA POWER PRECTOTCORR (climatología anual)",
+      "fecha": "2001-2025",
+      "nota": "25-year Meteorological and Solar Monthly & Annual Climatologies (January 2001 - December 2025)"
+    },
+    "ndvi": {
+      "valor": 0.0738,
+      "unidad": "-",
+      "fuente": "MODIS MOD13Q1 (Google Earth Engine, MODIS/061/MOD13Q1)",
+      "fecha": "2021-2025",
+      "nota": "media del píxel de 250 m"
+    },
+    "pendiente": {
+      "valor": 6.71,
+      "unidad": "grados",
+      "fuente": "Copernicus DEM GLO-30 (ESA) promediado a 200 m, Google Earth Engine",
+      "fecha": "GLO-30",
+      "nota": "media de la pendiente en un cuadro de 10 km centrado en el punto"
+    }
+  },
+  "similitud": {
+    "total": 0.6153,
+    "por_dimension": {
+      "forma": 0.7385,
+      "oscilacion_termica": null,
+      "precipitacion": 0.343,
+      "ndvi": 0.6114,
+      "pendiente": 0.6811
+    },
+    "confianza": 0.8
+  },
+  "limites": [
+    "gravedad",
+    "presion_atmosferica",
+    "radiacion",
+    "vacio",
+    "iluminacion_polar_rasante",
+    "forma: fuera de la nube Luna+Marte (distancia 34.3 > 26.4): más hondo que casi cualquier cráter planetario de su tamaño"
+  ],
+  "nivel": {
+    "perfil_elevacion_m": [],
+    "fuente": null,
+    "exageracion_vertical": null,
+    "obstaculos": []
+  },
+  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Anillo 80-85°S (Luna), 1.63 km, 288 m, d/D 0.177, en -81.732, 117.083."
+}

@@ -18,3 +18,10 @@ def test_recorte_al_extremo_terrestre():
 def test_dato_faltante_baja_confianza():
     r = comparar({"oscilacion_termica": 25, "precipitacion": None, "ndvi": 0.05, "pendiente": 4}, DEST)
     assert r["confianza"] < 1 and r["total"] is not None
+
+def test_forma_precalculada_pesa_y_sube_confianza():
+    base = {"oscilacion_termica": 25, "precipitacion": 0.1, "ndvi": 0.05, "pendiente": 4}
+    sin = comparar(base, DEST)
+    con = comparar({**base, "forma": 0.9}, DEST)
+    assert con["por_dimension"]["forma"] == 0.9 and con["confianza"] > sin["confianza"]
+    assert comparar({**base, "forma": 0.01}, DEST)["total"] < sin["total"]
