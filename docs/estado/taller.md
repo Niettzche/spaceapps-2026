@@ -53,6 +53,14 @@
   - Los 12 cargan bien y se ven nítidos.
   - El texto de la ranura de carga se salía de la caja; lo arreglé en #31.
   - Le pedí a Mauricio en #26 que la rueda ancha se distinga de la estándar a 16 px (hoy solo cambian 44 de 256 píxeles) y un poco más de contraste sobre el fondo de las ranuras.
+- **Hoja `Judges` del libro de datos** (respuestas para los jueces con dato real y fuente): en #38.
+- **Prueba en teléfono (emulación de Edge con toques reales, 3 pantallas):**
+  - Todo se puede tocar: 7/7 ranuras, 15/15 filas del catálogo, Quitar, Restablecer y Probar el robot.
+  - Antes los botones de abajo medían ~13 px de alto y Quitar ~10 px; ahora las zonas de toque miden ≥ 37 px en horizontal
+    (el dibujo no cambió). Ver el PR de este cambio.
+  - **Pendientes que no son del taller** (los decide integración): en vertical el juego queda en una franja de 390 × 219 px
+    (todo mide menos de 22 px), no hay aviso de "gira el teléfono", el lienzo no tiene `touch-action: manipulation` (un doble
+    toque rápido puede hacer zoom en iOS) y el texto del Taller queda de ~8 px en un teléfono (ilegible sin rediseño móvil).
 
 ## Siguiente
 - Corridas de verificación (las corre juego en `game/e2e/`; resultados esperados según el reporte de juego):
