@@ -1,8 +1,9 @@
 // Pruebas de las funciones puras del frente juego. Correr: node game/src/fisica/fisica.test.mjs
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { resolverDiseno, DISENO_POR_DEFECTO } from './diseno.js';
-import { generarPerfil, perfilDesdeElevaciones, perfilDeSitio, superficieEn, alturaEn, pendienteMaxima } from './perfil.js';
+import { resolverDiseno, DISENO_POR_DEFECTO, RANURAS, RANURAS_OBLIGATORIAS, RUEDAS_POR_RANURA } from './diseno.js';
+import * as taller from '../scenes/Taller/diseno.js';
+import { SUPERFICIES, generarPerfil, perfilDesdeElevaciones, perfilDeSitio, superficieEn, alturaEn, pendienteMaxima } from './perfil.js';
 import { danioCarga, danioChasis } from './danio.js';
 import { gastoPorSegundo } from './energia.js';
 import { puntuar } from '../feedback/puntuacion.js';
@@ -17,6 +18,30 @@ caso('ranura vacía se completa y se reporta', () => {
   const r = resolverDiseno([{ ranura: 'chasis', pieza: 'chasis_reforzado' }], piezas);
   assert.equal(r.porRanura.chasis.id, 'chasis_reforzado');
   assert.ok(r.completadas.includes('motor'));
+});
+caso('fuente única: ranuras, obligatorias, × 2 y diseño por defecto = los del taller', () => {
+  assert.deepEqual(Object.keys(RANURAS), taller.RANURAS.map((r) => r.id));
+  for (const r of taller.RANURAS) assert.equal(RANURAS[r.id], r.sistema);
+  assert.deepEqual(RANURAS_OBLIGATORIAS, taller.RANURAS.filter((r) => r.obligatoria).map((r) => r.id));
+  assert.equal(RUEDAS_POR_RANURA, 2);
+  assert.equal(DISENO_POR_DEFECTO, taller.DISENO_POR_DEFECTO);
+});
+caso('costo y masa coinciden con el resumen del taller (masa por defecto 59)', () => {
+  assert.equal(resolverDiseno(DISENO_POR_DEFECTO, piezas).masa, 59);
+  const d = DISENO_POR_DEFECTO.map((x) => (x.ranura === 'rueda_del' ? { ...x, pieza: 'rueda_ancha' } : x)).concat({ ranura: 'modulo', pieza: 'panel_solar' });
+  const r = resolverDiseno(d, piezas);
+  const t = taller.resumen(d, piezas);
+  assert.equal(r.costo, t.costo);
+  assert.equal(r.masa, t.masa);
+});
+caso('atributos que lee robot.js existen en parts.json', () => {
+  const tiene = (sistema, campos) => piezas.filter((p) => p.sistema === sistema).forEach((p) => campos.forEach((c) => assert.equal(typeof p[c], 'number', `${p.id}.${c}`)));
+  tiene('movilidad', ['masa', 'radio_m']);
+  for (const p of piezas.filter((x) => x.sistema === 'movilidad')) for (const s of SUPERFICIES) assert.equal(typeof p.agarre[s], 'number', `${p.id}.agarre.${s}`);
+  tiene('estructura', ['masa', 'resistencia']);
+  tiene('potencia', ['masa', 'fuerza', 'consumo']);
+  tiene('energia', ['masa', 'capacidad']);
+  tiene('carga', ['masa', 'proteccion']);
 });
 caso('pieza en ranura equivocada es inválida', () => assert.equal(resolverDiseno([{ ranura: 'motor', pieza: 'rueda_ancha' }], piezas).invalidas.length, 1));
 caso('perfil generado es determinista', () => assert.deepEqual(generarPerfil({ tipo: 'dunas', semilla: 7 }).y_m, generarPerfil({ tipo: 'dunas', semilla: 7 }).y_m));
