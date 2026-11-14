@@ -182,7 +182,8 @@ function luna() {
 }
 
 // ---------------------------------------------------------------- Tierra: desierto genérico (cualquier sitio sin fondo propio)
-// Tarde dorada con cielo despejado, sierras y mesetas lejanas, matorral y rocas cerca.
+// BM-001 del Excel (desierto hiperárido pedregoso, tipo Atacama): sin vegetación, piedras sueltas y un salar en el llano.
+// Tarde dorada con cielo despejado y sierras lejanas.
 function desierto() {
   const P = PALETAS.tierra, CIELO = rampa(P.cielo_tarde), LEJOS = rampa(P.sierra), CERCA = rampa(P.desierto_cerca);
   const SOL = [62, 70];
@@ -206,18 +207,18 @@ function desierto() {
     return tramado(LEJOS, 0.6 - i.prof / 60 + (i.luz - 0.5) * 0.35, x, y);
   }, { luzDesde: 'izquierda', elev: 0.5 });
   // llano cercano con lomitas, matorral y rocas
-  const matas = [[22, 4], [77, 3], [139, 5], [196, 3], [251, 4], [300, 3]];
-  const rocas = [[51, 3], [168, 2], [228, 3]];
+  const rocas = [[18, 3], [51, 2], [77, 4], [112, 2], [139, 3], [168, 2], [196, 4], [228, 3], [251, 2], [300, 3]];
   capa('fondos/fondo_desierto_3.png', (x) => 146 + 5 * onda(x, 1, 1.9) + 4 * onda(x, 3, 0.3) + 2 * ruido(x, 16, 75, 3), (x, y, i) => {
-    for (const [bx, r] of matas) {
-      const dx = x - bx, top = i.hs[bx] - r - 1;
-      if (Math.abs(dx) <= r && y >= top + Math.abs(dx) * 0.6 && y < i.hs[bx] + 1 && hash(x, y, 5) > 0.22) return y < top + 2 ? CERCA[3] : CERCA[1];
-    }
     for (const [rx, r] of rocas) {
       const cy = i.hs[rx] - r * 0.4, dx = x - rx, dy = y - cy;
       if ((dx * dx) / (r * r) + (dy * dy) / (r * r * 0.45) <= 1) return dx + dy < -r * 0.5 ? CERCA[5] : dx + dy < 0 ? CERCA[4] : CERCA[2];
     }
     if (i.prof < 1) return i.luz > 0.5 ? CERCA[5] : CERCA[4];
+    // salar: costra blanca en una franja baja del llano
+    const salar = i.prof > 6 && i.prof < 13 && ruido(x, 3, 76, 2) > 0.05;
+    if (salar) return tramado(rampa(PALETAS.tierra.salar), 0.55 + ruido(x, 24, 77, 2) * 0.5, x, y);
+    // piedrecillas: pavimento del desierto
+    if (hash(x, y, 78) > 0.9 && i.prof > 2) return i.luz > 0.5 ? CERCA[4] : CERCA[1];
     return tramado(CERCA.slice(1, 6), 0.62 - i.prof / 40 + (i.luz - 0.5) * 0.5, x, y);
   }, { luzDesde: 'izquierda', elev: 0.45 });
 }

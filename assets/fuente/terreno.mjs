@@ -77,12 +77,15 @@ const ESTILOS = {
   },
 
   compacto(A, seed) {
-    // costra firme: estratos horizontales suaves, piedritas y pocas grietas finas
+    // suelo firme. Tierra (BM-001): pavimento del desierto, grava apretada; Marte (BM-015): costra con terrones.
     const suelo = (x, y) => {
       const estrato = Math.sin((y / 16) * Math.PI * 2 * 2 + tileFbm(x / 8, y / 8, 2, 2, seed, 2) * 2);
       const g = tileNoise(x, y, 16, 16, seed + 4);
+      // guijarros de 1 a 2 px con luz arriba a la izquierda (más densos que en la arena)
+      const gx = tileNoise(x + 0.5, y + 0.5, 16, 16, seed + 21), gu = tileNoise(x - 0.5, y - 0.5, 16, 16, seed + 21);
+      if (gx > 0.55) return gu > 0.55 ? A[4] : A[2];
       if (g > 0.9) return A[4];
-      if (g < -0.88) return A[0];
+      if (g < -0.85) return A[0];
       return tramado(A.slice(1, 4), 0.5 + estrato * 0.28 + tileFbm(x / 4, y / 4, 4, 4, seed + 2, 2) * 0.4, x, y);
     };
     const relleno = tile(16, 16, suelo);
