@@ -6,6 +6,7 @@ import { partida } from '../main.js';
 import {
   RANURAS, DISENO_POR_DEFECTO, piezasPara, costoEnRanura, comoMapa, comoDiseno, resumen, validar,
 } from './Taller/diseno.js';
+import { MASA_CARGA_KG } from '../fisica/diseno.js'; // la carga que se entrega (frente juego)
 
 // Dueño: frente taller. Armado con ranuras fijas, presupuesto visible, validación del diseño.
 // Contrato con el frente juego: partida.diseno = [{ ranura, pieza }] (docs/juego/ESPECIFICACION.md §3).
@@ -254,10 +255,12 @@ export default class Taller extends Phaser.Scene {
   // ---------- presupuesto y validación ----------
   refrescar() {
     const diseno = comoDiseno(this.mapa);
-    const res = resumen(diseno, PIEZAS);
+    const res = resumen(diseno, PIEZAS, { masaCarga: MASA_CARGA_KG });
     const errores = validar(diseno, PIEZAS, this.presupuesto);
     const restante = this.presupuesto - res.costo;
-    this.txtPresupuesto.setText(`Costo ${res.costo} / ${this.presupuesto} créditos · Restante ${restante} · Masa ${res.masa} kg`);
+    this.txtPresupuesto.setText(
+      `Costo ${res.costo} / ${this.presupuesto} créditos · Restante ${restante} · Masa ${res.masa} kg + carga ${MASA_CARGA_KG} kg`,
+    );
     this.txtPresupuesto.setColor(restante < 0 ? C.error : C.claro);
 
     // 1) Estado (✓ / ✗ con errores). Si los errores no caben en 2 líneas, se resumen con "(+N más)".
@@ -272,10 +275,15 @@ export default class Taller extends Phaser.Scene {
     const a = res.agarre;
     const lineas = [
       ...(this.aviso ? [this.aviso] : []),
-      `Agarre (peor eje): arena ${f2(a.arena)} · roca ${f2(a.roca)} · compacto ${f2(a.compacto)}`,
+      ...(res.ejes_distintos
+        ? [[this.mapa.rueda_del, this.mapa.rueda_tras].includes('rueda_ancha')
+          ? 'Ejes distintos: con las dos anchas es más seguro.'
+          : 'Ejes distintos: con las dos ruedas iguales es más seguro.']
+        : []),
+      `Agarre (promedio de ejes): arena ${f2(a.arena)} · roca ${f2(a.roca)} · compacto ${f2(a.compacto)}`,
       `Resistencia ${res.resistencia ?? '—'} · Protección de carga ${res.proteccion != null ? Math.round(res.proteccion * 100) + ' %' : '—'}`,
       `Fuerza/masa ${res.fuerza_por_masa != null ? res.fuerza_por_masa.toFixed(2) : '—'} · `
-        + `Autonomía ≈ ${res.autonomia_s != null ? Math.round(res.autonomia_s) + ' s a fondo' : '—'} (estimación de juego)`,
+        + `Autonomía ≈ ${res.autonomia_s != null ? Math.round(res.autonomia_s) + ' s a fondo' : '—'} con carga (P)`,
     ];
     this.txtValidacion.setY(VALIDACION_Y + this.txtEstado.height + 4);
     this.txtValidacion.setText(lineas.join('\n'));
