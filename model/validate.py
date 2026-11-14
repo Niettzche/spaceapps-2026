@@ -105,6 +105,12 @@ def main():
             continue
         df["pasa"] = ok(df)
         out += [f"### {titulo}: {int(df.pasa.sum())} de {len(df)} pasan", "", tabla_md(df, cols + ["pasa"]), ""]
+        if titulo == "Análogos conocidos" and (~df.pasa).any():
+            out += ["**Lectura.** El comparador complementario mide clima árido, suelo desnudo y relieve suave. Pasan los análogos "
+                    "elegidos por eso mismo (desiertos hiperáridos, dunas, cráteres en zonas secas). No pasan los que son análogos por "
+                    "otra razón que estas variables no ven: frío polar, lava en clima húmedo, química del agua (Río Tinto), "
+                    "microbialitos y cenotes, cuevas, o estructuras sepultadas. Que no pasen es esperable y marca el alcance del "
+                    "comparador: no reemplaza a la forma ni a la composición. No pasan: " + ", ".join(df.loc[~df.pasa, "nombre"]) + ".", ""]
         if df.errores.str.len().gt(0).any():
             out += ["Errores de medición: " + " · ".join(f"{n}: {e}" for n, e in zip(df.nombre, df.errores) if e), ""]
     out += parte_forma()

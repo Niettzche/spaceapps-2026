@@ -9,7 +9,7 @@
   "prueba_util": null,
   "uso_exploracion": "Candidato a verificar en campo: navegación y movilidad dentro de una depresión tipo cráter",
   "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
-  "novedoso": null,
+  "novedoso": true,
   "variables": {
     "forma": {
       "valor": 0.8876,
@@ -83,20 +83,21 @@
     }
   },
   "similitud": {
-    "total": 0.7254,
+    "total": 0.6054,
     "por_dimension": {
       "forma": 0.8876,
-      "oscilacion_termica": null,
+      "oscilacion_termica": 0.2936,
       "precipitacion": 0.7634,
       "ndvi": 0.4826,
       "pendiente": 0.5281
     },
-    "confianza": 0.8
+    "confianza": 1.0
   },
   "limites": [
     "gravedad",
     "presion_atmosferica",
-    "radiacion"
+    "radiacion",
+    "oscilacion_termica: destino por encima del máximo terrestre (55.0 > 40.0); se compara contra el extremo"
   ],
   "nivel": {
     "perfil_elevacion_m": [],
@@ -104,5 +105,5 @@
     "exageracion_vertical": null,
     "obstaculos": []
   },
-  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Gusev (Spirit) (Marte), 2.63 km, 30 m, d/D 0.011, en -14.768, 175.978. novedoso: pendiente; data/known_analogs.json todavía no tiene coordenadas con fuente."
+  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Gusev (Spirit) (Marte), 2.63 km, 30 m, d/D 0.011, en -14.768, 175.978."
 }

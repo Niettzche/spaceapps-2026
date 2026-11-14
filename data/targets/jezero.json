@@ -5,11 +5,11 @@
   "gravedad_ms2": 3.71,
   "variables": {
     "oscilacion_termica": {
-      "valor": null,
+      "valor": 55.0,
       "unidad": "K",
-      "fuente": "Perseverance MEDA / literatura (PENDIENTE)",
-      "fecha": null,
-      "nota": "PENDIENTE: capturar con fuente verificada"
+      "fuente": "Perseverance MEDA, Munguira et al. 2023, JGR Planets 128, e2022JE007559 (doi:10.1029/2022JE007559), Tabla 1",
+      "fecha": "2021-2022 (soles 34–359)",
+      "nota": "Amplitud diurna del AIRE a 1.45 m (Tmax − Tmin): 52 K (Ls 25°), 53 K (Ls 90°) y 61 K (Ls 180°). El 55 K es el promedio simple de esas tres filas, calculado por el frente modelo; el artículo no publica promedio anual. Comparable con T2M_RANGE (aire a 2 m) salvo por la altura y la duración del sol (24 h 39 min). Respaldo: semiamplitud diurna de 26 K (Rodríguez-Manfredi et al. 2023, Nature Geoscience, doi:10.1038/s41561-022-01084-0)."
     },
     "precipitacion": {
       "valor": 0,

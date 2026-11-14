@@ -1,20 +1,26 @@
 {
-  "descripcion": "Controles negativos: deben salir con similitud cercana a 0.",
+  "descripcion": "Controles negativos: deben salir con similitud cercana a 0 (selva densa y cultivo húmedo, verificados con ESA WorldCover 2021).",
   "controles": [
     {
-      "nombre": "Amazonas (selva)",
-      "lat": null,
-      "lon": null
+      "nombre": "Selva amazónica, Reserva Florestal Adolpho Ducke (Manaos, Brasil)",
+      "lat": -2.9621,
+      "lon": -59.9318,
+      "fuente_url": "https://en.wikipedia.org/wiki/Adolfo_Ducke_Forest_Reserve",
+      "nota": "Wikipedia/GeoHack. Reserva de selva de terra firme de 10,000 ha. WorldCover: 100% cobertura arbórea en 1 km y en 5 km."
     },
     {
-      "nombre": "Cuenca del Congo (selva)",
-      "lat": null,
-      "lon": null
+      "nombre": "Cuenca del Congo, Parque Nacional Nouabalé-Ndoki (República del Congo)",
+      "lat": 2.466667,
+      "lon": 16.45,
+      "fuente_url": "https://en.wikipedia.org/wiki/Nouabal%C3%A9-Ndoki_National_Park",
+      "nota": "Wikipedia/GeoHack. Selva sin tala (forma parte del Trinacional de la Sangha, en la cuenca del Congo). WorldCover: 100% cobertura arbórea en 1 km y en 5 km. Alternativa: Reserva de Fauna de Okapis, RDC (2.0, 28.5; https://en.wikipedia.org/wiki/Okapi_Wildlife_Reserve), también 100% arbórea. Descartamos Salonga (-2, 21): el píxel central sale como construido, aunque alrededor hay 97% de árboles."
     },
     {
-      "nombre": "Zona agrícola húmeda",
-      "lat": null,
-      "lon": null
+      "nombre": "Zona agrícola húmeda: llanura de arroz Đồng Tháp Mười (Plain of Reeds), delta del Mekong (Vietnam)",
+      "lat": 10.5,
+      "lon": 105.7,
+      "fuente_url": "https://en.wikipedia.org/wiki/Plain_of_Reeds",
+      "nota": "Wikipedia/GeoHack. WorldCover: centro cultivo; 91% cultivo en 1 km y 88% en 5 km. Expansión del arroz: Tanaka (2001), 'Agricultural Development in the Broad Depression and the Plain of Reeds', Southeast Asian Studies 39(1), https://kyoto-seas.org/pdf/39/1/390108.pdf. Descartamos la coordenada de 'Mekong Delta' (10.04, 105.8): es el río, junto a Cần Thơ (77% agua). Alternativa en México: Chontalpa, Tabasco (18.046644, -93.592531; https://en.wikipedia.org/wiki/Chontalpa), con 65% cultivo y 30% pastizal en 1 km, que es menos limpia."
     }
   ]
 }

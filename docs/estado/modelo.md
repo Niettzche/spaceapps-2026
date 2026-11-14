@@ -3,7 +3,7 @@
 > Lo actualiza SOLO este frente. Rama: `feat/modelo`.
 
 **Responsable:** Mario  ·  **Agente:** Claude Code / Codex
-**Última actualización:** 14 nov 2026, 13:15
+**Última actualización:** 14 nov 2026, 14:30
 
 ## Hecho
 - Detector de cráteres (núcleo del modelo, AGENTS.md §6.1 y §8.1): `analisis/00–15`. Corre igual sobre México (5,208 depresiones),
@@ -20,16 +20,22 @@
 - `data/targets`: pendiente medida de Jezero (3.56°) y del polo sur lunar (8.63°), mediana de cuadros de 10 km a 200 m.
 - `model/scan.py`: **41 candidatos** áridos exportados a `data/sites/mxNNNN.json` como `candidato_modelo`.
 - `model/curados.py`: **Pinacate** con variables reales y perfil de elevación de 4 km que cruza El Elegante (`documentado`).
-- `model/validate.py`: escribe `model/VALIDATION.md`. Falta correrlo con las coordenadas con fuente.
+- `model/validate.py`: escribe `model/VALIDATION.md`.
+- Destinos con oscilación térmica con fuente: Jezero 55 K (aire a 1.45 m, MEDA, Munguira et al. 2023) y polo sur 176 K
+  (superficie, LRO Diviner, Williams et al. 2019; solo comparable en orden de magnitud). Pinacate y candidatos, confianza 1.0.
+- `data/known_analogs.json` (20 con coordenada y fuente, 10 de México) y `data/negative_controls.json` (3, verificados con WorldCover).
+  `novedoso` ya se calcula: 7 candidatos quedan como no novedosos por estar a menos de 50 km del Gran Desierto de Altar,
+  del Pinacate o de Rincón de Parangueo.
+- **Samalayuca** con variables reales y perfil de dunas de 3 km (coordenada de Domínguez-Acosta et al. 2023). No hay literatura
+  que la trate como análogo planetario, así que va como `candidato_modelo` con `novedoso: true`.
+- `model/VALIDATION.md`: controles negativos 3 de 3 en 0 (veto por NDVI). Análogos conocidos: 9 de 20 por encima de 0.4; los que
+  no pasan son análogos por razones que el comparador no ve (frío, lava húmeda, química, cuevas). Impactos terrestres: 8 de 8
+  dentro de la nube de forma.
 
 ## En curso
-- Oscilación térmica de Jezero (MEDA) y del polo sur (Diviner), con fuente. La está buscando un agente.
-- Coordenadas con fuente de Samalayuca, de los controles negativos y de los análogos conocidos.
+- Integrar `ciencia_datos/datos/global_crateres.csv` (283 cráteres en Atacama, Arizona y Arabia; PR #3) a `scan.py`, quitando los duplicados del Pinacate.
 
 ## Siguiente
-- [ ] Llenar `oscilacion_termica` de los destinos, volver a correr `scan.py` y `curados.py`.
-- [ ] Samalayuca (agarre) con variables y perfil de dunas.
-- [ ] Correr `model/validate.py` y revisar que los controles negativos den cerca de 0.
 - [ ] Regenerar `web/public/data/sitios.json` desde `data/sites` (quitar `demo: true`).
 - [ ] Búsqueda global en zonas áridas (AGENTS.md §6.4), en 3 pasos. El paso (b) lo corre la sesión del Colab:
   - [ ] (a) Máscara global de zonas áridas con el filtro de vegetación (MODIS MOD13Q1, NDVI p90 < 0.35)
@@ -40,6 +46,7 @@
 - [ ] API `/score`: hoy usa forma = null en puntos libres (correcto: no hay cráter medido). Probar en el VPS si Earth Engine está disponible.
 
 ## Bloqueos / necesito de otro frente
+- Sitio análogo del camino lunar (el jugador elige Luna o Marte): la sesión del Colab propone El Elegante (forma 0.97 frente a la Luna). Lo decide Mario.
 - **Decisión del equipo (§16):** la forma de El Elegante da 0.97 frente al polo sur lunar y 0.03 frente a Jezero, y la similitud
   total del Pinacate contra Jezero es 0.13. Si el MVP sigue en Jezero, el sitio de relieve no sale como buen análogo de forma.
   Los datos favorecen la Luna como destino.

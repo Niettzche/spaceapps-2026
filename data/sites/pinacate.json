@@ -9,7 +9,7 @@
   "prueba_util": "relieve",
   "uso_exploracion": "Geología de campo y movilidad en terreno volcánico y dentro de un cráter (maar El Elegante)",
   "proceso": "Vulcanismo basáltico y cráteres",
-  "novedoso": null,
+  "novedoso": false,
   "variables": {
     "forma": {
       "valor": 0.028,
@@ -76,20 +76,21 @@
     }
   },
   "similitud": {
-    "total": 0.1274,
+    "total": 0.149,
     "por_dimension": {
       "forma": 0.028,
-      "oscilacion_termica": null,
+      "oscilacion_termica": 0.2796,
       "precipitacion": 0.6005,
       "ndvi": 0.4023,
       "pendiente": 0.7128
     },
-    "confianza": 0.8
+    "confianza": 1.0
   },
   "limites": [
     "gravedad",
     "presion_atmosferica",
-    "radiacion"
+    "radiacion",
+    "oscilacion_termica: destino por encima del máximo terrestre (55.0 > 40.0); se compara contra el extremo"
   ],
   "nivel": {
     "perfil_elevacion_m": [
@@ -218,5 +219,5 @@
     "exageracion_vertical": null,
     "obstaculos": []
   },
-  "nota": "Coordenada: Smithsonian GVP, subrasgos de Pinacate (vn=341001): cráter El Elegante 31°50′40″N 113°23′28″W. Los astronautas del Apolo entrenaron geología en el Pinacate (fuente en data/known_analogs.json). Otras detecciones del campo (MacDougal MX0007, Sykes MX0010, Cerro Colorado MX0012, MX0009, MX0011) se agregan aquí en vez de exportarse como candidatos. Forma frente al otro destino (polo_sur_lunar): 0.972."
+  "nota": "Coordenada: Smithsonian GVP, subrasgos de Pinacate (vn=341001): cráter El Elegante 31°50′40″N 113°23′28″W. Documentado como análogo: viajes de entrenamiento de geología de 1965–1967 y de la tripulación del Apolo 14 (Shepard y Mitchell) del 14 al 18 de febrero de 1970 (Phinney 2015, NASA SP-2015-626). Otras detecciones del campo (MacDougal MX0007, Sykes MX0010, Cerro Colorado MX0012, MX0009, MX0011) se agregan aquí en vez de exportarse como candidatos. Forma frente al otro destino (polo_sur_lunar): 0.972."
 }
