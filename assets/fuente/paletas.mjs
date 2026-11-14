@@ -28,6 +28,7 @@ export const PALETAS = {
     cielo_tarde: ['#2a3a6a', '#3e5a8a', '#6a86a8', '#a8b4b4', '#e0c89a', '#f6dca8', '#fff4d4'],
     sierra: ['#4a3a56', '#6a4e66', '#8e6a72', '#b48a80'],
     desierto_cerca: ['#24140e', '#4a2c1a', '#74482a', '#9e6a3e', '#c48e56', '#e6b878'],
+    salar: ['#a89a8a', '#c8bca8', '#e2d8c6', '#f4eee2'],
     // campo de lava (Pinacate): cielo claro con bruma, conos de ceniza óxido apagado
     cielo_lava: ['#3a4e7a', '#5a74a0', '#8a9eb8', '#b8c0c4', '#dcd2c0', '#f0e2c8'],
     conos: ['#2a1a1e', '#4a2a28', '#6e3e32', '#94563e', '#b8744e'],

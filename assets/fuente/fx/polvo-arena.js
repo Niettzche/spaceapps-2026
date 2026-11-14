@@ -12,7 +12,7 @@ export const meta = {
   loop: false,
   fps: 15,
   bg: "ground",
-  options: { palette: ["#5e3a24", "#8a5a36", "#b8844e", "#dcae74", "#f6d698"], seed: 3 },
+  options: { palette: ["#5e3a24", "#8a5a36", "#b8844e", "#dcae74", "#f6d698"], seed: 3, nubes: 5, granos: 3 },
 };
 
 export function create(o) {
@@ -20,10 +20,11 @@ export function create(o) {
   const ps = new Particles({ rng: R, ground: floor });
   const LIT = mix(C[3], WHITE, 0.15);
   // bocanada: 5 nubecitas que salen hacia atrás, suben un poco y se deshacen
-  for (let i = 0; i < 5; i++)
+  // superficie: arena = mucha nube y pocos granos; roca = poca nube y esquirlas; compacto = intermedio
+  for (let i = 0; i < o.nubes; i++)
     ps.spawn(P.DUST, R.range(-1, 2), -R.range(0.5, 1.5), -R.range(10, 28), -R.range(3, 11), R.range(0.32, 0.55), R.chance(0.5) ? LIT : C[2], R.range(1.3, 2.3), R.range(0, 0.06));
   // granos que saltan hacia atrás y caen
-  for (let i = 0; i < 3; i++)
+  for (let i = 0; i < o.granos; i++)
     ps.spawn(P.GRIT, R.range(-1, 1), -1, -R.range(18, 40), -R.range(30, 60), R.range(0.35, 0.5), R.pick([C[1], C[2], C[3]]), 1);
   let t = 0;
   return {
