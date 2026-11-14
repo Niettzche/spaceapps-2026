@@ -40,7 +40,8 @@ análogos para probar un robot antes de mandarlo a Marte o a la Luna a entregar 
 ## 4. Producto: recorrido del jugador
 
 1. Pantalla de carga con progreso real → menú.
-2. Elegir destino: **Marte (Jezero)** en el MVP; Luna como segundo destino si alcanza (P).
+2. Elegir destino: **Luna (polo sur, Artemis)** o **Marte (Jezero)**. Los dos son destinos finales y **el jugador elige**.
+   Misma mecánica en ambos; cambian la gravedad, el perfil del destino (`data/targets/`), los sitios análogos sugeridos y el fondo.
 3. Mapa con análogos sugeridos por el modelo → abrir el **Expediente** de un sitio: a la izquierda la Tierra, a la derecha el destino,
    misma variable con misma unidad, y qué diferencias quedarán sin probar.
 4. Gastar un **ticket de prueba** en un sitio (3 tickets por partida, sin reposición; reiniciar partida los restaura) (P).
@@ -99,7 +100,7 @@ Ojo con el borde: a 200 m, el borde lunar medido sale negativo (mediana −23 m)
 criterio de parecido con la Luna. El frente modelo decide cómo usarlo; profundidad/diámetro es la variable que sí separa.
 
 **El modelo calcula para los DOS destinos** (Jezero en Marte y una región candidata de base de Artemis en el polo sur lunar),
-aunque el juego del MVP solo tenga nivel de Marte. Así cubrimos las dos mitades del reto ("bases lunares permanentes y Marte").
+y el juego tiene misión en los dos destinos. Así cubrimos las dos mitades del reto ("bases lunares permanentes y Marte").
 
 Endpoints a verificar el sábado: API de NASA POWER (climatología por punto) y servicio de subconjuntos MODIS de ORNL DAAC.
 Los valores del destino se capturan una vez en `data/targets/*.json` **con fuente, fecha y unidad**.
@@ -317,7 +318,8 @@ Somos 6 personas en 6 computadoras. **GitHub es el punto de sincronización**; l
 
 Carga → Marte → Expediente de Samalayuca (comparación con Jezero) → ticket → Taller: ruedas estándar → prueba en dunas: patina →
 feedback "cambia a ruedas anchas" → prueba otra vez: pasa → misión en Marte → llega a la base → entrega → puntuación.
-Lo que se muestre como funcional debe funcionar en este camino; lo que sea visión se presenta como visión.
+Camino lunar: el mismo flujo eligiendo la Luna, con un sitio análogo lunar (lo propone el frente modelo) y misión con gravedad 1.62 m/s².
+Los dos caminos deben funcionar. Lo que se muestre como funcional debe funcionar en estos caminos; lo que sea visión se presenta como visión.
 
 ## 12. Criterios de aceptación
 
@@ -349,7 +351,7 @@ Lo que se muestre como funcional debe funcionar en este camino; lo que sea visi�
 | Documentarlo para el público | `docs/METODOLOGIA.md` (1 página) + página del proyecto en inglés | §14 |
 
 **Pitch de 2 minutos (estructura de la sede: el reto, la solución, por qué importa):**
-15 s el reto ("la Tierra puede entrenarte para Marte… pero no en todo") · 45 s tráiler del camino dorado ·
+15 s el reto ("la Tierra puede entrenarte para la Luna y Marte… pero no en todo") · 45 s tráiler del camino dorado ·
 30 s el modelo y su validación (datos NASA, búsqueda global en zonas áridas con cifras reales, controles negativos, sitio novedoso) · 20 s por qué importa (educación + catálogo abierto +
 propuestas de usuarios) · 10 s cierre. Preparar respuestas para: "¿qué modelo es?", "¿de dónde salen los números?", "¿qué no puede probar la Tierra?".
 
@@ -367,7 +369,6 @@ propuestas de usuarios) · 10 s cierre. Preparar respuestas para: "¿qué modelo
 
 - **Estaciones además de robots:** alternar entre construir un robot o una estación/módulo de base (hábitat, energía, protección contra
   el polvo). MVP = robots; estaciones como segundo modo de construcción, con el mismo taller, sitios y modelo.
-- Nivel jugable de la Luna (polo sur) con gravedad lunar.
 - Cuadrícula libre de construcción tipo Bad Piggies (el MVP usa ranuras fijas).
 - Minijuegos cortos que evalúan componentes (tracción, brazo, energía, sensores).
 - Feedback con LLM anclado en telemetría (el MVP usa reglas).
@@ -379,7 +380,6 @@ propuestas de usuarios) · 10 s cierre. Preparar respuestas para: "¿qué modelo
 
 ## 16. Pendientes que decide el equipo (no los decidas tú, agente)
 
-Hora exacta del pitch · tercer sitio · nivel jugable de la Luna en el MVP sí/no · nombre final y paleta · tipo de suministro · ¿usar LLM en la demo o solo reglas?
+Hora exacta del pitch · tercer sitio · sitio análogo del camino lunar · qué destino se muestra en el tráiler · nombre final y paleta · tipo de suministro · ¿usar LLM en la demo o solo reglas?
 · ¿el "generador de video" mencionado en la reunión es para el tráiler?
-· **Destino del MVP:** Luna (polo sur, Artemis) o Marte (Jezero). Los datos del detector favorecen la Luna.
 · **Nombre:** "Misión Cero" (juego) y "Cráter Gemelo" (página/explorador), o uno solo.

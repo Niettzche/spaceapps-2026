@@ -13,7 +13,7 @@
 
 ## Siguiente
 - [ ] Pantalla de carga con progreso real
-- [ ] Menú y elección de destino
+- [ ] Menú y elección de destino (Luna o Marte; el jugador elige)
 - [ ] Expediente: comparación 1 a 1 con fuente y unidad
 - [ ] Tickets de prueba (3 por partida)
 - [ ] Explorador: consulta de coordenadas → /score → /submit
