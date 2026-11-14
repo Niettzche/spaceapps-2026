@@ -25,6 +25,12 @@ Este cuaderno busca en todo México **formas del terreno parecidas a cráteres**
 | 14 | Exporta **todas** las depresiones (5,208) para `ciencia_datos/` | `hoyas_mexico.csv` |
 | 15 | Más referencias: **5 sitios de Marte** y **10 cráteres de impacto** de la Tierra | `hoyas_referencia.csv`, `impactos_tierra.csv` |
 | 16 | **Búsqueda global mínima**: el mismo detector en Atacama, Arizona y Arabia occidental | `global_crateres.csv` |
+| 17 | Imágenes del visor: relieve del candidato, gemelo lunar y marciano, satélite | (visor local) |
+| 18 | **Perfiles radiales a 80 m** (Tierra y Luna; Marte a 200 m) | `perfiles_radiales.json` |
+| 19 | **Gemelo lunar por perfil**: el cráter del polo sur con el corte más parecido, y comparación por zonas | `perfiles_radiales.json` |
+| 20 | Relieves para la vista 3D | (visor local) |
+| 21 | **Niveles del juego**: perfil real y superficie por tramo | `niveles.json` |
+| 22 | **Iluminación polar** (sol a 1.5°, sombra permanente) y **geología** (índices máfico y de cuarzo, ASTER GED) | `iluminacion_geologia.csv` |
 | 99 | Descarga los zip al equipo | — |
 
 ## De dónde salen los datos
