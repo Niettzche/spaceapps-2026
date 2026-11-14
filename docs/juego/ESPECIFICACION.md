@@ -149,7 +149,7 @@ Cada recomendación sale de un evento real de la partida:
 |---|---|
 | `patinaje` en arena con rueda estándar | Cambiar a rueda ancha |
 | No sube una pendiente (se detiene acelerando) | Motor potente o rueda con tacos |
-| Daño a la carga | Soporte amortiguado |
+| Daño a la carga (integridad final < 90 %) o carga perdida | Soporte amortiguado |
 | Energía agotada | Batería grande o motor eficiente |
 | Chasis destruido | Chasis reforzado |
 
