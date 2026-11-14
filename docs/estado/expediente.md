@@ -31,13 +31,21 @@
 - [x] Pantalla "¿De dónde salen los números?" en español e inglés (3 páginas: fuentes, cálculo, validación/límites/valores
   de juego). Todo el contenido sale de AGENTS.md; si cambian cifras o fuentes, actualizar `game/src/scenes/expediente/numeros.js`.
 
+- [x] Explorador: formulario HTML sobre el lienzo (lat/lon validados en grados decimales, destino, relleno opcional con un sitio
+  del catálogo que tenga coordenadas) → POST /score con contador de espera → similitud total, confianza y tabla por dimensión
+  (Tierra / destino / similitud, con fuente), límites y errores de la API. Si la API no responde: aviso claro y el juego sigue.
+  Probado con la API local (`uvicorn api.main:app`): ~60 s por punto, por eso la espera máxima es 90 s (`ESPERA_API_MS`).
+
 ## En curso
-- [ ] Explorador: formulario lat/lon → POST /score
 
 ## Siguiente
 - [ ] Explorador: botón "Proponer sitio" → POST /submit (solo si la similitud ≥ 0.6)
 
 ## Bloqueos / necesito de otro frente
+- **Modelo/API (Mario):** en `main`, `/score` para (31.84, -113.39) devolvió total 0.60 con confianza 0.25 (solo precipitación;
+  MODIS respondió 400) y `puede_proponer: true`. ¿Exigir una confianza mínima para proponer? Lo decide el frente modelo; el
+  Explorador muestra la confianza junto al total. La API tarda ~60 s por punto.
+- **API (CORS):** el servidor debe incluir el origen del juego en `ALLOWED_ORIGINS`.
 - **Arte:** Boot precarga solo lo que haya en `/assets`. Si se necesitan hojas de sprites, crear `assets/manifest.json`
   (formato en `game/src/scenes/expediente/assets.js`); sin manifiesto, cada imagen se carga con clave = ruta sin extensión.
 

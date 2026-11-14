@@ -17,7 +17,7 @@ export const ORDEN_DESTINOS = ['jezero', 'polo_sur_lunar'];
 // Umbral para proponer un sitio desde el Explorador (P) — AGENTS.md §6.4. La API aplica el suyo también.
 export const UMBRAL_PROPUESTA = 0.6;
 // NASA POWER puede tardar: espera generosa antes de declarar que la API no responde.
-export const ESPERA_API_MS = 45000;
+export const ESPERA_API_MS = 90000; // medido: ~60 s por punto con NASA POWER + MODIS
 
 /**
  * Enlace a la ficha completa en web/. Manda `sitio=<id del sitio>` y, si el id es de una detección del detector
