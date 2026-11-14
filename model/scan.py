@@ -128,7 +128,11 @@ def construir_sitio(r: pd.Series, targets: dict, ref: pd.DataFrame, conocidos: l
     if not fz["dentro_95"]:
         limites.append("forma: " + fz["nota"])
     limites += sim["limites_calculo"]
-    novedoso = not any(km(r.lat, r.lon, la, lo) <= RADIO_ANALOGO_KM for _, la, lo in conocidos)
+    # Sin coordenadas en known_analogs no se puede calcular: queda null con nota (no se asume novedoso)
+    novedoso = (None if not conocidos else
+                not any(km(r.lat, r.lon, la, lo) <= RADIO_ANALOGO_KM for _, la, lo in conocidos))
+    aviso_novedoso = (" novedoso: pendiente; data/known_analogs.json todavía no tiene coordenadas con fuente."
+                      if novedoso is None else "")
     g = gemelo(cuerpo, float(r.diam_km), float(r.prof_diam), ref)
     return {
         "id": str(r.cid).lower(),
@@ -143,7 +147,7 @@ def construir_sitio(r: pd.Series, targets: dict, ref: pd.DataFrame, conocidos: l
         "nota": (f"Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de {g['sitio']} ({g['cuerpo']}), "
                  f"{g['diam_km']} km, {g['prof_m']} m, d/D {g['prof_diam']}"
                  + (f", en {g['lat']}, {g['lon']}" if g["lat"] is not None else "")
-                 + (f". Errores al medir: {'; '.join(tierra['errores'])}" if tierra["errores"] else "") + "." + aviso_nombre),
+                 + (f". Errores al medir: {'; '.join(tierra['errores'])}" if tierra["errores"] else "") + "." + aviso_nombre + aviso_novedoso),
     }
 
 

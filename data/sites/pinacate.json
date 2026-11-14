@@ -70,8 +70,8 @@
     "pendiente": {
       "valor": 1.867,
       "unidad": "grados",
-      "fuente": "Copernicus DEM GLO-30 (ESA) promediado a 200 m, Google Earth Engine",
-      "fecha": "GLO-30",
+      "fuente": "Copernicus DEM GLO-30 (ESA, versión 2024_1) promediado a 200 m, Google Earth Engine",
+      "fecha": null,
       "nota": "media de la pendiente en un cuadro de 10 km centrado en el punto"
     }
   },

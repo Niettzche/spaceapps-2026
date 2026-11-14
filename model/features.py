@@ -119,8 +119,8 @@ def pendiente(lat: float, lon: float) -> dict:
             return {"pendiente": {"valor": None, "unidad": "grados", "fuente": "Copernicus DEM GLO-30 a 200 m",
                                   "fecha": None, "nota": "sin datos de elevación en el cuadro (¿mar?)"}}
         return {"pendiente": {"valor": round(float(v), 3), "unidad": "grados",
-                              "fuente": "Copernicus DEM GLO-30 (ESA) promediado a 200 m, Google Earth Engine",
-                              "fecha": "GLO-30", "nota": "media de la pendiente en un cuadro de 10 km centrado en el punto"}}
+                              "fuente": "Copernicus DEM GLO-30 (ESA, versión 2024_1) promediado a 200 m, Google Earth Engine",
+                              "fecha": None, "nota": "media de la pendiente en un cuadro de 10 km centrado en el punto"}}
     except Exception as e:  # noqa: BLE001
         return {"error": f"Pendiente: {e}"}
 

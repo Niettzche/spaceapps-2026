@@ -9,7 +9,7 @@
   "prueba_util": null,
   "uso_exploracion": "Análogo operativo, no geológico: probar navegación y movilidad de rovers en paredes empinadas, excavación (ISRU) y operación con sombra en el fondo del tajo",
   "proceso": "Excavación artificial: tajo minero a cielo abierto (cantera a menos de 2 km en OpenStreetMap)",
-  "novedoso": true,
+  "novedoso": null,
   "variables": {
     "forma": {
       "valor": 0.9424,
@@ -77,8 +77,8 @@
     "pendiente": {
       "valor": 1.98,
       "unidad": "grados",
-      "fuente": "Copernicus DEM GLO-30 (ESA) promediado a 200 m, Google Earth Engine",
-      "fecha": "GLO-30",
+      "fuente": "Copernicus DEM GLO-30 (ESA, versión 2024_1) promediado a 200 m, Google Earth Engine",
+      "fecha": null,
       "nota": "media de la pendiente en un cuadro de 10 km centrado en el punto"
     }
   },
@@ -106,5 +106,5 @@
     "exageracion_vertical": null,
     "obstaculos": []
   },
-  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Anillo 80-85°S (Luna), 1.81 km, 218 m, d/D 0.121, en -81.583, -87.112. Nombre por verificar: se asignó en analisis/09 por cercanía a una mina o cantera de OpenStreetMap; no se cotejó con un inventario minero oficial."
+  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Anillo 80-85°S (Luna), 1.81 km, 218 m, d/D 0.121, en -81.583, -87.112. Nombre por verificar: se asignó en analisis/09 por cercanía a una mina o cantera de OpenStreetMap; no se cotejó con un inventario minero oficial. novedoso: pendiente; data/known_analogs.json todavía no tiene coordenadas con fuente."
 }

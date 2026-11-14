@@ -9,7 +9,7 @@
   "prueba_util": null,
   "uso_exploracion": "Candidato a verificar en campo: navegación y movilidad dentro de una depresión tipo cráter",
   "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
-  "novedoso": true,
+  "novedoso": null,
   "variables": {
     "forma": {
       "valor": 0.8843,
@@ -77,8 +77,8 @@
     "pendiente": {
       "valor": 3.53,
       "unidad": "grados",
-      "fuente": "Copernicus DEM GLO-30 (ESA) promediado a 200 m, Google Earth Engine",
-      "fecha": "GLO-30",
+      "fuente": "Copernicus DEM GLO-30 (ESA, versión 2024_1) promediado a 200 m, Google Earth Engine",
+      "fecha": null,
       "nota": "media de la pendiente en un cuadro de 10 km centrado en el punto"
     }
   },
@@ -104,5 +104,5 @@
     "exageracion_vertical": null,
     "obstaculos": []
   },
-  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Gusev (Spirit) (Marte), 3.73 km, 55 m, d/D 0.015, en -14.757, 175.761."
+  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Gusev (Spirit) (Marte), 3.73 km, 55 m, d/D 0.015, en -14.757, 175.761. novedoso: pendiente; data/known_analogs.json todavía no tiene coordenadas con fuente."
 }
