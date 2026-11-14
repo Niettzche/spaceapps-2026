@@ -189,6 +189,37 @@ Estrellas por rangos. La puntuación del juego **no** es evidencia científica.
   Reutilizar la física/controles; la pista procedural se reemplaza por perfiles reales.
 - Feedback: reglas primero; LLM solo con diseño + datos del sitio + reglas activas + telemetría. Si el LLM falla, reglas.
 
+### 8.1 Módulos existentes: el núcleo del modelo
+
+El **detector de cráteres** (`analisis/` + `ciencia_datos/`) **es el núcleo del modelo de análogos** (§6): con datos reales mide la forma
+de cada depresión de México con el mismo código y a la misma resolución (200 m) que los cráteres del polo sur lunar y de Marte.
+`/model` es la capa que convierte esos resultados (más las dimensiones complementarias) en `data/sites/`. **No se borra ni se reescribe.**
+
+| Carpeta | Qué es | Dueño | Conexión con Misión Cero |
+|---|---|---|---|
+| `analisis/` | Celdas de Colab (Earth Engine) `00`–`15`: detector de depresiones tipo cráter en México, el polo sur lunar (LOLA) y Marte (HRSC+MOLA), todo a 200 m con el mismo código | modelo | Escaneo sistemático (§6.4, punto 2): sus candidatos se exportan a `data/sites/` |
+| `ciencia_datos/` | Notebooks de modelos explicables (árbol, regresión logística Luna contra Marte) y sus salidas | modelo | Similitud de forma y evidencia de validación → `model/VALIDATION.md` y `docs/METODOLOGIA.md` |
+| `informe/` | Generadores y PDF de validación del detector y de los modelos | modelo | Respaldo para el pitch y la metodología |
+| `web/` | Página Vite + React + MapLibre, bilingüe (en/es): quiz, mapa de detecciones, fichas con gemelo lunar, sitios destacados, método | integración (Alan): estructura y publicación. `web/public/data/`: modelo | Página pública del proyecto en inglés (§14). Enlaza al juego (`game/`); no se fusiona con él |
+| `PROYECTO.md` | Memoria del trabajo del detector: decisiones, bitácora, pendientes | modelo | Las decisiones que afecten a todos los frentes se copian a `docs/DECISIONES.md` |
+
+**Reglas de conexión**
+- Los cráteres candidatos se exportan a `data/sites/<id>.json` con `estado: "candidato_modelo"`, cumpliendo `data/schema/site.schema.json`.
+  El id va en minúsculas (`mx0007`, no `MX0007`), porque el esquema exige `^[a-z0-9_]+$`.
+- **Solo se exportan detecciones de zonas áridas** (NDVI p90 < 0.35). Las 668 incluyen dolinas y cañadas de sierras húmedas
+  que no son cráteres (ver `informe/validacion_detector.pdf`).
+- Las mediciones de forma (diámetro, profundidad, profundidad/diámetro, borde) van en `variables` con `unidad` y `fuente`
+  ("Copernicus DEM GLO-30, remuestreado a 200 m"). El puntaje Luna/Marte va en `similitud.por_dimension.forma`.
+  `destino_ref` = el cuerpo de su gemelo (`polo_sur_lunar` o `jezero`).
+- `novedoso` se calcula contra `data/known_analogs.json`. Si un candidato coincide con un sitio curado
+  (ej. MacDougal ↔ `pinacate`), se enriquece el sitio curado en vez de duplicarlo.
+- `web/public/data/` lo genera el frente modelo con su script (`analisis/10_exportar_web.py`); **nadie lo edita a mano**.
+  Excepción temporal: `sitios.json` (sitios destacados) hoy es curado por el frente modelo y marca sus campos de demostración
+  con `demo: true`; mientras no tenga script, solo el frente modelo lo edita.
+- **El Expediente del juego (`game/`) muestra solo la comparación del sitio que se va a probar** y enlaza a la ficha completa de `web/`.
+  El mapa completo, el quiz y las fichas viven en `web/` y **no se duplican en el juego**.
+- Los otros frentes no tocan estas carpetas. Si el juego necesita algo de aquí, lo lee de `data/sites/`, nunca de `web/` ni de `analisis/`.
+
 ## 9. Frentes de trabajo y sincronización
 
 Cada persona trabaja con su agente en **su propia rama** (`feat/<frente>`). Nadie trabaja directo en `main`.
