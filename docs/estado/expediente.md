@@ -18,8 +18,15 @@
 - [x] Expediente: recuadro "Lo que la Tierra no puede probar" (une `no_reproducible_en_tierra` del destino y `limites` del sitio;
   gravedad con su valor y la nota de que solo se simula en la misión); las notas largas de `limites` salen como "Límite del cálculo"
 
+- [x] Tickets: 3 por partida (`TICKETS_POR_PARTIDA`), se gastan al elegir un sitio nuevo, no se entra sin tickets, volver a probar
+  un sitio ya pagado no cuesta; "Nueva partida" los restaura sin duplicar. "Probar" fija `partida.sitio` (objeto del sitio) → Taller.
+- [x] Guardado en localStorage (`mision_cero.partida.v1`): se guarda al elegir destino y sitio, y al ocultar/cerrar la pestaña
+  (así también se conservan `diseno` y `resultados` que escriben otras escenas). "Continuar" lo restaura en el mismo objeto
+  `partida` y va al Taller si ya hay sitio, o al Expediente si no. Verificado: camino dorado Menú → Marte → Samalayuca → ticket
+  (3→2) → Taller, y recarga → Continuar.
+
 ## En curso
-- [ ] Tickets y paso al Taller con `partida.sitio`
+- [ ] Enlace a la ficha completa de web/
 
 ## Siguiente
 - [ ] Tickets de prueba (3 por partida)

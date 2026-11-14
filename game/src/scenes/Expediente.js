@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 import { SITIOS, DESTINOS } from '../data.js';
 import { partida } from '../main.js';
 import { COLOR, texto, boton, panel, Teclado } from './expediente/interfaz.js';
-import { GRAVEDAD } from '../config/world.js';
+import { GRAVEDAD, TICKETS_POR_PARTIDA } from '../config/world.js';
+import { elegirSitio, sitioPagado } from './expediente/guardado.js';
 import { DESTINO_POR_DEFECTO } from './expediente/config.js';
 import {
   sitiosParaDestino, filasComparacion, limitesDe, formatoValor, formatoPorcentaje, esDemostracion, recortar, SIN_DATO,
@@ -200,8 +201,20 @@ export default class Expediente extends Phaser.Scene {
   }
 
   dibujarAcciones(add) {
-    const volver = add(boton(this, 80, 515, 'Menú', () => this.scene.start('Menu'), { size: 14 }));
-    const probar = add(boton(this, 760, 515, 'Probar este sitio', () => this.probar(), { size: 16, habilitado: !!this.seleccion }));
+    const volver = add(boton(this, 60, 515, 'Menú', () => this.scene.start('Menu'), { size: 14 }));
+    // Tickets (AGENTS.md §4): 3 por partida, sin reposición; volver a probar un sitio ya pagado no cuesta.
+    const n = Math.max(0, partida.tickets | 0);
+    const total = Math.max(TICKETS_POR_PARTIDA, n);
+    const fichas = '●'.repeat(n) + '○'.repeat(total - n);
+    add(texto(this, 150, 506, `Tickets de prueba ${fichas} ${n}/${total}`, { size: 13, color: n ? COLOR.acento : COLOR.alerta }));
+    const s = this.seleccion;
+    const pagado = s && sitioPagado(s.id);
+    let etiqueta = 'Gastar 1 ticket y probar';
+    let ayuda = 'Al probar, este sitio queda pagado: puedes volver a probarlo sin gastar otro ticket.';
+    if (pagado) { etiqueta = 'Probar de nuevo'; ayuda = 'Ya pagaste este sitio: no gasta ticket.'; }
+    else if (!n) { etiqueta = 'Sin tickets'; ayuda = 'Sin tickets: elige un sitio ya pagado o empieza una Nueva partida desde el menú.'; }
+    const probar = add(boton(this, 800, 506, etiqueta, () => this.probar(), { size: 16, habilitado: !!s && (pagado || n > 0) }));
+    add(texto(this, 150, 526, ayuda, { size: 10, color: COLOR.muyTenue }));
     this.botonesDetalle = [probar];
     this.botonVolver = volver;
     this.registrarTeclado();
@@ -209,7 +222,8 @@ export default class Expediente extends Phaser.Scene {
 
   probar() {
     if (!this.seleccion) return;
-    partida.sitio = this.seleccion;
+    const r = elegirSitio(partida, this.seleccion);
+    if (!r.ok) { this.dibujarDetalle(); return; }
     this.scene.start('Taller');
   }
 
