@@ -25,8 +25,11 @@
   `partida` y va al Taller si ya hay sitio, o al Expediente si no. Verificado: camino dorado Menú → Marte → Samalayuca → ticket
   (3→2) → Taller, y recarga → Continuar.
 
+- [x] Botón "Ficha completa ↗" que abre web/ en otra pestaña con `?sitio=<id>` (y `&ficha=MX0007` para detecciones del detector).
+  La URL sale de `VITE_WEB_URL` (archivo `game/.env.local`, no se sube); sin ella el botón aparece deshabilitado ("sin enlace").
+
 ## En curso
-- [ ] Enlace a la ficha completa de web/
+- [ ] Pantalla "¿De dónde salen los números?" (es/en)
 
 ## Siguiente
 - [ ] Tickets de prueba (3 por partida)
@@ -38,4 +41,6 @@
   (formato en `game/src/scenes/expediente/assets.js`); sin manifiesto, cada imagen se carga con clave = ruta sin extensión.
 
 ## Cambios que propongo a contratos o AGENTS.md (los aplica el integrador)
--
+- **web/ (Alan):** leer `?ficha=<ID>` y `?sitio=<id>` al cargar para abrir la ficha o el sitio directamente (hoy el juego
+  enlaza así; si no se implementa, el enlace abre la página en `#mapa`).
+- **Despliegue:** definir `VITE_WEB_URL` (URL pública de web/) y `VITE_API_URL` (API del VPS) al construir el juego.

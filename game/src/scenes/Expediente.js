@@ -4,7 +4,7 @@ import { partida } from '../main.js';
 import { COLOR, texto, boton, panel, Teclado } from './expediente/interfaz.js';
 import { GRAVEDAD, TICKETS_POR_PARTIDA } from '../config/world.js';
 import { elegirSitio, sitioPagado } from './expediente/guardado.js';
-import { DESTINO_POR_DEFECTO } from './expediente/config.js';
+import { DESTINO_POR_DEFECTO, urlFicha } from './expediente/config.js';
 import {
   sitiosParaDestino, filasComparacion, limitesDe, formatoValor, formatoPorcentaje, esDemostracion, recortar, SIN_DATO,
 } from './expediente/logica.js';
@@ -215,9 +215,17 @@ export default class Expediente extends Phaser.Scene {
     else if (!n) { etiqueta = 'Sin tickets'; ayuda = 'Sin tickets: elige un sitio ya pagado o empieza una Nueva partida desde el menú.'; }
     const probar = add(boton(this, 800, 506, etiqueta, () => this.probar(), { size: 16, habilitado: !!s && (pagado || n > 0) }));
     add(texto(this, 150, 526, ayuda, { size: 10, color: COLOR.muyTenue }));
-    this.botonesDetalle = [probar];
+    const url = urlFicha(s);
+    const ficha = add(boton(this, 560, 506, url ? 'Ficha completa ↗' : 'Ficha web: sin enlace', () => this.abrirFicha(url),
+      { size: 13, habilitado: !!url }));
+    this.botonesDetalle = [probar, ficha];
     this.botonVolver = volver;
     this.registrarTeclado();
+  }
+
+  // La ficha completa (mapa, gemelo lunar o marciano, método) vive en web/ y no se duplica en el juego (AGENTS.md §8.1).
+  abrirFicha(url) {
+    if (url) window.open(url, '_blank', 'noopener');
   }
 
   probar() {

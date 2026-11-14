@@ -19,9 +19,20 @@ export const UMBRAL_PROPUESTA = 0.6;
 // NASA POWER puede tardar: espera generosa antes de declarar que la API no responde.
 export const ESPERA_API_MS = 45000;
 
-export function urlFicha(sitioId) {
-  if (!WEB_URL) return null;
-  const u = new URL(WEB_URL, window.location.href);
-  u.searchParams.set('sitio', sitioId);
-  return u.toString();
+/**
+ * Enlace a la ficha completa en web/. Manda `sitio=<id del sitio>` y, si el id es de una detección del detector
+ * (mx0007, g00003), también `ficha=<ID en mayúsculas>` que es como web/ nombra sus fichas (web/public/data/fichas.json).
+ * Propuesta al integrador: que web/ abra la ficha o el sitio al leer esos parámetros.
+ */
+export function urlFicha(sitio) {
+  if (!WEB_URL || !sitio?.id) return null;
+  try {
+    const u = new URL(WEB_URL, window.location.href);
+    u.searchParams.set('sitio', sitio.id);
+    if (/^(mx|g)\d+$/.test(sitio.id)) u.searchParams.set('ficha', sitio.id.toUpperCase());
+    u.hash = 'mapa';
+    return u.toString();
+  } catch {
+    return null;
+  }
 }
