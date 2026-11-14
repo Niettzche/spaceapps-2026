@@ -1,0 +1,249 @@
+[
+  {
+    "id": "penasquito",
+    "cid": "MX0155",
+    "nombre": "Peñasquito",
+    "estado": "Zacatecas",
+    "lat": 24.6492,
+    "lon": -101.6732,
+    "tipo": "mina",
+    "rol": "hallazgo principal",
+    "resumen": {
+      "es": "Tajo a cielo abierto de 1.7 km de ancho y 310 m de hondo en el semidesierto de Zacatecas. Para su tamaño es más hondo que el 99 % de los cráteres del polo sur lunar: un caso extremo para probar vehículos dentro de cráteres.",
+      "en": "A 1.7 km wide, 310 m deep open pit in the Zacatecas semi-desert. For its size it is deeper than 99% of lunar south-pole craters: an extreme case for testing vehicles inside craters."
+    },
+    "medidas": { "diam_km": 1.66, "prof_m": 312, "prof_diam": 0.188, "borde_m": -14 },
+    "gemelo": { "cuerpo": "luna", "nombre": null, "lat": -80.812, "lon": -161.106, "diam_km": 1.58, "prof_m": 322 },
+    "similitud": { "P_Luna": 0.988, "dist": 29.2, "dentro_95": false, "pct_lunar": 99 },
+    "artemis": [
+      { "uso": "rovers", "texto": { "es": "Subir y bajar rampas largas y empinadas con carga, como al entrar a un cráter polar a buscar hielo.", "en": "Driving long, steep ramps up and down under load, as when entering a polar crater to look for ice." } },
+      { "uso": "navegacion", "texto": { "es": "Ubicarse en el fondo sin ver el horizonte ni la base, con paredes que bloquean la señal.", "en": "Finding position on the floor with no horizon or base in view and walls blocking the signal." } },
+      { "uso": "isru", "texto": { "es": "La mina ya excava, acarrea y procesa roca a diario: un banco de pruebas de excavación a escala real.", "en": "The mine already digs, hauls and processes rock every day: a full-scale testbed for excavation." } },
+      { "uso": "construccion", "texto": { "es": "Los bancos de las paredes sirven para probar plataformas y caminos sobre taludes.", "en": "The benched walls are a place to test platforms and roads built on slopes." } }
+    ],
+    "se_rompe": [
+      { "eje": "forma", "nivel": "parcial", "nota": { "es": "Más hondo que el 99 % de los cráteres lunares de su tamaño y fuera de la nube Luna+Marte: es un caso extremo, no una copia.", "en": "Deeper than 99% of lunar craters its size and outside the Moon+Mars cloud: an extreme case, not a copy." } },
+      { "eje": "borde", "nivel": "no aplica", "nota": { "es": "Sin borde levantado (−14 m): es un hoyo excavado, sin material expulsado alrededor.", "en": "No raised rim (−14 m): it is an excavation, with no ejecta around it." } },
+      { "eje": "material", "nivel": "parcial", "nota": { "es": "Roca fragmentada por voladura, no regolito formado por impactos.", "en": "Rock broken by blasting, not regolith formed by impacts." } },
+      { "eje": "gravedad", "nivel": "no aplica", "nota": { "es": "Seis veces la gravedad lunar: tracción, frenado y vuelco cambian.", "en": "Six times lunar gravity: traction, braking and rollover behave differently." } },
+      { "eje": "vacio", "nivel": "no aplica", "nota": { "es": "Hay aire: el polvo y el enfriamiento de las máquinas no se comportan como en vacío.", "en": "There is air: dust and machine cooling do not behave as in vacuum." } },
+      { "eje": "radiacion", "nivel": "no aplica", "nota": { "es": "La atmósfera y el campo magnético protegen a personas y electrónica.", "en": "The atmosphere and magnetic field shield people and electronics." } },
+      { "eje": "temperatura", "nivel": "parcial", "nota": { "es": "Semidesierto con cambios diarios grandes, pero lejos de los −230 °C de las sombras permanentes.", "en": "Semi-desert with large daily swings, but far from the −230 °C of permanent shadow." } },
+      { "eje": "luz", "nivel": "parcial", "nota": { "es": "Con el sol bajo, las paredes dan sombras largas; no hay sombra permanente.", "en": "With the sun low, the walls cast long shadows; there is no permanent shadow." } }
+    ],
+    "imagenes": { "relieve": "img/MX0155.png", "gemelo": "img/MX0155_luna.png", "satelite": null },
+    "demo": true,
+    "demo_campos": ["resumen", "artemis", "se_rompe", "gemelo.nombre"]
+  },
+  {
+    "id": "real-de-angeles",
+    "cid": "MX0207",
+    "nombre": "Real de Ángeles",
+    "estado": "Zacatecas",
+    "lat": 22.4145,
+    "lon": -101.9109,
+    "tipo": "mina",
+    "rol": "hallazgo principal",
+    "resumen": {
+      "es": "Tajo minero de 0.9 km y 270 m de hondo: la hoya más honda para su tamaño de todo el barrido (profundidad entre diámetro 0.29), más que cualquier cráter lunar de su rango.",
+      "en": "A 0.9 km, 270 m deep mine pit: the deepest hollow for its size in the whole survey (depth to diameter 0.29), more than any lunar crater in its range."
+    },
+    "medidas": { "diam_km": 0.93, "prof_m": 269, "prof_diam": 0.289, "borde_m": -11 },
+    "gemelo": { "cuerpo": "luna", "nombre": null, "lat": -81.407, "lon": -122.71, "diam_km": 1.11, "prof_m": 254 },
+    "similitud": { "P_Luna": 0.9997, "dist": 85.4, "dentro_95": false, "pct_lunar": 100 },
+    "artemis": [
+      { "uso": "rovers", "texto": { "es": "Pendientes extremas para encontrar el límite de un vehículo antes de llevarlo a la Luna.", "en": "Extreme slopes to find a vehicle's limit before taking it to the Moon." } },
+      { "uso": "navegacion", "texto": { "es": "Fondo estrecho y profundo: ubicarse con muy poco cielo a la vista.", "en": "A narrow, deep floor: finding position with very little sky in view." } },
+      { "uso": "construccion", "texto": { "es": "Taludes en bancos para probar anclajes y caminos sobre paredes empinadas.", "en": "Benched slopes to test anchoring and roads on steep walls." } }
+    ],
+    "se_rompe": [
+      { "eje": "forma", "nivel": "parcial", "nota": { "es": "Ningún cráter lunar de su tamaño es tan hondo; queda muy fuera de la nube Luna+Marte.", "en": "No lunar crater its size is this deep; it lies far outside the Moon+Mars cloud." } },
+      { "eje": "borde", "nivel": "no aplica", "nota": { "es": "Sin borde levantado (−11 m).", "en": "No raised rim (−11 m)." } },
+      { "eje": "material", "nivel": "parcial", "nota": { "es": "Roca de mina y terreros, no regolito.", "en": "Mine rock and waste dumps, not regolith." } },
+      { "eje": "gravedad", "nivel": "no aplica", "nota": { "es": "Seis veces la gravedad lunar.", "en": "Six times lunar gravity." } },
+      { "eje": "vacio", "nivel": "no aplica", "nota": { "es": "Hay aire.", "en": "There is air." } },
+      { "eje": "radiacion", "nivel": "no aplica", "nota": { "es": "Protegido por la atmósfera y el campo magnético.", "en": "Shielded by the atmosphere and magnetic field." } },
+      { "eje": "temperatura", "nivel": "parcial", "nota": { "es": "Altiplano seco con noches frías; nada cercano a las sombras lunares.", "en": "Dry high plateau with cold nights; nothing close to lunar shadows." } },
+      { "eje": "luz", "nivel": "parcial", "nota": { "es": "Fondo con muchas horas de sombra al día por lo estrecho del tajo.", "en": "The floor spends many hours a day in shadow because the pit is so narrow." } }
+    ],
+    "imagenes": { "relieve": "img/MX0207.png", "gemelo": "img/MX0207_luna.png", "satelite": null },
+    "demo": true,
+    "demo_campos": ["resumen", "artemis", "se_rompe", "gemelo.nombre"]
+  },
+  {
+    "id": "hercules",
+    "cid": "MX0084",
+    "nombre": "Hércules",
+    "estado": "Coahuila",
+    "lat": 28.0546,
+    "lon": -103.7666,
+    "tipo": "mina",
+    "rol": "hallazgo principal",
+    "resumen": {
+      "es": "Tajo de mineral de hierro de 0.9 km y 190 m en el desierto de Coahuila, de los sitios más secos del barrido. Son dos tajos vecinos; aquí se muestra el mayor.",
+      "en": "A 0.9 km, 190 m deep iron-ore pit in the Coahuila desert, one of the driest sites in the survey. There are two neighbouring pits; the larger is shown."
+    },
+    "medidas": { "diam_km": 0.9, "prof_m": 193, "prof_diam": 0.214, "borde_m": 7 },
+    "gemelo": { "cuerpo": "luna", "nombre": null, "lat": -82.361, "lon": 108.585, "diam_km": 0.98, "prof_m": 185 },
+    "similitud": { "P_Luna": 0.9955, "dist": 39.5, "dentro_95": false, "pct_lunar": 100 },
+    "artemis": [
+      { "uso": "rovers", "texto": { "es": "Rampas y fondo en un desierto sin vegetación: movilidad con polvo y piedra suelta.", "en": "Ramps and floor in a bare desert: mobility on dust and loose rock." } },
+      { "uso": "isru", "texto": { "es": "Mineral rico en óxidos de hierro para ensayar separación y extracción de metal y oxígeno.", "en": "Iron-oxide-rich ore to rehearse separating metal and extracting oxygen." } },
+      { "uso": "operacion_humana", "texto": { "es": "Campamento lejos de ciudades: logística y comunicaciones de una base aislada.", "en": "A camp far from cities: logistics and communications of an isolated base." } }
+    ],
+    "se_rompe": [
+      { "eje": "forma", "nivel": "parcial", "nota": { "es": "Más hondo que todos los cráteres lunares de su tamaño; fuera de la nube Luna+Marte.", "en": "Deeper than every lunar crater its size; outside the Moon+Mars cloud." } },
+      { "eje": "borde", "nivel": "parcial", "nota": { "es": "Borde bajo (7 m), probablemente de material acumulado, no expulsado por un impacto.", "en": "Low rim (7 m), probably piled-up waste rather than impact ejecta." } },
+      { "eje": "material", "nivel": "parcial", "nota": { "es": "Rico en hierro; el suelo del polo sur lunar es anortosita, pobre en hierro.", "en": "Iron-rich; the lunar south-pole soil is anorthosite, poor in iron." } },
+      { "eje": "gravedad", "nivel": "no aplica", "nota": { "es": "Seis veces la gravedad lunar.", "en": "Six times lunar gravity." } },
+      { "eje": "vacio", "nivel": "no aplica", "nota": { "es": "Hay aire.", "en": "There is air." } },
+      { "eje": "radiacion", "nivel": "no aplica", "nota": { "es": "Protegido por la atmósfera y el campo magnético.", "en": "Shielded by the atmosphere and magnetic field." } },
+      { "eje": "temperatura", "nivel": "parcial", "nota": { "es": "Desierto extremo para la Tierra, pero sin el frío de las sombras lunares.", "en": "Extreme desert by Earth standards, but without the cold of lunar shadow." } },
+      { "eje": "luz", "nivel": "parcial", "nota": { "es": "Sombras largas al amanecer y al atardecer; nunca permanentes.", "en": "Long shadows at sunrise and sunset; never permanent." } }
+    ],
+    "imagenes": { "relieve": "img/MX0084.png", "gemelo": "img/MX0084_luna.png", "satelite": null },
+    "demo": true,
+    "demo_campos": ["resumen", "artemis", "se_rompe", "gemelo.nombre"]
+  },
+  {
+    "id": "rincon-de-parangueo",
+    "cid": "MX0261",
+    "nombre": "Rincón de Parangueo",
+    "estado": "Guanajuato",
+    "lat": 20.4316,
+    "lon": -101.2492,
+    "tipo": "maar",
+    "rol": "segundo hallazgo",
+    "resumen": {
+      "es": "Maar de 1.4 km en Valle de Santiago cuyo lago se secó por la extracción de agua subterránea. Cae dentro de la nube Luna+Marte y su proporción es la de un cráter lunar típico.",
+      "en": "A 1.4 km maar in Valle de Santiago whose lake dried up from groundwater pumping. It falls inside the Moon+Mars cloud and its proportions are those of a typical lunar crater."
+    },
+    "medidas": { "diam_km": 1.37, "prof_m": 105, "prof_diam": 0.076, "borde_m": 23 },
+    "gemelo": { "cuerpo": "luna", "nombre": null, "lat": -85.26, "lon": 13.401, "diam_km": 1.37, "prof_m": 104 },
+    "similitud": { "P_Luna": 0.6457, "dist": 3.7, "dentro_95": true, "pct_lunar": 68 },
+    "artemis": [
+      { "uso": "navegacion", "texto": { "es": "Fondo plano y amplio rodeado de paredes: navegar con el horizonte tapado.", "en": "A wide, flat floor ringed by walls: navigating with the horizon hidden." } },
+      { "uso": "isru", "texto": { "es": "El fondo del antiguo lago guarda sedimentos y sales: practicar la búsqueda de volátiles en el fondo de un cráter.", "en": "The old lake bed holds sediments and salts: practice prospecting for volatiles on a crater floor." } },
+      { "uso": "rovers", "texto": { "es": "Paredes de ceniza volcánica suelta para probar tracción en pendiente.", "en": "Walls of loose volcanic ash to test traction on slopes." } },
+      { "uso": "operacion_humana", "texto": { "es": "Cerca de pueblos y carreteras: fácil de visitar para entrenar recorridos de geología.", "en": "Close to towns and roads: easy to reach for geology traverse training." } }
+    ],
+    "se_rompe": [
+      { "eje": "forma", "nivel": "funciona", "nota": { "es": "Dentro de la nube Luna+Marte; más hondo que el 68 % de los cráteres lunares de su tamaño.", "en": "Inside the Moon+Mars cloud; deeper than 68% of lunar craters its size." } },
+      { "eje": "borde", "nivel": "funciona", "nota": { "es": "Borde levantado de 23 m, como el de un cráter.", "en": "A 23 m raised rim, like a crater's." } },
+      { "eje": "material", "nivel": "parcial", "nota": { "es": "Ceniza y basalto de una explosión de vapor, no de un impacto; no es anortosita.", "en": "Ash and basalt from a steam explosion, not an impact; not anorthosite." } },
+      { "eje": "gravedad", "nivel": "no aplica", "nota": { "es": "Seis veces la gravedad lunar.", "en": "Six times lunar gravity." } },
+      { "eje": "vacio", "nivel": "no aplica", "nota": { "es": "Hay aire y humedad.", "en": "There is air and moisture." } },
+      { "eje": "radiacion", "nivel": "no aplica", "nota": { "es": "Protegido por la atmósfera y el campo magnético.", "en": "Shielded by the atmosphere and magnetic field." } },
+      { "eje": "temperatura", "nivel": "no aplica", "nota": { "es": "Clima templado del Bajío.", "en": "Mild Bajío climate." } },
+      { "eje": "luz", "nivel": "parcial", "nota": { "es": "Las paredes sombrean parte del fondo con el sol bajo.", "en": "The walls shade part of the floor when the sun is low." } }
+    ],
+    "imagenes": { "relieve": "img/MX0261.png", "gemelo": "img/MX0261_luna.png", "satelite": null },
+    "demo": true,
+    "demo_campos": ["resumen", "artemis", "se_rompe", "gemelo.nombre"]
+  },
+  {
+    "id": "aljojuca",
+    "cid": "MX0349",
+    "nombre": "Aljojuca",
+    "estado": "Puebla",
+    "lat": 19.0913,
+    "lon": -97.5334,
+    "tipo": "maar",
+    "rol": "segundo hallazgo",
+    "resumen": {
+      "es": "Maar con lago en la cuenca de Serdán. Su proporción coincide con la de los cráteres lunares, pero el lago oculta la profundidad real y alrededor hay campos de cultivo.",
+      "en": "A maar with a lake in the Serdán basin. Its proportions match lunar craters, but the lake hides the true depth and it is surrounded by farmland."
+    },
+    "medidas": { "diam_km": 0.98, "prof_m": 83, "prof_diam": 0.085, "borde_m": -2 },
+    "gemelo": { "cuerpo": "luna", "nombre": null, "lat": -82.029, "lon": 82.353, "diam_km": 0.98, "prof_m": 83 },
+    "similitud": { "P_Luna": 0.78, "dist": 2.1, "dentro_95": true, "pct_lunar": 75 },
+    "artemis": [
+      { "uso": "navegacion", "texto": { "es": "Bajar del borde al fondo por veredas, con el horizonte tapado por las paredes.", "en": "Walking from rim to floor on footpaths, with the horizon hidden by the walls." } },
+      { "uso": "rovers", "texto": { "es": "Paredes empinadas de toba para probar subidas cortas y repetidas.", "en": "Steep tuff walls for short, repeated climb tests." } },
+      { "uso": "operacion_humana", "texto": { "es": "Cráter accesible desde carretera para ensayar recorridos guiados.", "en": "A crater reachable by road to rehearse guided traverses." } }
+    ],
+    "se_rompe": [
+      { "eje": "forma", "nivel": "funciona", "nota": { "es": "Más hondo que el 75 % de los cráteres lunares de su tamaño, aun con el lago.", "en": "Deeper than 75% of lunar craters its size, even with the lake." } },
+      { "eje": "borde", "nivel": "parcial", "nota": { "es": "Sin borde medible a 200 m (−2 m).", "en": "No rim measurable at 200 m (−2 m)." } },
+      { "eje": "material", "nivel": "parcial", "nota": { "es": "Toba volcánica con suelo y vegetación; nada que ver con el regolito.", "en": "Volcanic tuff with soil and plants; nothing like regolith." } },
+      { "eje": "gravedad", "nivel": "no aplica", "nota": { "es": "Seis veces la gravedad lunar.", "en": "Six times lunar gravity." } },
+      { "eje": "vacio", "nivel": "no aplica", "nota": { "es": "Hay aire y un lago.", "en": "There is air and a lake." } },
+      { "eje": "radiacion", "nivel": "no aplica", "nota": { "es": "Protegido por la atmósfera y el campo magnético.", "en": "Shielded by the atmosphere and magnetic field." } },
+      { "eje": "temperatura", "nivel": "no aplica", "nota": { "es": "Clima templado de altura.", "en": "Mild highland climate." } },
+      { "eje": "luz", "nivel": "parcial", "nota": { "es": "Paredes que sombrean el agua y la orilla con el sol bajo.", "en": "Walls that shade the water and shore when the sun is low." } }
+    ],
+    "imagenes": { "relieve": "img/MX0349.png", "gemelo": "img/MX0349_luna.png", "satelite": null },
+    "demo": true,
+    "demo_campos": ["resumen", "artemis", "se_rompe", "gemelo.nombre", "similitud.P_Luna", "similitud.dist", "similitud.dentro_95"]
+  },
+  {
+    "id": "joya-honda",
+    "cid": null,
+    "nombre": "Joya Honda",
+    "estado": "San Luis Potosí",
+    "lat": 22.4178,
+    "lon": -100.7874,
+    "tipo": "maar",
+    "rol": "segundo hallazgo",
+    "resumen": {
+      "es": "Maar seco cerca de San Luis Potosí, conocido por los fragmentos de roca profunda que su explosión sacó a la superficie. El detector lo encontró, pero no pasó el filtro de circularidad (0.50).",
+      "en": "A dry maar near San Luis Potosí, known for the deep-seated rock fragments its explosion brought to the surface. The detector found it, but it failed the circularity filter (0.50)."
+    },
+    "medidas": { "diam_km": 0.84, "prof_m": 70, "prof_diam": 0.083, "borde_m": 16 },
+    "gemelo": { "cuerpo": "luna", "nombre": null, "lat": -84.395, "lon": 41.82, "diam_km": 0.84, "prof_m": 71 },
+    "similitud": { "P_Luna": 0.79, "dist": 2.4, "dentro_95": true, "pct_lunar": 73 },
+    "artemis": [
+      { "uso": "operacion_humana", "texto": { "es": "Rocas profundas expuestas en la pared: entrenar la selección de muestras durante una caminata.", "en": "Deep rocks exposed in the wall: train sample selection during a walk." } },
+      { "uso": "navegacion", "texto": { "es": "Cráter alargado y seco para practicar rutas de descenso y ascenso.", "en": "An elongated, dry crater to practise descent and ascent routes." } },
+      { "uso": "rovers", "texto": { "es": "Fondo seco y paredes de caliza y ceniza para probar movilidad.", "en": "Dry floor and walls of limestone and ash to test mobility." } }
+    ],
+    "se_rompe": [
+      { "eje": "forma", "nivel": "parcial", "nota": { "es": "Alargado (circularidad 0.50): solo parte de la pared se parece a un cráter lunar.", "en": "Elongated (circularity 0.50): only part of the wall resembles a lunar crater." } },
+      { "eje": "borde", "nivel": "funciona", "nota": { "es": "Borde levantado de 16 m.", "en": "A 16 m raised rim." } },
+      { "eje": "material", "nivel": "parcial", "nota": { "es": "Caliza y ceniza volcánica; origen por explosión de vapor, no por impacto.", "en": "Limestone and volcanic ash; formed by a steam explosion, not an impact." } },
+      { "eje": "gravedad", "nivel": "no aplica", "nota": { "es": "Seis veces la gravedad lunar.", "en": "Six times lunar gravity." } },
+      { "eje": "vacio", "nivel": "no aplica", "nota": { "es": "Hay aire.", "en": "There is air." } },
+      { "eje": "radiacion", "nivel": "no aplica", "nota": { "es": "Protegido por la atmósfera y el campo magnético.", "en": "Shielded by the atmosphere and magnetic field." } },
+      { "eje": "temperatura", "nivel": "parcial", "nota": { "es": "Semiárido con noches frías en invierno.", "en": "Semi-arid, with cold winter nights." } },
+      { "eje": "luz", "nivel": "parcial", "nota": { "es": "La pared alta da sombra a un lado del fondo buena parte del día.", "en": "The tall wall shades one side of the floor for much of the day." } }
+    ],
+    "imagenes": { "relieve": null, "gemelo": null, "satelite": null },
+    "demo": true,
+    "demo_campos": ["resumen", "artemis", "se_rompe", "gemelo", "similitud"]
+  },
+  {
+    "id": "el-elegante",
+    "cid": "MX0008",
+    "nombre": "El Elegante (Pinacate)",
+    "estado": "Sonora",
+    "lat": 31.8459,
+    "lon": -113.3925,
+    "tipo": "maar",
+    "rol": "control",
+    "resumen": {
+      "es": "Maar de 1.4 km y 200 m en El Pinacate, donde entrenaron los astronautas del Apolo entre 1965 y 1971. Es el control: el método lo reconoce como lunar sin que se lo dijéramos.",
+      "en": "A 1.4 km, 200 m deep maar in El Pinacate, where Apollo astronauts trained between 1965 and 1971. It is the control: the method recognises it as lunar without being told."
+    },
+    "medidas": { "diam_km": 1.45, "prof_m": 201, "prof_diam": 0.139, "borde_m": 19 },
+    "gemelo": { "cuerpo": "luna", "nombre": null, "lat": -83.362, "lon": 121.517, "diam_km": 1.46, "prof_m": 203 },
+    "similitud": { "P_Luna": 0.9377, "dist": 13.3, "dentro_95": true, "pct_lunar": 94 },
+    "artemis": [
+      { "uso": "operacion_humana", "texto": { "es": "Ya sirvió para entrenar astronautas: es la vara con la que medimos los sitios nuevos.", "en": "It has already trained astronauts: it is the yardstick for the new sites." } },
+      { "uso": "navegacion", "texto": { "es": "Recorrer el borde completo y bajar al fondo con referencias lejanas.", "en": "Walking the full rim and descending to the floor with distant landmarks." } },
+      { "uso": "rovers", "texto": { "es": "Basalto y ceniza sueltos en desierto, sin vegetación que estorbe.", "en": "Loose basalt and ash in open desert, with no vegetation in the way." } }
+    ],
+    "se_rompe": [
+      { "eje": "forma", "nivel": "funciona", "nota": { "es": "Dentro de la nube Luna+Marte; más hondo que el 94 % de los cráteres lunares de su tamaño.", "en": "Inside the Moon+Mars cloud; deeper than 94% of lunar craters its size." } },
+      { "eje": "borde", "nivel": "funciona", "nota": { "es": "Borde levantado de 19 m.", "en": "A 19 m raised rim." } },
+      { "eje": "material", "nivel": "parcial", "nota": { "es": "Basalto volcánico, parecido a los mares lunares pero no a la anortosita del polo.", "en": "Volcanic basalt, similar to the lunar maria but not to polar anorthosite." } },
+      { "eje": "gravedad", "nivel": "no aplica", "nota": { "es": "Seis veces la gravedad lunar.", "en": "Six times lunar gravity." } },
+      { "eje": "vacio", "nivel": "no aplica", "nota": { "es": "Hay aire.", "en": "There is air." } },
+      { "eje": "radiacion", "nivel": "no aplica", "nota": { "es": "Protegido por la atmósfera y el campo magnético.", "en": "Shielded by the atmosphere and magnetic field." } },
+      { "eje": "temperatura", "nivel": "parcial", "nota": { "es": "Desierto de Sonora: calor extremo de día, pero nada del frío lunar.", "en": "Sonoran Desert: extreme daytime heat, but none of the lunar cold." } },
+      { "eje": "luz", "nivel": "parcial", "nota": { "es": "Sombras largas en las paredes con el sol bajo.", "en": "Long shadows on the walls when the sun is low." } }
+    ],
+    "imagenes": { "relieve": "img/MX0008.png", "gemelo": "img/MX0008_luna.png", "satelite": null },
+    "demo": true,
+    "demo_campos": ["resumen", "artemis", "se_rompe", "gemelo.nombre"]
+  }
+]

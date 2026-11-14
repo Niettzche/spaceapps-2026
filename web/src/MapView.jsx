@@ -9,11 +9,19 @@ maplibregl.setWorkerUrl(workerUrl)
 const COLORS = { con_borde: '#1f6f78', mina: '#c7921a', sin_borde: '#26282c' }
 const GIBS = 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/ASTER_GDEM_Greyscale_Shaded_Relief/default/GoogleMapsCompatible_Level12/{z}/{y}/{x}.jpg'
 
-export default function MapView({ t, craters, plains, hasSheet, onOpen, activeId }) {
+export default function MapView({ t, craters, plains, sites = [], hasSheet, onOpen, onOpenSite, activeId, focus }) {
   const el = useRef(null)
   const map = useRef(null)
-  const [show, setShow] = useState({ con_borde: true, mina: true, sin_borde: true, llanuras: false })
+  const cb = useRef({})
+  const [show, setShow] = useState({ con_borde: true, mina: true, sin_borde: true, llanuras: false, sitios: true })
   const [ready, setReady] = useState(false)
+  // A new "show on map" request turns the sites layer back on if it was hidden.
+  const [seenFocus, setSeenFocus] = useState(focus)
+  if (focus !== seenFocus) {
+    setSeenFocus(focus)
+    if (focus && !show.sitios) setShow((s) => ({ ...s, sitios: true }))
+  }
+  useEffect(() => { cb.current = { onOpen, onOpenSite } })
 
   useEffect(() => {
     const m = new maplibregl.Map({
@@ -33,8 +41,17 @@ export default function MapView({ t, craters, plains, hasSheet, onOpen, activeId
         'circle-opacity': ['case', ['==', ['get', 'sheet'], 1], 0.95, 0.75],
         'circle-stroke-color': '#f3f1ec', 'circle-stroke-width': ['case', ['==', ['get', 'sheet'], 1], 1.6, 0],
       } })
-      m.on('click', 'dots', (e) => { const p = e.features[0].properties; if (p.sheet) onOpen(p.id) })
-      m.on('mouseenter', 'dots', (e) => { m.getCanvas().style.cursor = e.features[0].properties.sheet ? 'pointer' : '' })
+      // Shortlisted sites: a dark ring around a light dot, drawn above everything else.
+      m.addSource('sites', { type: 'geojson', data: { type: 'FeatureCollection', features: sites.map((s) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [s.lon, s.lat] }, properties: { id: s.id, nombre: s.nombre } })) } })
+      m.addLayer({ id: 'sites-ring', type: 'circle', source: 'sites', paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 4, 9, 10, 18], 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-color': '#1d2023', 'circle-stroke-width': 2.5 } })
+      m.addLayer({ id: 'sites', type: 'circle', source: 'sites', paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 4, 4.5, 10, 8], 'circle-color': '#f3f1ec', 'circle-stroke-color': '#1d2023', 'circle-stroke-width': 1.5 } })
+      const tip = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 14, className: 'sitetip' })
+      const siteAt = (pt) => m.queryRenderedFeatures(pt, { layers: ['sites-ring', 'sites'] })[0]
+      m.on('click', 'dots', (e) => { if (siteAt(e.point)) return; const p = e.features[0].properties; if (p.sheet) cb.current.onOpen(p.id) })
+      m.on('click', 'sites-ring', (e) => cb.current.onOpenSite?.(e.features[0].properties.id))
+      m.on('mouseenter', 'sites-ring', (e) => { m.getCanvas().style.cursor = 'pointer'; tip.setLngLat(e.features[0].geometry.coordinates).setText(e.features[0].properties.nombre).addTo(m) })
+      m.on('mouseleave', 'sites-ring', () => { m.getCanvas().style.cursor = ''; tip.remove() })
+      m.on('mouseenter', 'dots', (e) => { if (!siteAt(e.point)) m.getCanvas().style.cursor = e.features[0].properties.sheet ? 'pointer' : '' })
       m.on('mouseleave', 'dots', () => { m.getCanvas().style.cursor = '' })
       setReady(true)
     })
@@ -48,6 +65,7 @@ export default function MapView({ t, craters, plains, hasSheet, onOpen, activeId
     const on = ['con_borde', 'mina', 'sin_borde'].filter((k) => show[k])
     m.setFilter('dots', ['in', ['get', 't'], ['literal', on]])
     m.setLayoutProperty('plains', 'visibility', show.llanuras ? 'visible' : 'none')
+    for (const id of ['sites-ring', 'sites']) m.setLayoutProperty(id, 'visibility', show.sitios ? 'visible' : 'none')
   }, [show, ready])
 
   useEffect(() => {
@@ -55,6 +73,13 @@ export default function MapView({ t, craters, plains, hasSheet, onOpen, activeId
     const c = craters.find((x) => x.id === activeId)
     if (c) map.current.easeTo({ center: [c.lon, c.lat], zoom: Math.max(map.current.getZoom(), 9), duration: 900 })
   }, [activeId, ready])
+
+  // "Show on map" from a site card or sheet.
+  useEffect(() => {
+    if (!ready || !focus) return
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    map.current.flyTo({ center: [focus.lon, focus.lat], zoom: 10.5, duration: reduce ? 0 : 1600, essential: true })
+  }, [focus, ready])
 
   const n = (k) => craters.filter((c) => c.t === k).length
   const toggle = (k) => setShow((s) => ({ ...s, [k]: !s[k] }))
@@ -69,8 +94,9 @@ export default function MapView({ t, craters, plains, hasSheet, onOpen, activeId
             <button key={k} aria-pressed={show[k]} onClick={() => toggle(k)}><i style={{ background: COLORS[k] }} />{t.kind_short[k]} <b>{n(k)}</b></button>
           ))}
           <button aria-pressed={show.llanuras} onClick={() => toggle('llanuras')}><i style={{ background: '#8e3b24' }} />{t.mars_layer} <b>{plains.length}</b></button>
+          {sites.length > 0 && <button aria-pressed={show.sitios} onClick={() => toggle('sitios')}><i className="ring" />{t.sites_layer} <b>{sites.length}</b></button>}
         </div>
-        <p className="hint">{t.pick}</p>
+        <p className="hint">{sites.length > 0 ? t.pick_sites : t.pick}</p>
       </div>
       <div ref={el} className="map" />
     </section>
