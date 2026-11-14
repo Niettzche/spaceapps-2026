@@ -69,6 +69,12 @@
 - Terreno: un **cuadrilátero convexo por tramo** del perfil (punto i → i+1, cerrado hacia abajo), grueso para evitar que el robot lo atraviese.
 - Vehículo: ruedas circulares unidas al chasis con `constraint` (suspensión con rigidez 0.2–0.5); el chasis no colisiona con sus ruedas (`collisionFilter.group` negativo).
 - Motor: en cada `update`, velocidad angular objetivo de las ruedas proporcional al acelerador, con tope según `fuerza`.
+- **Agarre real del suelo** (`fisica/suelos.js`): fricción de la rueda = curva(agarre de la pieza) × tan(φ medio del suelo), con tope 1.
+  Datos del libro de taller (Space_Apps_Game_Data.xlsx, hoja Biomes): Luna regolito φ 30–50° (Connolly y Carrier, NASA NTRS 20220014634);
+  Marte drift 15.6–20.4°, costra 29.8–39.2°, roca 40–60° (Viking, NASA NTRS 20200003046, tabla 1). Tierra: sin dato (Gap) → el suelo no limita.
+  Medido (batería chica, motor eficiente, perfiles reales de data/): Luna ancha entrega (79 s, 21 %), estándar sin energía;
+  Marte ancha entrega (63 s, 37 %), estándar también entrega (71 s, 32 %) porque Jezero es casi plano (≤4.3°): el hundimiento
+  en suelo blando (Bekker) haría la diferencia, pero es Gap en el libro de datos. Samalayuca: estándar sin energía; ancha llega (59 s).
 - **Patinaje:** `|ω_rueda × r| − |v_chasis|` mayor que un umbral durante más de ~0.3 s → evento `patinaje` con la superficie del tramo.
 
 ## 6. Energía

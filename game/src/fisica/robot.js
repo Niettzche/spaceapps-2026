@@ -5,6 +5,7 @@ import { m, velAMs, msAVel } from './escala.js';
 import { resolverDiseno, MASA_CARGA_KG, RUEDAS_POR_RANURA } from './diseno.js';
 import { gastoPorSegundo } from './energia.js';
 import { danioChasis, danioCarga, UMBRAL_CARGA_MS } from './danio.js';
+import { agarreSuelo } from './suelos.js';
 
 const M = Phaser.Physics.Matter.Matter;
 
@@ -51,7 +52,8 @@ export class Robot {
    * @param {Array} piezas  catálogo (parts.json)
    * @param {(tipo: string, detalle: string) => void} alEvento  telemetría
    */
-  constructor(scene, x, y, diseno, piezas, alEvento = () => {}) {
+  constructor(scene, x, y, diseno, piezas, alEvento = () => {}, { mundo = 'tierra' } = {}) {
+    this.mundo = mundo; // para el agarre real del suelo (suelos.js)
     this.scene = scene;
     this.alEvento = alEvento;
     this.resuelto = resolverDiseno(diseno, piezas);
@@ -205,7 +207,8 @@ export class Robot {
     // Agarre según la superficie bajo cada rueda (Matter usa el mínimo con el suelo, que vale 1).
     for (const w of this.ruedas) {
       w.superficie = superficieDe(w.cuerpo.position.x);
-      w.cuerpo.friction = friccionDeAgarre(w.pieza.agarre?.[w.superficie] ?? 0.6);
+      // Fricción = curva(agarre de la pieza) × agarre real del suelo (suelos.js; sin dato = 1).
+      w.cuerpo.friction = friccionDeAgarre(w.pieza.agarre?.[w.superficie] ?? 0.6) * agarreSuelo(this.mundo, w.superficie);
     }
 
     // Energía

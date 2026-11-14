@@ -56,7 +56,7 @@ export class Recorrido {
     this.robot = new Robot(scene, x0, y0, o.diseno, o.piezas, (tipo, detalle) => {
       this.telemetria.registrar(this.robot?.t ?? 0, tipo, detalle);
       this.efectos?.alTelemetria(tipo, detalle); // efectos en la rueda, el chasis o la carga
-    });
+    }, { mundo: o.mundo });
     this.efectos = new Efectos(scene, { mundo: o.mundo, gravedad: o.gravedad, robot: this.robot, superficieDe: this.superficieDe });
     this.g = scene.add.graphics().setDepth(10);
     this.aspecto = new AspectoRobot(scene, this.robot); // sprites de arte si existen; si no, figuras

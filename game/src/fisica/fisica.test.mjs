@@ -115,3 +115,14 @@ caso('feedback: no recomienda lo que ya tiene', () => {
   assert.equal(recomendar({ eventos: [{ t: 1, tipo: 'patinaje', detalle: 'arena' }], diseno: d, integridad_carga: 1 }).length, 0);
 });
 console.log(`${n} casos OK`);
+
+// Agarre real del suelo (suelos.js)
+import { agarreSuelo, rangoAgarreSuelo } from './suelos.js';
+caso('suelo: Marte drift tan(18°) ≈ 0.325; Tierra sin dato = 1; roca de Marte con tope 1', () => {
+  assert.ok(Math.abs(agarreSuelo('marte', 'arena') - Math.tan((18 * Math.PI) / 180)) < 1e-9);
+  assert.equal(agarreSuelo('tierra', 'arena'), 1);
+  assert.equal(agarreSuelo('marte', 'roca'), 1);
+  const [a, b] = rangoAgarreSuelo('luna', 'arena');
+  assert.ok(a > 0.57 && b < 1.2);
+});
+console.log(`${n} casos OK (con suelos)`);
