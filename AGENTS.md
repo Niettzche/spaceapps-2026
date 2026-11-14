@@ -364,7 +364,7 @@ propuestas de usuarios) · 10 s cierre. Preparar respuestas para: "¿qué modelo
 - [ ] Video de ≤30 s (o ≤7 diapositivas) con subtítulos en inglés.
 - [ ] Página del proyecto en inglés: descripción, datos de NASA usados (con enlaces), otras fuentes, herramientas.
 - [ ] `docs/METODOLOGIA.md`: variables, fórmula, validación y límites.
-- [ ] Declarar uso de IA si la plataforma lo pide (usamos Claude Code / Codex en código y documentación, y Claude en el arte de MARSCEPTION).
+- [ ] Declarar uso de IA en código, documentación, arte y etiquetado de datos (Claude Code / Codex; etiquetas contrastadas con fuentes). Copiar docs/USO_IA.md al campo correspondiente de la plataforma.
 - [ ] Repositorio público con README.
 - [ ] Subido antes de las 21:00 del domingo (límite real 23:59).
 

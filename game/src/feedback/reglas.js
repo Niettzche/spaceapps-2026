@@ -1,6 +1,9 @@
 // Feedback por reglas: cada recomendación sale de eventos reales de la partida. Ver ESPECIFICACION.md §12.
 import { usaPieza } from '../fisica/diseno.js';
 
+// Por encima de esta integridad final, los golpes a la carga no generan recomendación (valor de juego, P).
+export const INTEGRIDAD_SIN_AVISO = 0.9;
+
 /**
  * @param {object} resultado  Result (eventos, diseno, integridad_carga, ...)
  * @returns {Array<{ id, texto, evidencia, cambio? }>}  recomendaciones, de la más importante a la menos
@@ -39,7 +42,9 @@ export function recomendar(resultado) {
     });
   }
   const golpesCarga = contar('golpe_carga');
-  if ((golpesCarga > 0 || contar('carga_perdida') > 0) && !usaPieza(d, 'soporte_amortiguado')) {
+  // Con el daño por sacudidas casi todo recorrido registra algún golpe_carga: solo se recomienda si el daño importa.
+  const cargaDanada = golpesCarga > 0 && (resultado.integridad_carga ?? 1) < INTEGRIDAD_SIN_AVISO;
+  if ((cargaDanada || contar('carga_perdida') > 0) && !usaPieza(d, 'soporte_amortiguado')) {
     recs.push({
       id: 'soporte_amortiguado',
       texto: 'Usa el soporte de carga amortiguado.',

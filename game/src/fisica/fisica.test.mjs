@@ -117,12 +117,38 @@ caso('feedback: no recomienda lo que ya tiene', () => {
 console.log(`${n} casos OK`);
 
 // Agarre real del suelo (suelos.js)
-import { agarreSuelo, rangoAgarreSuelo } from './suelos.js';
-caso('suelo: Marte drift tan(18°) ≈ 0.325; Tierra sin dato = 1; roca de Marte con tope 1', () => {
+import { agarreSuelo, rangoAgarreSuelo, sueloProvisional, notaSuelo, AGARRE_PROVISIONAL, USAR_SUELO_TIERRA } from './suelos.js';
+caso('suelo: Marte drift tan(18°) ≈ 0.325; roca de Marte con tope 1; sin dato = provisional (P)', () => {
   assert.ok(Math.abs(agarreSuelo('marte', 'arena') - Math.tan((18 * Math.PI) / 180)) < 1e-9);
-  assert.equal(agarreSuelo('tierra', 'arena'), 1);
   assert.equal(agarreSuelo('marte', 'roca'), 1);
   const [a, b] = rangoAgarreSuelo('luna', 'arena');
   assert.ok(a > 0.57 && b < 1.2);
+  assert.equal(agarreSuelo('tierra', 'roca'), AGARRE_PROVISIONAL);
+  assert.equal(sueloProvisional('tierra', 'compacto'), true);
+  assert.equal(sueloProvisional('luna', 'roca'), true);
+});
+caso('suelo: arena de duna de la Tierra = tan(31°) con fuente (BM-004), o provisional si se desactiva', () => {
+  if (USAR_SUELO_TIERRA) {
+    assert.ok(Math.abs(agarreSuelo('tierra', 'arena') - Math.tan((31 * Math.PI) / 180)) < 1e-9); // ≈ 0.601
+    assert.equal(sueloProvisional('tierra', 'arena'), false);
+  } else {
+    assert.equal(agarreSuelo('tierra', 'arena'), AGARRE_PROVISIONAL);
+  }
+  const nota = notaSuelo('tierra', [{ tipo: 'arena' }, { tipo: 'roca' }]);
+  assert.ok(nota.includes('roca: agarre provisional (P)'));
+  assert.equal(notaSuelo('tierra', []), null);
 });
 console.log(`${n} casos OK (con suelos)`);
+
+// Dónde se rompe la analogía (feedback/analogia.js)
+import { compararAnalogia } from '../feedback/analogia.js';
+caso('analogía: gravedad, patinaje y límites del destino', () => {
+  const prueba = { resultado: { distancia_m: 250, energia_restante: 0.4, eventos: [{ t: 1, tipo: 'patinaje', detalle: 'arena' }] } };
+  const mision = { resultado: { distancia_m: 250, energia_restante: 0.2, eventos: [{ t: 1, tipo: 'patinaje' }, { t: 4, tipo: 'patinaje' }] } };
+  const luna = { mundo: 'luna', gravedad_ms2: 1.62, no_reproducible_en_tierra: ['gravedad', 'vacio', 'radiacion'] };
+  const l = compararAnalogia(prueba, mision, luna);
+  assert.ok(l[0].includes('1.62') && l.some((x) => x.includes('1 momentos en la prueba, 2 en la misión')));
+  assert.ok(l.some((x) => x.includes('vacío, radiación')) && l.some((x) => x.includes('regolito')));
+  assert.ok(compararAnalogia(null, mision, luna).some((x) => x.includes('Sin una prueba')));
+});
+console.log(`${n} casos OK (con analogía)`);

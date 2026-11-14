@@ -17,12 +17,23 @@
 - **Fondos:** **3 capas con paralaje** (cielo fijo, lejana y cercana), cada una de 320 × 180 y repetible a lo ancho.
 - **Cada mundo se reconoce por el color:** Tierra cálida y arenosa, Marte óxido, Luna gris de alto contraste con cielo negro y luz rasante (polo sur).
 
+### Paleta base (sacada del título de MARSCEPTION)
+- Espacio morado oscuro: `#0d051c` `#180630` `#240d43` `#2e0d6b`.
+- Marte naranja óxido: `#a8593e` `#bc6240` `#af5a3a`.
+- Acentos: cian para la Tierra, rojo para Marte, lavanda para la UI; blanco para el texto.
+- Luna: grises fríos con cielo negro (por definir con Mauricio).
+- El título usa 225 colores en total; los sprites del juego conviene que usen la paleta corta de arriba por mundo.
+
 ## 2. Escala
 
 - Resolución base **320 × 180**, escalada **× 3** a 960 × 540. Todo se dibuja a 1 px de arte; el juego lo escala.
 - **8 px de arte = 1 m.**
-- Si hace falta más detalle (el estilo Dead Cells lo pide): se puede pasar a **480 × 270 × 2 con 12 px = 1 m** sin tocar la física,
-  porque el mundo sigue en 24 px de pantalla por metro. Es un cambio de dos constantes en `game/src/fisica/escala.js`. Hay que decidirlo antes de dibujar.
+- **Medido en el GIF de título de MARSCEPTION** (Mauricio): está dibujado a **400 × 225** y el HD es × 3 exacto (1200 × 675). El **tamaño de píxel
+  coincide con el juego** (1 px de arte = 3 px de pantalla); solo cambia el cuadro. Como 400 × 225 no entra entero en 960 × 540 (sería × 2.4,
+  píxeles desiguales), **las pantallas del juego se dibujan en 320 × 180**. El GIF de 400 × 225 queda para tráiler, pitch y página
+  (`docs/media/` en la rama `feat/arte-marsception-ligero`; no va en `assets/` porque el Boot precarga todo `assets/**/*.gif`).
+- Escala decidida: se queda **8 px = 1 m** (el robot de 24 px mide como 5 letras de la tipografía chica del título). No hace falta recalibrar la física.
+- Si hiciera falta más detalle: **480 × 270 × 2 con 12 px = 1 m** sin tocar la física (dos constantes en `game/src/fisica/escala.js`).
 
 ## 3. Lista de assets (medidas en px de arte a 8 px/m)
 
