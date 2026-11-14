@@ -44,6 +44,7 @@ def nivel_tierra(nombre, lat, lon, largo_m, fuente_coord):
     if ARENA_OK:
         b = ee_pixels(arena_img, x - largo_m / 2, y + paso * 0.5, n, 1, paso)
         arena = b["arena"][0].astype(float)
+        arena[(arena <= 0) | (arena > 100)] = np.nan          # OpenLandMap: 0 y 255 = sin dato (revisado: no afecta a los 3 niveles de abajo)
     tipos = ["arena" if (not np.isnan(s) and s >= 65) else ("roca" if (r > 2 or p > 15) else "compacto") for r, p, s in zip(rug, pend, arena)]
     fuente_sup = "Copernicus DEM GLO-30 (rugosidad y pendiente)" + ("; OpenLandMap SOL_SAND-WFRACTION v02, 0 cm (arena del suelo, 250 m)" if ARENA_OK else "")
     tr = [dict(t, fuente=fuente_sup, regla=REGLA_T) for t in tramos(tipos, paso)]
