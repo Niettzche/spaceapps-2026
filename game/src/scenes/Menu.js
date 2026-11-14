@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { irA } from './ui.js';
 import { SITIOS, DESTINOS } from '../data.js';
 import { partida } from '../main.js';
 import { PRESUPUESTO_INICIAL, TICKETS_POR_PARTIDA, GRAVEDAD } from '../config/world.js';
@@ -40,7 +41,7 @@ export default class Menu extends Phaser.Scene {
     const continuar = boton(this, 480, 260, 'Continuar', () => this.continuar(), { habilitado: !!g });
     const resumen = g ? this.resumenGuardado(g) : 'No hay partida guardada en este navegador';
     texto(this, 480, 284, resumen, { size: 12, color: COLOR.muyTenue, origen: [0.5, 0.5] });
-    const explorador = boton(this, 480, 330, 'Explorador libre', () => this.scene.start('Explorador'));
+    const explorador = boton(this, 480, 330, 'Explorador libre', () => irA(this, 'Explorador'));
     texto(this, 480, 354, 'Consulta cualquier coordenada de la Tierra y propón un sitio', { size: 12, color: COLOR.muyTenue, origen: [0.5, 0.5] });
     const numeros = boton(this, 480, 400, '¿De dónde salen los números?', () => this.mostrar('numeros'));
 
@@ -60,7 +61,7 @@ export default class Menu extends Phaser.Scene {
 
   continuar() {
     if (!restaurar(partida, SITIOS, DESTINOS)) { this.mostrar('principal'); return; }
-    this.scene.start(partida.sitio ? 'Taller' : 'Expediente');
+    irA(this, partida.sitio ? 'Taller' : 'Expediente');
   }
 
   vistaDestino() {
@@ -97,6 +98,6 @@ export default class Menu extends Phaser.Scene {
 
   empezar(destinoId) {
     nuevaPartida(partida, destinoId, { presupuesto: PRESUPUESTO_INICIAL, tickets: TICKETS_POR_PARTIDA });
-    this.scene.start('Expediente');
+    irA(this, 'Expediente');
   }
 }

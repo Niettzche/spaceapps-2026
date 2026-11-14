@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { irA } from './ui.js';
 import { SITIOS, DESTINOS } from '../data.js';
 import { partida } from '../main.js';
 import { COLOR, texto, boton, panel, Teclado } from './expediente/interfaz.js';
@@ -29,7 +30,7 @@ export default class Expediente extends Phaser.Scene {
     const i = Math.max(0, this.sitios.findIndex((s) => s.id === partida.sitio?.id));
     this.seleccion = this.sitios[i] || null;
     this.pagina = Math.floor(i / POR_PAGINA);
-    this.teclado = new Teclado(this, { alEscape: () => this.scene.start('Menu') });
+    this.teclado = new Teclado(this, { alEscape: () => irA(this, 'Menu') });
     this.dibujarFijo(); // primero: el panel de fondo queda debajo de la lista
     this.capaLista = this.add.container(0, 0);
     this.capaDetalle = this.add.container(0, 0);
@@ -201,7 +202,7 @@ export default class Expediente extends Phaser.Scene {
   }
 
   dibujarAcciones(add) {
-    const volver = add(boton(this, 60, 515, 'Menú', () => this.scene.start('Menu'), { size: 14 }));
+    const volver = add(boton(this, 60, 515, 'Menú', () => irA(this, 'Menu'), { size: 14 }));
     // Tickets (AGENTS.md §4): 3 por partida, sin reposición; volver a probar un sitio ya pagado no cuesta.
     const n = Math.max(0, partida.tickets | 0);
     const total = Math.max(TICKETS_POR_PARTIDA, n);
@@ -232,7 +233,7 @@ export default class Expediente extends Phaser.Scene {
     if (!this.seleccion) return;
     const r = elegirSitio(partida, this.seleccion);
     if (!r.ok) { this.dibujarDetalle(); return; }
-    this.scene.start('Taller');
+    irA(this, 'Taller');
   }
 
   registrarTeclado() {

@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { irA } from './ui.js';
 import { SITIOS, DESTINOS } from '../data.js';
 import { listaDeAssets } from './expediente/assets.js';
 import { COLOR, texto } from './expediente/interfaz.js';
@@ -43,6 +44,6 @@ export default class Boot extends Phaser.Scene {
       texto(this, 480, 350, 'Faltan datos en data/sites o data/targets: el Expediente mostrará "sin dato".',
         { size: 12, color: COLOR.alerta, origen: [0.5, 0.5] });
     }
-    this.time.delayedCall(this.errores.length ? 1800 : 450, () => this.scene.start('Menu'));
+    this.time.delayedCall(this.errores.length ? 1800 : 450, () => irA(this, 'Menu'));
   }
 }

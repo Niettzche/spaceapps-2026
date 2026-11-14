@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { irA } from './ui.js';
 import { SITIOS, DESTINOS } from '../data.js';
 import { partida } from '../main.js';
 import { ORDEN_DESTINOS, DESTINO_POR_DEFECTO, UMBRAL_PROPUESTA } from './expediente/config.js';
@@ -26,7 +27,7 @@ export default class Explorador extends Phaser.Scene {
     this.capa = null;
   }
 
-  volver() { this.scene.start('Menu'); }
+  volver() { irA(this, 'Menu'); }
 
   armarFormulario() {
     const ids = [...ORDEN_DESTINOS.filter((id) => DESTINOS[id]), ...Object.keys(DESTINOS).filter((id) => !ORDEN_DESTINOS.includes(id))];
