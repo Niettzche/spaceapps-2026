@@ -56,6 +56,7 @@ export function generar() {
   toba();
   sahara();
   artico();
+  salar();
 }
 
 // ---------------------------------------------------------------- Tierra: mina a cielo abierto (Real de Ángeles, Zacatecas)
@@ -540,4 +541,64 @@ function artico() {
     if (hash(x, y, 147) > 0.92) return TUN[0];
     return tramado(TUN, 0.55 - i.prof / 40, x, y);
   }, { luzDesde: 'derecha', elev: 0.45 });
+}
+
+// ---------------------------------------------------------------- Tierra: Hoya Rincón de Parangueo (Guanajuato)
+// Dentro del maar: la pared del cráter con matorral al fondo; cerca, el escarpe de la antigua orilla, el anillo de
+// estromatolitos a su pie y el fondo blanco del lago seco con la costra de sales rota en polígonos.
+function salar() {
+  const P = PALETAS.tierra, CIELO = rampa(P.cielo_mina), PAR = rampa(P.pared_salar), MAT = rampa(P.matorral);
+  const SAL = rampa(P.sal_costra), EST = rampa(P.estromatolito), SEMI = rampa(P.semidesierto);
+  const SOL = [64, 30];
+  cielo('fondos/fondo_salar_1.png', (x, y) => {
+    const dx = Math.min(Math.abs(x - SOL[0]), W - Math.abs(x - SOL[0])), d = Math.hypot(dx, y - SOL[1]);
+    if (d < 6) return hex('#ffffff');
+    if (d < 8) return (x + y) % 2 ? hex('#ffffff') : CIELO[5];
+    // nubes bajas de altiplano, planas abajo
+    const nube = ruido2(x, y, 6, 9, 151, 3) + (y > 40 && y < 70 ? 0.25 : -0.4) - Math.abs(y - 55) / 40;
+    if (nube > 0.38) return y > 58 && nube < 0.5 ? CIELO[4] : hex('#ffffff');
+    return tramado(CIELO, Math.pow(clamp(y / 120, 0, 1), 0.9) + clamp(1 - d / 100, 0, 1) * 0.2, x, y);
+  });
+  // pared interior del maar: borde ondulado arriba, capas de toba, matorral que se vuelve más ralo hacia abajo
+  capa('fondos/fondo_salar_2.png', (x) => 72 + 9 * onda(x, 1, 0.7) + 4 * onda(x, 3, 2.1) + 3 * ruido(x, 12, 152, 3), (x, y, i) => {
+    if (i.prof < 1) return i.luz > 0.5 ? PAR[5] : PAR[4];
+    const z = clamp(i.prof / (108 - i.hs[x]), 0, 1);                                                 // 0 en el borde, 1 abajo
+    const mata = ruido2(x, y, 40, 3, 153, 2) > 0.25 - z * 0.1 && hash(x, y, 154) > 0.35 + z * 0.5;
+    if (mata) return hash(x, y, 155) > 0.6 ? MAT[3] : MAT[2];
+    const estrato = Math.floor((y + ruido(x, 6, 156, 3) * 7) / 5) % 3 === 0 ? -0.08 : 0;
+    const carcava = Math.sin(x * 0.37 + ruido(x, 18, 157, 2) * 9) > 0.95 && z < 0.8 ? -0.2 : 0;
+    if (z > 0.86) return tramado(SEMI.slice(2, 6), 0.55 + (z - 0.86) * 2, x, y);                      // talud de grava al pie
+    return tramado(PAR, 0.55 - z * 0.15 + (i.luz - 0.5) * 0.5 + estrato + carcava, x, y);
+  }, { luzDesde: 'izquierda', elev: 0.5 });
+  // cerca: escarpe de la antigua orilla (10-12 m), estromatolitos y la costra de sal rota
+  const CEL = 16, FIL = 6, NX = W / CEL;
+  const sem = (cx, cy) => [((hash(cx, cy, 158) * 0.8 + 0.1) + cx) * CEL, ((hash(cx, cy, 159) * 0.8 + 0.1) + cy) * FIL];
+  const grieta = (x, y) => {
+    const cx0 = Math.floor(x / CEL), cy0 = Math.floor(y / FIL);
+    let d1 = 1e9, d2 = 1e9;
+    for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) {
+      const cx = cx0 + a, cy = cy0 + b, [sx, sy] = sem(((cx % NX) + NX) % NX, cy);
+      const d = Math.hypot((x - (sx + (cx - (((cx % NX) + NX) % NX)) * CEL)) / CEL, (y - sy) / FIL);
+      if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) d2 = d;
+    }
+    return d2 - d1;
+  };
+  const ESC = 106;                                                                                 // alto: el suelo del juego tapa la parte baja
+  capa('fondos/fondo_salar_3.png', (x) => ESC + 2 * onda(x, 2, 0.3) + 1.5 * ruido(x, 14, 160, 2), (x, y, i) => {
+    const pie = i.hs[x] + 9 + Math.round(ruido(x, 20, 161, 2) * 1.5);
+    if (y < pie) {                                                                                   // escarpe: toba clara con surcos
+      if (i.prof < 1) return PAR[5];
+      const surco = Math.sin(x * 1.7 + ruido(x, 24, 162, 2) * 5) > 0.75;
+      return tramado(PAR.slice(1), 0.75 - i.prof / 14 + (surco ? -0.25 : 0) + (i.luz - 0.5) * 0.3, x, y);
+    }
+    if (y < pie + 4) {                                                                              // anillo de estromatolitos: montículos
+      const cabeza = Math.sin(x * 1.25 + ruido(x, 30, 163, 2) * 4) * 1.6 + 2.2;
+      if (y - pie < 4 - cabeza) return tramado(SAL.slice(1, 4), 0.5, x, y);
+      return tramado(EST, 0.65 - (y - pie) / 6 + (hash(x, y, 164) > 0.85 ? -0.3 : 0), x, y);
+    }
+    const g = grieta(x, y - pie - 4);                                                                // costra rota en polígonos
+    if (g < 0.06) return SAL[1];
+    if (g < 0.1) return SAL[2];
+    return tramado(SAL.slice(2), 0.7 + ((x * 3 + y * 7) % 13 === 0 ? -0.2 : 0) + (y - pie) / 120, x, y);
+  }, { luzDesde: 'izquierda', elev: 0.45 });
 }

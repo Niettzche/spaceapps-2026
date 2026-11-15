@@ -231,7 +231,7 @@ function guia() {
   const P = {
     k: '#0e0c16', w: '#ffffff', h: '#e4e8f2', l: '#b4bccc', m: '#7a8498', d: '#4a5468',
     piel: '#c68456', pielC: '#e0a878', pielO: '#8e5636', pelo: '#2a1a14', peloC: '#4a2e20',
-    ojo: '#1a1020', boca: '#8a2a30', oro: '#ffd166', oroO: '#c8901c', nar: '#f2701f', narO: '#a8301a', lav: '#b9a6ff', lavO: '#7a4cff',
+    ojo: '#1a1020', iris: '#3a2a4a', boca: '#8a2a30', lengua: '#d0605a', rubor: '#e8907a', oro: '#ffd166', oroO: '#c8901c', nar: '#f2701f', narO: '#a8301a', lav: '#b9a6ff', lavO: '#7a4cff',
   };
   for (let i = 0; i < N; i++) {
     const g = (x, y, c) => { if (x >= 0 && y >= 0 && x < W && y < W) f.color[y * f.w + i * W + x] = hex(P[c]); };
@@ -259,7 +259,7 @@ function guia() {
       const e = ((x + 0.5 - 24) / 12.5) ** 2 + ((y + 0.5 - 20.5) / 11) ** 2;
       if (e > 1) continue;
       if (e > 0.82) { put(x, y, y < 18 ? 'oro' : 'oroO'); continue; }
-      put(x, y, x + y < 34 ? 'pielC' : x > 31 ? 'pielO' : 'piel');
+      put(x, y, e > 0.66 && x > 29 ? 'pielO' : x + y < 33 ? 'pielC' : 'piel');
     }
     // pelo (flequillo) arriba del visor
     for (let y = 10; y < 16; y++) for (let x = 13; x < 35; x++) {
@@ -270,18 +270,22 @@ function guia() {
     // cara según la expresión
     const ojos = (cerrados) => {
       for (const ox of [19, 28]) {
-        if (cerrados) { put(ox - 1, 21, 'ojo'); put(ox, 20, 'ojo'); put(ox + 1, 20, 'ojo'); put(ox + 2, 21, 'ojo'); }       // ^ ^
-        else { put(ox, 20, 'ojo'); put(ox + 1, 20, 'ojo'); put(ox, 21, 'ojo'); put(ox + 1, 21, 'w'); }
+        if (cerrados) { put(ox - 1, 21, 'ojo'); put(ox, 20, 'ojo'); put(ox + 1, 20, 'ojo'); put(ox + 2, 21, 'ojo'); }       // ^ ^ (sonriendo)
+        else {
+          // ojo de 2 × 3 abierto: brillo blanco arriba a la izquierda, iris abajo
+          put(ox, 19, 'w'); put(ox + 1, 19, 'ojo'); put(ox, 20, 'ojo'); put(ox + 1, 20, 'ojo'); put(ox, 21, 'iris'); put(ox + 1, 21, 'ojo');
+        }
       }
-      for (const ox of [18, 27]) for (let x = ox; x < ox + 4; x++) put(x, 18, 'pelo');                                    // cejas
+      for (const ox of [18, 27]) { put(ox, 17, 'peloC'); put(ox + 1, 16, 'peloC'); put(ox + 2, 16, 'peloC'); put(ox + 3, 17, 'peloC'); }   // cejas arqueadas
+      for (const [x, y] of [[17, 23], [18, 23], [30, 23], [31, 23]]) put(x, y, 'rubor');                                    // mejillas
     };
     if (i === 2) {
       ojos(true);
-      for (let x = 21; x <= 27; x++) put(x, 26, 'boca'); for (let x = 22; x <= 26; x++) put(x, 27, 'w'); for (let x = 23; x <= 25; x++) put(x, 28, 'boca');   // sonrisa abierta
-      put(17, 24, 'narO'); put(31, 24, 'narO');                                                                             // mejillas
+      for (let x = 21; x <= 27; x++) put(x, 25, 'boca'); for (let x = 21; x <= 27; x++) put(x, 26, x === 21 || x === 27 ? 'boca' : 'w');
+      for (let x = 22; x <= 26; x++) put(x, 27, x === 22 || x === 26 ? 'boca' : 'lengua'); for (let x = 23; x <= 25; x++) put(x, 28, 'boca');   // sonrisa abierta
     } else {
       ojos(false);
-      put(22, 26, 'boca'); for (let x = 23; x <= 25; x++) put(x, 27, 'boca'); put(26, 26, 'boca');                         // sonrisa suave
+      put(21, 25, 'boca'); put(22, 26, 'boca'); for (let x = 23; x <= 25; x++) put(x, 27, 'boca'); put(26, 26, 'boca'); put(27, 25, 'boca');   // sonrisa clara
       put(24, 23, 'pielO');                                                                                                  // nariz
     }
     // señalando: brazo y guante que suben por la derecha con el índice hacia afuera

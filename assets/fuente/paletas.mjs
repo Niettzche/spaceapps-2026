@@ -54,6 +54,11 @@ export const PALETAS = {
     tundra: ['#1c2018', '#30362a', '#4a4e3a', '#6a6a4c', '#8c845e'],
     nieve: ['#7a8aa8', '#a8b8d0', '#cad6e6', '#e6eef6', '#ffffff'],
     hielo_lago: ['#3a5a8a', '#5a84b4', '#8ab0d8', '#bcd6ee'],
+    // Hoya Rincón de Parangueo (Guanajuato): costra de sales del lago seco, estromatolitos de la antigua orilla, pared del maar
+    sal_costra: ['#8a8476', '#b0aa9a', '#d2cec0', '#e8e6dc', '#f8f8f2'],
+    estromatolito: ['#3e362e', '#5e5244', '#82745e', '#a89878', '#c8ba98'],
+    pared_salar: ['#3a2a22', '#5a4434', '#7c6248', '#9e8260', '#bea27c', '#d8c09a'],
+    lodo: ['#2e2a24', '#48423a', '#625a4e', '#7e7464', '#9a917e'],
   },
   marte: {
     // óxido (Jezero)
