@@ -79,6 +79,7 @@ const hayArte = (scene, clave) => scene.sys.game.renderer?.type === Phaser.WEBGL
  * `sugerido`: opción que ejecuta Enter si nada tiene foco; se marca con " ⏎" y texto verde (igual que Resultados.js).
  * `anchoMin` / `altoMin`: tamaño mínimo de la zona táctil en px del juego (más grande que el dibujo, sin cambiarlo).
  * `anchoCaja`: ancho mínimo de la caja (para una columna de botones del mismo ancho); el texto va centrado.
+ * `padX`: margen interno horizontal de la caja (por defecto 0.75 × size).
  * `crecer`: al pasar el ratón el botón crece a ×1.05 (tween corto) y vuelve al salir. Por defecto solo los de marco
  *   (en las filas de una lista crecería hacia la columna de al lado). Sin animación con prefers-reduced-motion.
  * `alSobre(v)`: aviso cuando el ratón entra (true) o sale (false), p. ej. para animar el planeta de una tarjeta.
@@ -88,10 +89,10 @@ const hayArte = (scene, clave) => scene.sys.game.renderer?.type === Phaser.WEBGL
  */
 export function boton(scene, x, y, etiqueta, alPulsar, {
   size = 16, origen = [0.5, 0.5], habilitado = true, marco = true, color = COLOR.acento, ancho, numero = null, sugerido = false,
-  anchoMin = ZONA_MIN.ancho, altoMin = ZONA_MIN.alto, crecer = marco, alSobre = null, alEnfocar = null, anchoCaja = 0,
+  anchoMin = ZONA_MIN.ancho, altoMin = ZONA_MIN.alto, crecer = marco, alSobre = null, alEnfocar = null, anchoCaja = 0, padX = null,
 } = {}) {
   const t = texto(scene, x, y, '', { size, color, origen, ancho, alinear: marco ? 'center' : 'left' });
-  const pad = marco ? { x: Math.round(size * 0.75), y: 8 } : { x: 4, y: 3 };
+  const pad = marco ? { x: padX ?? Math.round(size * 0.75), y: 8 } : { x: 4, y: 3 };
   const caja = cajaDeBoton(scene, t, { pad, anchoCaja, lista: !marco });
   const animar = crecer && !movimientoReducido();
   if (animar) soltarTweensAlDestruir(scene, t);
@@ -110,6 +111,8 @@ export function boton(scene, x, y, etiqueta, alPulsar, {
     setSugerido(v) { b.sugerido = v; b.pintar(); return b; },
     setColor(c) { b.color = c; b.pintar(); return b; },
     enfocar(v) { b.enfocado = v; b.pintar(); },
+    /** Caja dibujada en px de pantalla: { x0, y0, w, h }. */
+    medidas() { return caja.medidas(); },
     marcarSobre(v) {
       if (b.sobre === v) return;
       b.sobre = v;

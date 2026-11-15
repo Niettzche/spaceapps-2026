@@ -29,11 +29,11 @@ export function hayFuente(scene, clave = FUENTE_CUERPO) {
 
 /**
  * Escala entera para un tamaño pedido en px «de Text» (los tamaños de siempre: 14–18 cuerpo, 22–32 números, 38 títulos).
- * 14–23 → ×2 (mayúscula 14 px) · 24–33 → ×3 · 34–42 → ×4 · 43+ → ×5. Los títulos nunca bajan de ×3.
+ * 14–23 → ×2 (mayúscula 14 px) · 24–33 → ×3 · 34–42 → ×4 · 43+ → ×5 (igual para la fuente del logo).
  */
 export function escalaPara(px, titulo = false) {
   const k = Math.max(2, Math.round((Number(px) || 16) / 9.5));
-  return titulo ? Math.max(3, k) : k;
+  return titulo ? Math.max(2, k) : k;
 }
 
 /** Alto de la mayúscula en px de pantalla de un BitmapText de la fuente (para revisiones: ≥ 14). */
@@ -95,6 +95,14 @@ export function textoPixel(scene, x, y, contenido, {
   t.setColor = (c) => { t.colorTexto = c; if (!titulo && c != null) t.setTint(aNumero(c)); return t; };
   t.setTamano = (px) => t.setFontSize(NATIVO * escalaPara(px, titulo));
   t.setWordWrapWidth = (w) => t.setMaxWidth(w || 0);
+  // Renglones con el ajuste de línea real (como Text.getWrappedText): para paginar textos largos.
+  t.getWrappedText = (s) => {
+    const antes = t.text;
+    t.setText(s);
+    const r = (t.maxWidth > 0 ? t.getTextBounds().wrappedText : t.text) || '';
+    original.call(t, antes);
+    return r.split('\n').map((l) => l.replace(/\s+$/, ''));
+  };
   t.setStyle = (st = {}) => { if (st.color) t.setColor(st.color); if (st.fontSize) t.setTamano(parseFloat(st.fontSize)); return t; };
   for (const m of ['setPadding', 'setBackgroundColor', 'setFixedSize', 'setStroke', 'setShadow', 'setResolution']) t[m] = () => t;
   t.setColor(color);
@@ -103,4 +111,15 @@ export function textoPixel(scene, x, y, contenido, {
   t.align = alinear === 'center' ? 1 : alinear === 'right' ? 2 : 0;
   if (borde) t.setDropShadow(2, 2, 0x0b0d17, 1);
   return t.setOrigin(origen[0], origen[1]);
+}
+
+/** Recorta el texto con «…» hasta que su ancho dibujado quepa en `max` px (fuente de ancho variable). Devuelve el texto. */
+export function ajustarAncho(t, max) {
+  if (!(max > 0)) return t;
+  let s = t.text;
+  while (t.width > max && s.length > 1) {
+    s = s.replace(/…$/, '').slice(0, -1).replace(/\s+$/, '') + '…';
+    t.setText(s);
+  }
+  return t;
 }
