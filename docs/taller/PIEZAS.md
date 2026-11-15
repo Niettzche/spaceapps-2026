@@ -65,4 +65,12 @@ suelo y se hunde menos en arena suelta. Así se justifica en el juego la rueda a
 - **Gravedad de Marte (decisión del equipo, 14 nov):** el juego usa **3.71 m/s²**, gravedad ecuatorial de NASA JPL
   ([SSD, Planetary Physical Parameters](https://ssd.jpl.nasa.gov/planets/phys_par.html)), fila nueva Mars!MR-056. El 3.73 de
   MR-001 es la media global de la Mars Fact Sheet: son convenciones distintas, no un error (`docs/DECISIONES.md`).
-- Cada cambio quedó en la hoja **Review Log** (RV-094…RV-136) y las fuentes nuevas en **Sources** (S59–S71).
+- **Hoja `Judges` (respuestas para los jueces, en inglés):** 4 respuestas con dato real, valor de juego (P) al lado, fuente y
+  dónde se rompe la analogía. Cada una tiene una fórmula de verificación que se recalcula con las otras hojas.
+  - QA-001 velocidad: VIPER ~0.1 m/s (diseño; 0.05–0.2 según el modo) y Perseverance 0.042 m/s (152 m/h), contra 6 m/s del juego (×60).
+  - QA-002 por qué se atascó Spirit en "Troy" (NASA/JPL).
+  - QA-003 y QA-004 agarre del regolito lunar (φ 30–50°, tan 0.58–1.19) y del polvo de Marte (φ 15.6–20.4°, tan 0.28–0.37).
+- **Corrección (14 nov):** BM-013 decía "Spirit se hundió 50–90 % de la altura de la rueda en Troy" y citaba S20, pero esa fuente
+  no tiene cifras de hundimiento ni menciona Troy. Se quitó y se reemplazó por lo que dice NASA (S65, S72). S19 y S20 ahora
+  nombran el documento exacto de NTRS; la tabla de Marte avisa que son estimaciones de ingeniería, no mediciones directas.
+- Cada cambio quedó en la hoja **Review Log** (RV-094…RV-149) y las fuentes nuevas en **Sources** (S59–S73).
