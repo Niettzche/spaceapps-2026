@@ -12,6 +12,7 @@ import { perfilDeSitio, perfilDeDestino } from '../fisica/perfil.js';
 import { lineasRecorrido } from '../fisica/estadisticas.js';
 import { ESTADOS, MUNDOS, PRUEBAS } from './expediente/textos.js';
 import { prepararIngles, enIdioma } from './expediente/datos_en.js';
+import { columnasCondiciones } from './expediente/condiciones.js';
 import { tr, trDato } from '../i18n.js';
 
 // Dueño: frente expediente. Comparación 1 a 1: sitio terrestre (izq.) vs destino (der.), misma variable y unidad,
@@ -21,6 +22,8 @@ const X0 = 300; // inicio del panel de detalle
 const X1 = 945; // fin del panel de detalle
 const XM = (X0 + X1) / 2;
 const XT = 512; // columna de la Tierra en la tabla (variable · Tierra · destino)
+// Vista "Condiciones" (aire, luz y qué hacen en el juego): panel a todo lo ancho, dos columnas a 16 px.
+const COND = { x0: 10, x1: 950, y0: 76, y1: 492, col: 445, letra: 16 };
 
 export default class Expediente extends Phaser.Scene {
   constructor() { super('Expediente'); }
@@ -29,6 +32,7 @@ export default class Expediente extends Phaser.Scene {
     prepararIngles();
     // La instancia de la escena se reutiliza entre visitas: reinicia el estado propio.
     this.botonesDetalle = null; this.botonesLista = []; this.foco = null; this.filaActual = null; this.filas = null;
+    this.capaCondiciones = null;
     if (!DESTINOS[partida.destino]) partida.destino = DESTINOS[DESTINO_POR_DEFECTO] ? DESTINO_POR_DEFECTO : Object.keys(DESTINOS)[0];
     this.destino = DESTINOS[partida.destino] || null;
     this.sitios = sitiosParaDestino(SITIOS, partida.destino);
@@ -129,8 +133,11 @@ export default class Expediente extends Phaser.Scene {
       { size: 11, color: est.color }));
     add(texto(this, X1, 12, `${tr('Similitud total', 'Total similarity')} ${formatoPorcentaje(s.similitud?.total)}`, { size: 14, color: COLOR.acento, origen: [1, 0] }));
     add(texto(this, X1, 32, `${tr('confianza', 'confidence')} ${formatoPorcentaje(s.similitud?.confianza)}`, { size: 11, color: COLOR.tenue, origen: [1, 0] }));
-    add(texto(this, X0, 52, recortar(`${tr('Proceso', 'Process')}: ${proceso}`, 92), { size: 11, color: COLOR.tenue }));
-    add(texto(this, X0, 66, recortar(`${tr('Uso para la exploración', 'Use for exploration')}: ${uso}`, 92), { size: 11, color: COLOR.tenue }));
+    // Proceso y uso recortados para dejar sitio al botón "Condiciones" (el texto completo sale en la caja de abajo).
+    add(texto(this, X0, 52, recortar(`${tr('Proceso', 'Process')}: ${proceso}`, 66), { size: 11, color: COLOR.tenue }));
+    add(texto(this, X0, 66, recortar(`${tr('Uso para la exploración', 'Use for exploration')}: ${uso}`, 66), { size: 11, color: COLOR.tenue }));
+    this.botonCondiciones = add(boton(this, X1, 59, tr('C · Condiciones', 'C · Conditions'), () => this.abrirCondiciones(),
+      { size: 14, origen: [1, 0.5] }));
 
     let y = 84;
     if (esDemostracion(s)) {
@@ -278,7 +285,7 @@ export default class Expediente extends Phaser.Scene {
     const url = urlFicha(s);
     const ficha = add(boton(this, 535, 506, url ? tr('Ficha completa ↗', 'Full fact sheet ↗') : tr('Ficha web: sin enlace', 'Web fact sheet: no link'), () => this.abrirFicha(url),
       { size: 13, habilitado: !!url }));
-    this.botonesDetalle = [probar, ficha];
+    this.botonesDetalle = [probar, ficha, this.botonCondiciones].filter(Boolean);
     this.botonVolver = volver;
     this.botonRegresar = regresar;
     this.registrarTeclado();
@@ -300,8 +307,11 @@ export default class Expediente extends Phaser.Scene {
 
   registrarTeclado() {
     if (!this.botonesDetalle) return;
+    if (this.capaCondiciones) return; // la vista "Condiciones" maneja su propio teclado
+    this.teclado.alEscape = () => this.regresar(); // Esc = «← Regresar» (elegir destino), como en create()
     this.teclado.extra = {
       f: () => this.ciclarFila(), F: () => this.ciclarFila(),
+      c: () => this.abrirCondiciones(), C: () => this.abrirCondiciones(),
       PageDown: () => this.cambiarPagina(1), PageUp: () => this.cambiarPagina(-1),
     };
     const preferido = {
@@ -314,6 +324,49 @@ export default class Expediente extends Phaser.Scene {
     // Atajos 1–8: eligen el sitio de esa posición en la página (igual que los números de Resultados.js).
     this.teclado.numerar(this.botonesLista);
     this.teclado.poner([...this.botonesLista, this.botonAnterior, this.botonSiguiente, ...this.botonesDetalle, this.botonRegresar, this.botonVolver], preferido);
+  }
+
+  // ---------- Vista "Condiciones": aire, luz y qué hacen en el juego (fisica/ambiente.js) ----------
+  // Panel a todo lo ancho encima de la lista y el detalle: Tierra a la izquierda y destino a la derecha, a 16 px.
+  // Se abre con el botón o la tecla C y se cierra con C, Esc o "Volver". Mientras está abierta, lo de abajo no responde.
+  abrirCondiciones() {
+    if (this.capaCondiciones || !this.seleccion) return;
+    const capa = this.add.container(0, 0).setDepth(10);
+    this.capaCondiciones = capa;
+    const add = (o) => { capa.add(o.obj || o); return o; };
+    // Fondo opaco e interactivo: tapa la lista y el detalle y no deja pasar los toques.
+    add(this.add.rectangle(COND.x0, COND.y0, COND.x1 - COND.x0, COND.y1 - COND.y0, COLOR.panel).setOrigin(0, 0)
+      .setStrokeStyle(1, COLOR.borde).setInteractive());
+    add(texto(this, COND.x0 + 15, COND.y0 + 8, tr('CONDICIONES: aire, luz y qué hacen en el juego', 'CONDITIONS: air, light and what they do in the game'),
+      { size: 18, color: COLOR.texto }));
+    const cerrar = add(boton(this, COND.x1 - 12, COND.y0 + 18, tr('Volver (C)', 'Back (C)'), () => this.cerrarCondiciones(),
+      { size: 16, origen: [1, 0.5], sugerido: true }));
+    const { tierra, destino } = columnasCondiciones(this.seleccion, this.destino);
+    const columna = (x, col) => {
+      // El título puede ocupar 2 renglones con nombres largos (p. ej. "Maar Al Wahbah (Harrat Kishb)"): las líneas van debajo.
+      const titulo = add(texto(this, x, COND.y0 + 44, col.titulo, { size: COND.letra, color: COLOR.foco, ancho: COND.col }));
+      const lineas = col.lineas.length ? col.lineas : [tr('Sin datos de ambiente para este lugar.', 'No environment data for this place.')];
+      const t = add(texto(this, x, titulo.y + titulo.height + 8, lineas.join('\n'), {
+        size: COND.letra, color: col.lineas.length ? COLOR.texto : COLOR.muyTenue, ancho: COND.col,
+      }));
+      t.setLineSpacing(2);
+      return t;
+    };
+    this.textosCondiciones = [columna(COND.x0 + 15, tierra), columna(COND.x0 + 15 + COND.col + 20, destino)];
+    this.teclado.alEscape = () => this.cerrarCondiciones();
+    this.teclado.extra = { c: () => this.cerrarCondiciones(), C: () => this.cerrarCondiciones() };
+    this.teclado.numerar([]);
+    this.teclado.poner([cerrar], cerrar);
+  }
+
+  cerrarCondiciones() {
+    if (!this.capaCondiciones) return;
+    this.capaCondiciones.destroy(true);
+    this.capaCondiciones = null;
+    this.textosCondiciones = null;
+    this.foco = 'condiciones';
+    this.registrarTeclado();
+    if (this.botonCondiciones) this.teclado.enfocar(this.botonCondiciones);
   }
 
   ciclarFila() {
