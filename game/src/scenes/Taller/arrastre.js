@@ -59,6 +59,23 @@ export function poner(mapa, pieza, idRanura) {
   return { ok: true, mapa: { ...mapa, [idRanura]: pieza.id }, antes, motivo: null };
 }
 
+export const EJES = ['rueda_del', 'rueda_tras'];
+
+/**
+ * Pone una rueda en un eje. Por defecto (retro de Leo, 15 nov) la rueda va a LOS DOS ejes con una sola acción; con
+ * `separar` (Mayús al soltar o el modo «Separar ejes») solo al eje donde se soltó. Para cualquier otra pieza es `poner`.
+ * Devuelve lo mismo que `poner` más `ambos` (true si cambió los dos ejes) y `otro` (el otro eje).
+ */
+export function ponerRueda(mapa, pieza, idRanura, { separar = false } = {}) {
+  if (separar || !EJES.includes(idRanura) || !pieza || pieza.bloqueada || !socketsPara(pieza).includes(idRanura)) {
+    return { ...poner(mapa, pieza, idRanura), ambos: false, otro: null };
+  }
+  const otro = idRanura === 'rueda_del' ? 'rueda_tras' : 'rueda_del';
+  const antes = mapa[idRanura] ?? null;
+  if (mapa[idRanura] === pieza.id && mapa[otro] === pieza.id) return { ok: false, mapa, antes, motivo: 'igual', ambos: true, otro };
+  return { ok: true, mapa: { ...mapa, [idRanura]: pieza.id, [otro]: pieza.id }, antes, motivo: null, ambos: true, otro };
+}
+
 /** Quita la pieza de un socket. { ok, mapa, antes }. */
 export function quitar(mapa, idRanura) {
   const antes = mapa[idRanura] ?? null;

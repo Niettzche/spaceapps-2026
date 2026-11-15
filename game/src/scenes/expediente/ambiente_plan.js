@@ -10,8 +10,14 @@ export const CADENCIA_S = {
   galaxia: [120, 240],
 };
 export const MAXIMO = { asteroides: 3, cometas: 1, eventos: 1, galaxias: 1 };
-export const DURACION_EVENTO_S = [15, 25];
-export const DURACION_GALAXIA_S = [70, 100];
+// Velocidades (px/s). Regla de la retro de Leo (playtest 15 nov): NADA se materializa ni se apaga a media pantalla. Planetas,
+// Sol, cometas y asteroides entran y salen por fuera de la pantalla (los planetas cruzan DETRÁS de Marte); las galaxias
+// entran por un borde, fundiéndose muy lento, y salen por arriba (o detrás de Marte).
+export const VELOCIDAD_EVENTO_PX_S = [30, 45];
+export const VELOCIDAD_GALAXIA_PX_S = [5, 7];
+export const VELOCIDAD_COMETA_PX_S = { x: [110, 190], y: [60, 110] };
+export const FUNDIDO_GALAXIA_S = 22;
+export const PANTALLA = { ancho: 960, alto: 540 };
 
 // Lo que puede pasar detrás de Marte. MARTE NO ESTÁ EN LA LISTA (regla del fondo). El Sol es el más raro.
 export const EVENTOS = [
@@ -103,6 +109,63 @@ export function posicionAgujero(rng, { ancho = 960, alto = 540, margen = 80, evi
  */
 export function evaluarRegreso(guardado, actual) {
   return guardado !== null && actual > guardado;
+}
+
+/** ¿El punto (x, y) cae dentro de la pantalla visible? (las pruebas exigen que nada nazca dentro) */
+export const enPantalla = (x, y, { ancho = PANTALLA.ancho, alto = PANTALLA.alto } = {}) => x >= 0 && x <= ancho && y >= 0 && y <= alto;
+
+/** Radio de dibujo de un planeta o del Sol (el Sol lleva halo de 2 radios; Saturno, anillo de 1.8 radios). */
+export const radioEvento = (id) => (id === 'sol' ? 26 : id === 'jupiter' || id === 'saturno' ? 18 : 11);
+
+/**
+ * Planeta o Sol que pasa detrás de Marte: entra por un borde lateral (con halo y anillo fuera de la pantalla), cruza detrás
+ * del disco de Marte (a la altura de su mitad superior) y sale por el otro borde. La duración sale de la velocidad.
+ */
+export function trayectoriaEvento(rng, marte, id, { ancho = PANTALLA.ancho } = {}) {
+  const radio = radioEvento(id);
+  const fuera = radio * 2 + 12;
+  const izq = rng() < 0.5;
+  const x0 = izq ? -fuera : ancho + fuera;
+  const x1 = izq ? ancho + fuera : -fuera;
+  const y = entre(rng, [marte.y - marte.r * 0.9, marte.y - marte.r * 0.2]);
+  const dur = Math.abs(x1 - x0) / entre(rng, VELOCIDAD_EVENTO_PX_S);
+  return { x0, x1, y, radio, dur };
+}
+
+/**
+ * Galaxia lejana: entra por el borde izquierdo o derecho (a la altura de la parte alta de la pantalla), sube en diagonal
+ * muy despacio hacia la esquina y sale por arriba: se queda en una esquina, lejos del texto del centro.
+ * `fuera` = medio largo de la nube (46 px) + aire, para que nazca entera fuera de la pantalla.
+ */
+export function trayectoriaGalaxia(rng, { ancho = PANTALLA.ancho, fuera = 70 } = {}) {
+  const izq = rng() < 0.5;
+  const y0 = entre(rng, [120, 200]);
+  const ang = entre(rng, [0.6, 0.9]);
+  const v = entre(rng, VELOCIDAD_GALAXIA_PX_S);
+  const vx = (izq ? 1 : -1) * Math.cos(ang) * v;
+  const vy = -Math.sin(ang) * v;
+  return { x0: izq ? -fuera : ancho + fuera, y0, vx, vy, dur: (y0 + fuera) / -vy, ang: entre(rng, [-0.6, 0.6]) };
+}
+
+/** Cometa: nace sobre el borde de arriba y cruza en diagonal hasta salir por un lado o por abajo (con su cola). */
+export function trayectoriaCometa(rng, { ancho = PANTALLA.ancho, alto = PANTALLA.alto, fuera = 60 } = {}) {
+  const dir = rng() < 0.5 ? -1 : 1;
+  const x0 = entre(rng, [120, ancho - 120]);
+  const y0 = -24;
+  const vx = dir * entre(rng, VELOCIDAD_COMETA_PX_S.x);
+  const vy = entre(rng, VELOCIDAD_COMETA_PX_S.y);
+  const tx = dir > 0 ? (ancho + fuera - x0) / vx : (-fuera - x0) / vx;
+  const ty = (alto + fuera - y0) / vy;
+  return { x0, y0, vx, vy, dur: Math.min(tx, ty) };
+}
+
+/** Asteroide: nace fuera de la pantalla por la izquierda o la derecha y la cruza. */
+export function nacimientoAsteroide(rng, { ancho = PANTALLA.ancho } = {}) {
+  const izq = rng() < 0.5;
+  return {
+    x: izq ? -40 : ancho + 40, y: entre(rng, [40, 500]), vx: (izq ? 1 : -1) * entre(rng, [25, 60]), vy: entre(rng, [-12, 12]),
+    ang: rng() * 6.28, va: entre(rng, [-1, 1]), tam: entre(rng, [7, 13]),
+  };
 }
 
 /** Forma de un asteroide: polígono en coordenadas de −1 a 1 (6 a 10 variantes). Cada punto es [x, y]. */

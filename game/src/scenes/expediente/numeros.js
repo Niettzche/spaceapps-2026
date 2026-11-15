@@ -20,7 +20,7 @@ export const PAGINAS = {
         tarjetas: [
           { titulo: 'TIERRA', filas: [['Clima', 'NASA POWER'], ['Vegetación', 'MODIS NDVI'], ['Relieve 200 m', 'Copernicus DEM']] },
           { titulo: 'LUNA · polo sur', filas: [['Relieve', 'LRO LOLA'], ['Temperatura', 'LRO Diviner']] },
-          { titulo: 'MARTE · Jezero', filas: [['Relieve', 'HRSC + MOLA'], ['Clima', 'MEDA / REMS']] },
+          { titulo: 'MARTE · Jezero', filas: [['Relieve', 'HRSC + MOLA'], ['Clima', 'MEDA (Perseverance)']] },
         ],
         detalle: 'Cada valor: fuente, fecha y unidad · sin dato = no se rellena · ILUSTRATIVO = demostración',
       },
@@ -60,7 +60,7 @@ export const PAGINAS = {
         tarjetas: [
           { titulo: 'EARTH', filas: [['Climate', 'NASA POWER'], ['Vegetation', 'MODIS NDVI'], ['Terrain 200 m', 'Copernicus DEM']] },
           { titulo: 'MOON · south pole', filas: [['Terrain', 'LRO LOLA'], ['Temperature', 'LRO Diviner']] },
-          { titulo: 'MARS · Jezero', filas: [['Terrain', 'HRSC + MOLA'], ['Climate', 'MEDA / REMS']] },
+          { titulo: 'MARS · Jezero', filas: [['Terrain', 'HRSC + MOLA'], ['Climate', 'MEDA (Perseverance)']] },
         ],
         detalle: 'Every value: source, date and unit · no data = never filled in · ILLUSTRATIVE = demo',
       },

@@ -204,17 +204,23 @@ export class Sonido {
     this.boton = textoPixel(scene, 944, 70, '', { size: 14, color: '#a3abcc', origen: [1, 0.5] })
       .setScrollFactor(0).setDepth(95).setInteractive({ useHandCursor: true });
     this.boton.on('pointerdown', () => alternarSilencio());
+    // Caja oscura detrás (va sobre el terreno, a veces claro): contraste ≥ 4.5:1 (auditoría de Leo §4.2). Sigue al botón.
+    this.fondo = scene.add.rectangle(944, 70, 10, 28, 0x0b0d17, 0.85).setOrigin(1, 0.5).setScrollFactor(0).setDepth(94.5);
+    const mover = this.boton.setPosition;
+    this.boton.setPosition = (x, y) => { mover.call(this.boton, x, y); this._ajustarFondo(); return this.boton; };
     this.alTecla = () => alternarSilencio();
     scene.input.keyboard?.on('keydown-M', this.alTecla);
     this.alSilencio = (s) => {
       if (!this.boton?.active) return;
-      this.boton.setText(this.boton.esPixel ? (s ? tr('M · silencio', 'M · muted') : tr('M · sonido', 'M · sound')) : (s ? '♪ ×' : '♪')).setAlpha(s ? 0.6 : 0.95);
+      this.boton.setText(this.boton.esPixel ? (s ? tr('M · silencio', 'M · muted') : tr('M · sonido', 'M · sound')) : (s ? '♪ ×' : '♪')).setAlpha(s ? 0.8 : 1);
+      this._ajustarFondo();
       // Zona táctil ≥ 64 × 44 alrededor del texto (coordenadas locales).
       const w = Math.max(64, this.boton.width + 20), h = Math.max(44, this.boton.height + 16);
       this.boton.input.hitArea.setTo(-(w - this.boton.width) / 2, -(h - this.boton.height) / 2, w, h);
     };
     this.alSilencio(silencio);
     oyentes.add(this.alSilencio);
+    this.boton.once('destroy', () => this.fondo?.destroy());
 
     // Escena en pausa o sin actualizar: callan los bucles (si no, el motor seguiría sonando fijo).
     this.callar = () => this._callarBucles(0.02);
@@ -222,6 +228,13 @@ export class Sonido {
     scene.events.on('pause', this.callar);
     scene.events.on('sleep', this.callar);
     scene.events.on('postupdate', this.vigilar); // tras scene.update(): si no se llamó a actualizar(), callar
+  }
+
+  /** La caja oscura del botón de sonido toma su tamaño y posición (el botón se ancla por la derecha). */
+  _ajustarFondo() {
+    const b = this.boton;
+    if (!this.fondo?.active || !b?.active) return;
+    this.fondo.setPosition(b.x + 8, b.y).setSize(Math.ceil(b.width) + 16, Math.max(28, Math.ceil(b.height) + 10));
   }
 
   _crearBucles(c, destino = maestro) {

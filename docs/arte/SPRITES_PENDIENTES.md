@@ -90,3 +90,22 @@ Bloqueadas (opcional, hoy usan un ícono genérico atenuado + candado): `piezas/
 `piezas/rappel.png`, `piezas/rotor.png`, `piezas/serpiente.png`, `piezas/direccion_independiente.png`,
 `piezas/sellos_polvo.png`, `piezas/sensor_sol.png`, `piezas/hibernacion.png`, `piezas/blindaje.png`, `piezas/rueda_goma.png`
 (32 × 32; el Taller aún no los busca: avisar a taller si se dibujan).
+
+## 8. Niveles destacados 6 y 7 (15 nov, frente juego)
+Sin arte el juego ya funciona (usa el respaldo indicado). Nombres exactos:
+
+| Archivo | Medida | Respaldo de hoy | Descripción |
+|---|---|---|---|
+| `fondos/fondo_salar_1.png`, `_2`, `_3` | como los otros fondos (3 capas) | `fondo_maar_*` (Al Wahbah) | Hoya Rincón de Parangueo (Guanajuato): maar de ~1.4–1.9 km con el fondo blanco de un lago seco (costra de sales), anillo de estromatolitos en la antigua orilla y un escarpe de 10–12 m cerca de ella (Aranda-Gómez et al. 2013). Pedir fotos de referencia al frente modelo antes de dibujar el resto |
+| `sitio_mx0261.png` | como las otras postales `sitio_*` | `sitio_generico` | Postal del mismo lugar |
+| `obstaculos/obstaculo_lodo.png` | 16 × 4 (tile) | `obstaculo_arena_blanda` teñido gris pardo | Lodo del lago donde la costra de sal se rompe |
+
+El juego elige el fondo en `game/src/content/niveles_destacados.js` (`fondo: 'maar'` → cambiar a `'salar'` cuando exista).
+
+## 9. Cara de la astronauta guía (15 nov, retro de Leo en el playtest de las 5 am; para Mauricio)
+
+- **Archivo:** `assets/tutorial/guia.png` (144 × 48, los cuadros de la guía de los tutoriales).
+- **Retro:** la cara «se ve extraña». Leo pide que se vea **más amable y asequible**: ojos más abiertos y redondos,
+  una sonrisa clara, menos sombra dura en la cara y el visor más despejado para que se lea la expresión a 2× y 3×.
+- **No cambiar:** el tamaño del archivo ni el número y orden de cuadros (el código lo corta igual); solo el dibujo.
+- **Dueño:** arte (Mauricio). Juego no la toca.

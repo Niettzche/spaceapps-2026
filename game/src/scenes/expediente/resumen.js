@@ -12,7 +12,7 @@ const CLAVES_SITIO = {
   samalayuca: ['Dunas eólicas → movilidad en arena suelta', 'Aeolian dunes → loose-sand mobility'],
   pinacate: ['Vulcanismo y cráteres → geología y movilidad', 'Volcanism and craters → field geology, mobility'],
   mx0207: ['Tajo minero → paredes empinadas, excavación, sombra', 'Open-pit mine → steep walls, excavation, shadow'],
-  g00281: ['Depresión sin borde, origen por confirmar → movilidad', 'Rimless depression, origin unconfirmed → mobility'],
+  g00281: ['Maar con borde levantado → salir del cráter', 'Maar with a raised rim → climb out of the crater'],
 };
 
 /** Primer trozo de una frase (antes de paréntesis, dos puntos o punto y coma). */

@@ -4,6 +4,7 @@ import { GRAVEDAD } from '../config/world.js';
 import { datosSuelo } from '../fisica/suelos.js';
 import { ambienteDeSitio, ambienteDeDestino, porcentajeAire, factorFrio } from '../fisica/ambiente.js';
 import { tr, trDato } from '../i18n.js';
+import { leerHundimiento, textoHundimiento } from './reglas.js';
 
 // Se evalúa al usarse (el idioma puede cambiar después de cargar el módulo).
 const NOMBRE_LIMITE = () => ({
@@ -54,6 +55,14 @@ export function compararAnalogia(prueba, mision, destino) {
     lineas.push(tr('Sin una prueba terrestre previa: no hay con qué comparar la misión.', 'No previous Earth test: nothing to compare the mission with.'));
   }
 
+  // Física 2: hundimiento en la prueba y en la misión (mismo modelo de Bekker, otro suelo y otra gravedad).
+  const hp = leerHundimiento(p?.eventos);
+  const hm = leerHundimiento(m?.eventos);
+  if (hp || hm) {
+    const cm = (h) => (h ? `${h.cm} cm (${h.kPa.toFixed(1)} kPa)` : tr('menos de 2 cm', 'under 2 cm'));
+    lineas.push(tr(`Hundimiento: ${cm(hp)} en la prueba, ${cm(hm)} en la misión. ${textoHundimiento(hm ?? hp)}`,
+      `Sinkage: ${cm(hp)} in the test, ${cm(hm)} in the mission. ${textoHundimiento(hm ?? hp)}`));
+  }
   // Ambiente: el motor y la batería (ambiente.js). La Tierra enfría el motor con su aire y no enfría la batería.
   const sc = contar(m, 'sobrecalentamiento');
   const pc = contar(p, 'sobrecalentamiento');

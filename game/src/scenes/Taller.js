@@ -8,7 +8,8 @@ import { partida } from '../main.js';
 import { RANURAS, DISENO_POR_DEFECTO, comoMapa, comoDiseno, resumen, validar, efectosEn } from './Taller/diseno.js';
 import { historialAlEntrar, diferencias } from './Taller/historial.js';
 import {
-  PESTANAS, tarjetasDe, pestanaDeRanura, socketsPara, socketPreferido, poner, quitar as quitarDe, mover, ambosEjes, nombreCorto,
+  PESTANAS, tarjetasDe, pestanaDeRanura, socketsPara, socketPreferido, quitar as quitarDe, mover, ambosEjes, nombreCorto,
+  ponerRueda,
 } from './Taller/arrastre.js';
 import { RAZONES } from './Taller/bloqueadas.js';
 import {
@@ -19,13 +20,21 @@ import { ambienteDeDestino } from '../fisica/ambiente.js';
 import { cargarArte, arteDePieza, hayArte, cuadros } from '../fisica/aspecto.js';
 import { sonarBoton } from '../fisica/sonido.js';
 import { tr, trDato, enIngles } from '../i18n.js';
+import { movimientoReducido } from './expediente/efectos.js';
+import {
+  nivelAgarre, sueloPrincipal, anuncioCambio, textoPanel, crearRegionViva, hayVoz, leerEnVoz, callarVoz,
+} from './Taller/accesible.js';
+import { pasosTutorialTaller, debeMostrarTutorialTaller } from './Taller/tutorial.js';
+import { abrirTutorialTaller } from './Taller/tutorial_vista.js';
 import { tocarMusica } from '../audio/musica.js';
 
 // Dueño: frente taller. Armado por ARRASTRE en pixel art: el robot grande al centro con sus ranuras como sockets, la bandeja
 // de piezas abajo por sistema, y el costo, la masa, la autonomía y el agarre en tiempo real a la derecha.
 // Contrato con el frente juego: partida.diseno = [{ ranura, pieza }] (docs/juego/ESPECIFICACION.md §3).
-// Tres formas de armar (AGENTS.md §12, accesible): arrastrar con ratón o dedo · tocar pieza y luego socket · teclado
-// (←/→ socket, ↑/↓ pieza, Enter pone, Supr quita, Tab pestaña, A ambos ejes, Ctrl+Z/Y). Reglas puras en Taller/arrastre.js.
+// Tres formas de armar (AGENTS.md §12, accesible): arrastrar con ratón o dedo · tocar pieza y luego socket · teclado con
+// foco por zonas (Tab: pestañas → bandeja → sockets → acciones; flechas dentro de la zona; Enter; Supr quita; 1–6 pestaña;
+// A ambos ejes; Ctrl+Z/Y). Reglas puras en Taller/arrastre.js; accesibilidad (resumen aria-live, «Leer», patrones) en
+// Taller/accesible.js; tutorial de la primera vez en Taller/tutorial.js + tutorial_vista.js.
 
 const C = {
   texto: '#ffffff', suave: '#9aa4c7', claro: '#cfd6ff', acento: '#ffd166', apagado: '#a3abcc',
@@ -47,37 +56,40 @@ const texto = (scene, x, y, s, { max, ...o } = {}) => {
 const LINEA = 24;
 
 // ---- Disposición (960 × 540) ----
-// Encabezado (0–48): título, sitio y destino en 2 líneas, Personalizar y Ayuda · escenario y panel de cifras (48–302)
-// · pestañas (306–334) · tarjetas (338–460) · botones (464–506) · línea de ayuda (512–536).
+// Encabezado (0–48): título, sitio y destino en 2 líneas, Leer, Personalizar y Ayuda · escenario y panel de cifras (48–286)
+// · pestañas (290–330, zona 288–332) · tarjetas (338–462, 4 por página) · botones (467–509) · línea de ayuda (515–537).
+// Toda zona tocable ≥ 64 × 44 (DISENO.md §2.6; auditoría de Leo, docs/taller/AUDITORIA_DATOS.md §4.3).
 const S = 8; // escala del robot: 1 px de arte = 8 px de pantalla (el chasis de 24 px mide 192)
-const ROBOT = { x: 308, y: 186 }; // centro del chasis
-const ESCENARIO = { x: 14, y: 48, w: 588, h: 254 };
-const LADO = { x: 612, y: 48, w: 334, h: 254 };
+const ROBOT = { x: 308, y: 168 }; // centro del chasis
+const ESCENARIO = { x: 14, y: 48, w: 588, h: 238 };
+const LADO = { x: 612, y: 48, w: 334, h: 238 };
 const SOCKET_W = 168;
 const SOCKET_H = 50;
 const SOCKET_TEXTO = 42; // el texto empieza después del ícono de 32 px
 // Caja de cada socket (centro) y su punto de anclaje en el robot (px de arte desde el centro del chasis, como fisica/aspecto.js).
 const SOCKETS = {
-  modulo: { x: 108, y: 79, ancla: [5, -4.5] },
-  carga: { x: 308, y: 79, ancla: [0, -5.5] },
-  chasis: { x: 508, y: 79, ancla: [10, 0.5] },
-  motor: { x: 106, y: 186, ancla: [-8, 0] },
-  bateria: { x: 510, y: 186, ancla: [4.5, 0] },
-  rueda_tras: { x: 108, y: 272, ancla: [-8.64, 3.2] },
-  rueda_del: { x: 508, y: 272, ancla: [8.64, 3.2] },
+  modulo: { x: 108, y: 77, ancla: [5, -4.5] },
+  carga: { x: 308, y: 77, ancla: [0, -5.5] },
+  chasis: { x: 508, y: 77, ancla: [10, 0.5] },
+  motor: { x: 106, y: 168, ancla: [-8, 0] },
+  bateria: { x: 510, y: 168, ancla: [4.5, 0] },
+  rueda_tras: { x: 108, y: 257, ancla: [-8.64, 3.2] },
+  rueda_del: { x: 508, y: 257, ancla: [8.64, 3.2] },
 };
 const DECO = { motor: [-8, 0], bateria: [6, 0], modulo: [5, -4] }; // calcomanías sobre el chasis (fisica/aspecto.js POS_DECO)
-const PESTANA_Y = 306;
-const PESTANA_H = 28;
+const PESTANA_Y = 290;
+const PESTANA_H = 40;
 const PESTANA_W = 148;
+// Tarjetas grandes (arte de 32 px dibujado ×2 = 64 px; costo ×3, nombre ×2): 4 por página con flechas de 64 × 45.
 const CARTA_Y = 338;
-const CARTA_W = 136;
-const CARTA_H = 122;
-const CARTA_X0 = 52;
+const CARTA_W = 190;
+const CARTA_H = 124;
+const CARTA_X0 = 88;
 const CARTA_PASO = CARTA_W + 8;
-const POR_PAGINA = 6;
-const BOTONES_Y = 485;
-const AYUDA_Y = 524;
+const POR_PAGINA = 4;
+const BOTONES_Y = 488;
+const AYUDA_Y = 526;
+const FOCO = 0xffd166; // marco de foco de teclado (amarillo grueso + ›)
 const UMBRAL_ARRASTRE = 6; // px que hay que mover para que un toque se vuelva arrastre
 
 const piezaPorId = Object.fromEntries(PIEZAS.map((p) => [p.id, p]));
@@ -115,24 +127,70 @@ const MUNDO = () => ({ marte: tr('Marte', 'Mars'), luna: tr('Luna', 'Moon'), tie
 const conModificador = (ev) => Boolean(ev && (ev.ctrlKey || ev.metaKey || ev.altKey));
 const corto = (p) => nombreCorto(p, enIngles());
 
-/** Hasta 2 cifras de una pieza para su tarjeta: { k, v (0–1) } como barra, o { k } solo texto. Valores de juego (P). */
-function cifrasDe(p) {
-  const masa = (max) => ({ k: tr('masa', 'mass'), v: p.masa / max });
+/**
+ * La cifra clave de una pieza para su tarjeta (keywords, DISENO.md §2.3): { k, n, v (0–1), nivel } con barra, número y patrón,
+ * o { k } solo texto. En las ruedas, el agarre en el suelo principal del sitio de la prueba. Valores de juego (P).
+ */
+function cifraDe(p, suelo) {
   switch (p.sistema) {
-    case 'movilidad': return [{ k: sup('arena'), v: p.agarre?.arena }, { k: sup('roca'), v: p.agarre?.roca }];
-    case 'estructura': return [{ k: tr('resist.', 'durab.'), v: p.resistencia / 120 }, masa(35)];
-    case 'potencia': return [{ k: tr('fuerza', 'force'), v: p.fuerza / 90 }, { k: tr('gasto', 'drain'), v: p.consumo / 1.2 }];
-    case 'energia': return [{ k: tr('carga', 'charge'), v: p.capacidad / 220 }, masa(11)];
-    case 'carga': return [{ k: tr('prot.', 'prot.'), v: p.proteccion }, masa(6)];
+    case 'movilidad': {
+      const sf = suelo ?? 'arena';
+      const v = p.agarre?.[sf];
+      return { k: sup(sf), n: f2(v), v, nivel: nivelAgarre(v) };
+    }
+    case 'estructura': return { k: tr('resist.', 'durab.'), n: `${p.resistencia}`, v: p.resistencia / 120 };
+    case 'potencia': return { k: tr('fuerza', 'force'), n: `${p.fuerza}`, v: p.fuerza / 90 };
+    case 'energia': return { k: tr('carga', 'charge'), n: `${p.capacidad}`, v: p.capacidad / 220 };
+    case 'carga': return { k: tr('protec.', 'prot.'), n: pct(p.proteccion), v: p.proteccion };
     default: {
-      let k = '';
-      if (p.capacidad) k = tr(`recarga ${p.capacidad}`, `charge ${p.capacidad}`);
-      else if (p.aislamiento_termico) k = tr('evita frío', 'stops cold');
-      else if (p.radiador) k = tr('enfría motor', 'cools motor');
-      else if (p.auto_rescate) k = tr('zafa atascos', 'gets unstuck');
-      return [{ k }, masa(7)];
+      if (p.capacidad) return { k: tr(`recarga ${p.capacidad}`, `charge ${p.capacidad}`) };
+      if (p.aislamiento_termico) return { k: tr('evita frío', 'stops cold') };
+      if (p.radiador) return { k: tr('enfría motor', 'cools motor') };
+      if (p.auto_rescate) return { k: tr('zafa atascos', 'gets unstuck') };
+      return { k: '' };
     }
   }
+}
+
+/** Color fijo de cada nivel de agarre (DISENO.md §2.5); el patrón lo dibuja patronBarra (nada solo por color). */
+const COLOR_NIVEL = { bien: K.P.bien, medio: K.P.accion, bajo: K.P.riesgo };
+
+/**
+ * Patrón encima del relleno de una barra para que el nivel no dependa del color: 'bien' liso, 'medio' rayas diagonales,
+ * 'bajo' (o excedido) cuadros. `g` = Graphics; (x, y, w, h) = parte rellena.
+ */
+function patronBarra(g, x, y, w, h, nivel) {
+  g.clear();
+  if (!(w > 1) || !nivel || nivel === 'bien') return;
+  g.fillStyle(0x0b0d17, 0.6);
+  if (nivel === 'medio') {
+    for (let i = -h; i < w; i += 6) {
+      for (let k = 0; k < h; k += 2) {
+        const px = i + k;
+        if (px >= 0 && px < w - 1) g.fillRect(x + px, y + h - k - 2, 2, 2);
+      }
+    }
+  } else {
+    for (let i = 0; i < w; i += 4) for (let k = 0; k < h; k += 4) if (((i + k) / 4) % 2 === 0) g.fillRect(x + i, y + k, Math.min(2, w - i), Math.min(2, h - k));
+  }
+}
+
+/** Barra de K.barra con patrón: devuelve { objs, fijar(frac, color, nivel) }. Alto ≥ 14 para que el patrón se vea. */
+function barraConPatron(scene, x, y, w, h, frac, color, nivel) {
+  const b = K.barra(scene, x, y, w, h, frac, color);
+  const g = scene.add.graphics();
+  const conMarco = b.objs[0]?.type === 'NineSlice';
+  const ix = x + (conMarco ? 4 : 0);
+  const iy = y + (conMarco ? 4 : 0);
+  const iw = w - (conMarco ? 8 : 0);
+  const ih = h - (conMarco ? 8 : 0);
+  const fijar = (f, c = color, n = nivel) => {
+    b.fijar(f, c);
+    const v = typeof f === 'number' && Number.isFinite(f) ? Math.max(0, Math.min(1, f)) : 0;
+    patronBarra(g, ix, iy, Math.round(iw * v), ih, n);
+  };
+  fijar(frac, color, nivel);
+  return { objs: [...b.objs, g], fijar };
 }
 
 /** Una línea con todo lo de una pieza (abajo, al elegirla): nombre, costo en su ranura, masa y su dato clave. */
@@ -215,6 +273,8 @@ export default class Taller extends Phaser.Scene {
         return { ranura: ranuras[0] ?? null, texto: tr(`recomendación aplicada (${lista})`, `applied recommendation (${lista})`) };
       });
     this.mapa = this.hist.actual;
+    // Ejes unidos por defecto: una rueda va a los dos ejes. Si el diseño guardado ya trae ejes mezclados, se abre separado.
+    this.ejesSeparados = Boolean(this.mapa.rueda_del && this.mapa.rueda_tras && this.mapa.rueda_del !== this.mapa.rueda_tras);
     this.sel = 0;        // socket elegido (índice en RANURAS)
     this.pestana = 'movilidad';
     this.cursor = 0;     // tarjeta resaltada en la pestaña
@@ -223,6 +283,13 @@ export default class Taller extends Phaser.Scene {
     this.aviso = '';
     this.arrastre = null;
     this.costoMostrado = null;
+    this.quieto = movimientoReducido(); // prefers-reduced-motion: sin animaciones de encaje, polvo ni sacudidas
+    this.suelo = sueloPrincipal(partida.sitio); // la cifra de las ruedas en sus tarjetas es el agarre en este suelo
+    this.zonaFoco = 'bandeja'; // foco de teclado: pestanas → bandeja → sockets → acciones (Tab / Mayús+Tab)
+    this.focoAccion = 0;
+    this.focoVisible = false; // el marco de foco sale al usar el teclado y se oculta al tocar con el puntero
+    this.tutorial = null;
+    this.voz = crearRegionViva(); // resumen textual del diseño para lector de pantalla (aria-live, fuera del lienzo)
 
     this.crearEncabezado();
     this.crearEscenario();
@@ -239,6 +306,60 @@ export default class Taller extends Phaser.Scene {
     }
     this.refrescar();
     this.animarArmado();
+    this.focoG = this.add.graphics().setDepth(45);
+    this.anunciar({ accion: 'otro', texto: tr(`Taller. ${this.listaDiseno()}`, `Workshop. ${this.listaDiseno()}`) });
+    this.events.once('shutdown', () => { this.voz.destruir(); callarVoz(); this.tutorial?.cerrar?.(); });
+    // Tutorial de la primera vez (se repite con «?»); la e2e lo da por visto.
+    if (debeMostrarTutorialTaller()) this.time.delayedCall(this.quieto ? 0 : 500, () => this.abrirTutorial());
+  }
+
+  /** «Chasis: Ligero; Eje delantero: Estándar; …» (para el resumen del lector de pantalla al entrar). */
+  listaDiseno() {
+    return RANURAS.filter((r) => this.mapa[r.id]).map((r) => `${trDato(r, 'nombre')}: ${trDato(piezaPorId[this.mapa[r.id]], 'nombre')}`).join('; ');
+  }
+
+  /** Escribe en el nodo aria-live una frase con el cambio, el presupuesto y si está listo. */
+  anunciar({ accion, pieza = null, ranura = null, texto = '' }) {
+    if (!this.res) return;
+    const faltan = RANURAS.filter((x) => x.obligatoria && !this.mapa[x.id]).map((x) => trDato(x, 'nombre'));
+    this.voz.decir(anuncioCambio({
+      accion, pieza, ranura: ranura ? ranuraPorId[ranura] : null, texto,
+      costo: this.res.costo, presupuesto: this.presupuesto, errores: this.errores, faltan,
+    }));
+  }
+
+  /** «Leer» (tecla L): lee en voz alta el panel de cifras en el idioma actual (Web Speech API, si existe). */
+  leer() {
+    const faltan = RANURAS.filter((x) => x.obligatoria && !this.mapa[x.id]).map((x) => trDato(x, 'nombre'));
+    const t = textoPanel(this.res, { presupuesto: this.presupuesto, errores: this.errores, faltan, masaCarga: MASA_CARGA_KG, suelo: this.suelo });
+    this.voz.decir(t); // también al lector de pantalla
+    leerEnVoz(t);
+  }
+
+  // ───────────────────────── tutorial (primera vez) ─────────────────────────
+  abrirTutorial() {
+    if (this.tutorial || !this.scene.isActive()) return;
+    if (this.ayuda) this.alternarAyuda();
+    this.cerrarPersonalizar();
+    this.soltarMano();
+    this.elegirPestana('movilidad'); // la primera página tiene las ruedas
+    this.tutorial = abrirTutorialTaller(this, {
+      pasos: pasosTutorialTaller(this.suelo),
+      zonas: (n) => this.zonaTutorial(n),
+      alCerrar: () => { this.tutorial = null; this.refrescarAyuda(); this.pintarFoco(); },
+    });
+  }
+
+  /** Rectángulo de cada zona del tutorial (px del juego). */
+  zonaTutorial(nombre) {
+    const b = this.btnContinuar.caja.getBounds();
+    switch (nombre) {
+      case 'armar': return { x: ESCENARIO.x, y: SOCKETS.rueda_del.y - 28, w: 946 - ESCENARIO.x, h: CARTA_Y + CARTA_H - SOCKETS.rueda_del.y + 28 };
+      case 'presupuesto': return { x: LADO.x + 4, y: LADO.y + 36, w: LADO.w - 8, h: 50 };
+      case 'agarre': return { x: LADO.x + 4, y: LADO.y + 132, w: LADO.w - 8, h: 54 };
+      case 'probar': return { x: b.x, y: b.y, w: b.width, h: b.height };
+      default: return null;
+    }
   }
 
   // ───────────────────────── encabezado y presupuesto ─────────────────────────
@@ -249,13 +370,16 @@ export default class Taller extends Phaser.Scene {
     // Pintura y nombre (cosméticos) en un panel aparte: el panel de cifras queda solo para lo que cambia la prueba.
     this.btnPersonalizar = K.boton(this, this.btnAyuda.caja.x - 8, 22, tr('Personalizar', 'Customize'), () => this.alternarPersonalizar(),
       { size: 15, alto: 36, origen: [1, 0.5], pad: 10, reservaFoco: false });
+    // «Leer» (L): el panel de cifras en voz alta, solo si el navegador tiene speechSynthesis.
+    this.btnLeer = hayVoz() ? K.boton(this, this.btnPersonalizar.caja.x - 8, 22, tr('Leer', 'Read'), () => this.leer(),
+      { size: 15, alto: 36, origen: [1, 0.5], pad: 10, reservaFoco: false, color: K.P.dato }) : null;
     // Sitio de la prueba y destino, en dos líneas (cada una recortada a su ancho).
     const destino = DESTINOS[partida.destino];
     const sitio = partida.sitio;
     const tipos = sitio?.nivel && Array.isArray(sitio.nivel.superficies)
       ? [...new Set(sitio.nivel.superficies.map((x) => x.tipo))].map(sup).join(', ') : null;
     const xs = Math.round(titulo.x + titulo.width + 18);
-    const max = this.btnPersonalizar.caja.x - 12 - xs;
+    const max = (this.btnLeer ?? this.btnPersonalizar).caja.x - 12 - xs;
     const l1 = sitio ? `${tr('Prueba: ', 'Test: ')}${trDato(sitio, 'nombre')}${tipos ? ` · ${tipos}` : ''}` : '';
     const l2 = `${tr('Destino: ', 'Destination: ')}${destino ? trDato(destino, 'nombre') : (partida.destino ?? '—')}`;
     texto(this, xs, 0, l1, { size: 14, color: C.claro, max });
@@ -266,7 +390,8 @@ export default class Taller extends Phaser.Scene {
   mostrarCosto(costo, animar) {
     const pintar = (c) => {
       const pasado = c > this.presupuesto;
-      this.barraPresupuesto.fijar(c / this.presupuesto, pasado ? K.P.riesgo : K.P.accion);
+      // Excedido: rojo **y** cuadros (nada solo por color).
+      this.barraPresupuesto.fijar(c / this.presupuesto, pasado ? K.P.riesgo : K.P.accion, pasado ? 'bajo' : null);
       // «(P)»: precios, masas y agarres son valores de juego, no datos de ingeniería (AGENTS.md §3.4; lo explica la ayuda).
       this.txtCosto.setText(`${Math.round(c)} / ${this.presupuesto} cr (P)`).setColor(pasado ? C.error : C.texto);
     };
@@ -275,7 +400,7 @@ export default class Taller extends Phaser.Scene {
     const restante = this.presupuesto - costo;
     this.txtRestante.setText(restante < 0 ? tr(`✕ +${-restante} cr`, `✕ +${-restante} cr`) : tr(`quedan ${restante}`, `${restante} left`))
       .setColor(restante < 0 ? C.error : C.ok);
-    if (!animar || antes == null || antes === costo) { pintar(costo); return; }
+    if (!animar || this.quieto || antes == null || antes === costo) { pintar(costo); return; }
     this.tweenCosto?.stop();
     this.tweenCosto = this.tweens.addCounter({ from: antes, to: costo, duration: 260, ease: 'Quad.Out', onUpdate: (tw) => pintar(tw.getValue()), onComplete: () => pintar(costo) });
     const d = costo - antes;
@@ -304,8 +429,8 @@ export default class Taller extends Phaser.Scene {
       const l2 = texto(this, x0 + SOCKET_TEXTO, y0 + 1 + LINEA, '', { size: 15 }).setDepth(4);
       this.sockets[r.id] = { caja, img, l1, l2, x0, y0, w: SOCKET_W };
     }
-    // Botón «igual en ambos ejes», entre las cajas de los ejes.
-    this.btnEjes = K.boton(this, ROBOT.x, SOCKETS.rueda_del.y, tr('Igual en ambos ejes', 'Same on both axles'), () => this.igualarEjes(),
+    // Botón «Separar ejes» / «Unir ejes» (A), entre las cajas de los ejes: por defecto una rueda va a los dos ejes.
+    this.btnEjes = K.boton(this, ROBOT.x, SOCKETS.rueda_del.y, this.etiquetaEjes(), () => this.alternarEjes(),
       { size: 15, alto: 36, pad: 8, reservaFoco: false });
     for (const o of [this.btnEjes.obj, this.btnEjes.caja]) o.setDepth(6);
   }
@@ -432,7 +557,7 @@ export default class Taller extends Phaser.Scene {
       if (elegido) { color = ACENTO; grosor = 3; }
       if (valido) { color = BIEN; grosor = sobre ? 4 : 3; }
       s.caja.setStrokeStyle(grosor, color).setFillStyle(valido ? 0x10301f : 0x0b0d17, valido && sobre ? 1 : 0.88);
-      if (valido) s.caja.setAlpha(0.8 + 0.2 * Math.sin(t * 8)); else s.caja.setAlpha(1);
+      if (valido && !this.quieto) s.caja.setAlpha(0.8 + 0.2 * Math.sin(t * 8)); else s.caja.setAlpha(1);
       const ic = pz ? this.icono(pz) : null;
       s.img.setVisible(Boolean(ic));
       if (ic) { s.img.setTexture(ic.clave).setScale(ic.escala); if (ic.tinte != null) s.img.setTint(ic.tinte); else s.img.clearTint(); }
@@ -466,12 +591,12 @@ export default class Taller extends Phaser.Scene {
     // Presupuesto: costo a la izquierda, lo que queda a la derecha y la barra debajo (fijos; mostrarCosto los actualiza).
     const x0 = LADO.x + 12;
     const xr = LADO.x + LADO.w - 12;
-    this.txtCosto = texto(this, x0, LADO.y + 44, '', { size: 18 });
-    this.txtRestante = texto(this, xr, LADO.y + 44, '', { size: 15, color: C.apagado, origen: [1, 0] });
+    this.txtCosto = texto(this, x0, LADO.y + 40, '', { size: 18 });
+    this.txtRestante = texto(this, xr, LADO.y + 40, '', { size: 15, color: C.apagado, origen: [1, 0] });
     this.barraX = x0;
-    this.barraY = LADO.y + 72;
+    this.barraY = LADO.y + 66;
     this.barraW = xr - x0;
-    this.barraPresupuesto = K.barra(this, this.barraX, this.barraY, this.barraW, 12, 0, K.P.accion);
+    this.barraPresupuesto = barraConPatron(this, this.barraX, this.barraY, this.barraW, 16, 0, K.P.accion, null);
     this.paneles = [{ n: 'escenario', ...ESCENARIO }, { n: 'lado', ...LADO }]; // para las revisiones de maquetación
   }
 
@@ -498,7 +623,7 @@ export default class Taller extends Phaser.Scene {
       if (!chips.length) chips.push({ texto: `✕ ${errores[0]}`, tipo: 'rojo', size: 15 });
     }
     if (res.ejes_distintos) chips.push({ texto: tr('⚠ Ejes distintos', '⚠ Mixed axles'), color: K.P.accion, size: 15 });
-    g.add(K.filaChips(this, x0, LADO.y + 8, chips, xr + 2).objs);
+    g.add(K.filaChips(this, x0, LADO.y + 6, chips, xr + 2).objs);
 
     // 2) Tres cifras con ícono: masa, autonomía y efecto del destino; debajo, su palabra clave
     const destino = DESTINOS[partida.destino];
@@ -515,7 +640,7 @@ export default class Taller extends Phaser.Scene {
       { n: res.autonomia_s != null ? `${Math.round(res.autonomia_s)} s` : '—', k: tr('autonom.', 'run time'), ico: 'ui/ui_icono_energia', esc: 2, resp: '!' },
       { ...efecto, esc: 1, resp: '°' },
     ];
-    const yc = LADO.y + 90;
+    const yc = LADO.y + 86;
     const xc = [0, 110, 214, xr - x0]; // columnas a la medida de sus palabras clave («+10 carga» es la más ancha)
     cifras.forEach((c, i) => {
       const x = x0 + xc[i];
@@ -525,22 +650,24 @@ export default class Taller extends Phaser.Scene {
       g.add(texto(this, x, yc + LINEA, c.k, { size: 14, color: C.apagado, max: w - 6 }));
     });
 
-    // 3) Agarre de las ruedas (promedio de los ejes): superficie arriba, barra y número abajo
-    const ya = LADO.y + 142;
+    // 3) Agarre de las ruedas (promedio de los ejes): superficie arriba (» = el suelo de este lugar), barra con número y patrón
+    const ya = LADO.y + 136;
     ['arena', 'roca', 'compacto'].forEach((sf, i) => {
       const x = Math.round(x0 + i * col);
       const v = res.agarre[sf];
-      const color = v == null ? K.P.sec : v >= 0.7 ? K.P.bien : v >= 0.5 ? K.P.accion : K.P.riesgo;
-      g.add(texto(this, x, ya, sf === 'compacto' ? tr('compacto', 'compact') : sup(sf), { size: 14, color: C.claro, max: col - 4 }));
+      const nivel = nivelAgarre(v);
+      const color = nivel ? COLOR_NIVEL[nivel] : K.P.sec;
+      const aqui = sf === this.suelo;
+      g.add(texto(this, x, ya, `${aqui ? '» ' : ''}${sf === 'compacto' ? tr('compacto', 'compact') : sup(sf)}`, { size: 14, color: aqui ? C.acento : C.claro, max: col - 4 }));
       const num = texto(this, x + col - 6, ya + LINEA, f2(v), { size: 15, origen: [1, 0] });
       g.add(num);
-      g.add(K.barra(this, x, ya + LINEA + 6, Math.max(20, col - 12 - num.width), 12, v, color).objs);
+      g.add(barraConPatron(this, x, ya + LINEA + 4, Math.max(20, col - 12 - num.width), 16, v, color, nivel).objs);
     });
 
     // 4) Protección y resistencia, y lo especial del diseño (módulo, llanta o el destino)
     const prot = res.proteccion != null ? pct(res.proteccion) : '—';
-    g.add(texto(this, x0, LADO.y + 196, tr(`Protec. ${prot} · Resist. ${res.resistencia ?? '—'}`, `Prot. ${prot} · Durab. ${res.resistencia ?? '—'}`), { size: 15, max: xr - x0 }));
-    g.add(texto(this, x0, LADO.y + 222, this.lineaEspecial(res, e), { size: 14, color: C.ok, max: xr - x0 }));
+    g.add(texto(this, x0, LADO.y + 188, tr(`Protec. ${prot} · Resist. ${res.resistencia ?? '—'}`, `Prot. ${prot} · Durab. ${res.resistencia ?? '—'}`), { size: 15, max: xr - x0 }));
+    g.add(texto(this, x0, LADO.y + 212, this.lineaEspecial(res, e), { size: 14, color: C.ok, max: xr - x0 }));
   }
 
   /** Lo que hace diferente a este diseño (una línea corta): auto-rescate, Nitinol o el otro efecto del destino. */
@@ -566,17 +693,19 @@ export default class Taller extends Phaser.Scene {
       const w = PESTANA_W;
       const x = 16 + i * (w + 6);
       const caja = this.add.rectangle(x, PESTANA_Y, w, PESTANA_H, 0x141830, 0.95).setOrigin(0, 0).setStrokeStyle(2, BORDE);
-      zonaToque(caja, 0, -4, w, PESTANA_H + 6);
+      zonaToque(caja, 0, -2, w, PESTANA_H + 4); // 148 × 44
       caja.on('pointerdown', () => this.elegirPestana(t.id));
-      const etq = texto(this, x + w / 2 + (t.bloqueadas ? 10 : 0), PESTANA_Y + PESTANA_H / 2, trDato(t, 'nombre'), { size: 15, origen: [0.5, 0.5], max: w - (t.bloqueadas ? 34 : 12) });
+      const etq = texto(this, x + w / 2 + (t.bloqueadas ? 10 : 0), PESTANA_Y + PESTANA_H / 2, trDato(t, 'nombre'), { size: 16, origen: [0.5, 0.5], max: w - (t.bloqueadas ? 34 : 12) });
       const candado = t.bloqueadas ? this.candado(x + w / 2 - etq.width / 2 - 2 - 8, PESTANA_Y + PESTANA_H / 2, 2) : null;
       return { t, caja, etq, candado };
     });
     this.lista = this.add.container(0, 0).setDepth(3);
-    this.flechaIzq = texto(this, 28, CARTA_Y + CARTA_H / 2, '‹', { size: 28, color: C.acento, origen: [0.5, 0.5] });
-    this.flechaDer = texto(this, 932, CARTA_Y + CARTA_H / 2, '›', { size: 28, color: C.acento, origen: [0.5, 0.5] });
-    zonaToque(this.flechaIzq, (this.flechaIzq.width - 40) / 2, (this.flechaIzq.height - 70) / 2, 40, 70).on('pointerdown', () => this.paginar(-1));
-    zonaToque(this.flechaDer, (this.flechaDer.width - 40) / 2, (this.flechaDer.height - 70) / 2, 40, 70).on('pointerdown', () => this.paginar(1));
+    // Flechas de página: botones de 64 × 45 a los lados de las tarjetas (también ←/→ en la bandeja y la rueda del ratón).
+    const yf = CARTA_Y + CARTA_H / 2 - 12;
+    const opc = { size: 26, alto: 45, anchoMin: 64, pad: 8, reservaFoco: false };
+    this.btnPagIzq = K.boton(this, 16, yf, '‹', () => this.paginar(-1), { ...opc, origen: [0, 0.5] });
+    this.btnPagDer = K.boton(this, 944, yf, '›', () => this.paginar(1), { ...opc, origen: [1, 0.5] });
+    this.txtPagina = texto(this, 912, yf + 36, '', { size: 14, color: C.claro, origen: [0.5, 0] });
     this.input.on('wheel', (pt, _o, _dx, dy) => { if (pt.y >= CARTA_Y && pt.y <= CARTA_Y + CARTA_H) this.paginar(Math.sign(dy)); });
   }
 
@@ -620,7 +749,10 @@ export default class Taller extends Phaser.Scene {
     this.refrescarBandeja();
   }
 
-  /** Tarjetas de la página: ícono, nombre corto, costo en su ranura y 2 cifras en barras. */
+  /**
+   * Tarjetas de la página (4): arte de 64 px, costo grande, ranura, nombre corto y una cifra clave con barra, número y
+   * patrón. Menos texto: el detalle completo sale abajo al elegirla y en la ayuda (H).
+   */
   refrescarBandeja() {
     for (const { t, caja, etq } of this.pestanasUI) {
       const activa = t.id === this.pestana;
@@ -631,8 +763,10 @@ export default class Taller extends Phaser.Scene {
     this.cartasUI = [];
     const lista = this.tarjetas();
     const paginas = Math.ceil(lista.length / POR_PAGINA);
-    this.flechaIzq.setVisible(paginas > 1).setAlpha(this.pagina > 0 ? 1 : 0.35);
-    this.flechaDer.setVisible(paginas > 1).setAlpha(this.pagina < paginas - 1 ? 1 : 0.35);
+    const varias = paginas > 1;
+    this.btnPagIzq.setVisible(varias).setHabilitado(this.pagina > 0);
+    this.btnPagDer.setVisible(varias).setHabilitado(this.pagina < paginas - 1);
+    this.txtPagina.setText(varias ? `${this.pagina + 1}/${paginas}` : '').setVisible(varias);
     const puestas = new Set(Object.values(this.mapa));
     lista.slice(this.pagina * POR_PAGINA, (this.pagina + 1) * POR_PAGINA).forEach((p, j) => {
       const i = this.pagina * POR_PAGINA + j;
@@ -650,44 +784,43 @@ export default class Taller extends Phaser.Scene {
       const objs = [fondo, marco];
       const ic = this.icono(p);
       if (ic) {
-        const img = this.add.image(x + 22, y + 22, ic.clave).setScale(ic.escala);
+        const img = this.add.image(x + 8 + 32, y + 6 + 32, ic.clave).setScale(ic.escala * 2); // 32 px de arte ×2 = 64
         if (ic.tinte != null) img.setTint(ic.tinte);
         if (p.bloqueada) img.setAlpha(ic.clave.includes('silueta_') ? 0.9 : 0.45); // las siluetas (#89) ya vienen oscuras
         objs.push(img);
       }
-      // Filas cada 22 px: costo y ranura a la derecha (el ícono ocupa la izquierda), nombre y 2 cifras con barra.
-      const der = x + CARTA_W - 6;
-      const anchoTexto = CARTA_W - 8;
-      const fila = (k) => y + 1 + k * LINEA;
+      // Columna derecha del arte: costo (×3) y ranura; abajo, nombre (×2) y la cifra clave.
+      const der = x + CARTA_W - 8;
+      const anchoDer = CARTA_W - 8 - 80;
+      const anchoTexto = CARTA_W - 16;
       if (p.bloqueada) {
-        objs.push(texto(this, der, fila(0), p.excel.split(' · ')[0], { size: 14, color: C.claro, origen: [1, 0] }));
-        objs.push(texto(this, der, fila(1), p.estado, { size: 14, color: C.apagado, origen: [1, 0] }));
-        objs.push(texto(this, x + 6, fila(2), corto(p), { size: 15, color: C.apagado, max: anchoTexto }));
-        objs.push(texto(this, x + 6, fila(3), RAZONES[p.razon][enIngles() ? 'corto_en' : 'corto'], { size: 14, color: C.error, max: anchoTexto }));
-        objs.push(texto(this, x + 26, fila(4), tr('bloqueada', 'locked'), { size: 14, color: C.apagado, max: anchoTexto - 20 }));
+        objs.push(texto(this, der, y + 6, p.excel.split(' · ')[0], { size: 16, color: C.claro, origen: [1, 0], max: anchoDer }));
+        objs.push(texto(this, der, y + 32, p.estado, { size: 14, color: C.apagado, origen: [1, 0], max: anchoDer }));
+        objs.push(texto(this, x + 8, y + 74, corto(p), { size: 16, color: C.apagado, max: anchoTexto }));
+        objs.push(texto(this, x + 8, y + 98, RAZONES[p.razon][enIngles() ? 'corto_en' : 'corto'], { size: 14, color: C.error, max: anchoTexto }));
       } else {
         const eje = p.sistema === 'movilidad';
-        objs.push(texto(this, der, fila(0), `${p.costo * (eje ? 2 : 1)} cr`, { size: 15, color: C.acento, origen: [1, 0] }));
+        objs.push(texto(this, der, y + 4, `${p.costo * (eje ? 2 : 1)} cr`, { size: 26, color: C.acento, origen: [1, 0], max: anchoDer }));
         const ranura = eje ? tr('eje ×2', 'axle ×2') : etiquetaSocket(socketsPara(p)[0]);
-        objs.push(texto(this, der, fila(1), ranura, { size: 14, color: C.apagado, origen: [1, 0], max: CARTA_W - 50 }));
-        objs.push(texto(this, x + 6, fila(2), `${puesta ? '✓ ' : ''}${corto(p)}`, { size: 15, color: puesta ? C.ok : C.texto, max: anchoTexto }));
-        cifrasDe(p).forEach((c, k) => {
-          const cy = fila(3 + k);
-          const etq = texto(this, x + 6, cy, c.k, { size: 14, color: C.claro, max: c.v != null ? 72 : anchoTexto });
-          objs.push(etq);
-          if (c.v != null) {
-            const bx = Math.max(x + 76, etq.x + etq.width + 6);
-            objs.push(...K.barra(this, bx, cy + 6, x + CARTA_W - 6 - bx, 10, c.v, K.P.dato).objs);
-          }
-        });
+        objs.push(texto(this, der, y + 42, ranura, { size: 14, color: C.claro, origen: [1, 0], max: anchoDer }));
+        objs.push(texto(this, x + 8, y + 74, `${puesta ? '✓ ' : ''}${corto(p)}`, { size: 16, color: puesta ? C.ok : C.texto, max: anchoTexto }));
+        const c = cifraDe(p, this.suelo);
+        const cy = y + 98;
+        const etq = texto(this, x + 8, cy, c.k, { size: 14, color: C.claro, max: c.v != null ? 74 : anchoTexto });
+        objs.push(etq);
+        if (c.v != null) {
+          const num = texto(this, der, cy, c.n, { size: 15, origen: [1, 0] });
+          objs.push(num);
+          const bx = Math.max(x + 84, etq.x + etq.width + 6);
+          const color = c.nivel ? COLOR_NIVEL[c.nivel] : K.P.dato;
+          objs.push(...barraConPatron(this, bx, cy + 4, num.x - num.width - 6 - bx, 14, c.v, color, c.nivel ?? null).objs);
+        }
       }
       this.lista.add(objs);
-      if (p.bloqueada) {
-        // El candado va dentro del contenedor (se destruye con la página).
-        this.candado(x + 14, y + 1 + 4 * LINEA + LINEA / 2 - 1, 2, this.lista);
-      }
+      if (p.bloqueada) this.candado(der - 8, y + 62, 2, this.lista); // dentro del contenedor (se destruye con la página)
       this.cartasUI[i] = { x, y, w: CARTA_W, h: CARTA_H, p, marco };
     });
+    this.pintarFoco?.();
   }
 
   // ───────────────────────── botones de abajo ─────────────────────────
@@ -713,7 +846,8 @@ export default class Taller extends Phaser.Scene {
     this.input.on('pointerupoutside', (pt) => this.alSoltar(pt));
     // Arrastrar desde el robot: tocar un sprite del robot es tocar su socket.
     this.input.on('pointerdown', (pt, objs) => {
-      if (objs.length || this.ayuda || this.personal) return;
+      if (this.focoVisible) { this.focoVisible = false; this.pintarFoco(); } // el marco de foco es solo para el teclado
+      if (objs.length || this.ayuda || this.personal || this.tutorial) return;
       const id = this.socketEn(pt.x, pt.y);
       if (id) this.alTocarSocket(id, pt);
     });
@@ -726,36 +860,143 @@ export default class Taller extends Phaser.Scene {
         fn(ev);
       });
     };
-    on('keydown-LEFT', () => this.elegirSocket(this.sel - 1));
-    on('keydown-RIGHT', () => this.elegirSocket(this.sel + 1));
-    on('keydown-UP', () => this.moverCursor(-1));
-    on('keydown-DOWN', () => this.moverCursor(1));
-    on('keydown-ENTER', () => this.ponerCursor());
-    on('keydown-SPACE', () => this.ponerCursor());
-    on('keydown-DELETE', () => this.quitarSocket(ORDEN_RANURAS[this.sel]));
-    on('keydown-BACKSPACE', () => this.quitarSocket(ORDEN_RANURAS[this.sel]));
+    // Flechas, Enter y Tab según la zona con foco (pestañas → bandeja → sockets → acciones); el tutorial las toma si está abierto.
+    on('keydown-LEFT', () => this.tecla('izq'));
+    on('keydown-RIGHT', () => this.tecla('der'));
+    on('keydown-UP', () => this.tecla('arriba'));
+    on('keydown-DOWN', () => this.tecla('abajo'));
+    on('keydown-ENTER', (ev) => { ev?.preventDefault?.(); this.tecla('enter'); });
+    on('keydown-SPACE', (ev) => { ev?.preventDefault?.(); this.tecla('enter'); });
+    on('keydown-DELETE', () => { if (!this.tutorial) this.quitarSocket(ORDEN_RANURAS[this.sel]); });
+    on('keydown-BACKSPACE', () => { if (!this.tutorial) this.quitarSocket(ORDEN_RANURAS[this.sel]); });
     on('keydown-TAB', (ev) => {
       ev?.preventDefault?.();
-      const i = PESTANAS.findIndex((t) => t.id === this.pestana);
-      this.elegirPestana(PESTANAS[(i + (ev?.shiftKey ? -1 : 1) + PESTANAS.length) % PESTANAS.length].id);
-      this.refrescar();
+      if (this.tutorial || this.ayuda || this.personal) return;
+      this.moverZona(ev?.shiftKey ? -1 : 1);
     });
-    on('keydown-A', (ev) => { if (!conModificador(ev)) this.igualarEjes(); });
-    on('keydown-R', (ev) => { if (!conModificador(ev)) this.restablecer(); });
-    on('keydown-C', (ev) => { if (!conModificador(ev)) this.continuar(); });
-    on('keydown-P', (ev) => { if (!conModificador(ev)) this.pintar(siguientePintura(this.mapa[CLAVE_PINTURA], ev.shiftKey ? -1 : 1)); });
-    on('keydown-N', (ev) => { if (!conModificador(ev)) { ev.preventDefault(); this.abrirNombre(); } });
-    this.events.once('shutdown', () => { this.cerrarNombre(); this.cerrarPersonalizar(); });
-    on('keydown-ESC', () => (this.personal ? this.cerrarPersonalizar() : this.ayuda ? this.alternarAyuda() : this.mano ? this.soltarMano() : this.regresar()));
-    on('keydown-H', (ev) => { if (!conModificador(ev)) this.alternarAyuda(); });
+    // 1–6: pestaña directa; L: leer en voz alta; ?: repetir el tutorial.
     on('keydown', (ev) => {
-      if (!(ev.ctrlKey || ev.metaKey) || ev.altKey) return;
+      if (!ev || conModificador(ev) || this.tutorial || this.ayuda || this.personal || this.dialogo) return;
+      const n = Number(ev.key);
+      if (Number.isInteger(n) && n >= 1 && n <= PESTANAS.length) { this.elegirPestana(PESTANAS[n - 1].id); this.zonaFoco = 'pestanas'; this.pintarFoco(); }
+      else if (ev.key === '?') this.abrirTutorial();
+      else if (ev.key === 'l' || ev.key === 'L') this.leer();
+    });
+    const libre = (ev) => !conModificador(ev) && !this.tutorial;
+    on('keydown-A', (ev) => { if (libre(ev)) this.alternarEjes(); });
+    on('keydown-R', (ev) => { if (libre(ev)) this.restablecer(); });
+    on('keydown-C', (ev) => { if (libre(ev)) this.continuar(); });
+    on('keydown-P', (ev) => { if (libre(ev)) this.pintar(siguientePintura(this.mapa[CLAVE_PINTURA], ev.shiftKey ? -1 : 1)); });
+    on('keydown-N', (ev) => { if (libre(ev)) { ev.preventDefault(); this.abrirNombre(); } });
+    this.events.once('shutdown', () => { this.cerrarNombre(); this.cerrarPersonalizar(); });
+    on('keydown-ESC', () => (this.tutorial ? this.tutorial.cerrar() : this.personal ? this.cerrarPersonalizar() : this.ayuda ? this.alternarAyuda()
+      : this.mano ? this.soltarMano() : this.regresar()));
+    on('keydown-H', (ev) => { if (libre(ev)) this.alternarAyuda(); });
+    on('keydown', (ev) => {
+      if (!(ev.ctrlKey || ev.metaKey) || ev.altKey || this.tutorial) return;
       const tecla = ev.key.toLowerCase();
       if (tecla === 'z' && !ev.shiftKey) this.deshacer();
       else if (tecla === 'y' || (tecla === 'z' && ev.shiftKey)) this.rehacer();
       else return;
       ev.preventDefault();
     });
+  }
+
+  // ───────────────────────── foco de teclado por zonas ─────────────────────────
+  /** Botones de la zona «acciones», en orden de lectura (solo los habilitados y visibles). */
+  acciones() {
+    return [this.btnEjes, this.btnRegresar, this.btnDeshacer, this.btnRehacer, this.btnQuitar, this.btnRestablecer, this.btnContinuar,
+      this.btnLeer, this.btnPersonalizar, this.btnAyuda].filter((b) => b && b.habilitado && b.obj.visible);
+  }
+
+  moverZona(d) {
+    const zonas = ['pestanas', 'bandeja', 'sockets', 'acciones'];
+    this.zonaFoco = zonas[(zonas.indexOf(this.zonaFoco) + d + zonas.length) % zonas.length];
+    if (this.zonaFoco === 'acciones') this.focoAccion = 0;
+    this.focoVisible = true;
+    this.refrescarAyuda();
+    this.pintarFoco();
+  }
+
+  /** Una tecla de navegación ('izq' | 'der' | 'arriba' | 'abajo' | 'enter') según la zona con foco. */
+  tecla(k) {
+    if (this.dialogo) return;
+    const tu = this.tutorial;
+    if (tu) {
+      if (k === 'enter' || k === 'der') tu.siguiente();
+      else if (k === 'izq') tu.anterior();
+      return;
+    }
+    if (this.personal || this.ayuda) { if (k === 'enter') (this.personal ? this.cerrarPersonalizar() : this.alternarAyuda()); return; }
+    this.focoVisible = true;
+    const d = k === 'izq' || k === 'arriba' ? -1 : 1;
+    switch (this.zonaFoco) {
+      case 'pestanas': {
+        if (k === 'enter' || k === 'abajo') { this.zonaFoco = 'bandeja'; break; }
+        const i = PESTANAS.findIndex((t) => t.id === this.pestana);
+        this.elegirPestana(PESTANAS[(i + d + PESTANAS.length) % PESTANAS.length].id);
+        break;
+      }
+      case 'bandeja':
+        if (k === 'enter') this.ponerCursor(); else this.moverCursor(d);
+        break;
+      case 'sockets':
+        if (k === 'enter') { this.zonaFoco = 'bandeja'; this.elegirSocket(this.sel); } else this.elegirSocket(this.sel + d);
+        break;
+      default: {
+        const lista = this.acciones();
+        if (!lista.length) break;
+        if (k === 'enter') { lista[Math.min(this.focoAccion, lista.length - 1)].activar(); break; }
+        this.focoAccion = (Math.min(this.focoAccion, lista.length - 1) + d + lista.length) % lista.length;
+      }
+    }
+    this.refrescarAyuda();
+    this.pintarFoco();
+  }
+
+  /** Rectángulo del elemento con foco (px del juego) o null. */
+  rectFoco() {
+    switch (this.zonaFoco) {
+      case 'pestanas': {
+        const t = this.pestanasUI.find((x) => x.t.id === this.pestana);
+        return t ? { x: t.caja.x, y: t.caja.y, w: t.caja.width, h: t.caja.height } : null;
+      }
+      case 'bandeja': {
+        const c = this.cartasUI?.[this.cursor];
+        return c ? { x: c.x, y: c.y, w: c.w, h: c.h } : null;
+      }
+      case 'sockets': {
+        const so = this.sockets[ORDEN_RANURAS[this.sel]];
+        return so ? { x: so.x0, y: so.y0, w: SOCKET_W, h: SOCKET_H } : null;
+      }
+      default: {
+        const lista = this.acciones();
+        const b = lista[Math.min(this.focoAccion, lista.length - 1)];
+        if (!b) return null;
+        const r = b.caja.getBounds();
+        return { x: r.x, y: r.y, w: r.width, h: r.height };
+      }
+    }
+  }
+
+  /** Marco de foco muy visible: amarillo de 4 px con borde oscuro y una flecha › a la izquierda. Solo con teclado. */
+  pintarFoco() {
+    const g = this.focoG;
+    if (!g) return;
+    g.clear();
+    if (!this.focoVisible || this.tutorial || this.ayuda || this.personal) return;
+    const r = this.rectFoco();
+    if (!r) return;
+    const x = r.x - 4;
+    const y = r.y - 4;
+    const w = r.w + 8;
+    const h = r.h + 8;
+    g.lineStyle(6, 0x05060d, 1).strokeRect(x - 1, y - 1, w + 2, h + 2);
+    g.lineStyle(4, FOCO, 1).strokeRect(x, y, w, h);
+    const ax = Math.max(2, x - 12);
+    const ay = r.y + r.h / 2;
+    g.fillStyle(0x05060d, 1).fillTriangle(ax - 2, ay - 10, ax - 2, ay + 10, ax + 11, ay);
+    g.fillStyle(FOCO, 1).fillTriangle(ax, ay - 7, ax, ay + 7, ax + 8, ay);
   }
 
   /** Pieza que se está arrastrando o que está "tomada" (toque o cursor con mano). */
@@ -798,7 +1039,7 @@ export default class Taller extends Phaser.Scene {
 
   /** Lo que sigue al puntero mientras se arrastra: el ícono grande y el nombre corto. */
   crearFantasma(p) {
-    const c = this.add.container(0, 0).setDepth(50);
+    const c = this.add.container(0, 0).setDepth(90); // encima del tutorial (paso 1: arrastrar una rueda)
     const ic = this.icono(p);
     if (ic) {
       const img = this.add.image(0, 0, ic.clave).setScale(ic.escala * 2); // 64 px
@@ -806,8 +1047,10 @@ export default class Taller extends Phaser.Scene {
       c.add(img);
     } else c.add(this.add.rectangle(0, 0, 40, 40, 0x80e0dc));
     c.add(texto(this, 0, 28, corto(p), { size: 14, origen: [0.5, 0], borde: true }));
-    c.setScale(1.1);
-    this.tweens.add({ targets: c, scale: 1, duration: 120 });
+    if (!this.quieto) {
+      c.setScale(1.1);
+      this.tweens.add({ targets: c, scale: 1, duration: 120 });
+    }
     return c;
   }
 
@@ -819,12 +1062,14 @@ export default class Taller extends Phaser.Scene {
     const destino = this.socketEn(pt.x, pt.y);
     const valido = destino && socketsPara(a.pieza).includes(destino);
     if (a.origen === 'carta') {
-      if (valido) { a.fantasma.destroy(); this.ponerEn(a.pieza, destino); return; }
+      // Mayús al soltar una rueda = solo ese eje (opción avanzada); sin Mayús va a los dos.
+      if (valido) { a.fantasma.destroy(); this.ponerEn(a.pieza, destino, { soloEse: Boolean(pt?.event?.shiftKey) }); return; }
       // Inválido: la pieza vuelve a su tarjeta.
       const carta = this.cartasUI?.[a.indice];
-      const vx = carta ? carta.x + 22 : a.x0;
-      const vy = carta ? carta.y + 22 : a.y0;
-      this.tweens.add({ targets: a.fantasma, x: vx, y: vy, alpha: 0, scale: 0.6, duration: 220, ease: 'Quad.In', onComplete: () => a.fantasma.destroy() });
+      const vx = carta ? carta.x + 40 : a.x0;
+      const vy = carta ? carta.y + 38 : a.y0;
+      if (this.quieto) a.fantasma.destroy();
+      else this.tweens.add({ targets: a.fantasma, x: vx, y: vy, alpha: 0, scale: 0.6, duration: 220, ease: 'Quad.In', onComplete: () => a.fantasma.destroy() });
       if (destino) this.avisar(tr(`${corto(a.pieza)} no va en ${etiquetaSocket(destino)}.`, `${corto(a.pieza)} does not fit in ${etiquetaSocket(destino)}.`));
       this.pintarSockets();
       return;
@@ -834,12 +1079,13 @@ export default class Taller extends Phaser.Scene {
     if (valido && destino !== a.ranura) {
       a.fantasma.destroy();
       const r = mover(this.mapa, a.ranura, destino, PIEZAS);
-      if (r.ok) this.aplicarCambio(r.mapa, { ranura: destino, texto: tr(`mover ${corto(a.pieza)} a ${etiquetaSocket(destino)}`, `move ${corto(a.pieza)} to ${etiquetaSocket(destino)}`) }, { encaja: destino, suelta: a.ranura });
+      if (r.ok) this.aplicarCambio(r.mapa, { ranura: destino, texto: tr(`mover ${corto(a.pieza)} a ${etiquetaSocket(destino)}`, `move ${corto(a.pieza)} to ${etiquetaSocket(destino)}`) }, { encaja: destino, suelta: a.ranura, voz: { accion: 'mover', pieza: a.pieza, ranura: destino } });
       return;
     }
     if (!destino) { a.fantasma.destroy(); this.quitarSocket(a.ranura); return; }
     const o = this.ancla(a.ranura);
-    this.tweens.add({ targets: a.fantasma, x: o.x, y: o.y, alpha: 0, duration: 200, onComplete: () => a.fantasma.destroy() });
+    if (this.quieto) a.fantasma.destroy();
+    else this.tweens.add({ targets: a.fantasma, x: o.x, y: o.y, alpha: 0, duration: 200, onComplete: () => a.fantasma.destroy() });
     this.pintarSockets();
   }
 
@@ -877,7 +1123,8 @@ export default class Taller extends Phaser.Scene {
 
   avisar(t) {
     this.aviso = t;
-    this.cameras.main.shake(90, 0.003);
+    if (!this.quieto) this.cameras.main.shake(90, 0.003);
+    this.voz?.decir(t);
     this.refrescarAyuda();
   }
 
@@ -922,27 +1169,61 @@ export default class Taller extends Phaser.Scene {
     this.ponerEn(p, id);
   }
 
-  ponerEn(p, id) {
+  /**
+   * Pone una pieza en un socket. Una rueda va a LOS DOS ejes (una sola acción, con las dos encajando), salvo con los ejes
+   * separados (botón «Separar ejes» / A) o con `soloEse` (Mayús al soltar): entonces solo al eje elegido.
+   */
+  ponerEn(p, id, { soloEse = false } = {}) {
     this.mano = false;
-    const r = poner(this.mapa, p, id);
+    const separar = this.ejesSeparados || soloEse;
+    const r = ponerRueda(this.mapa, p, id, { separar });
     if (!r.ok) {
-      if (r.motivo === 'igual') { this.aviso = tr(`${corto(p)} ya está en ${etiquetaSocket(id)}.`, `${corto(p)} is already in ${etiquetaSocket(id)}.`); this.refrescar(); }
-      else if (r.motivo === 'bloqueada') this.avisoBloqueada(p);
+      if (r.motivo === 'igual') {
+        this.aviso = r.ambos ? tr(`${corto(p)} ya está en los dos ejes.`, `${corto(p)} is already on both axles.`)
+          : tr(`${corto(p)} ya está en ${etiquetaSocket(id)}.`, `${corto(p)} is already in ${etiquetaSocket(id)}.`);
+        this.refrescar();
+      } else if (r.motivo === 'bloqueada') this.avisoBloqueada(p);
       return;
     }
     this.sel = ORDEN_RANURAS.indexOf(id);
-    this.aplicarCambio(r.mapa, { ranura: id, texto: `${nombreRanura(id)} → ${trDato(p, 'nombre')}` }, { encaja: id });
+    const texto = r.ambos ? tr('ambos ejes → ', 'both axles → ') + trDato(p, 'nombre') : `${nombreRanura(id)} → ${trDato(p, 'nombre')}`;
+    this.aplicarCambio(r.mapa, { ranura: id, texto }, { encaja: id, voz: { accion: r.ambos ? 'ejes' : 'poner', pieza: p, ranura: id } });
+    // El otro eje encaja un instante después: se ve que la rueda quedó en los dos.
+    if (r.ambos) this.time.delayedCall(this.quieto ? 0 : 140, () => { if (this.sys.isActive()) this.animarEncaje(r.otro); });
     if (id.startsWith('rueda') && r.mapa.rueda_del !== r.mapa.rueda_tras && r.mapa.rueda_del && r.mapa.rueda_tras) {
-      this.aviso = tr('Rueda en un eje: «Igual en ambos ejes» (A) la copia al otro.', 'Wheel on one axle: «Same on both axles» (A) copies it to the other.');
+      this.aviso = tr('Ejes distintos: cada eje lleva su rueda. «Unir ejes» (A) pone la misma en los dos.',
+        'Mixed axles: each axle has its own wheel. «Join axles» (A) puts the same on both.');
       this.refrescarAyuda();
     }
+  }
+
+  etiquetaEjes() {
+    return this.ejesSeparados ? tr('Unir ejes (A)', 'Join axles (A)') : tr('Separar ejes (A)', 'Split axles (A)');
+  }
+
+  /**
+   * «Separar ejes» / «Unir ejes» (A). Separar: la siguiente rueda va solo al eje donde la sueltes (opción avanzada).
+   * Unir: si los ejes llevan ruedas distintas, la del eje elegido (o la delantera) se copia al otro.
+   */
+  alternarEjes() {
+    if (this.ejesSeparados) {
+      this.ejesSeparados = false;
+      this.btnEjes.setEtiqueta(this.etiquetaEjes());
+      if (this.mapa.rueda_del && this.mapa.rueda_tras && this.mapa.rueda_del !== this.mapa.rueda_tras) { this.igualarEjes(); return; }
+      this.aviso = tr('Ejes unidos: cada rueda que sueltes va a los dos ejes.', 'Axles joined: every wheel you drop goes on both axles.');
+    } else {
+      this.ejesSeparados = true;
+      this.btnEjes.setEtiqueta(this.etiquetaEjes());
+      this.aviso = tr('Ejes separados: la rueda va solo al eje donde la sueltes.', 'Axles split: a wheel goes only on the axle you drop it on.');
+    }
+    this.refrescarAyuda();
   }
 
   quitarSocket(id) {
     const r = quitarDe(this.mapa, id);
     if (!r.ok) return;
     this.sel = ORDEN_RANURAS.indexOf(id);
-    this.aplicarCambio(r.mapa, { ranura: id, texto: tr(`quitar ${nombreRanura(id)}`, `remove ${nombreRanura(id)}`) }, { suelta: id });
+    this.aplicarCambio(r.mapa, { ranura: id, texto: tr(`quitar ${nombreRanura(id)}`, `remove ${nombreRanura(id)}`) }, { suelta: id, voz: { accion: 'quitar', ranura: id } });
     // La bandeja salta a las piezas de ese socket para poner otra.
     this.elegirPestana(pestanaDeRanura(id), { cursorEn: r.antes });
     this.aviso = tr(`${nombreRanura(id)} quitada: arrastra otra pieza al socket.`, `${nombreRanura(id)} removed: drag another part onto the socket.`);
@@ -954,7 +1235,8 @@ export default class Taller extends Phaser.Scene {
     const r = ambosEjes(this.mapa, sel);
     if (!r.ok) { this.aviso = tr('Los dos ejes ya llevan la misma rueda.', 'Both axles already have the same wheel.'); this.refrescarAyuda(); return; }
     this.sel = ORDEN_RANURAS.indexOf(r.otro);
-    this.aplicarCambio(r.mapa, { ranura: r.otro, texto: tr('ambos ejes → ', 'both axles → ') + trDato(piezaPorId[r.mapa[r.otro]], 'nombre') }, { encaja: r.otro });
+    this.aplicarCambio(r.mapa, { ranura: r.otro, texto: tr('ambos ejes → ', 'both axles → ') + trDato(piezaPorId[r.mapa[r.otro]], 'nombre') },
+      { encaja: r.otro, voz: { accion: 'ejes', pieza: piezaPorId[r.mapa[r.otro]] } });
   }
 
   restablecer() {
@@ -967,8 +1249,8 @@ export default class Taller extends Phaser.Scene {
   }
 
   /** Registra un cambio en el historial y refresca todo con animación: `encaja` = socket que recibe, `suelta` = que suelta. */
-  aplicarCambio(mapa, cambio, { encaja = null, suelta = null } = {}) {
-    const viejo = suelta ? this.copiaParte(suelta) : null;
+  aplicarCambio(mapa, cambio, { encaja = null, suelta = null, voz = null } = {}) {
+    const viejo = suelta && !this.quieto ? this.copiaParte(suelta) : null;
     this.mapa = mapa;
     this.hist.registrar(this.mapa, cambio);
     this.aviso = '';
@@ -976,6 +1258,11 @@ export default class Taller extends Phaser.Scene {
     this.refrescar(true);
     if (viejo) this.animarSoltar(viejo, suelta);
     if (encaja) this.animarEncaje(encaja);
+    this.anunciar(voz ?? { accion: 'otro', texto: cambio.texto });
+    // Tutorial, paso 1 («arrastra una rueda a su eje»): avanza solo cuando una rueda entra en un eje.
+    if (encaja?.startsWith('rueda') && this.tutorial?.espera() === 'rueda') {
+      this.time.delayedCall(this.quieto ? 0 : 450, () => { if (this.tutorial?.espera() === 'rueda') this.tutorial.siguiente(); });
+    }
   }
 
   // ───────────────────────── animaciones ─────────────────────────
@@ -989,9 +1276,10 @@ export default class Taller extends Phaser.Scene {
   }
 
   animarEncaje(id) {
+    sonarBoton();
+    if (this.quieto) return; // prefers-reduced-motion: la pieza aparece en su lugar sin destello, polvo ni rebote
     const o = this.partes?.[id];
     const a = id === 'chasis' ? { x: ROBOT.x, y: ROBOT.y } : (o ? { x: o.x, y: o.y } : this.ancla(id));
-    sonarBoton();
     if (o) {
       const sx = o.scaleX;
       const sy = o.scaleY;
@@ -1026,6 +1314,7 @@ export default class Taller extends Phaser.Scene {
 
   /** Al entrar (o restablecer) el robot se arma pieza por pieza: ruedas, chasis, motor, batería, carga y módulo. */
   animarArmado() {
+    if (this.quieto) return;
     const orden = ['rueda_tras', 'rueda_del', 'chasis', 'motor', 'bateria', 'carga', 'modulo'];
     let k = 0;
     for (const id of orden) {
@@ -1052,6 +1341,7 @@ export default class Taller extends Phaser.Scene {
     this.aviso = paso.cambio && paso.cambio.texto ? tr(`${es}: ${paso.cambio.texto}`, `${en}: ${paso.cambio.texto}`) : '';
     this.refrescar(true);
     if (r && this.mapa[r]) this.animarEncaje(r);
+    this.anunciar({ accion: 'otro', texto: this.aviso });
   }
 
   deshacer() { this.aplicarPaso(this.hist.deshacer(), 'Deshecho', 'Undone'); }
@@ -1085,17 +1375,25 @@ export default class Taller extends Phaser.Scene {
     this.btnDeshacer.setHabilitado(this.hist.puedeDeshacer);
     this.btnRehacer.setHabilitado(this.hist.puedeRehacer);
     this.btnQuitar.setHabilitado(Boolean(this.mapa[ORDEN_RANURAS[this.sel]]));
-    const ejes = this.mapa.rueda_del && this.mapa.rueda_tras && this.mapa.rueda_del === this.mapa.rueda_tras;
-    this.btnEjes.setHabilitado(!ejes && Boolean(this.mapa.rueda_del || this.mapa.rueda_tras));
+    // Ejes con ruedas distintas (Mayús al soltar, deshacer, diseño guardado) = modo separado: el botón ofrece «Unir ejes».
+    if (this.mapa.rueda_del && this.mapa.rueda_tras && this.mapa.rueda_del !== this.mapa.rueda_tras) this.ejesSeparados = true;
+    this.btnEjes.setHabilitado(true);
+    if (this.btnEjes.etiqueta !== this.etiquetaEjes()) this.btnEjes.setEtiqueta(this.etiquetaEjes());
   }
 
   /** Una línea abajo: aviso del momento, o el detalle de la pieza elegida, o la ayuda corta del armado. */
   refrescarAyuda(extra = null) {
     if (!this.txtAyuda) return;
     const aviso = this.aviso || extra || this.lineaEjes;
-    const linea = aviso || this.detalle
-      || tr('Arrastra una pieza a su socket · ←→ ↑↓ Enter · Supr quitar · H ayuda · (P) valor de juego',
-        'Drag a part onto its socket · ←→ ↑↓ Enter · Del remove · H help · (P) game value');
+    const ZONA = {
+      pestanas: tr('Pestañas: ←→ cambiar · Enter ir a las piezas · Tab sigue', 'Tabs: ←→ switch · Enter go to parts · Tab next'),
+      bandeja: tr('Piezas: ←→ elegir · Enter poner en el robot · Tab sigue', 'Parts: ←→ choose · Enter fit on robot · Tab next'),
+      sockets: tr('Sockets: ←→ elegir · Supr quitar · Enter ver sus piezas · Tab sigue', 'Sockets: ←→ choose · Del remove · Enter see its parts · Tab next'),
+      acciones: tr('Botones: ←→ elegir · Enter activar · Tab sigue', 'Buttons: ←→ choose · Enter press · Tab next'),
+    };
+    const linea = aviso || this.detalle || (this.focoVisible ? ZONA[this.zonaFoco] : null)
+      || tr('Arrastra piezas al robot · Tab ←→ Enter · Supr quitar · H ayuda · ? guía · (P) valor de juego',
+        'Drag parts onto the robot · Tab ←→ Enter · Del remove · H help · ? guide · (P) game value');
     this.txtAyuda.setText(linea).setColor(aviso ? C.acento : this.detalle ? C.claro : C.apagado);
     ajustarAncho(this.txtAyuda, 930); // si no cabe en una línea, se recorta con «…» (el detalle completo está en la ayuda H)
   }
@@ -1123,36 +1421,45 @@ export default class Taller extends Phaser.Scene {
   }
 
   alternarAyuda() {
-    if (this.ayuda) { this.ayuda.forEach((o) => o.destroy()); this.ayuda = null; return; }
+    if (this.ayuda) { this.ayuda.forEach((o) => o.destroy()); this.ayuda = null; this.btnGuia = null; this.pintarFoco(); return; }
     this.cerrarPersonalizar();
     this.dibujarAyuda();
   }
 
   dibujarAyuda() {
     this.ayuda?.forEach((o) => o.destroy());
+    this.focoG?.clear();
     const capa = this.add.rectangle(480, 270, 960, 540, 0x05060c, 0.75).setDepth(60).setInteractive();
     capa.on('pointerdown', () => this.alternarAyuda());
     const t = [
       tr('Cómo armar', 'How to build'),
-      tr('Arrastra una tarjeta a un socket verde; saca una pieza del robot (o clic derecho) para quitarla.',
-        'Drag a card onto a green socket; drag a part off the robot (or right-click) to remove it.'),
+      tr('Para probar: chasis, ruedas en 2 ejes, motor, batería y carga; módulo opcional.',
+        'To test you need chassis, both axles, motor, battery, payload; module optional.'),
+      tr('Arrastra a un socket verde; para quitar, saca la pieza del robot o clic derecho.',
+        'Drag a card onto a green socket; drag a part off (or right-click) to remove it.'),
+      tr('Ruedas: van a los 2 ejes. Para mezclar: Mayús al soltar o «Separar ejes» (A).',
+        'Wheels go on both axles. To mix: Shift as you drop, or «Split axles» (A).'),
       tr('Toque: tarjeta y luego socket (dos toques en la tarjeta la ponen).', 'Tap: card, then socket (tap the card twice to fit it).'),
-      tr('←→ socket · ↑↓ pieza · Enter poner · Supr quitar · Tab pestaña · A ambos ejes',
-        '←→ socket · ↑↓ part · Enter fit · Del remove · Tab tab · A both axles'),
-      tr('C probar · R restablecer · P pintura · N nombre · Ctrl+Z/Y deshacer/rehacer · Esc regresar',
-        'C test · R reset · P paint · N name · Ctrl+Z/Y undo/redo · Esc back'),
+      tr('Tab: pestañas→piezas→sockets→botones · Enter poner · Supr quitar · 1–6 pestaña',
+        'Tab: tabs→parts→sockets→buttons · ←→ inside · Enter fit · Del remove · 1–6 tab'),
+      tr('A ejes · C probar · R restablecer · P pintura · N nombre · L leer · ? guía · Ctrl+Z/Y',
+        'A axles · C test · R reset · P paint · N name · L read · ? guide · Ctrl+Z/Y · Esc back'),
       '',
       tr('Detalle del diseño · (P) = valor de juego, no dato de ingeniería', 'Design detail · (P) = game value, not engineering data'),
       ...this.lineasDetalle(),
-      '',
-      tr('H / Esc / clic: cerrar', 'H / Esc / click: close'),
     ].join('\n');
     const txt = texto(this, 58, 0, t, { size: 14, ancho: 844 }).setDepth(62);
-    const alto = txt.height + 28;
+    const alto = txt.height + 14 + 60;
     const y0 = Math.max(4, Math.round(270 - alto / 2));
     txt.setY(y0 + 14);
     const marco = K.panel(this, 40, y0, 880, alto).setDepth(61);
-    this.ayuda = [capa, marco, txt];
+    // Última fila: cómo cerrar y el botón para repetir la guía de la primera vez (también con la tecla ?).
+    const yf = y0 + alto - 32;
+    const cierre = texto(this, 58, yf, tr('H / Esc / clic: cerrar', 'H / Esc / click: close'), { size: 14, color: C.apagado, origen: [0, 0.5] }).setDepth(62);
+    this.btnGuia = K.boton(this, 902, yf, tr('Ver la guía (?)', 'Show the guide (?)'), () => { this.alternarAyuda(); this.abrirTutorial(); },
+      { size: 15, alto: 42, origen: [1, 0.5], pad: 12, reservaFoco: false, color: K.P.bien });
+    K.fijarBoton(this.btnGuia, 63);
+    this.ayuda = [capa, marco, txt, cierre, this.btnGuia.obj, this.btnGuia.caja];
   }
 
   /** Qué le hace el destino a ESTE diseño (mismas reglas que la física, fisica/ambiente.js). Una línea. */
@@ -1180,8 +1487,8 @@ export default class Taller extends Phaser.Scene {
   alternarPersonalizar() {
     if (this.personal) { this.cerrarPersonalizar(); return; }
     if (this.ayuda) this.alternarAyuda();
-    const W = 440;
-    const H = 194;
+    const W = 560;
+    const H = 240;
     const x0 = 480 - W / 2;
     const y0 = 270 - H / 2;
     const capa = this.add.rectangle(480, 270, 960, 540, 0x05060c, 0.75).setDepth(60).setInteractive();
@@ -1191,19 +1498,22 @@ export default class Taller extends Phaser.Scene {
     const objs = [capa, marco];
     const t = (x, y, s, o) => { const o2 = texto(this, x, y, s, o).setDepth(62); objs.push(o2); return o2; };
     t(x0 + 18, y0 + 14, tr('Personalizar (cosmético)', 'Customize (cosmetic)'), { size: 18, color: C.acento, max: W - 36 });
-    const yP = y0 + 62;
-    const etq = t(x0 + 18, yP, tr('Pintura (P)', 'Paint (P)'), { size: 15, color: C.claro, origen: [0, 0.5] });
-    const xs = Math.round(Math.max(etq.x + etq.width + 26, x0 + 160));
+    // Muestras de pintura de 40 × 40 cada 66 px: zona táctil de 64 × 44 sin encimarse (auditoría de Leo §4.3).
+    t(x0 + 18, y0 + 56, tr('Pintura (P)', 'Paint (P)'), { size: 15, color: C.claro });
+    const yP = y0 + 112;
+    const xs = Math.round(480 - ((PINTURAS.length - 1) * 66) / 2);
     this.muestras = PINTURAS.map((pint, i) => {
-      const cuadro = this.add.rectangle(xs + i * 40, yP, 26, 26, pint.muestra).setStrokeStyle(2, BORDE).setDepth(62);
-      zonaToque(cuadro, -6, -8, 38, 42);
+      const cuadro = this.add.rectangle(xs + i * 66, yP, 40, 40, pint.muestra).setStrokeStyle(2, BORDE).setDepth(62);
+      zonaToque(cuadro, -12, -2, 64, 44);
       cuadro.on('pointerdown', () => this.pintar(pint.id));
       objs.push(cuadro);
       return { pint, cuadro };
     });
-    const yN = y0 + 104;
-    t(x0 + 18, yN, tr('Nombre (N)', 'Name (N)'), { size: 15, color: C.claro, origen: [0, 0.5] });
-    this.txtNombre = t(xs - 13, yN, '', { size: 15, origen: [0, 0.5] });
+    this.marcaPintura = this.add.graphics().setDepth(63); // ✓ sobre la elegida (no solo el borde)
+    objs.push(this.marcaPintura);
+    const yN = y0 + 158;
+    const etqN = t(x0 + 18, yN, tr('Nombre (N)', 'Name (N)'), { size: 15, color: C.claro, origen: [0, 0.5] });
+    this.txtNombre = t(Math.round(etqN.x + etqN.width + 18), yN, '', { size: 15, origen: [0, 0.5] });
     this.xNombreMax = x0 + W - 18;
     const yB = y0 + H - 34;
     this.btnPNombre = K.boton(this, x0 + 18, yB, tr('Cambiar nombre', 'Rename'), () => this.abrirNombre(),
@@ -1220,6 +1530,7 @@ export default class Taller extends Phaser.Scene {
     this.personal.forEach((o) => o.destroy());
     this.personal = null;
     this.muestras = [];
+    this.marcaPintura = null;
     this.txtNombre = null;
     this.btnPNombre = null;
     this.btnPListo = null;
@@ -1231,7 +1542,15 @@ export default class Taller extends Phaser.Scene {
     fijarPersonalizacion(partida, { pintura: pintura.id, nombre }); // la usan la prueba y la misión (fisica/aspecto.js)
     for (const { pint, cuadro } of this.muestras ?? []) {
       const elegida = pint.id === pintura.id;
-      cuadro.setStrokeStyle(elegida ? 3 : 2, elegida ? ACENTO : BORDE).setScale(elegida ? 1.15 : 1);
+      cuadro.setStrokeStyle(elegida ? 4 : 2, elegida ? ACENTO : BORDE).setScale(elegida ? 1.1 : 1);
+      if (elegida && this.marcaPintura) {
+        // Palomita con contorno oscuro en la esquina de la muestra elegida.
+        const g = this.marcaPintura.clear();
+        const cx = cuadro.x + 14;
+        const cy = cuadro.y - 14;
+        g.fillStyle(0x05060d, 1).fillCircle(cx, cy, 9);
+        g.lineStyle(3, ACENTO, 1).beginPath().moveTo(cx - 5, cy).lineTo(cx - 1, cy + 4).lineTo(cx + 5, cy - 4).strokePath();
+      }
     }
     if (!this.txtNombre) return;
     this.txtNombre.setText(nombre ? `«${nombre}»` : tr('(sin nombre)', '(no name)')).setColor(nombre ? C.texto : C.apagado);

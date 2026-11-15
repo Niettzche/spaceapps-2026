@@ -321,7 +321,7 @@ Somos 6 personas en 6 computadoras. **GitHub es el punto de sincronización**; l
 
 Carga → Marte → Expediente de Samalayuca (comparación con Jezero) → ticket → Taller: ruedas estándar → prueba en dunas: patina →
 feedback "cambia a ruedas anchas" → prueba otra vez: pasa → misión en Marte → llega a la base → entrega → puntuación.
-Camino lunar: el mismo flujo eligiendo la Luna, con un sitio análogo lunar (lo propone el frente modelo) y misión con gravedad 1.62 m/s².
+Camino lunar: el mismo flujo eligiendo la Luna, con el maar Al Hutaymah (g00263; decisión del 15 nov, ver DECISIONES) y misión con gravedad 1.62 m/s².
 Los dos caminos deben funcionar. Lo que se muestre como funcional debe funcionar en estos caminos; lo que sea visión se presenta como visión.
 
 ## 12. Criterios de aceptación
