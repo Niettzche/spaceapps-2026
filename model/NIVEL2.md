@@ -13,9 +13,9 @@ encontrado en la literatura revisada, no que nadie lo haya usado.
 
 | Candidato | Qué es | Distancia a la fuente | ¿Análogo lunar o marciano? |
 |---|---|---|---|
-| G00263 | Anillo de toba o maar **Al Hutaymah**, Harrat Hutaymah (~95 km al SE de Hail) | ~0.10 km | No encontrado en la literatura revisada |
-| G00266 | Cono (o anillo) de toba **Jabal Bayda**, Harrat Khaybar | ~0.04 km | No encontrado en la literatura revisada |
-| G00281 | Maar **Al Wahbah**, Harrat Kishb (confirmado) | ~0.23 km | Luna/Marte: no encontrado. **Sí publicado como análogo de Encélado** (2024) |
+| G00263 | Anillo de toba o maar **Al Hutaymah**, Harrat Hutaymah (~95 km al SE de Hail) | ~0.10 km | **Marte: sí.** Harrat Hutaymah está en la base global de Ryan et al. (2024). Luna: no encontrado |
+| G00266 | Cono (o anillo) de toba **Jabal Bayda**, Harrat Khaybar | ~0.04 km | No encontrado en la literatura revisada; tampoco está en Ryan et al. (2024) |
+| G00281 | Maar **Al Wahbah**, Harrat Kishb (confirmado) | ~0.23 km | Luna/Marte: no encontrado; no está en Ryan et al. (2024). **Sí publicado como análogo de Encélado** (2024) |
 | G00176 | **Colton Crater ("Crater 160")**, campo volcánico de San Francisco | ~0.05 km | **Sí: entrenamiento del Apolo 15, 15–17 jul 1970.** Agregado a `known_analogs.json` |
 
 **G00263 · Al Hutaymah** (26.9888 N, 42.2465 E)
@@ -26,9 +26,24 @@ encontrado en la literatura revisada, no que nadie lo haya usado.
   llama "Hutaymah maar volcano" (https://www.intechopen.com/chapters/1237406).
 - Términos: "Harrat Hutaymah Mars analog", "Harrat Hutaymah lunar analog", "Hutaymah maar crater", "Saudi Arabia harrat Mars
   analogue site". No encontrado en la literatura revisada (USGS OFR 85-125, Németh 2026).
-- Pendiente: Ryan et al. (2024), *Geosphere*, "A global database of Mars-relevant hydrovolcanic environments on Earth"
-  (doi:10.1130/GES02712.1), con 45 campos volcánicos. No pudimos abrir el texto completo, así que no sabemos si incluye harrats
-  de Arabia. Hay que revisarlo antes de llamar novedosos a G00263, G00266 o G00281.
+- **Ryan et al. (2024), ya revisado el 15 nov 2026.** Ryan, C.H., Schmidt, M.E., Osinski, G.R. y Massey, E.A., "A global
+  database of Mars-relevant hydrovolcanic environments on Earth with potential biosignature preservation", *Geosphere*
+  20(2):547–576, doi:10.1130/GES02712.1. Leímos el material suplementario completo (tablas, KMZ y README:
+  https://gsapubs.figshare.com/articles/journal_contribution/Supplemental_Material_A_global_database_of_Mars-relevant_hydrovolcanic_environments_on_Earth_with_potential_biosignature_preservation/24808560)
+  y, del artículo, solo el resumen (el sitio de la revista no dejó abrir el texto).
+  - **Harrat Hutaymah sí está.** Fila de la tabla de campos: "Saudi Arabia | Hutaymah | Harrat Hutaymah Volcanic Field | Tuff
+    cones | 16 | Basalt | 1.80 Ma". Es el único campo de Arabia Saudita en esa tabla. En el KMZ, el punto "Harrat Hutaymah 2"
+    (26.98835 N, 42.24767 E) queda a ~0.13 km de nuestra coordenada. Entra como campo, por su relevancia para Marte como
+    ambiente hidrovolcánico, no por la forma del cráter; la base no trata la Luna.
+  - **Harrat Khaybar (Jabal Bayda) y Harrat Kishb (Al Wahbah) no están** en las tablas ni en el KMZ.
+  - **Qué significa que no estén: poco.** La base reúne campos "primarily basaltic in composition", con erupciones en los
+    últimos 5 Ma y estructuras hidrovolcánicas, compilados de la literatura. No es exhaustiva.
+  - **No revisado:** el cuerpo del artículo y los archivos de congresos (LPSC, EPSC, AGU, EGU), que solo se consultaron con un
+    buscador web.
+  - **Consecuencia.** G00263 no puede presentarse como análogo nuevo para Marte. G00266 y G00281 siguen como "no encontrado en
+    la literatura revisada", que no es lo mismo que nuevo. `novedoso` queda en `null` en los tres, y la nota de g00263 y g00266
+    ya dice lo que se encontró (`python -m model.scan --solo-literatura`). Falta que el equipo decida si Harrat Hutaymah entra a
+    `data/known_analogs.json`: con eso g00263 pasaría a `novedoso: false` y los análogos conocidos serían 22, no 21.
 
 **G00266 · Jabal Bayda** (25.6608 N, 39.9348 E)
 - Coordenada: nodo de OpenStreetMap "جبل البيضاء" en 25.66048 N, 39.93487 E.
@@ -211,3 +226,21 @@ confirma, sería una cuarta razón: el borde es terreno que una misión tiene qu
 > - **Borde y análogos:** el polo sur lunar y Jezero son terreno de cráteres. El borde levantado es evidencia de que una depresión
 >   se formó por explosión o impacto: lo tienen 10 de 11 cráteres con fuente externa y 4 de 38 tajos mineros. Dice "esto es un
 >   cráter", no "esto se parece a la Luna".
+
+**Texto propuesto** para el bloque "Evidencia y límites" del mismo guion (lo que distingue al proyecto; cifras de
+`model/VALIDATION.md`, apartado "Borde levantado"):
+
+> Ordenados solo por forma, entre los 25 primeros hay 14 minas y 3 cráteres. Ordenados por el borde levantado, 11 cráteres y 1 mina.
+
+Y para el mismo bloque, la prueba fuera de muestra (cifra de `model/VALIDATION.md`, "Prueba fuera de muestra"):
+
+> Fijamos la regla y después la probamos en ocho cráteres de impacto de otros países que nunca había visto: siete la pasan.
+
+Cuidados: son 8 casos y no son una muestra al azar (son cráteres conocidos, elegidos como control positivo del detector); con la
+zona estrecha pasan 5 y con umbral 0.002 pasan 6; Meteor Crater no cuenta entre los 8 porque ya era un candidato.
+
+Cuidados al decir lo de las minas: la cuenta es sobre 296 candidatos y por el puntaje de forma (el mejor entre Luna y Marte), así que no es
+"los 25 lugares más parecidos a la Luna"; qué es mina y qué es cráter lo dice la etiqueta de IA (contrastada en 33 casos); y
+entre los 25 hay también otras formas (8 por forma, 13 por borde). Figura para acompañarlo: corte de El Elegante y de un tajo
+de Arizona, `informe/exposicion_modelo/figura_crater_o_mina_es.png` (y `_en.png`); cómo se eligieron los dos ejemplos está en
+`informe/exposicion_modelo/01_borde_levantado.ipynb`, sección 6.

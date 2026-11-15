@@ -41,17 +41,40 @@
   `novedoso` cambió.**
 - **Límites:** no mide parecido con la Luna ni con Marte (solo 22 % de los gemelos lunares y 15 % de los marcianos tienen borde
   con esta medida); 11 casos con fuente, uno solo de impacto; la ventana ancha se eligió después de ver los datos (con la
-  estrecha pasan 7 de 11). Falta la prueba independiente: perfiles a 80 m de los cráteres de impacto de `impactos_tierra.csv`.
+  estrecha pasan 7 de 11). La prueba independiente que faltaba ya está hecha (viñeta «Prueba fuera de muestra», abajo).
 - Corregido en `VALIDATION.md`: los totales frente al polo sur lunar son más bajos por la pendiente (objetivo 8.63° contra 3.56°),
   no por la oscilación térmica, que se recorta igual en los dos destinos. Los tajos someros (mx0088, mx0457) ya no dicen
   "pendientes extremas".
 - Comandos: `python -m model.borde` (todos los sitios) y `python -m model.scan --solo-categoria` (notas); los dos son idempotentes.
 - **Carpeta para exponer el modelo:** `informe/exposicion_modelo/` (con `README.md`). Trae la guía de estudio
-  `guia_exposicion_modelo.pdf` (4 páginas; generador `informe/generar_guia_exposicion.py`): guion propuesto de 30 s para el bloque
-  «Evidencia y límites», figura del borde, 12 preguntas de jueces con respuesta y respaldo, y lo que no hay que decir. Y dos
-  cuadernos ya ejecutados que vuelven a calcular sus cifras sin descargar nada: `01_borde_levantado.ipynb` y
-  `02_cifras_de_la_guia.ipynb`. El generador y la última celda de cada cuaderno fallan si una cifra ya no coincide con
-  `model/VALIDATION.md`.
+  `guia_exposicion_modelo.pdf` (6 páginas; generador `informe/generar_guia_exposicion.py`): guion propuesto de 30 s para el bloque
+  «Evidencia y límites», lo que nos distingue, el borde en todos los grupos, 17 preguntas de jueces con respuesta y respaldo, y
+  lo que no hay que decir. Y dos cuadernos ya ejecutados que vuelven a calcular sus cifras sin descargar nada:
+  `01_borde_levantado.ipynb` y `02_cifras_de_la_guia.ipynb`. El generador y la última celda de cada cuaderno fallan si una cifra
+  ya no coincide con `model/VALIDATION.md`.
+- **Figura «¿cráter o mina?» (14 nov, 23:40):** `informe/exposicion_modelo/figura_crater_o_mina_es.png` y `_en.png` (también
+  `.svg`), para diapositivas y para la página en inglés. Corte de El Elegante (puesto 10 de 296 por el puntaje de forma) y del
+  tajo G00219 de Arizona (puesto 3): solo el cráter sube sobre el terreno lejano. Los ejemplos salen de una regla (el mejor
+  puesto por forma de cada clase), no de elegirlos a ojo; el perfil es el promedio por anillos, reflejado. La acompaña la cuenta
+  que ya estaba en `VALIDATION.md`: entre los 25 primeros por forma hay 14 minas y 3 cráteres; por borde, 11 cráteres y 1 mina
+  (etiquetas de IA). **No cambia el modelo, los datos ni ningún total.** Respaldo: cuaderno 01, secciones 4 y 6.
+- **Prueba fuera de muestra del borde (15 nov, madrugada):** con la zona del borde y el umbral ya fijados, se midieron los
+  cráteres de impacto de `impactos_tierra.csv` que el detector encuentra y que no intervinieron al fijarlos. **De los 8 que la
+  regla no había visto, 7 tienen borde levantado** (Lonar, Wolfe Creek, Tenoumer, Pingualuit, Tswaing, Roter Kamm y Talemzane;
+  no Xiuyan, al que el detector le mide 0.81 km de 1.8). Meteor Crater no cuenta: ya era el candidato G00195. Con la zona
+  estrecha pasan 5 y con umbral 0.002 pasan 6. No es una muestra al azar: son cráteres conocidos elegidos como control positivo.
+  Archivos: `analisis/25_perfiles_impactos.py` (corre en local con Earth Engine; `--comprobar` exige reproducir idénticos 4
+  perfiles ya guardados), `ciencia_datos/datos/perfiles_impactos.json`, `model/borde.py` (`tabla_impactos`), apartado nuevo en
+  `model/VALIDATION.md` (regenerado: la sección A no cambió) y una prueba más (14 pasan).
+- **Revisión de literatura cerrada (Ryan et al. 2024, *Geosphere*):** Harrat Hutaymah **sí está** en esa base global de
+  ambientes relevantes para Marte, así que Al Hutaymah (g00263) no es un análogo nuevo para Marte. Jabal Bayda (g00266) y Al
+  Wahbah (g00281) no están, pero la base solo reúne campos basálticos y no es exhaustiva. Ninguno se presenta como
+  descubrimiento; `novedoso` sigue en `null` en los tres. Detalle en `model/NIVEL2.md` §A. La nota de g00263 y g00266 se
+  reescribió con `python -m model.scan --solo-literatura` (modo nuevo: solo cambia esa frase de la nota).
+- **Probado y descartado: gemelo por perfil completo.** Comparar el corte entero de cada sitio con el de su gemelo lunar no
+  sirve como evidencia: entre los 25 que mejor encajan hay 1 cráter natural según la IA y el resto son valles, presas, minas y
+  casos sin decidir (somero contra somero), y los 11 cráteres con fuente quedan entre los puestos 62 y 289 de 296 (El Elegante:
+  84 m por km de diámetro de diferencia cuadrática media; Meteor Crater: 76). Fue una exploración rápida; no se agregó al repo.
 
 ## Hecho (auditoría del 14 nov, noche)
 - **Pinacate** ahora usa la misma regla que `scan.py` (destino = cuerpo al que más se parece su forma): `polo_sur_lunar`,
@@ -125,3 +148,13 @@
   independientes" no se sostiene (la IA también vio el relieve); la correcta está ahí.
 - Juego y web: la variable nueva `variables.borde_levantado` sale sin etiqueta propia ("Borde levantado" solo en español en el
   Expediente; `borde_levantado` en la ficha de la web). Propuesta de etiqueta: "Borde levantado (80 m)" / "Raised rim (80 m)".
+- **Decisión del equipo:** ¿entra Harrat Hutaymah a `data/known_analogs.json`? Con eso g00263 pasaría a `novedoso: false` y los
+  análogos conocidos serían 22, no 21 (cambia la cifra «9 de 21» del guion y de la validación). Mientras, queda en `null`.
+- `docs/GUION_PITCH.md`: además de la frase de las minas, propongo «Fijamos la regla y después la probamos en ocho cráteres de
+  impacto de otros países que nunca había visto: siete la pasan» (texto y cuidados en `model/NIVEL2.md` §D).
+- `docs/GUION_PITCH.md`, bloque «Evidencia y límites»: propongo decir «Ordenados solo por forma, entre los 25 primeros hay 14
+  minas y 3 cráteres. Ordenados por el borde levantado, 11 cráteres y 1 mina.» Es lo que distingue al proyecto y hoy el guion no
+  menciona el borde. Texto y cuidados en `model/NIVEL2.md` §D; figura lista en `informe/exposicion_modelo/`.
+- `game/src/scenes/expediente/config.js`: `UMBRAL_PROPUESTA` sigue en 0.6 en `main` (la API ya usa 0.4). Con 0.6 ningún análogo
+  conocido puede proponerse desde el Explorador (el más alto da 0.556).
+- `docs/METODOLOGIA.md` dice «9/20 análogos conocidos»; lo correcto es 9 de 21, como ya dice el guion.
