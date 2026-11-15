@@ -117,7 +117,7 @@
       <style>
         :host { all: initial; }
         * { box-sizing: border-box; font-family: ui-monospace, Menlo, Consolas, monospace; }
-        .pastilla { position: fixed; right: 6px; top: 6px; z-index: 2147483000;
+        .pastilla { position: fixed; left: 50%; bottom: 6px; transform: translateX(-50%); z-index: 2147483000;
           background: rgba(11,13,23,.78); color: #e8eaf6; border: 1px solid rgba(255,209,102,.5); border-radius: 999px;
           padding: 3px 9px; font-size: 11px; cursor: pointer; opacity: .9; transition: opacity .4s; user-select: none; }
         .pastilla.tenue { opacity: .25; }
@@ -202,7 +202,7 @@
 
     let tAviso;
     return {
-      montar() { document.body.append(host); abrir(); },
+      montar() { document.body.append(host); }, // el panel del QR se abre al tocar la pastilla (abrirlo solo tapaba el título; playtest de Leo)
       cerrar,
       estado(ok) { $('.pastilla .p').classList.toggle('ok', ok); if (!ok) this.pads(0); },
       pads(n) {
