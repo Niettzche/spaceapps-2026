@@ -127,3 +127,12 @@ las pruebas en teléfono se hicieron con Claude Code. Cada dato se revisó contr
     del módulo en el destino. Revisado a 960 × 540 en es/en.
   - Pruebas nuevas: `node game/src/scenes/Taller/piezas.test.mjs` (13 casos). Sprites pendientes: `docs/arte/SPRITES_PENDIENTES.md` §6.
   - Sigue: arte de las piezas nuevas; decidir si el calentador y el radiador se quedan sin fuente o se cambian.
+- **15 nov (agente del frente taller): Taller por arrastre en pixel art.**
+  - Robot grande (sprites ×8) con 7 sockets; bandeja por sistema (Movilidad, Estructura, Energía, Protección, Módulo, Bloqueadas)
+    con el arte 32 × 32 de `assets/piezas` (#85). Arrastrar, tocar → socket o teclado; quitar arrastrando afuera o clic derecho;
+    presupuesto animado y «Probar» deshabilitado si excede o falta algo. Reglas en `Taller/arrastre.js`.
+  - Piezas del libro: `chasis_titanio` (MT-002), `chasis_carbono` (MT-004), `rueda_nitinol` (AB-004, amortigua sacudidas) y
+    `auto_rescate` (AB-002, +agarre al atascarse). 11 filas bloqueadas con razón (RT-002…RT-006, AB-001, AB-003, AB-009…011, MT-012).
+    Tabla: `PIEZAS.md` §7. Arte pendiente: `SPRITES_PENDIENTES.md` §7.
+  - Pruebas: `node game/src/scenes/Taller/arrastre.test.mjs` (8 casos). Camino dorado simulado: estándar falla, anchas pasa, misiones entregan.
+  - Sigue: conectar la fuente bitmap cuando exista `textoPixel` (hoy el Taller usa un wrapper `texto()` sobre `K.txt`).
