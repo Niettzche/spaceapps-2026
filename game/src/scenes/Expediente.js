@@ -20,6 +20,7 @@ const POR_PAGINA = 8;
 const X0 = 300; // inicio del panel de detalle
 const X1 = 945; // fin del panel de detalle
 const XM = (X0 + X1) / 2;
+const XT = 512; // columna de la Tierra en la tabla (variable · Tierra · destino)
 
 export default class Expediente extends Phaser.Scene {
   constructor() { super('Expediente'); }
@@ -36,7 +37,7 @@ export default class Expediente extends Phaser.Scene {
     const i = Math.max(0, this.sitios.findIndex((s) => s.id === (pedido ?? partida.sitio?.id)));
     this.seleccion = this.sitios[i] || null;
     this.pagina = Math.floor(i / POR_PAGINA);
-    this.teclado = new Teclado(this, { alEscape: () => irA(this, 'Menu') });
+    this.teclado = new Teclado(this, { alEscape: () => this.regresar() });
     this.dibujarFijo(); // primero: el panel de fondo queda debajo de la lista
     this.capaLista = this.add.container(0, 0);
     this.capaDetalle = this.add.container(0, 0);
@@ -138,10 +139,10 @@ export default class Expediente extends Phaser.Scene {
       y += 22;
     }
 
-    // Cabecera de columnas: Tierra a la izquierda, destino a la derecha.
-    add(texto(this, X0, y, `${tr('TIERRA', 'EARTH')} · ${recortar(nombre, 26)}`, { size: 11, color: COLOR.foco }));
-    add(texto(this, XM, y, 'variable', { size: 11, color: COLOR.muyTenue, origen: [0.5, 0] }));
-    add(texto(this, X1, y, `${(MUNDOS[d.mundo] || d.mundo).toUpperCase()} · ${recortar(trDato(d, 'nombre'), 24)}`, { size: 11, color: COLOR.foco, origen: [1, 0] }));
+    // Columnas: variable · Tierra · destino (pedido del equipo: primero qué se compara, luego los dos lados).
+    add(texto(this, X0, y, tr('VARIABLE', 'VARIABLE'), { size: 11, color: COLOR.muyTenue }));
+    add(texto(this, XT, y, `${tr('TIERRA', 'EARTH')} · ${recortar(nombre, 20)}`, { size: 11, color: COLOR.foco }));
+    add(texto(this, X1, y, `${(MUNDOS[d.mundo] || d.mundo).toUpperCase()} · ${recortar(trDato(d, 'nombre'), 20)}`, { size: 11, color: COLOR.foco, origen: [1, 0] }));
     y += 16;
 
     const { filas, soloTierra } = filasComparacion(s, d);
@@ -152,13 +153,13 @@ export default class Expediente extends Phaser.Scene {
       fondo.setInteractive({ useHandCursor: true }).on('pointerdown', () => this.mostrarFuentes(f));
       const vt = formatoValor(f.tierra);
       const vd = f.destino?.texto && f.destino.valor == null ? f.destino.texto : formatoValor(f.destino);
-      add(texto(this, X0, y, recortar(vt, 24), { size: 14, color: vt === sinDato() ? COLOR.muyTenue : COLOR.texto }));
-      add(texto(this, XM, y, f.etiqueta, { size: 12, color: COLOR.acento, origen: [0.5, 0] }));
-      add(texto(this, X1, y, recortar(vd, 24), { size: 14, color: vd === sinDato() ? COLOR.muyTenue : COLOR.texto, origen: [1, 0] }));
+      add(texto(this, X0, y, recortar(f.etiqueta, 26), { size: 12, color: COLOR.acento }));
+      add(texto(this, XT, y, recortar(vt, 22), { size: 14, color: vt === sinDato() ? COLOR.muyTenue : COLOR.texto }));
+      add(texto(this, X1, y, recortar(vd, 22), { size: 14, color: vd === sinDato() ? COLOR.muyTenue : COLOR.texto, origen: [1, 0] }));
       const simil = f.mismaUnidad ? `${tr('similitud', 'similarity')} ${formatoPorcentaje(f.similitud)}` : tr('⚠ unidades distintas', '⚠ different units');
-      add(texto(this, XM, y + 16, simil, { size: 10, color: f.mismaUnidad ? COLOR.tenue : COLOR.alerta, origen: [0.5, 0] }));
-      add(texto(this, X0, y + 17, recortar(fuenteCorta(f.tierra), 34), { size: 10, color: COLOR.muyTenue }));
-      add(texto(this, X1, y + 17, recortar(fuenteCorta(f.destino), 34), { size: 10, color: COLOR.muyTenue, origen: [1, 0] }));
+      add(texto(this, X0, y + 17, simil, { size: 10, color: f.mismaUnidad ? COLOR.tenue : COLOR.alerta }));
+      add(texto(this, XT, y + 17, recortar(fuenteCorta(f.tierra), 32), { size: 10, color: COLOR.muyTenue }));
+      add(texto(this, X1, y + 17, recortar(fuenteCorta(f.destino), 32), { size: 10, color: COLOR.muyTenue, origen: [1, 0] }));
       y += alto;
     });
     if (!filas.length) {
@@ -249,7 +250,9 @@ export default class Expediente extends Phaser.Scene {
   }
 
   dibujarAcciones(add) {
-    const volver = add(boton(this, 60, 515, tr('Menú', 'Menu'), () => irA(this, 'Menu'), { size: 14 }));
+    // Regresar = paso anterior (elegir destino); Menú = menú principal.
+    const regresar = add(boton(this, 20, 496, tr('← Regresar', '← Back'), () => this.regresar(), { size: 14, origen: [0, 0.5] }));
+    const volver = add(boton(this, 20, 524, tr('Menú', 'Menu'), () => irA(this, 'Menu'), { size: 12, origen: [0, 0.5] }));
     // Tickets (AGENTS.md §4): 3 por partida, sin reposición; volver a probar un sitio ya pagado no cuesta.
     const n = Math.max(0, partida.tickets | 0);
     const total = Math.max(TICKETS_POR_PARTIDA, n);
@@ -277,8 +280,11 @@ export default class Expediente extends Phaser.Scene {
       { size: 13, habilitado: !!url }));
     this.botonesDetalle = [probar, ficha];
     this.botonVolver = volver;
+    this.botonRegresar = regresar;
     this.registrarTeclado();
   }
+
+  regresar() { irA(this, 'Menu', { vista: 'destino' }); }
 
   // La ficha completa (mapa, gemelo lunar o marciano, método) vive en web/ y no se duplica en el juego (AGENTS.md §8.1).
   abrirFicha(url) {
@@ -307,7 +313,7 @@ export default class Expediente extends Phaser.Scene {
     }[this.foco] || this.botonesLista.find((b) => b.sitioId === this.seleccion?.id);
     // Atajos 1–8: eligen el sitio de esa posición en la página (igual que los números de Resultados.js).
     this.teclado.numerar(this.botonesLista);
-    this.teclado.poner([...this.botonesLista, this.botonAnterior, this.botonSiguiente, ...this.botonesDetalle, this.botonVolver], preferido);
+    this.teclado.poner([...this.botonesLista, this.botonAnterior, this.botonSiguiente, ...this.botonesDetalle, this.botonRegresar, this.botonVolver], preferido);
   }
 
   ciclarFila() {
