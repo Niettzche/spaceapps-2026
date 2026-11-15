@@ -10,6 +10,7 @@ import { compararAnalogia } from '../feedback/analogia.js';
 import { exponerParaPruebas } from '../fisica/depuracion.js';
 import { sonarBoton } from '../fisica/sonido.js';
 import { tr, trDato } from '../i18n.js';
+import { personalizacionActual } from './Taller/personalizacion.js'; // nombre del robot (cosmético, frente taller)
 
 // Dueño: frente juego. Resultado de la prueba o la misión: puntuación visible, recomendaciones por reglas y reintentar.
 // Ver ESPECIFICACION.md §11–§12.
@@ -63,9 +64,10 @@ export default class Resultados extends Phaser.Scene {
     this.add.rectangle(480, 284, 864, 228, 0x101827, 0.98).setStrokeStyle(2, 0x526782);
     const carga = Math.round(resultado.integridad_carga * 100);
     const energia = Math.round(resultado.energia_restante * 100);
+    const robot = personalizacionActual().nombre ? ` · «${personalizacionActual().nombre}»` : '';
     this.add.text(64, 126, tr(
-      `Distancia ${resultado.distancia_m} m · carga ${carga} % · energía ${energia} %\nCosto ${resultado.costo} créditos · intento ${resultado.intentos}`,
-      `Distance ${resultado.distancia_m} m · payload ${carga} % · energy ${energia} %\nCost ${resultado.costo} credits · attempt ${resultado.intentos}`),
+      `Distancia ${resultado.distancia_m} m · carga ${carga} % · energía ${energia} %\nCosto ${resultado.costo} créditos · intento ${resultado.intentos}${robot}`,
+      `Distance ${resultado.distancia_m} m · payload ${carga} % · energy ${energia} %\nCost ${resultado.costo} credits · attempt ${resultado.intentos}${robot}`),
     { ...ESTILO, wordWrap: { width: 600 }, lineSpacing: 4 });
     if (esMision) {
       const p = puntuar(resultado, PRESUPUESTO_INICIAL);

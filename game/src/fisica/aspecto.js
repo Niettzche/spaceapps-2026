@@ -7,6 +7,7 @@
 // - Todo se dibuja a 1 px de arte y se escala × ZOOM_ARTE.
 import { ZOOM_ARTE } from './escala.js';
 import { UMBRAL_INTEGRIDAD } from '../config/world.js';
+import { personalizacionActual, pinturaPorId } from '../scenes/Taller/personalizacion.js'; // cosmética (frente taller)
 
 // Sin assets/iconos/: son los íconos 16 × 16 del taller (los carga Taller.js) y se llaman igual que las piezas
 // (rueda_tacos, chasis_reforzado...). Si entraran aquí, una pieza sin sprite propio usaría su ícono como sprite.
@@ -187,6 +188,15 @@ export class AspectoRobot {
     this.robot = robot;
     const p = robot.piezas;
     this.chasis = sprite(scene, p.chasis.id, { profundidad: 11 });
+    // Personalización del Taller (solo cosmética): pintura del chasis y nombre sobre el robot.
+    const { pintura, nombre } = personalizacionActual();
+    const color = pinturaPorId(pintura);
+    robot.colorChasis = color.figura; // figura de respaldo (robot.dibujar)
+    if (this.chasis && color.tinte !== 0xffffff) this.chasis.setTint(color.tinte);
+    this.nombre = nombre
+      ? scene.add.text(0, 0, nombre, { fontFamily: 'monospace', fontSize: '13px', color: '#ffffff', stroke: '#0b0d17', strokeThickness: 4 })
+        .setOrigin(0.5, 1).setDepth(12).setAlpha(0.9)
+      : null;
     this.soporte = sprite(scene, p.carga.id, { profundidad: 11.2 }); // la ranura `carga` lleva el soporte
     this.carga = sprite(scene, 'carga', { profundidad: 11.4 });
     this.ruedas = robot.ruedas.map((w) => sprite(scene, w.pieza.id, { profundidad: 11.6 }));
@@ -200,6 +210,8 @@ export class AspectoRobot {
   dibujar(g) {
     const r = this.robot;
     r.dibujar(g, this.omitir);
+    // El nombre flota sobre el robot, sin girar con él (se lee aunque el chasis vaya inclinado).
+    if (this.nombre) this.nombre.setPosition(r.chasis.position.x, r.chasis.bounds.min.y - 18);
     const partes = r.chasis.parts;
     const ang = r.chasis.angle;
     if (this.chasis) {
