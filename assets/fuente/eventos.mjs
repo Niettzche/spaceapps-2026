@@ -1,9 +1,11 @@
 // Eventos de fondo (se ponen sobre la capa lejana del fondo; el juego los mueve o los anima): assets/eventos/
 //   evento_remolino.png        remolino de polvo de Marte, 8 cuadros de 16 × 40 (bucle; el juego lo desplaza despacio)
 //   evento_fobos.png           Fobos, 8 × 6 (el juego lo cruza por el cielo de Marte)
-//   evento_tierra.png          la Tierra vista desde la Luna, 18 × 18, media fase iluminada desde la izquierda (sube tras el horizonte)
+//   evento_tierra.png          la Tierra vista desde la Luna, 24 × 24, gibosa (3/4 iluminada desde la izquierda); el lado nocturno
+//                              queda transparente: el juego dibuja detrás el halo de atmósfera y el disco oscuro, y la escala ×4
 //   evento_micrometeorito.png  destello de un impacto de micrometeorito en la Luna, 6 cuadros de 16 × 16 (una vez)
-import { createFrame, guardar, hex, clamp } from './comun.mjs';
+import { createFrame, guardar, hex, clamp, tileFbm } from './comun.mjs';
+import { readFileSync } from 'node:fs';
 import { PALETAS } from './paletas.mjs';
 
 const K = hex('#0e0c16');
@@ -47,15 +49,35 @@ function fobos() {
 }
 
 function tierra() {
-  const S = 18, f = createFrame(S, S), c = S / 2, r = 7.5;
+  // Costas reales: la máscara de Natural Earth 1:110m del mapa de la diapositiva 3 (lon −128..60, lat 54..−52).
+  const M = JSON.parse(readFileSync(new URL('./datos/tierra_mapa.txt', import.meta.url), 'utf8'));
+  const tierraM = M.filas.map((r) => { const out = []; for (const t of r.split(',')) if (t) out.push(...Array(+t.slice(1)).fill(t[0] === '1')); return out; });
+  const esTierra = (lat, lon) => {
+    const x = Math.floor(((lon - M.lon[0]) / (M.lon[1] - M.lon[0])) * M.ancho), y = Math.floor(((lat - M.lat[0]) / (M.lat[1] - M.lat[0])) * M.alto);
+    return !!tierraM[y]?.[x];
+  };
+  const S = 24, f = createFrame(S, S), c = S / 2, r = 11.6;
+  const lat0 = (12 * Math.PI) / 180, lon0 = 28;                       // de frente: África y Europa; Sudamérica asoma a la izquierda
+  const fase = (60 * Math.PI) / 180, L = [-Math.sin(fase), -0.15, Math.cos(fase)];   // ángulo de fase 60° → 75 % iluminada
+  const C = {
+    mar: ['#12307a', '#1c4aa8', '#2a66d0', '#4a8ae8'], verde: ['#1e4a24', '#2e6a30', '#4a8a3a', '#6aa848'],
+    desierto: ['#7a5a32', '#a8804a', '#cca468', '#e6c68a'], nube: ['#9aa8c4', '#d0d8e8', '#ffffff', '#ffffff'],
+  };
   for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
     const nx = (x + 0.5 - c) / r, ny = (y + 0.5 - c) / r, d2 = nx * nx + ny * ny;
-    if (d2 > 1) { if (d2 < 1.25 && nx < 0) f.color[y * S + x] = conAlfa('#7cc8ff', 0.7); continue; }  // atmósfera del lado iluminado
-    const lit = -nx * 0.95 + Math.sqrt(Math.max(0, 1 - d2)) * 0.25;
-    if (lit < 0.05) { f.color[y * S + x] = hex('#0c1430'); continue; }  // lado nocturno
-    const tierraFirme = Math.sin(x * 1.3 + y * 0.7) + Math.cos(y * 1.1 - x * 0.4) > 0.6;
-    const nube = Math.sin(x * 0.9 - y * 2.1) > 0.75;
-    f.color[y * S + x] = hex(nube ? '#ffffff' : tierraFirme ? (lit > 0.5 ? '#5a9a4a' : '#2f5a34') : lit > 0.5 ? '#3f8cff' : '#2550d0');
+    if (d2 > 1) continue;
+    const nz = Math.sqrt(1 - d2), luz = nx * L[0] + ny * L[1] + nz * L[2];
+    if (luz < 0) continue;                                               // lado nocturno: lo pone el juego
+    // proyección ortográfica inversa
+    const yy = -ny, lat = Math.asin(yy * Math.cos(lat0) + nz * Math.sin(lat0));
+    const lon = lon0 + (Math.atan2(nx, nz * Math.cos(lat0) - yy * Math.sin(lat0)) * 180) / Math.PI, latG = (lat * 180) / Math.PI;
+    const t = clamp(Math.round(luz * 4.2 - 0.3), 0, 3);                 // 4 tonos: oscuro en el terminador, claro hacia el Sol
+    const nube = tileFbm(lon / 28, latG / 9, 0, 0, 211, 3) > 0.4 || Math.abs(latG) < 6 && tileFbm(lon / 12, 3, 0, 0, 212, 2) > 0.25;   // nubes sueltas y la franja ecuatorial
+    let pal;
+    if (Math.abs(latG) > 60 || nube) pal = C.nube;                       // casquetes y nubes
+    else if (esTierra(latG, lon)) pal = latG > 12 && latG < 32 && lon > -18 || latG < -18 && latG > -30 && lon > 12 ? C.desierto : C.verde;   // Sahara y Kalahari
+    else pal = C.mar;
+    f.color[y * S + x] = hex(pal[t]);
   }
   guardar('eventos/evento_tierra.png', f);
 }

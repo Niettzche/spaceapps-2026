@@ -659,6 +659,9 @@ function postales() {
     pintar(f, 0, 52, 96, 12, (x, y) => (tileFbm(x / 10, y / 4, 0, 0, 601, 2) > -0.05 ? tramado(NIE.slice(1, 5), 0.7 - (y - 52) / 30, x, y) : tramado(TUN, 0.5, x, y)));
   });
 
+  // Rincón de Parangueo (mx0261): fondo blanco del lago seco con el escarpe y los estromatolitos, la pared del maar atrás
+  V('sitio_mx0261', (f) => fondo(f, 'salar', 40, 80));
+
   // Cualquier otro sitio: desierto pedregoso
   V('sitio_generico', (f) => fondo(f, 'desierto', 40, 100));
 

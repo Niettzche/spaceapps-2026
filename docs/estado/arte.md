@@ -1,9 +1,9 @@
 # Estado — Arte
 
-> Lo actualiza SOLO este frente. Ramas: `feat/arte` (#26) y `feat/arte-b` (#37), `feat/arte-c` (#49), `feat/arte-d` (#58), `feat/arte-e` (#64), `feat/arte-f` (#67), `feat/arte-g` (#72), `feat/arte-h` (#77), `feat/arte-i` (#79), `feat/arte-j` (#80), `feat/arte-k` (#84), mergeadas; `feat/arte-m` (nave del menú, piezas de 32 px y Marte grande). `feat/arte-l` (#86), mergeadas; `feat/arte-n` (#89), mergeadas; `feat/arte-o` (#93), mergeadas; `feat/arte-p` (6 de la fuente, postales y fondos nuevos, sprites montados, §7).
+> Lo actualiza SOLO este frente. Ramas: `feat/arte` (#26) y `feat/arte-b` (#37), `feat/arte-c` (#49), `feat/arte-d` (#58), `feat/arte-e` (#64), `feat/arte-f` (#67), `feat/arte-g` (#72), `feat/arte-h` (#77), `feat/arte-i` (#79), `feat/arte-j` (#80), `feat/arte-k` (#84), mergeadas; `feat/arte-m` (nave del menú, piezas de 32 px y Marte grande). `feat/arte-l` (#86), mergeadas; `feat/arte-n` (#89), mergeadas; `feat/arte-o` (#93), mergeadas; `feat/arte-p` (#94); `feat/arte-q` (cara de la guía, salar de Parangueo, Tierra gibosa, tráiler).
 
 **Responsable:** Mauricio  ·  **Agente:** Claude Code / Codex
-**Última actualización:** 15 nov 2026, 16:00
+**Última actualización:** 15 nov 2026, 18:30
 
 ## Hecho
 - **Prioridad A y B completas** (#26 y #37, en `main`):
@@ -146,6 +146,20 @@
     - Nuevos: `entidades/chasis_titanio`, `chasis_carbono`, `rueda_nitinol`, `deco_auto_rescate` y `ui/ui_candado`.
     - Bloqueadas: `piezas/orugas`, `patas`, `rotor`, `serpiente` y `rappel`.
   - La diapositiva 3 se actualizó sola con los sitios nuevos de `data/sites`. Pingualuit (61° N) queda fuera del encuadre, que llega a 54° N.
+- **Ronda `feat/arte-q`:**
+  - **Guía (`tutorial/guia.png`, §9, retro de Leo):** mismo archivo de 144 × 48 y mismos 3 cuadros. Ojos abiertos de 2 × 3 con brillo,
+    cejas finas y arqueadas, sonrisa clara, rubor en las tres expresiones y sin la franja de sombra dura de la cara.
+  - **Salar de Parangueo (§8):** `fondo_salar_1/2/3` (pared del maar con matorral; cerca, el escarpe de la antigua orilla, el anillo
+    de estromatolitos y la costra de sal rota en polígonos), `sitio_mx0261` y `obstaculo_lodo` (16 × 4). El escarpe va alto (y 106)
+    porque el suelo del juego tapa la parte baja de la capa cercana. Para usarlo, juego cambia `fondo: 'maar'` → `'salar'` en
+    `game/src/content/niveles_destacados.js` (lo probé en local y lo revertí).
+  - **`eventos/evento_tierra.png`:** ahora 24 × 24, gibosa (75 % iluminada desde la izquierda), con África, Europa y Arabia de la
+    máscara de Natural Earth, nubes y casquetes. El lado nocturno queda transparente (el juego dibuja el halo y el disco oscuro).
+  - **Tráiler de 30 s (`assets/fuente/trailer.mjs`):** sigue el guion de Leo (`docs/media/TRAILER_GUION.md`). Entrada con el GIF del título, cortes con
+    transición pixel (pixelize de ffmpeg), rótulos en la fuente pixel (`docs/media/trailer/subtitulo_*.png`, 1920 × 1080) y cierre con el
+    logo sobre el GIF del viaje; voz «MARSCEPTION» y música del menú del juego. Arma el video con las tomas de una carpeta
+    (`--tomas`); hoy usa tomas provisionales que grabé del juego en local (la Prueba de cada nivel). El MP4 no va en el repo
+    (17 MB): la vista previa de 720p va adjunta al PR.
 - `node assets/fuente/fx/exportar.mjs` regenera con pixelfx las 22 hojas de efectos.
 
 ## En curso
@@ -153,7 +167,7 @@
 
 ## Siguiente
 - [ ] Renombrar las piezas nuevas si el Taller usa otros ids (`SPRITES_PENDIENTES.md`).
-- [ ] Meter el clip de 5 s del juego en inglés en el video cuando Alan lo grabe (6 × 5 s = 30 s).
+- [ ] Tráiler: cambiar las tomas provisionales por las grabaciones de Alan y volver a armarlo (`node assets/fuente/trailer.mjs --tomas <carpeta>`).
 - [ ] Ajustar nombres de obstáculos si juego los cambia al integrarlos (solo renombrar).
 - [ ] Ver el arte con el juego corriendo (todavía no lo he revisado en pantalla): ruedas en el taller y en la prueba, calcomanías, posición de efectos y polvo.
 
