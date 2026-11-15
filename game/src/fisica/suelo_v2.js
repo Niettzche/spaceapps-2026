@@ -65,6 +65,27 @@ export const SUELOS_V2 = {
 };
 // Nieve o hielo como análogo de suelo blando: NO se agrega. El libro de datos no tiene c, φ ni Bekker de nieve con fuente.
 
+/**
+ * Regla (P) para paredes: OpenLandMap marca «arena» en paredes de cráter y de tajo que probablemente son roca (lo declara el
+ * frente modelo). En física 2, un tramo de arena con pendiente media mayor que `grados` en una ventana de ±`ventana_m`
+ * (más larga que una cara de duna, así las dunas recreadas no cuentan) se trata como roca. No se aplica a dunas (`lugar`
+ * duna): ahí la arena es real. Devuelve los tramos convertidos [{ desde, hasta }] en metros del perfil.
+ */
+export const PARED_ARENA = { grados: 20, ventana_m: 10, paso_m: 1 };
+export function paredesDeArena(perfil, alturaEn, superficieEn, lugar = 'generico') {
+  if (lugar === 'duna') return [];
+  const { grados, ventana_m: w, paso_m } = PARED_ARENA;
+  const tramos = [];
+  for (let x = 0; x <= perfil.largo_m; x += paso_m) {
+    const pend = Math.abs(Math.atan2(alturaEn(perfil, x + w) - alturaEn(perfil, x - w), 2 * w) * (180 / Math.PI));
+    if (superficieEn(perfil, x) !== 'arena' || pend <= grados) continue;
+    const ultimo = tramos[tramos.length - 1];
+    if (ultimo && x - ultimo.hasta <= paso_m) ultimo.hasta = x + paso_m;
+    else tramos.push({ desde: x, hasta: x + paso_m });
+  }
+  return tramos;
+}
+
 /** Tipo de lugar de un sitio a partir de su campo `proceso` (texto del frente modelo). */
 export function lugarDeSitio(sitio) {
   const t = `${sitio?.proceso ?? ''} ${sitio?.nombre ?? ''}`.toLowerCase();

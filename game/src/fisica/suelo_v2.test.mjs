@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
   SUELOS_V2, sueloV2, lugarDeSitio, hundimientoEstatico, hundimientoConDeslizamiento, largoContacto, areaContacto, presionKPa,
-  empujeMaximo, resistenciaCompactacion, estadoRueda, pesoPorRueda, anchoRueda, fichaFisicaV2,
+  empujeMaximo, resistenciaCompactacion, estadoRueda, pesoPorRueda, anchoRueda, fichaFisicaV2, paredesDeArena,
 } from './suelo_v2.js';
 import { versionFisica, FISICA_POR_DEFECTO } from './version.js';
 import { setIdioma } from '../i18n.js';
@@ -15,6 +15,7 @@ let n = 0;
 const caso = (nombre, fn) => { fn(); n++; console.log('✓', nombre); };
 const cerca = (a, b, tol, msg) => assert.ok(Math.abs(a - b) <= tol, `${msg ?? ''} ${a} ≠ ${b} ± ${tol}`);
 
+const rad30 = Math.PI / 6;
 const ARENA = sueloV2('tierra', 'arena', 'duna');
 const W_TIERRA = pesoPorRueda(69, 9.81, 4); // robot del camino dorado ≈ 69 kg, 4 ruedas
 
@@ -118,6 +119,18 @@ caso('ficha del panel I menciona las ecuaciones y los valores del nivel', () => 
   assert.match(f, /H = A·c \+ W·tanφ/);
   assert.match(f, /BM-004/);
   assert.match(f, /kPa/);
+});
+
+caso('regla de paredes (P): arena con más de 20° en ±10 m se trata como roca, salvo en dunas', () => {
+  // Perfil sintético: plano 0–50 m, pared de 30° de 50 a 80 m, plano después.
+  const perfil = { largo_m: 150 };
+  const alturaEn = (_p, x) => (x < 50 ? 0 : x < 80 ? (x - 50) * Math.tan(rad30) : 30 * Math.tan(rad30));
+  const superficieEn = () => 'arena';
+  const tramos = paredesDeArena(perfil, alturaEn, superficieEn, 'generico');
+  assert.equal(tramos.length, 1);
+  assert.ok(tramos[0].desde >= 45 && tramos[0].desde <= 55 && tramos[0].hasta >= 75 && tramos[0].hasta <= 85, JSON.stringify(tramos));
+  assert.deepEqual(paredesDeArena(perfil, alturaEn, superficieEn, 'duna'), []);
+  assert.deepEqual(paredesDeArena(perfil, alturaEn, () => 'roca', 'generico'), []);
 });
 
 console.log(`\n${n} pruebas de física 2 pasaron`);

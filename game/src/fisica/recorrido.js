@@ -17,7 +17,7 @@ import { ambienteDe, notaAmbiente, factorFrio } from './ambiente.js';
 import * as K from '../scenes/comun/pixel.js'; // botón de arte (Abandonar)
 import { generarObstaculos, crearObstaculos, factorAgarreEn, notaObstaculos } from './obstaculos.js';
 import { versionFisica } from './version.js';
-import { lugarDeSitio, fichaFisicaV2 } from './suelo_v2.js';
+import { lugarDeSitio, fichaFisicaV2, paredesDeArena, PARED_ARENA } from './suelo_v2.js';
 import { SITIOS } from '../data.js';
 import { RUEDAS_POR_RANURA } from './diseno.js';
 
@@ -78,6 +78,8 @@ export class Recorrido {
     // Física 2 (?fisica=2): terramecánica Bekker–Wong (suelo_v2.js). El tipo de lugar sale del `proceso` del sitio.
     this.fisica = o.fisica ?? versionFisica();
     const lugar = o.modo === 'prueba' ? lugarDeSitio(SITIOS.find((s) => s.id === o.sitioId)) : 'generico';
+    // Regla de paredes (P, solo física 2 y prueba en la Tierra): arena en paredes de más de 20° = roca (suelo_v2.js).
+    this.paredes = this.fisica === 2 && o.modo === 'prueba' ? paredesDeArena(o.perfil, alturaEn, superficieEn, lugar) : [];
     const x0 = xMundo(6);
     const y0 = yMundo(alturaEn(o.perfil, 6)) - m(1.6);
     this.robot = new Robot(scene, x0, y0, o.diseno, o.piezas, (tipo, detalle) => {
@@ -106,7 +108,12 @@ export class Recorrido {
     const notaDecor = this.decoracion.tipo
       ? tr('Aves, polvo distante y roca espacial: decoración recreada, sin efecto físico.', 'Birds, distant dust and space rock: recreated decoration, no physical effect.')
       : null;
-    const avisoNivel = [`${o.perfil.ilustrativo ? '⚠ ' : ''}${o.perfil.nota}${notaObs ? ` · ${notaObs}` : ''}`, notaDecor].filter(Boolean).join(' ');
+    const metrosPared = (this.paredes ?? []).reduce((acc, t) => acc + t.hasta - t.desde, 0);
+    const notaPared = metrosPared > 0
+      ? tr(`regla (P): ${Math.round(metrosPared)} m de pared marcados como arena (OpenLandMap) con más de ${PARED_ARENA.grados}° se tratan como roca`,
+        `rule (P): ${Math.round(metrosPared)} m of wall labelled sand (OpenLandMap) steeper than ${PARED_ARENA.grados}° are treated as rock`)
+      : null;
+    const avisoNivel = [`${o.perfil.ilustrativo ? '⚠ ' : ''}${o.perfil.nota}${notaObs ? ` · ${notaObs}` : ''}${notaPared ? ` · ${notaPared}` : ''}`, notaDecor].filter(Boolean).join(' ');
     const avisoSuelo = notaSuelo(o.mundo, o.perfil.superficies);
     const avisoAmbiente = notaAmbiente(this.ambiente);
     const nombreMundo = tr({ luna: 'la Luna', marte: 'Marte' }[o.mundo] ?? 'el destino', { luna: 'the Moon', marte: 'Mars' }[o.mundo] ?? 'the destination');
@@ -197,7 +204,11 @@ export class Recorrido {
     this.sonido?.boton?.setPosition(944, 104 + b.alto + 22);
   }
 
-  superficieDe = (xMundo) => superficieEn(this.o.perfil, (xMundo - this.xMundo(0)) / PX_POR_M);
+  superficieDe = (xMundo) => {
+    const x = (xMundo - this.xMundo(0)) / PX_POR_M;
+    if (this.paredes?.some((t) => x >= t.desde && x < t.hasta)) return 'roca';
+    return superficieEn(this.o.perfil, x);
+  };
 
   actualizar(_time, deltaCuadro) {
     // Energía, patinaje y entrega corren con el tiempo de la física: con paso fijo (main.js), Matter avanza runner.delta

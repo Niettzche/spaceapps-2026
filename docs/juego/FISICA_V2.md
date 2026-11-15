@@ -107,11 +107,46 @@ Ajuste elegido (todo P): `k = 1.7`, exponente de banda 1.5, `K` de hundimiento p
 de fuerza. Barrido: con banda lineal (`k` 1.55–1.8) la estándar pasa g00281 o la ancha no sube la duna de Samalayuca; con 0.145 m/s
 (7.25 m/s) el motor se sobrecalienta en el vacío lunar y la misión lunar llega con 3 %.
 
-Los niveles nuevos de #90 (`meteor_crater`, `mx0023`, `g00266`) no tienen todavía `nivel.perfil_elevacion_m` en esta base: no se
-simularon.
+### 5.1 Tras fusionar `origin/main` (15 nov, niveles de Mario #90 y g00281 con paredes de roca)
+
+**Ojo, camino dorado:** el nuevo `data/sites/g00281.json` (paredes del cráter pasan de arena a roca) hace que la rueda estándar
+**pase** g00281 también con la física 1 (meta, E 33 %, dos corridas). No lo causa la física 2: cambió el nivel. Hay que decidir con
+el frente modelo si se ajusta la ventana o el camino dorado lunar.
+
+**Regla de paredes (P, solo física 2, solo pruebas en la Tierra):** un tramo marcado como arena con pendiente media > 20° en
+±10 m (ventana más larga que una cara de duna recreada) se trata como roca, salvo en sitios de dunas. Se declara en el panel I
+(«regla (P): N m de pared marcados como arena (OpenLandMap) con más de 20° se tratan como roca»). Afecta a talemzane (27 m) y
+tenoumer (1 m); samalayuca y g00281 no cambian (`suelo_v2.js: paredesDeArena`).
+
+Niveles con física 2 (motor eficiente, batería chica salvo que se diga, presupuesto 1,000):
+
+| Nivel | Ancha (890 cr) | Tacos (970 cr) | Diseño que pasa |
+|---|---|---|---|
+| g00176 | meta (E 38 %) | meta (E 40 %) | ambos |
+| g00263 Al Hutaymah | meta (E 38 %) | atascado 12 m | ancha |
+| g00266 | meta (E 41 %) | meta (E 38 %) | ambos |
+| meteor_crater | meta (E 48 %) | meta (E 47 %) | ambos |
+| mx0019 | meta (E 40 %) | meta (E 41 %) | ambos |
+| mx0023 Cananea | meta (E 45 %) | meta (E 46 %) | ambos |
+| mx0155 | meta (E 34 %) | meta (E 37 %) | ambos |
+| mx0261 | meta (E 41 %) | meta (E 42 %) | ambos |
+| pingualuit | meta (E 45 %) | meta (E 45 %) | ambos |
+| roter_kamm | meta (E 50 %) | meta (E 45 %) | ambos |
+| talemzane | atascado 69 m | atascado 12 m | **malla + batería grande (890 cr): meta, E 72 %**; ancha + motor equilibrado (925 cr): meta, carga 65 % |
+| tenoumer | meta (E 37 %) | atascado 12 m | ancha |
+| pinacate | meta (E 42 %) | meta (E 43 %) | ambos |
+| mx0207 | meta (E 48 %) | meta (E 50 %) | ambos |
+
+Con física 1 (corrida del integrador) g00263 y tenoumer no pasaban con ninguna de las dos: con la física 2 la ancha los pasa porque
+el hundimiento y la cohesión de la arena reparten mejor el empuje. Con motor potente, talemzane termina en carga perdida (va a 11 m/s).
+
+**Riesgo en Jezero:** tras la fusión, 1 de 4 corridas de Jezero con ancha a fondo perdió la carga (a 169 m, 6.5 m/s); las otras
+entregan con E 42 %. Con la física 1 el robot va a 4–5 m/s en Marte y no la pierde. Antes de activarla por defecto hay que revisar
+ese golpe (velocidad en Marte o la e2e con un piloto que frene).
 
 ## 6. Qué falta para activarla por defecto
 
+0. Resolver el camino dorado de g00281 (ver §5.1) y el riesgo de carga perdida en Jezero.
 1. Que Leo revise las fuentes de §3 (sobre todo S62 Draft y el uso del simulante M90 para Marte, que contradice la decisión del
    14 nov de no simular hundimiento en Marte) y lo registre en `docs/DECISIONES.md`.
 2. Correr la e2e completa con `FISICA_POR_DEFECTO = 2` (no se corrió aquí) y revisar el feedback en pantalla de Resultados.
