@@ -162,6 +162,7 @@ export function generar() {
   generarDeco();
   generarObstaculos();
   generarGeologia();
+  generarObstaculosR();
   generarMontados();
   generarPiezasNuevas();
 
@@ -291,8 +292,10 @@ export function generarObstaculos() {
   ];
   const tonos = {
     '': PALETAS.tierra.roca.slice(2, 6),
-    marte_: PALETAS.marte.roca.slice(2, 6),
-    luna_: [PALETAS.luna.roca[1], PALETAS.luna.roca[3], PALETAS.luna.roca[4], PALETAS.luna.roca[6]], // más contraste (luz rasante)
+    // Marte y Luna en versión clara (SPRITES_PENDIENTES §10): con los tonos del suelo casi no se distinguían. Marte: basalto
+    // polvoriento gris rosado, más claro y menos saturado que la arena óxido; Luna: roca casi blanca con la cara de sombra negra.
+    marte_: ['#4a2420', '#9a6a5c', '#cca08a', '#f4dcc4'],
+    luna_: [PALETAS.luna.roca[1], PALETAS.luna.roca[4], PALETAS.luna.roca[5], '#ffffff'],
   };
   for (const [mundo, t] of Object.entries(tonos)) {
     const pal = { 1: t[0], 2: t[1], 3: t[2], 4: t[3] };
@@ -432,4 +435,53 @@ export function generarMontados() {
     linea(9, 4, 2, 9); linea(9, 4, 18, 7); linea(18, 7, 13, 9); linea(18, 7, 25, 9);
     q.px(9, 4, hex(BASE.y)); q.px(18, 7, hex(BASE.y));
   });
+}
+
+// ---------------------------------------------------------------- obstáculos de §10 (recreación de juego)
+// obstaculo_crater_luna (48 × 6): cráter pequeño visto de lado con el Sol rasante desde la izquierda: bordes levantados claros,
+//   la pared izquierda interior en sombra negra y la derecha iluminada. La línea del suelo es la fila 2 (se pone con su borde de
+//   arriba 2 px por encima del suelo): los bordes sobresalen y el hueco se pinta sobre el suelo.
+// obstaculo_matorral_<1..3> (~5 × 6): matas del desierto (gobernadora, hojasén) con tallos pardos.
+// obstaculo_toba_bloque_<1|2>: bloques de toba clara y porosa (Jabal Bayda), 5 y 4 px de alto.
+// obstaculo_rizadura (16 × 3, tile): rizaduras de viento en la arena; se repite a lo ancho.
+export function generarObstaculosR() {
+  const O = 'obstaculos/', L = PALETAS.luna.roca, K = '#0e0c16';
+  // La línea del suelo es la fila 2: los bordes sobresalen 2 px y el hueco (filas 2..5) se pinta sobre el suelo.
+  tira(O + 'obstaculo_crater_luna.png', 48, 6, 1, (q) => {
+    for (let x = 0; x < 48; x++) {
+      const u = (x + 0.5 - 24) / 24, a = Math.abs(u);
+      if (a >= 0.74) {                                                                                     // bordes levantados
+        const r = Math.round(2.2 * Math.exp(-((a - 0.84) ** 2) / 0.006));
+        for (let y = 2 - r; y < 2; y++) q.px(x, y, hex(y === 2 - r ? (u < 0 ? '#ffffff' : L[5]) : u < 0 ? L[5] : L[4]));
+        if (r > 0 && u > 0) q.px(x, 2, hex(L[3]));                                                         // pie del borde derecho
+        continue;
+      }
+      const d = Math.max(1, Math.round(3.6 * (1 - (a / 0.74) ** 2)));                                      // hondo
+      for (let y = 2; y < 2 + d; y++) {
+        const k = y - 2, piso = y === 1 + d;
+        const sombra = u < 0.2 - k * 0.12;                                                                  // la pared izquierda no ve el Sol
+        let c = sombra ? (piso ? L[1] : '#000000') : piso ? L[4] : u > 0.45 ? L[6] : L[5];                 // pared derecha iluminada
+        if (y === 2 && !sombra) c = L[6];
+        q.px(x, y, hex(c));
+      }
+    }
+  }, { contorno: false });
+  const M = PALETAS.tierra.matorral, TALLO = '#5e3a24';
+  const MATAS = [
+    ['.G.G.', 'GgGgd', 'gdgGd', '.dgd.', '..t..', '.t.t.'],
+    ['..G.G.', '.GgGgd', 'GgdgGd', '.dgdgd', '..tt..', '.t..t.'],
+    ['.G..', 'GgG.', 'gdgd', '.dt.', '.t..'],
+  ];
+  MATAS.forEach((rows, i) => tira(`${O}obstaculo_matorral_${i + 1}.png`, rows[0].length, rows.length, 1,
+    (q) => filas(q, rows, 0, 0, { G: M[4], g: M[3], d: M[2], t: TALLO }), { contorno: true }));
+  const T = PALETAS.tierra.toba_clara;
+  const BLOQUES = [
+    ['..434..', '.44a32.', '43a3321', '3332a11', '3221111'],
+    ['.443.', '4a332', '33a21', '32211'],
+  ];
+  BLOQUES.forEach((rows, i) => tira(`${O}obstaculo_toba_bloque_${i + 1}.png`, rows[0].length + 2, rows.length + 1, 1,
+    (q) => filas(q, rows, 1, 1, { 1: T[1], 2: T[2], 3: T[3], 4: T[5], a: T[0] })));                         // a: poros oscuros
+  const A = PALETAS.tierra.arena;
+  tira(O + 'obstaculo_rizadura.png', 16, 3, 1, (q) => filas(q, ['..cd....cd....cd'.slice(0, 16), '.cbba..cbba..cbb', 'bbaabbbbaabbbbaa'],
+    0, 0, { a: A[2], b: A[3], c: A[4], d: A[5] }), { contorno: false });
 }

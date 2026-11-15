@@ -146,6 +146,7 @@
     - Nuevos: `entidades/chasis_titanio`, `chasis_carbono`, `rueda_nitinol`, `deco_auto_rescate` y `ui/ui_candado`.
     - Bloqueadas: `piezas/orugas`, `patas`, `rotor`, `serpiente` y `rappel`.
   - La diapositiva 3 se actualizó sola con los sitios nuevos de `data/sites`. Pingualuit (61° N) queda fuera del encuadre, que llega a 54° N.
+- **Ronda `feat/arte-r` (§10, obstáculos):** rocas de Marte y de la Luna en versión clara (las de Marte, basalto gris rosado; las de la Luna, casi blancas), `obstaculo_crater_luna` (48 × 6, fila 2 = suelo), `obstaculo_matorral_1..3`, `obstaculo_toba_bloque_1/2` y `obstaculo_rizadura`.
 - `node assets/fuente/fx/exportar.mjs` regenera con pixelfx las 22 hojas de efectos.
 
 ## En curso
