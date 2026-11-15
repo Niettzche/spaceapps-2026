@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { irA } from './ui.js';
+import { tocarMusica } from '../audio/musica.js';
 import { SITIOS, DESTINOS } from '../data.js';
 import { partida } from '../main.js';
 import { COLOR, texto, boton, panel, Teclado, cajaArte } from './expediente/interfaz.js';
@@ -54,6 +55,7 @@ export default class Expediente extends Phaser.Scene {
   constructor() { super('Expediente'); }
 
   create() {
+    tocarMusica('menu'); // música del menú hasta que empiece un nivel (audio/musica.js)
     prepararIngles();
     // La instancia de la escena se reutiliza entre visitas: reinicia el estado propio.
     this.botonesDetalle = null; this.botonesLista = []; this.foco = null; this.filaActual = null; this.filas = null;

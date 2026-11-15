@@ -19,6 +19,7 @@ import { ambienteDeDestino } from '../fisica/ambiente.js';
 import { cargarArte, arteDePieza, hayArte, cuadros } from '../fisica/aspecto.js';
 import { sonarBoton } from '../fisica/sonido.js';
 import { tr, trDato, enIngles } from '../i18n.js';
+import { tocarMusica } from '../audio/musica.js';
 
 // Dueño: frente taller. Armado por ARRASTRE en pixel art: el robot grande al centro con sus ranuras como sockets, la bandeja
 // de piezas abajo por sistema, y el costo, la masa, la autonomía y el agarre en tiempo real a la derecha.
@@ -195,6 +196,7 @@ export default class Taller extends Phaser.Scene {
   }
 
   create() {
+    tocarMusica('menu'); // al volver a modificaciones, la canción del nivel deja paso a la del menú (audio/musica.js)
     if (this.textures.exists('pantallas/taller_fondo')) {
       this.add.image(480, 270, 'pantallas/taller_fondo').setScale(3).setDepth(-10);
       this.add.rectangle(480, 270, 960, 540, 0x0b0d17, 0.55).setDepth(-9);

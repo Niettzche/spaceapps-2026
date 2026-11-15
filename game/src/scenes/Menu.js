@@ -15,6 +15,7 @@ import { debeMostrarComoJugar } from './expediente/como_jugar.js';
 import { vistaComoJugar, reiniciarPaginaComoJugar } from './expediente/como_jugar_vista.js';
 import { estrellas, planetaGirando, movimientoReducido } from './expediente/efectos.js';
 import { sonarBoton } from '../fisica/sonido.js';
+import { tocarMusica, cambiarVolumenMusica, alternarMusica, alCambiarMusica, estado as estadoMusica } from '../audio/musica.js';
 import { FondoMenu } from './expediente/fondo_menu.js';
 import { marteGrande, logoBrillo, lineaPixel, restaurarCamara, precargarInicio, videoInicio, warp, textoPx } from './expediente/inicio.js';
 import { escenarioNave, consolaMenu, flechasRejilla, entradaInterfaz, zoomEscotilla, detenerZoom } from './expediente/menu_nave.js';
@@ -91,6 +92,11 @@ export default class Menu extends Phaser.Scene {
   mostrar(vista, { llegada = false } = {}) {
     limpiar(this);
     this.vista = vista;
+    this.dejarMusica?.();
+    this.dejarMusica = null;
+    // Música del menú (audio/musica.js): no suena en la pantalla de inicio; en las opciones empieza al terminar la
+    // llegada de la estación (listoPrincipal), es decir, cuando acaba la animación de inicio.
+    if (vista !== 'inicio' && vista !== 'principal') tocarMusica('menu');
     if (this.alTocarInicio) { this.input.off('pointerdown', this.alTocarInicio); this.alTocarInicio = null; }
     // Después del zoom a la nave (o de un fundido) la pantalla quedó en negro: se aclara con la vista nueva.
     if (this.oscuro) { this.oscuro = false; restaurarCamara(this, { aclarar: true }); }
@@ -120,6 +126,7 @@ export default class Menu extends Phaser.Scene {
     this.teclado.alEscape = vista === 'inicio' || vista === 'principal' ? null : () => this.mostrar('principal');
     if (vista === 'inicio') this.vistaInicio();
     else if (vista === 'destino') this.vistaDestino();
+    else if (vista === 'musica') this.vistaMusica();
     else if (vista === 'como_jugar') {
       vistaComoJugar(this, {
         presupuesto: PRESUPUESTO_INICIAL,
@@ -268,20 +275,58 @@ export default class Menu extends Phaser.Scene {
     });
     const botones = consola.botones;
     const [nueva, continuar] = botones;
+    // Apartado propio de la música (docs/juego/MUSICA.md): arriba a la derecha, fuera de la consola (que ya está llena).
+    const musica = boton(this, 945, 28, tr('Música', 'Music'), () => this.fundido(() => this.mostrar('musica')),
+      { size: 14, origen: [1, 0.5], crecer: false });
     if (llegada) entradaInterfaz(this, { consola: consola.objs, logo, retraso: 450 });
     // Teclado y ratón se habilitan cuando la estación terminó de llegar (escenarioNave llama a listoPrincipal; sin
     // llegada, en el instante siguiente).
     this.listoPrincipal = () => {
       this.listoPrincipal = null;
       if (!this.sys.isActive() || this.vista !== 'principal') return;
+      tocarMusica('menu');
       this.zoomando = false;
       this.input.enabled = true;
       this.teclado.numerar(botones.slice(0, 5));
       (g ? continuar : nueva).setSugerido(true);
-      this.teclado.poner(botones, g ? continuar : nueva);
+      this.teclado.poner([...botones, musica], g ? continuar : nueva);
       this.teclado.extra = { ...this.teclado.extra, ...flechasRejilla(this, 2) };
       this.teclado.alEscape = () => this.fundido(() => this.mostrar('inicio'));
     };
+  }
+
+  /**
+   * Apartado «Música»: volumen propio de 0 a 100 % en pasos de 10 (se guarda en este navegador) y quitar o poner la
+   * música. Mientras se ajusta suena la del menú. Teclas: - y + bajan y suben; Esc vuelve.
+   */
+  vistaMusica() {
+    tituloPlaca(this, 480, 40, tr('Música', 'Music'), { size: 30 });
+    cajaArte(this, 'ui/ui_tarjeta', 230, 96, 500, 330, { alfa: 0.94 });
+    const valor = texto(this, 480, 146, '', { size: 28, color: COLOR.acento, origen: [0.5, 0.5] });
+    const segmentos = Array.from({ length: 10 }, (_, i) => this.add.rectangle(310 + i * 34, 196, 28, 24, 0x06d6a0).setOrigin(0, 0.5).setDepth(2));
+    texto(this, 480, 244, tr('La música suena debajo de los efectos. La M de las pruebas también la calla.',
+      'Music plays under the sound effects. M during the tests mutes it too.'),
+      { size: 14, color: COLOR.tenue, origen: [0.5, 0.5], ancho: 460, alinear: 'center' });
+    const menos = boton(this, 380, 304, tr('- Bajar', '- Lower'), () => cambiarVolumenMusica(-10), { size: 18, anchoCaja: 170 });
+    const mas = boton(this, 580, 304, tr('+ Subir', '+ Raise'), () => cambiarVolumenMusica(10), { size: 18, anchoCaja: 170 });
+    const quitar = boton(this, 480, 372, '', () => alternarMusica(), { size: 18, anchoCaja: 300 });
+    const volver = boton(this, 480, 512, tr('Volver', 'Back'), () => this.mostrar('principal'), { size: 16 });
+    const pintar = (e) => {
+      if (!valor.active) return;
+      valor.setText(e.quitada ? tr('Música quitada', 'Music off') : `${e.volumen} %`);
+      segmentos.forEach((r, i) => r.setFillStyle(i < e.volumen / 10 && !e.quitada ? 0x06d6a0 : 0x2a3160));
+      quitar.setEtiqueta(e.quitada ? tr('Poner la música', 'Turn music on') : tr('Quitar la música', 'Turn music off'));
+      menos.setHabilitado(e.volumen > 0);
+      mas.setHabilitado(e.volumen < 100);
+    };
+    pintar(estadoMusica());
+    this.dejarMusica = alCambiarMusica(pintar);
+    this.events.once('shutdown', () => { this.dejarMusica?.(); this.dejarMusica = null; });
+    const bajar = () => { sonarBoton(); cambiarVolumenMusica(-10); };
+    const subir = () => { sonarBoton(); cambiarVolumenMusica(10); };
+    this.teclado.extra = { ...this.teclado.extra, '-': bajar, '_': bajar, '+': subir, '=': subir };
+    this.teclado.numerar([menos, mas, quitar, volver]);
+    this.teclado.poner([menos, mas, quitar, volver, this.botonIdioma('musica')], mas);
   }
 
   /** "Nueva partida": la primera vez en este navegador muestra "Cómo jugar" antes de elegir destino. */

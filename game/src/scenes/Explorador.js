@@ -14,6 +14,7 @@ import { MUNDOS, ESTADOS, etiquetaVariable, etiquetaLimite } from './expediente/
 import { crearCapa, el, ESTILOS } from './expediente/capa.js';
 import { prepararIngles, enIdioma } from './expediente/datos_en.js';
 import { tr, trDato, idioma } from '../i18n.js';
+import { tocarMusica } from '../audio/musica.js';
 
 // Dueño: frente expediente. Explorador libre (AGENTS.md §6.4, punto 3):
 // coordenada → POST /score (similitud en vivo) → si supera el umbral, proponer el sitio (POST /submit).
@@ -25,6 +26,7 @@ export default class Explorador extends Phaser.Scene {
   constructor() { super('Explorador'); }
 
   create() {
+    tocarMusica('menu');
     prepararIngles();
     this.consulta = null;
     this.capa = crearCapa('mc-explorador', ESTILOS);
