@@ -77,3 +77,20 @@ suelo y se hunde menos en arena suelta. Así se justifica en el juego la rueda a
   no tiene cifras de hundimiento ni menciona Troy. Se quitó y se reemplazó por lo que dice NASA (S65, S72). S19 y S20 ahora
   nombran el documento exacto de NTRS; la tabla de Marte avisa que son estimaciones de ingeniería, no mediciones directas.
 - Cada cambio quedó en la hoja **Review Log** (RV-094…RV-149) y las fuentes nuevas en **Sources** (S59–S73).
+
+## 5. Piezas nuevas: fuentes (15 nov, Leo)
+
+Cada valor tiene fuente o es (P). Los de Excel están en la hoja **Parts** (PT-013…PT-018), marcados como referencia: **no están en `parts.json`**, así que el juego no los usa todavía.
+
+| Pieza | Dato con fuente | Fuente | Estado | Uso en el juego |
+|---|---|---|---|---|
+| Rueda de malla tipo LRV (Apolo) | Tejido de hilos de acero galvanizado sobre cubo de aluminio; 81.8 cm de diámetro, 23 cm de ancho; chevrones de titanio en el 50 % del área de contacto | [NASA NSSDC, Apollo LRV](https://nssdc.gsfc.nasa.gov/planetary/lunar/apollo_lrv.html) (S64) | Verified | Referencia; no es una pieza del juego |
+| Rueda rígida de aluminio con grousers (Curiosity/Perseverance) | Curiosity: 50.8 cm, 24 chevrones. Perseverance: 52.6 cm, 48 garras curvas, 6 ruedas con motor propio | [NASA, Perseverance (S14)](https://science.nasa.gov/mission/mars-2020-perseverance/rover-components/); [JPL, Apr 2020 (S70)](https://www.nasa.gov/solar-system/nasas-perseverance-mars-rover-gets-its-wheels-and-air-brakes/) | Verified | Referencia de `rueda_tacos` / `rueda_estandar` |
+| Calentador o aislamiento de la batería | **No confirmado.** Lo que sí dice NASA: el calor de desecho del MMRTG se bombea por un lazo de fluido que mantiene la electrónica en el rango −40 a +50 °C; los calentadores de radioisótopos calentaban la caja de la electrónica de Sojourner, Spirit y Opportunity | [NASA/JPL, MSL launch press kit, p. 38](https://www.jpl.nasa.gov/news/press_kits/MSLLaunch.pdf) (S76); [NTRS 20150008894](https://ntrs.nasa.gov/citations/20150008894) (S78) | Gap | El frío sí resta batería (regla (P) de `fisica/ambiente.js`); el calentador no se modela |
+| Radiador / disipación del motor | Los radiadores externos disipan el calor de desecho de la electrónica hacia el ambiente marciano; el MMRTG produce 110 W eléctricos y unos 2000 W de calor de desecho | [NTRS 20150008894](https://ntrs.nasa.gov/citations/20150008894) (S78); [MSL press kit, p. 38](https://www.jpl.nasa.gov/news/press_kits/MSLLaunch.pdf) (S76) | Verified para la electrónica; **Gap para el motor** | La regla de enfriamiento del motor (aire y radiación, (P)) de `fisica/ambiente.js` |
+| Batería mediana (par MSL) | Dos baterías de ion litio de unos 42 Ah cada una, 28 V, que cubren los picos de demanda por encima de la salida del generador | [NASA/JPL, MSL launch press kit, p. 43](https://www.jpl.nasa.gov/news/press_kits/MSLLaunch.pdf) (S76) | Verified | Referencia para `bateria_grande`; Ah no es comparable con las unidades de capacidad del juego (P) |
+| Panel solar grande (MER) | 1.3 m² de celdas triunión de tres capas; 140 W en la superficie de Marte; unos 900 Wh por sol, que bajan a unos 600 Wh por sol al final de la misión por el polvo | [NASA/JPL, MER launch press kit, pp. 8 y 44](https://www.jpl.nasa.gov/news/press_kits/merlaunch.pdf) (S77) | Verified | Referencia; `panel_solar` sigue sin efecto en el MVP |
+
+**Corrección:** la hoja Sources (S40) citaba un artículo de aerogeles para decir que las baterías de un rover se mantienen entre
+−40 y +40 °C frente a noches de −96 °C. Lo revisé y **esa página no lo dice**, así que bajé S40 a Draft. Por la misma razón
+quité ese dato de la pregunta 9 de `docs/PITCH_QA_EN.md`.
