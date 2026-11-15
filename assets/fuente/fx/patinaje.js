@@ -7,7 +7,7 @@ export const meta = {
   desc: "A spinning wheel throws a rooster tail of sand back and up: a fan of grains in a high arc that rain down, with a low dust cloud that rolls back along the ground.",
   tags: ["dust", "sand", "wheel", "spin", "ground", "one-shot", "marsception"],
   size: [56, 26],
-  origin: [28, 24],
+  origin: [28, 25],
   duration: 0.75,
   loop: false,
   fps: 15,
@@ -26,7 +26,7 @@ export function create(o) {
   }
   // nube baja que rueda hacia atrás pegada al suelo
   for (let i = 0; i < 6; i++)
-    ps.spawn(P.DUST, -R.range(1, 4), -R.range(1, 3), -R.range(18, 40), -R.range(2, 8), R.range(0.4, 0.7), R.chance(0.5) ? C[3] : C[2], R.range(1.8, 3.2), R.range(0, 0.1));
+    ps.spawn(P.DUST, -R.range(1, 4), -R.range(2.5, 4), -R.range(18, 40), -R.range(2, 8), R.range(0.4, 0.7), R.chance(0.5) ? C[3] : C[2], R.range(1.8, 3.2), R.range(0, 0.1));
   // y un velo más alto y tenue que acompaña al abanico
   for (let i = 0; i < 3; i++)
     ps.spawn(P.DUST, -R.range(3, 6), -R.range(4, 7), -R.range(20, 34), -R.range(14, 24), R.range(0.35, 0.55), C[3], R.range(1.5, 2.4), R.range(0.02, 0.08));
