@@ -4,7 +4,7 @@
 > y Boot ligero (#50).
 
 **Responsable:** Diego  ·  **Agente:** Claude Code  ·  **Rama:** feat/expediente-estado
-**Última actualización:** 14 nov 2026
+**Última actualización:** 15 nov 2026
 
 ## Hecho
 
@@ -175,6 +175,21 @@ candidatos (se muestra «sin verificar»). El umbral del juego para proponer (0.
   completa, tutorial simple, tutorial completo, Descubrir): 0 textos < 14 px, fuera de pantalla, encimados ni zonas < 64×44.
   Humo con clics reales: Expediente simple → Samalayuca → «Gastar 1 ticket y probar» → Taller (tickets 3 → 2).
 
+### Pulido del playtest de Leo (15 nov, `fix/expediente-pulido`, `docs/taller/PLAYTEST_LEO.md` §B)
+- [x] **B3 · ANA «¿Por qué se parece…?»** (`tutor/conocimiento.js`): empieza por la forma (d/D del sitio, % del modelo
+  explicable y el gemelo de forma que trae la nota del sitio: diámetro, profundidad y d/D); sin forma, la variable más
+  parecida sin contar las que valen 0 en el destino (NDVI, lluvia). «Análogo operativo, no geológico» sale una vez; el uso
+  ya no se corta con «…»: la frase «La analogía se rompe…» del modelo pasa completa a «¿Dónde se rompe?». Panel: en
+  pantallas ≤ 600 px de alto se compacta y una respuesta larga se muestra desde su inicio. Revisado en es/en.
+- [x] **B6 · Descubrir con 0 novedosos:** es cierto con los datos (ningún sitio trae `novedoso: true`; `model/scan.py` solo
+  lo marca lejos de `known_analogs.json` y con etiqueta verificada). Si el conteo es 0, el filtro N no se dibuja (la tecla N
+  no hace nada) y abajo sale una nota bilingüe: qué es «novedoso» y «ninguno aún» para ese destino.
+- [x] **B7 · API sin configurar:** el juego solo sondea la API si hay `VITE_API_URL` (demo pública: `/api`; local con API:
+  `VITE_API_URL=http://localhost:8000` en `game/.env.local`). Antes, en localhost probaba `localhost:8000` sin configurarla.
+  **Ojo:** el `ERR_CONNECTION_REFUSED` del Boot que ve la e2e viene de `game/index.html` (puente del mando de celular,
+  `http://<host>:8787/puente.js`), no de la API: queda para su dueño (ver Bloqueos).
+- [x] **B4 · Cabecera:** «Luna · Polo sur (Artemis)» / «Moon · South pole (Artemis)» y «Marte · Cráter Jezero»; ya no se corta.
+
 ## Prueba del camino completo en Luna y Marte
 Recorrido con clics y teclas reales (`npm run dev`, Chrome sin ventana): Menú → Nueva partida → destino → Expediente →
 ticket → Taller → Prueba → Resultados → Misión → Resultados → Menú → recarga → Continuar.
@@ -258,10 +273,14 @@ energía". El camino dorado completo (ruedas anchas → pasa → entrega) no se 
 ## Cómo probar
 - `cd game && npm run dev` → Menú → `1` (Nueva partida) → `1` (Marte) → `1` (Samalayuca) → Enter → Taller.
 - Pruebas de lógica: `cd game && node --test src/scenes/expediente/pruebas/`
-- Explorador con API: desde la raíz `ALLOWED_ORIGINS=http://localhost:5173 uvicorn api.main:app --port 8000`.
-  Opcional: `game/.env.local` con `VITE_API_URL=...` y `VITE_WEB_URL=...`.
+- Explorador con API: desde la raíz `ALLOWED_ORIGINS=http://localhost:5173 uvicorn api.main:app --port 8000` y
+  `game/.env.local` con `VITE_API_URL=http://localhost:8000` (obligatorio desde el 15 nov: sin él no se sondea la API).
+  Opcional: `VITE_WEB_URL=...`.
 
 ## Bloqueos / necesito de otro frente
+- **Control de celular / integrador:** `game/index.html` carga `http://<host>:8787/puente.js` en todo `http:`; sin relay deja
+  `ERR_CONNECTION_REFUSED` en la consola del Boot (lo que la e2e cuenta como falla, B7). Propuesta: cargarlo solo si se
+  pide (p. ej. `?mando` o una marca en localStorage que ponga el relay).
 - **Zonas táctiles de `ui.js`** (Alan): `boton()` usa solo el área del texto; afecta a Resultados y a las escenas que lo usan.
 - **Esc y flechas en Resultados y Taller** (Edmundo, Leo): Resultados solo usa números y Enter; en el Taller Esc no volvía.
 - **Juego (Edmundo), visto el 14 nov sobre `0f8f8b3`, no reverificado:** texto de la fuente del perfil cortado en Prueba y
