@@ -23,6 +23,11 @@ export const UMBRAL_PROPUESTA = 0.6;
 // NASA POWER puede tardar: espera generosa antes de declarar que la API no responde.
 export const ESPERA_API_MS = 90000; // medido: ~60 s por punto con NASA POWER + MODIS
 
+// Explorador SIN API (AGENTS.md §3 regla 7). Radio para dar por encontrado un sitio del catálogo precalculado (P).
+export const RADIO_CATALOGO_KM = 25;
+// Clima en vivo directo de NASA POWER desde el navegador (API pública con CORS, sin llave). Responde en ~0.1–1 s.
+export const ESPERA_POWER_MS = 8000;
+
 // Boot: no precarga formatos pesados ni archivos mayores a este límite (P). El arte del juego en /assets pesa hoy
 // ≤ 23 KB por archivo; 300 KB deja margen para fondos grandes y frena GIF o video que se cuelen en /assets.
 export const LIMITE_PRECARGA_BYTES = 300 * 1024;
