@@ -30,6 +30,45 @@ const filasConSimilitud = (s, d) => filasComparacion(s, d).filas.filter((f) => t
 const ladoTierra = (f) => formatoValor(f.tierra);
 const ladoDestino = (f) => (f.destino?.valor != null ? formatoValor(f.destino) : f.destino?.texto || tr('sin dato', 'no data'));
 
+/**
+ * Variables donde el destino vale 0 (vegetación, lluvia): parecerse ahí solo dice «casi no hay plantas ni lluvia», así que
+ * no se usan como argumento principal del parecido (playtest de Leo, B3: Cananea «se parecía» por su NDVI).
+ */
+const destinoEnCero = (f) => f.destino?.valor === 0;
+
+/**
+ * Gemelo de forma más cercano, tal como lo escribe model/scan.py en la nota del sitio
+ * («Gemelo de forma más cercano: <nombre> (Luna), 0.84 km, 80 m, d/D 0.095»). null si la nota no lo trae.
+ */
+export function gemeloDe(sitio) {
+  const m = /Gemelo de forma más cercano: .+? \((Luna|Marte)\), ([\d.]+) km, ([\d.]+) m, d\/D ([\d.]+)/.exec(sitio?.nota || '');
+  return m ? { mundo: m[1] === 'Luna' ? 'luna' : 'marte', diametroKm: m[2], profundidadM: m[3], dD: m[4] } : null;
+}
+
+/** `uso_exploracion` partido en frases: { cabeza (qué entrena), rompe (la frase «La analogía se rompe…», si la hay) }. */
+function usoPartido(sitio) {
+  const t = String(trDato(sitio, 'uso_exploracion') ?? '').trim();
+  const i = t.search(/\. (La analogía se rompe|The analogy breaks)/);
+  if (i < 0) return { cabeza: t.replace(/\.$/, ''), rompe: null };
+  return { cabeza: t.slice(0, i), rompe: t.slice(i + 2).trim() };
+}
+
+/** «Sirve para: …» sin repetir «Análogo operativo, no geológico» (ya dicho) y con el aviso «Candidato a verificar» aparte. */
+function fraseUso(sitio, { minaDicha }) {
+  const { cabeza } = usoPartido(sitio);
+  if (!cabeza) return null;
+  const m = /^([^:]{8,60}): (.+)$/.exec(cabeza);
+  let uso = cabeza;
+  let aviso = null;
+  if (m) {
+    uso = m[2];
+    if (!(minaDicha && /operativo|operational/i.test(m[1]))) aviso = m[1];
+  }
+  uso = recortarPalabra(uso, 200);
+  const sirve = tr(`Sirve para: ${uso}.`, `Useful for: ${uso}.`).replace(/…\.$/, '…');
+  return aviso ? `${aviso}. ${sirve}` : sirve;
+}
+
 /** Saludo al abrir el panel (con o sin sitio). */
 export function saludo({ sitio, destino } = {}) {
   if (sitio && destino) {
@@ -90,13 +129,32 @@ const RESPUESTAS = {
       ? tr(`${nombreSitio(sitio)} tiene ${formatoPorcentaje(total)} de similitud total con ${mundoEn(destino)} (no es la probabilidad de éxito de la misión).`,
         `${nombreSitio(sitio)} has ${formatoPorcentaje(total)} total similarity with ${mundoEn(destino)} (it is not the chance of mission success).`)
       : tr(`${nombreSitio(sitio)} todavía no tiene similitud total calculada.`, `${nombreSitio(sitio)} has no total similarity computed yet.`));
-    const mejor = filasConSimilitud(sitio, destino).sort((a, b) => b.similitud - a.similitud)[0];
-    if (mejor) {
-      partes.push(tr(`Lo que más se parece: ${mejor.etiqueta}, ${ladoTierra(mejor)} aquí contra ${ladoDestino(mejor)} allá (${formatoPorcentaje(mejor.similitud)}; ${fuenteCorta(mejor.tierra)}).`,
-        `Closest match: ${mejor.etiqueta}, ${ladoTierra(mejor)} here vs. ${ladoDestino(mejor)} there (${formatoPorcentaje(mejor.similitud)}; ${fuenteCorta(mejor.tierra)}).`));
+    const filas = filasConSimilitud(sitio, destino);
+    const forma = filas.find((f) => f.clave === 'forma');
+    if (forma) {
+      // Primero la forma: es la dimensión con más peso y la que el modelo explicable sí separa (AGENTS.md §6.1).
+      const dD = typeof forma.tierra?.valor === 'number' ? forma.tierra.valor.toFixed(3) : null;
+      const pct = formatoPorcentaje(forma.similitud);
+      partes.push(tr(`Lo que más pesa es la forma${dD ? ` (d/D ${dD})` : ''}: un modelo explicable entrenado con cráteres reales de la Luna y Marte la asigna a ${mundoEn(destino)} con ${pct}.`,
+        `What matters most is shape${dD ? ` (d/D ${dD})` : ''}: an explainable model trained on real Moon and Mars craters assigns it to ${mundoEn(destino)} with ${pct}.`));
+      const g = gemeloDe(sitio);
+      if (g) {
+        partes.push(tr(`Su gemelo más cercano: un cráter ${g.mundo === 'luna' ? 'lunar' : 'marciano'} de ${g.diametroKm} km y ${g.profundidadM} m de profundidad (d/D ${g.dD}).`,
+          `Closest twin: a ${g.mundo === 'luna' ? 'lunar' : 'Martian'} crater ${g.diametroKm} km wide and ${g.profundidadM} m deep (d/D ${g.dD}).`));
+      }
+    } else {
+      // Sin forma: la variable más parecida, sin contar las que valen 0 en el destino (si solo quedan esas, se usan).
+      const utiles = filas.filter((f) => !destinoEnCero(f));
+      const mejor = (utiles.length ? utiles : filas).sort((a, b) => b.similitud - a.similitud)[0];
+      if (mejor) {
+        partes.push(tr(`Lo que más se parece: ${mejor.etiqueta}, ${ladoTierra(mejor)} aquí contra ${ladoDestino(mejor)} allá (${formatoPorcentaje(mejor.similitud)}; ${fuenteCorta(mejor.tierra)}).`,
+          `Closest match: ${mejor.etiqueta}, ${ladoTierra(mejor)} here vs. ${ladoDestino(mejor)} there (${formatoPorcentaje(mejor.similitud)}; ${fuenteCorta(mejor.tierra)}).`));
+      }
     }
-    if (esMina(sitio)) partes.push(tr('Es un tajo minero: un análogo operativo, no geológico.', 'It is an open-pit mine: an operational analog, not a geological one.'));
-    if (sitio.uso_exploracion) partes.push(tr(`Sirve para: ${recortarPalabra(trDato(sitio, 'uso_exploracion'), 170)}`, `Useful for: ${recortarPalabra(trDato(sitio, 'uso_exploracion'), 170)}`));
+    const mina = esMina(sitio);
+    if (mina) partes.push(tr('Es un tajo minero: análogo operativo, no geológico.', 'It is an open-pit mine: an operational analog, not a geological one.'));
+    const uso = sitio.uso_exploracion ? fraseUso(sitio, { minaDicha: mina }) : null;
+    if (uso) partes.push(uso);
     else if (sitio.prueba_util && PRUEBAS[sitio.prueba_util]) partes.push(tr(`En el juego prueba: ${PRUEBAS[sitio.prueba_util]}.`, `In the game it tests: ${PRUEBAS[sitio.prueba_util]}.`));
     return partes.join(' ');
   },
@@ -116,6 +174,9 @@ const RESPUESTAS = {
       partes.push(tr(`Lo que menos se parece: ${peor.etiqueta}, ${ladoTierra(peor)} aquí contra ${ladoDestino(peor)} allá (${formatoPorcentaje(peor.similitud)}).`,
         `Weakest match: ${peor.etiqueta}, ${ladoTierra(peor)} here vs. ${ladoDestino(peor)} there (${formatoPorcentaje(peor.similitud)}).`));
     }
+    // La frase «La analogía se rompe…» que el modelo escribió para este sitio (antes se cortaba en «¿Por qué se parece?»).
+    const { rompe } = sitio.uso_exploracion ? usoPartido(sitio) : {};
+    if (rompe) partes.push(rompe);
     if (notas.some((n) => /m[aá]ximo terrestre|extremo/i.test(n))) {
       partes.push(tr('Algún valor del destino está fuera de lo que existe en la Tierra y se compara contra el extremo terrestre.',
         'Some destination value is beyond anything on Earth, so it is compared against the Earth extreme.'));
