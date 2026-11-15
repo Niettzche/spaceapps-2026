@@ -1,4 +1,4 @@
-# Metodología · Misión Cero / Cráter Gemelo
+# MARSCEPTION · Metodología
 
 Versión de entrega: 14 noviembre 2026. Pesos y umbrales son provisionales. La búsqueda identifica candidatos para revisión, no certifica sitios de entrenamiento.
 
