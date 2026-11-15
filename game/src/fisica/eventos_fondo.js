@@ -120,7 +120,10 @@ export class EventosFondo {
       this.crestas = crestasDe(perfil).map((xm) => ({ x: terreno.xMundo(xm), y: terreno.yMundo(alturaEn(perfil, xm)) }));
       this.gMundo = scene.add.graphics().setDepth(4);
     }
-    if (this.programa.some((e) => e.tipo === 'tierra')) {
+    // El cielo del fondo lunar de Mauricio (fondo_luna_1, capa fija) ya trae la Tierra pintada: solo se dibuja aquí si falta
+    // ese arte, para no ver dos Tierras.
+    const tierraEnFondo = scene.textures?.exists?.('arte:fondo_luna_1') ?? false;
+    if (this.programa.some((e) => e.tipo === 'tierra') && !tierraEnFondo) {
       // La Tierra desde el polo sur lunar: baja sobre el horizonte y a media luz (arte de Mauricio, 18 × 18). Su lado de
       // noche es azul muy oscuro y sobre el cielo negro solo se veía una tajada: se dibuja el disco completo detrás (lado
       // nocturno con luz de la Luna llena terrestre, «earthshine» inverso) y un halo de atmósfera para que se lea como
