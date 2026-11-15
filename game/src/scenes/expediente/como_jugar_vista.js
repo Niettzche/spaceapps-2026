@@ -11,7 +11,7 @@ export function reiniciarPaginaComoJugar() { estado.pagina = 0; }
  * Dibuja una pantalla de "Cómo jugar" dentro del Menú. `alTerminar` se llama al acabar la última pantalla o al saltar
  * (botón "Saltar" o Esc); en ambos casos queda marcado como visto.
  */
-export function vistaComoJugar(scene, { presupuesto, alTerminar, redibujar }) {
+export function vistaComoJugar(scene, { presupuesto, alTerminar, redibujar, botonIdioma }) {
   const pantallas = pantallasComoJugar(presupuesto);
   const total = pantallas.length;
   estado.pagina = Math.min(Math.max(estado.pagina, 0), total - 1);
@@ -43,6 +43,7 @@ export function vistaComoJugar(scene, { presupuesto, alTerminar, redibujar }) {
     ...scene.teclado.extra,
     ArrowLeft: () => ir(-1), ArrowRight: () => ir(1),
   };
+  const idiomaBoton = botonIdioma?.(); // mismo selector "Español / English" del menú principal
   scene.teclado.numerar([anterior, siguiente, saltar]);
-  scene.teclado.poner([anterior, siguiente, saltar], siguiente);
+  scene.teclado.poner([anterior, siguiente, saltar, idiomaBoton], siguiente);
 }

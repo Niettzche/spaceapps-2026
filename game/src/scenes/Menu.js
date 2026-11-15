@@ -13,6 +13,8 @@ import { prepararIngles } from './expediente/datos_en.js';
 import { tr, trDato, idioma, alternarIdioma } from '../i18n.js';
 import { debeMostrarComoJugar } from './expediente/como_jugar.js';
 import { vistaComoJugar, reiniciarPaginaComoJugar } from './expediente/como_jugar_vista.js';
+import { estrellas, planetaGirando } from './expediente/efectos.js';
+import { FondoMenu } from './expediente/fondo_menu.js';
 
 // A dónde ir al terminar o saltar "Cómo jugar" (se conserva si el Menú se reinicia al cambiar de idioma).
 let trasComoJugar = 'principal';
@@ -44,7 +46,8 @@ export default class Menu extends Phaser.Scene {
    * el "▶ " del foco no mueva las palabras y el resaltado quede siempre bajo la palabra correcta.
    */
   botonIdioma(vista) {
-    const b = boton(this, 945, 26, 'Español / English', () => this.cambiarIdioma(vista), { size: 14, origen: [1, 0.5] });
+    // Sin crecer al pasar el ratón: el subrayado del idioma actual se dibuja aparte y quedaría desfasado.
+    const b = boton(this, 945, 26, 'Español / English', () => this.cambiarIdioma(vista), { size: 14, origen: [1, 0.5], crecer: false });
     const t = b.obj;
     const ancho = t.width / t.text.length; // fuente monoespaciada
     const finDesdeDerecha = idioma() === 'en' ? 2 : 12; // "English ]" o "Español / English ]"
@@ -62,6 +65,7 @@ export default class Menu extends Phaser.Scene {
       this.add.image(480, 270, 'titulo/titulo_fondo').setScale(3).setDepth(-10);
       this.add.rectangle(480, 270, 960, 540, 0x0b0d17, 0.6).setDepth(-9);
     }
+    this.eligiendo = false;
     const idiomaTecla = () => this.cambiarIdioma(vista);
     this.teclado.extra = { l: idiomaTecla, L: idiomaTecla };
     this.teclado.alEscape = vista === 'principal' ? null : () => this.mostrar('principal');
@@ -71,9 +75,20 @@ export default class Menu extends Phaser.Scene {
         presupuesto: PRESUPUESTO_INICIAL,
         alTerminar: () => this.mostrar(trasComoJugar),
         redibujar: () => this.mostrar('como_jugar'),
+        botonIdioma: () => this.botonIdioma('como_jugar'),
       });
-    } else if (vista === 'numeros') vistaNumeros(this, () => this.mostrar('principal'), () => this.cambiarIdioma('numeros'));
+    } else if (vista === 'numeros') {
+      vistaNumeros(this, {
+        volver: () => this.mostrar('principal'),
+        redibujar: () => this.mostrar('numeros'),
+        botonIdioma: () => this.botonIdioma('numeros'),
+      });
+    }
     else this.vistaPrincipal();
+    estrellas(this); // titilan detrás de todo y lejos del texto (quietas con prefers-reduced-motion)
+    // Fondo vivo de Leo (#76): asteroides, cometa, planetas detrás de Marte, galaxia, destellos y agujero negro al volver.
+    this.fondoMenu?.destruir();
+    this.fondoMenu = new FondoMenu(this, { resultados: partida.resultados?.length ?? 0 });
   }
 
   vistaPrincipal() {
@@ -132,40 +147,60 @@ export default class Menu extends Phaser.Scene {
   }
 
   vistaDestino() {
-    texto(this, 480, 60, tr('¿A dónde va tu robot?', 'Where is your robot going?'), { size: 28, origen: [0.5, 0.5] });
-    texto(this, 480, 96, tr('Misma mecánica en los dos destinos: cambian la gravedad, el perfil del destino y los sitios análogos',
+    texto(this, 480, 48, tr('¿A dónde va tu robot?', 'Where is your robot going?'), { size: 28, origen: [0.5, 0.5] });
+    texto(this, 480, 82, tr('Misma mecánica en los dos destinos: cambian la gravedad, el perfil del destino y los sitios análogos',
       'Same mechanics at both destinations: gravity, destination profile and analog sites change'),
       { size: 12, color: COLOR.tenue, origen: [0.5, 0.5] });
 
     const ids = [...ORDEN_DESTINOS.filter((id) => DESTINOS[id]), ...Object.keys(DESTINOS).filter((id) => !ORDEN_DESTINOS.includes(id))];
     const ancho = 380;
     const x0 = 480 - (ids.length * ancho + (ids.length - 1) * 30) / 2;
+    this.planetas = {};
     const botones = ids.map((id, i) => {
       const d = DESTINOS[id];
       const x = x0 + i * (ancho + 30);
-      panel(this, x, 130, ancho, 250);
+      const cx = x + ancho / 2;
+      panel(this, x, 106, ancho, 348);
       const n = sitiosParaDestino(SITIOS, id).length;
       const g = typeof d.gravedad_ms2 === 'number' ? d.gravedad_ms2 : GRAVEDAD[d.mundo];
-      texto(this, x + ancho / 2, 160, (MUNDOS[d.mundo] || d.mundo).toUpperCase(), { size: 24, origen: [0.5, 0.5] });
-      texto(this, x + ancho / 2, 200, trDato(d, 'nombre'), { size: 13, color: COLOR.tenue, origen: [0.5, 0.5], ancho: ancho - 30, alinear: 'center' });
-      texto(this, x + 20, 245, tr(`Gravedad: ${g} m/s² (Tierra: ${GRAVEDAD.tierra})`, `Gravity: ${g} m/s² (Earth: ${GRAVEDAD.tierra})`), { size: 13 });
-      texto(this, x + 20, 270, n ? tr(`Sitios análogos sugeridos: ${n}`, `Suggested analog sites: ${n}`)
+      texto(this, cx, 130, (MUNDOS[d.mundo] || d.mundo).toUpperCase(), { size: 24, origen: [0.5, 0.5] });
+      // Planeta girando (spritesheet del frente arte o generado en código); clic o toque en él = "Elegir".
+      const planeta = this.planetas[id] = planetaGirando(this, cx, 226, d.mundo === 'luna' ? 'luna' : 'marte', { inicio: i * 0.37 });
+      texto(this, cx, 314, trDato(d, 'nombre'), { size: 13, color: COLOR.tenue, origen: [0.5, 0.5], ancho: ancho - 30, alinear: 'center' });
+      texto(this, x + 20, 332, tr(`Gravedad: ${g} m/s² (Tierra: ${GRAVEDAD.tierra})`, `Gravity: ${g} m/s² (Earth: ${GRAVEDAD.tierra})`), { size: 13 });
+      texto(this, x + 20, 354, n ? tr(`Sitios análogos sugeridos: ${n}`, `Suggested analog sites: ${n}`)
         : tr('Sitios análogos sugeridos: sin dato aún', 'Suggested analog sites: no data yet'),
         { size: 13, color: n ? COLOR.texto : COLOR.alerta });
-      texto(this, x + 20, 295, tr('La gravedad del destino solo se usa en la misión,\nnunca en la prueba terrestre.',
+      texto(this, x + 20, 376, tr('La gravedad del destino solo se usa en la misión,\nnunca en la prueba terrestre.',
         'Destination gravity is used only in the mission,\nnever in the Earth test.'), { size: 11, color: COLOR.muyTenue });
-      return boton(this, x + ancho / 2, 350, `${tr('Elegir', 'Choose')} ${MUNDOS[d.mundo] || trDato(d, 'nombre')}`, () => this.empezar(id));
+      const b = boton(this, cx, 428, `${tr('Elegir', 'Choose')} ${MUNDOS[d.mundo] || trDato(d, 'nombre')}`, () => this.elegirDestino(id),
+        { alSobre: (v) => planeta.rapido(v) });
+      const s = planeta.sprite;
+      s.setInteractive({ useHandCursor: true, pixelPerfect: false });
+      s.on('pointerover', () => b.obj.emit('pointerover'));
+      s.on('pointerout', () => b.obj.emit('pointerout'));
+      s.on('pointerdown', () => b.activar());
+      return b;
     });
 
-    texto(this, 480, 410, tr(`Empiezas con ${TICKETS_POR_PARTIDA} tickets de prueba y ${PRESUPUESTO_INICIAL} créditos (valores de juego).`,
+    texto(this, 480, 474, tr(`Empiezas con ${TICKETS_POR_PARTIDA} tickets de prueba y ${PRESUPUESTO_INICIAL} créditos (valores de juego).`,
       `You start with ${TICKETS_POR_PARTIDA} test tickets and ${PRESUPUESTO_INICIAL} credits (game values).`),
       { size: 12, color: COLOR.tenue, origen: [0.5, 0.5] });
-    const volver = boton(this, 480, 480, tr('Volver', 'Back'), () => this.mostrar('principal'));
+    const volver = boton(this, 480, 510, tr('Volver', 'Back'), () => this.mostrar('principal'));
     const preferido = botones[ids.indexOf(partida.destino)] || botones[ids.indexOf(DESTINO_POR_DEFECTO)] || botones[0];
     // Atajos: 1 = Marte, 2 = Luna (orden de ORDEN_DESTINOS); el último número vuelve al menú.
     this.teclado.numerar([...botones, volver]);
     preferido?.setSugerido(true);
     this.teclado.poner([...botones, volver, this.botonIdioma('destino')], preferido);
+  }
+
+  /** Giro rápido del planeta elegido y luego empieza la partida (una sola vez aunque se pulse varias veces). */
+  elegirDestino(id) {
+    if (this.eligiendo) return;
+    this.eligiendo = true;
+    const p = this.planetas?.[id];
+    if (p) p.elegir(() => this.empezar(id));
+    else this.empezar(id);
   }
 
   empezar(destinoId) {
