@@ -61,6 +61,7 @@ export function generar() {
   };
   chip('ui_chip_rojo', '#ff7a93', '#3a1424');
   chip('ui_chip_cian', '#80e0dc', '#0f3236');
+  kit();
 
   // ---- botones táctiles 24 × 24 con flecha naranja; el presionado baja 2 px y pierde el canto
   const flecha = (p, dir, dy) => {
@@ -131,4 +132,66 @@ function resultados() {
     }
     p.text(txt, 12, 3, hex(LAV.w), { font: 'mini' });
   }, { contorno: false });
+}
+
+// ---------------------------------------------------------------- más piezas del kit (rediseño en pixel art)
+/** Cuadro de w × h a partir de una función (x, y) → color hex o null. */
+function cuadroDe(ruta, w, h, fn) {
+  const f = createFrame(w, h);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const c = fn(x, y); if (c) f.color[y * w + x] = hex(c); }
+  guardar(D + ruta + '.png', f);
+}
+const K = '#0e0c16';
+
+function kit() {
+  // ui_tarjeta (12 × 12, cortes de 4): panel oscuro para tarjetas; contorno, borde azul grisáceo y brillo arriba
+  cuadroDe('ui_tarjeta', 12, 12, (x, y) => {
+    const ex = Math.min(x, 11 - x), ey = Math.min(y, 11 - y);
+    if (ex + ey === 0) return null;                                        // esquinas redondeadas
+    if (ex === 0 || ey === 0) return K;
+    if (ex === 1 || ey === 1) return y === 1 ? '#4a5490' : y === 10 ? '#1a1e38' : '#2e3560';
+    if (y === 2) return '#1c2140';
+    return '#141830';
+  });
+
+  // ui_barra_relleno_<color> (4 × 3, cortes de 1 a los lados): entra en el hueco de ui_marco_barra
+  // (marco 9-slice con cortes de 2: con alto 7 el hueco mide 3 px). Fila de brillo, color y sombra.
+  const RELLENOS = {
+    amarillo: ['#fff08a', '#ffd166', '#c8901c'],
+    verde: ['#a8f0b0', '#4cc38a', '#1f7a4a'],
+    rojo: ['#ffc0cc', '#ff7a93', '#a8304a'],
+  };
+  for (const [color, [luz, medio, sombra]] of Object.entries(RELLENOS))
+    cuadroDe('ui_barra_relleno_' + color, 4, 3, (x, y) => (y === 0 ? (x === 3 ? medio : luz) : y === 1 ? medio : sombra));
+
+  // ui_ayuda (10 × 10, cortes de 3): marco de ayuda / tooltip, fondo azul noche con borde amarillo
+  cuadroDe('ui_ayuda', 10, 10, (x, y) => {
+    const ex = Math.min(x, 9 - x), ey = Math.min(y, 9 - y);
+    if (ex + ey === 0) return null;
+    if (ex === 0 || ey === 0) return K;
+    if (ex === 1 || ey === 1) return '#ffd166';
+    return '#0f1226';
+  });
+  // ui_ayuda_flecha (7 × 4): punta que se pega abajo del tooltip (centrada), mismos colores
+  cuadroDe('ui_ayuda_flecha', 7, 4, (x, y) => {
+    const d = Math.abs(x - 3);
+    if (d > 3 - y) return null;
+    if (d === 3 - y) return K;
+    if (d === 2 - y) return '#ffd166';
+    return y === 0 ? '#0f1226' : null;
+  });
+
+  // ui_titulo_placa (24 × 16, cortes de 6 a los lados y 5 arriba y abajo): placa morada con remaches para el título de cada
+  // pantalla; las filas del centro son iguales, así que se estira a lo alto sin deformarse.
+  const T = { borde: '#b9a6ff', brillo: '#5a2aa6', relleno: '#2e0d6b', sombra: '#180630', remache: '#c9a7ff' };
+  cuadroDe('ui_titulo_placa', 24, 16, (x, y) => {
+    const ex = Math.min(x, 23 - x), ey = Math.min(y, 15 - y);
+    if (ex + ey <= 1 && !(ex === 1 && ey === 0) && !(ex === 0 && ey === 1)) return ex + ey === 0 ? null : K;
+    if (ex === 0 || ey === 0) return K;
+    if (ex === 1 || ey === 1) return y >= 14 ? '#6a4cc0' : T.borde;
+    if ((x === 3 || x === 20) && (y === 3 || y === 12)) return T.remache;   // remaches en las esquinas
+    if (y === 2) return T.brillo;
+    if (y === 13) return T.sombra;
+    return T.relleno;
+  });
 }
