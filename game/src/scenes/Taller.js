@@ -7,6 +7,7 @@ import {
   RANURAS, DISENO_POR_DEFECTO, piezasPara, costoEnRanura, comoMapa, comoDiseno, resumen, validar,
 } from './Taller/diseno.js';
 import { MASA_CARGA_KG } from '../fisica/diseno.js'; // la carga que se entrega (frente juego)
+import { tr, trDato, enIngles } from '../i18n.js';
 
 // Dueño: frente taller. Armado con ranuras fijas, presupuesto visible, validación del diseño.
 // Contrato con el frente juego: partida.diseno = [{ ranura, pieza }] (docs/juego/ESPECIFICACION.md §3).
@@ -27,7 +28,7 @@ const ESQUEMA = {
   // Fila de arriba un poco más alta (60) para que quepan ícono + 3–4 líneas de texto sin salirse de la caja.
   motor: { x: 115, y: 250, w: 120, h: 60 },
   bateria: { x: 240, y: 250, w: 120, h: 60 },
-  carga: { x: 365, y: 250, w: 120, h: 60, etiqueta: 'Carga' }, // "Soporte de carga" + nombre de la pieza no cabe con ícono
+  carga: { x: 365, y: 250, w: 120, h: 60, etiqueta: 'Carga', etiqueta_en: 'Cargo' }, // "Soporte de carga" + nombre de la pieza no cabe con ícono
   chasis: { x: 240, y: 318, w: 370, h: 52 },
   rueda_tras: { x: 115, y: 392, rueda: true },
   rueda_del: { x: 365, y: 392, rueda: true },
@@ -46,13 +47,22 @@ const claveIcono = (id) => `iconos/${id}`;
 const VALIDACION_Y = 352;
 const VALIDACION_MAX_Y = 462;
 
+// Nombre de superficie para mostrar (los datos usan arena/roca/compacto).
+const SUPERFICIE_EN = { arena: 'sand', roca: 'rock', compacto: 'compact' };
+const sup = (s) => tr(s, SUPERFICIE_EN[s] ?? s);
+
 function datoClave(p) {
-  if (p.agarre) return `agarre rueda  arena ${f2(p.agarre.arena)} · roca ${f2(p.agarre.roca)} · compacto ${f2(p.agarre.compacto)}`;
-  if (p.sistema === 'estructura') return `resistencia ${p.resistencia}`;
-  if (p.sistema === 'potencia') return `fuerza ${p.fuerza} · consumo ${p.consumo}/s`;
-  if (p.sistema === 'energia') return `capacidad ${p.capacidad}`;
-  if (p.sistema === 'carga') return `protección ${Math.round(p.proteccion * 100)} %`;
-  if (p.id === 'panel_solar') return 'sin efecto en el MVP (falta regla de iluminación)';
+  if (p.agarre) {
+    return tr(
+      `agarre rueda  arena ${f2(p.agarre.arena)} · roca ${f2(p.agarre.roca)} · compacto ${f2(p.agarre.compacto)}`,
+      `wheel grip  sand ${f2(p.agarre.arena)} · rock ${f2(p.agarre.roca)} · compact ${f2(p.agarre.compacto)}`,
+    );
+  }
+  if (p.sistema === 'estructura') return tr(`resistencia ${p.resistencia}`, `strength ${p.resistencia}`);
+  if (p.sistema === 'potencia') return tr(`fuerza ${p.fuerza} · consumo ${p.consumo}/s`, `force ${p.fuerza} · drain ${p.consumo}/s`);
+  if (p.sistema === 'energia') return tr(`capacidad ${p.capacidad}`, `capacity ${p.capacidad}`);
+  if (p.sistema === 'carga') return tr(`protección ${Math.round(p.proteccion * 100)} %`, `protection ${Math.round(p.proteccion * 100)} %`);
+  if (p.id === 'panel_solar') return tr('sin efecto en el MVP (falta regla de iluminación)', 'no effect in the MVP (no lighting rule yet)');
   return '';
 }
 function f2(v) { return typeof v === 'number' ? v.toFixed(2) : '—'; }
@@ -104,22 +114,23 @@ export default class Taller extends Phaser.Scene {
     const destino = DESTINOS[partida.destino];
     const sitio = partida.sitio;
     const tipos = sitio && sitio.nivel && Array.isArray(sitio.nivel.superficies)
-      ? [...new Set(sitio.nivel.superficies.map((s) => s.tipo))].join(', ') : null;
+      ? [...new Set(sitio.nivel.superficies.map((s) => s.tipo))].map(sup).join(', ') : null;
     const sub = [
-      `Destino: ${destino ? destino.nombre : partida.destino}`,
-      sitio ? `Prueba en: ${sitio.nombre}` : null,
-      tipos ? `superficies: ${tipos}` : (sitio && sitio.prueba_util ? `prueba útil: ${sitio.prueba_util}` : null),
+      tr('Destino: ', 'Destination: ') + (destino ? trDato(destino, 'nombre') : partida.destino),
+      sitio ? tr('Prueba en: ', 'Test at: ') + trDato(sitio, 'nombre') : null,
+      tipos ? tr(`superficies: ${tipos}`, `surfaces: ${tipos}`)
+        : (sitio && sitio.prueba_util ? tr('prueba útil: ', 'useful test: ') + trDato(sitio, 'prueba_util') : null),
     ].filter(Boolean).join(' · ');
-    titulo(this, 'Taller', sub);
+    titulo(this, tr('Taller', 'Workshop'), sub);
 
     this.txtPresupuesto = this.add.text(480, 132, '', { fontFamily: FUENTE, fontSize: '16px', color: C.claro }).setOrigin(0.5);
 
     this.crearEsquema();
-    this.add.text(240, 452, 'avance →', { fontFamily: FUENTE, fontSize: '11px', color: C.apagado }).setOrigin(0.5);
+    this.add.text(240, 452, tr('avance →', 'forward →'), { fontFamily: FUENTE, fontSize: '11px', color: C.apagado }).setOrigin(0.5);
 
     this.txtCatalogo = this.add.text(480, 165, '', { fontFamily: FUENTE, fontSize: '14px', color: C.texto });
     this.lista = this.add.container(0, 0);
-    this.btnQuitar = this.add.text(925, 167, '[ Quitar ]', { fontFamily: FUENTE, fontSize: '13px', color: C.acento })
+    this.btnQuitar = this.add.text(925, 167, tr('[ Quitar ]', '[ Remove ]'), { fontFamily: FUENTE, fontSize: '13px', color: C.acento })
       .setOrigin(1, 0).on('pointerdown', () => this.quitar());
     // Crece hacia arriba (y 124–187) y a la izquierda; abajo empieza la primera fila del catálogo (y 188).
     zonaToque(this.btnQuitar, this.btnQuitar.width - 130, -43, 135, 63);
@@ -131,12 +142,16 @@ export default class Taller extends Phaser.Scene {
     });
 
     // Botones de abajo (y 485): zona de 62 px de alto (y 454–516) y 12 px de más a cada lado; no toca la columna del catálogo.
-    const btnRestablecer = boton(this, 560, 485, 'Restablecer', () => this.restablecer());
+    const btnRestablecer = boton(this, 560, 485, tr('Restablecer', 'Reset'), () => this.restablecer());
     zonaCentrada(btnRestablecer, btnRestablecer.width + 24, 62);
-    this.btnContinuar = boton(this, 790, 485, 'Probar el robot', () => this.continuar());
+    this.btnContinuar = boton(this, 790, 485, tr('Probar el robot', 'Test the robot'), () => this.continuar());
     zonaCentrada(this.btnContinuar, this.btnContinuar.width + 24, 62);
-    nota(this,'Teclado: ←/→ ranura · ↑/↓ pieza · Enter equipar · Supr quitar · R restablecer · C continuar. '
-      + 'Ruedas: cada eje lleva 2 (cobra 2 × costo y masa). Precios y estadísticas = valores de juego.');
+    nota(this, tr(
+      'Teclado: ←/→ ranura · ↑/↓ pieza · Enter equipar · Supr quitar · R restablecer · C continuar. '
+        + 'Ruedas: cada eje lleva 2 (cobra 2 × costo y masa). Precios y estadísticas = valores de juego.',
+      'Keys: ←/→ slot · ↑/↓ part · Enter equip · Del remove · R reset · C continue. '
+        + 'Wheels: each axle takes 2 (2 × cost and mass). Prices and stats = game values.',
+    ));
 
     const k = this.input.keyboard;
     k.on('keydown-LEFT', () => this.elegirRanura(this.sel - 1));
@@ -206,10 +221,10 @@ export default class Taller extends Phaser.Scene {
         txt.setWordWrapWidth(clave ? e.w - 32 : e.w - 8);
         txt.setFontSize(clave ? 10 : 11); // con ícono queda menos ancho: letra un punto más chica
       }
-      const nombreRanura = e.etiqueta ?? r.nombre;
+      const nombreRanura = e.etiqueta ? trDato(e, 'etiqueta') : trDato(r, 'nombre');
       const etiqueta = r.multiplicador > 1 ? `${nombreRanura} ×${r.multiplicador}` : nombreRanura;
-      const vacio = r.obligatoria ? '(vacía)' : '(opcional)';
-      txt.setText(`${etiqueta}\n${p ? p.nombre : vacio}`);
+      const vacio = r.obligatoria ? tr('(vacía)', '(empty)') : tr('(opcional)', '(optional)');
+      txt.setText(`${etiqueta}\n${p ? trDato(p, 'nombre') : vacio}`);
       txt.setColor(falta ? C.error : (elegida ? C.acento : C.texto));
     });
   }
@@ -251,13 +266,15 @@ export default class Taller extends Phaser.Scene {
     this.mapa = comoMapa(DISENO_POR_DEFECTO);
     const actual = this.mapa[RANURAS[this.sel].id];
     this.cursor = Math.max(0, this.opciones().findIndex((p) => p.id === actual));
-    this.aviso = 'Diseño restablecido al robot mínimo (ruedas estándar).';
+    this.aviso = tr('Diseño restablecido al robot mínimo (ruedas estándar).', 'Design reset to the minimal robot (standard wheels).');
     this.refrescar();
   }
 
   refrescarCatalogo() {
     const r = RANURAS[this.sel];
-    this.txtCatalogo.setText(`${r.nombre}${r.obligatoria ? '' : ' (opcional)'} — elige pieza`);
+    this.txtCatalogo.setText(r.obligatoria
+      ? tr(`${r.nombre} — elige pieza`, `${trDato(r, 'nombre')} — pick a part`)
+      : tr(`${r.nombre} (opcional) — elige pieza`, `${trDato(r, 'nombre')} (optional) — pick a part`));
     this.lista.removeAll(true);
     // Si alguna pieza de la lista tiene ícono (32 px a × 2), todas las filas recorren el texto para quedar alineadas.
     const dx = this.opciones().some((p) => this.icono(p.id)) ? 40 : 0;
@@ -272,7 +289,7 @@ export default class Taller extends Phaser.Scene {
         .setStrokeStyle(1, puesta ? ACENTO : BORDE)
         .on('pointerdown', () => this.equipar(i));
       zonaToque(fondo, 0, -3, 450, 52); // toda la fila (52 px de paso): sin huecos entre una pieza y la siguiente
-      const l1 = this.add.text(485 + dx, y, `${puesta ? '●' : '○'} ${p.nombre}`, {
+      const l1 = this.add.text(485 + dx, y, `${puesta ? '●' : '○'} ${trDato(p, 'nombre')}`, {
         fontFamily: FUENTE, fontSize: '13px', color: puesta ? C.acento : C.texto,
       });
       const l2 = this.add.text(915, y, `${costo} cr${xN} · ${p.masa * r.multiplicador} kg`, {
@@ -289,17 +306,18 @@ export default class Taller extends Phaser.Scene {
   refrescar() {
     const diseno = comoDiseno(this.mapa);
     const res = resumen(diseno, PIEZAS, { masaCarga: MASA_CARGA_KG });
-    const errores = validar(diseno, PIEZAS, this.presupuesto);
+    const errores = validar(diseno, PIEZAS, this.presupuesto, { en: enIngles() });
     const restante = this.presupuesto - res.costo;
-    this.txtPresupuesto.setText(
+    this.txtPresupuesto.setText(tr(
       `Costo ${res.costo} / ${this.presupuesto} créditos · Restante ${restante} · Masa ${res.masa} kg + carga ${MASA_CARGA_KG} kg`,
-    );
+      `Cost ${res.costo} / ${this.presupuesto} credits · Left ${restante} · Mass ${res.masa} kg + cargo ${MASA_CARGA_KG} kg`,
+    ));
     this.txtPresupuesto.setColor(restante < 0 ? C.error : C.claro);
 
     // 1) Estado (✓ / ✗ con errores). Si los errores no caben en 2 líneas, se resumen con "(+N más)".
     const estado = (n) => (errores.length
-      ? `✗ ${errores.slice(0, n).join(' · ')}${errores.length > n ? ` · (+${errores.length - n} más)` : ''}`
-      : '✓ Diseño válido');
+      ? `✗ ${errores.slice(0, n).join(' · ')}${errores.length > n ? tr(` · (+${errores.length - n} más)`, ` · (+${errores.length - n} more)`) : ''}`
+      : tr('✓ Diseño válido', '✓ Valid design'));
     let n = errores.length;
     this.txtEstado.setText(estado(n)).setColor(errores.length ? C.error : C.ok);
     while (n > 1 && this.txtEstado.height > 32) { n -= 1; this.txtEstado.setText(estado(n)); }
@@ -310,15 +328,25 @@ export default class Taller extends Phaser.Scene {
       ...(this.aviso ? [this.aviso] : []),
       ...(res.ejes_distintos
         ? [[this.mapa.rueda_del, this.mapa.rueda_tras].includes('rueda_ancha')
-          ? 'Ejes distintos: con las dos anchas es más seguro.'
-          : 'Ejes distintos: con las dos ruedas iguales es más seguro.']
+          ? tr('Ejes distintos: con las dos anchas es más seguro.', 'Mixed axles: two wide axles are safer.')
+          : tr('Ejes distintos: con las dos ruedas iguales es más seguro.', 'Mixed axles: matching wheels on both are safer.')]
         : []),
       // El agarre que muestra el taller es el de la PIEZA; en la física se multiplica por el del suelo (fisica/suelos.js).
-      `Agarre rueda (prom. ejes): arena ${f2(a.arena)} · roca ${f2(a.roca)} · compacto ${f2(a.compacto)}`,
-      'En la prueba: agarre² × agarre del suelo (P)', // fisica/robot.js: friccionDeAgarre = agarre²
-      `Resistencia ${res.resistencia ?? '—'} · Protección de carga ${res.proteccion != null ? Math.round(res.proteccion * 100) + ' %' : '—'}`,
-      `Fuerza/masa ${res.fuerza_por_masa != null ? res.fuerza_por_masa.toFixed(2) : '—'} · `
-        + `Autonomía ≈ ${res.autonomia_s != null ? Math.round(res.autonomia_s) + ' s a fondo' : '—'} con carga (P)`,
+      tr(
+        `Agarre rueda (prom. ejes): arena ${f2(a.arena)} · roca ${f2(a.roca)} · compacto ${f2(a.compacto)}`,
+        `Wheel grip (axle avg.): sand ${f2(a.arena)} · rock ${f2(a.roca)} · compact ${f2(a.compacto)}`,
+      ),
+      tr('En la prueba: agarre² × agarre del suelo (P)', 'In the test: grip² × soil grip (P)'), // fisica/robot.js: friccionDeAgarre = agarre²
+      tr(
+        `Resistencia ${res.resistencia ?? '—'} · Protección de carga ${res.proteccion != null ? Math.round(res.proteccion * 100) + ' %' : '—'}`,
+        `Strength ${res.resistencia ?? '—'} · Cargo protection ${res.proteccion != null ? Math.round(res.proteccion * 100) + ' %' : '—'}`,
+      ),
+      tr(
+        `Fuerza/masa ${res.fuerza_por_masa != null ? res.fuerza_por_masa.toFixed(2) : '—'} · `
+          + `Autonomía ≈ ${res.autonomia_s != null ? Math.round(res.autonomia_s) + ' s a fondo' : '—'} con carga (P)`,
+        `Force/mass ${res.fuerza_por_masa != null ? res.fuerza_por_masa.toFixed(2) : '—'} · `
+          + `Range ≈ ${res.autonomia_s != null ? Math.round(res.autonomia_s) + ' s at full power' : '—'}, loaded (P)`,
+      ),
     ];
     this.txtValidacion.setY(VALIDACION_Y + this.txtEstado.height + 4);
     this.txtValidacion.setText(lineas.join('\n'));
@@ -334,9 +362,9 @@ export default class Taller extends Phaser.Scene {
 
   continuar() {
     const diseno = comoDiseno(this.mapa);
-    const errores = validar(diseno, PIEZAS, this.presupuesto);
+    const errores = validar(diseno, PIEZAS, this.presupuesto, { en: enIngles() });
     if (errores.length) {
-      this.aviso = 'Corrige el diseño antes de probarlo.';
+      this.aviso = tr('Corrige el diseño antes de probarlo.', 'Fix the design before testing it.');
       this.refrescar();
       this.cameras.main.shake(120, 0.004);
       return;

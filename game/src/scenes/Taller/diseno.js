@@ -5,13 +5,13 @@
 import { gastoPorSegundo } from '../../fisica/energia.js'; // misma regla de energía que la física (sin ciclo de imports)
 
 export const RANURAS = [
-  { id: 'chasis', nombre: 'Chasis', sistema: 'estructura', obligatoria: true, multiplicador: 1 },
-  { id: 'rueda_del', nombre: 'Eje delantero', sistema: 'movilidad', obligatoria: true, multiplicador: 2 },
-  { id: 'rueda_tras', nombre: 'Eje trasero', sistema: 'movilidad', obligatoria: true, multiplicador: 2 },
-  { id: 'motor', nombre: 'Motor', sistema: 'potencia', obligatoria: true, multiplicador: 1 },
-  { id: 'bateria', nombre: 'Batería', sistema: 'energia', obligatoria: true, multiplicador: 1 },
-  { id: 'carga', nombre: 'Soporte de carga', sistema: 'carga', obligatoria: true, multiplicador: 1 },
-  { id: 'modulo', nombre: 'Módulo', sistema: 'modulo', obligatoria: false, multiplicador: 1 },
+  { id: 'chasis', nombre: 'Chasis', nombre_en: 'Chassis', sistema: 'estructura', obligatoria: true, multiplicador: 1 },
+  { id: 'rueda_del', nombre: 'Eje delantero', nombre_en: 'Front axle', sistema: 'movilidad', obligatoria: true, multiplicador: 2 },
+  { id: 'rueda_tras', nombre: 'Eje trasero', nombre_en: 'Rear axle', sistema: 'movilidad', obligatoria: true, multiplicador: 2 },
+  { id: 'motor', nombre: 'Motor', nombre_en: 'Motor', sistema: 'potencia', obligatoria: true, multiplicador: 1 },
+  { id: 'bateria', nombre: 'Batería', nombre_en: 'Battery', sistema: 'energia', obligatoria: true, multiplicador: 1 },
+  { id: 'carga', nombre: 'Soporte de carga', nombre_en: 'Cargo mount', sistema: 'carga', obligatoria: true, multiplicador: 1 },
+  { id: 'modulo', nombre: 'Módulo', nombre_en: 'Module', sistema: 'modulo', obligatoria: false, multiplicador: 1 },
 ];
 
 // Robot mínimo del camino dorado ("Taller: ruedas estándar"): 730 de 1,000 créditos.
@@ -112,24 +112,32 @@ export function resumen(diseno, catalogo, { masaCarga = 0 } = {}) {
   };
 }
 
-/** Errores que impiden salir del taller. Lista vacía = diseño válido. */
-export function validar(diseno, catalogo, presupuesto) {
+/**
+ * Errores que impiden salir del taller. Lista vacía = diseño válido.
+ * Los mensajes salen en español; con `{ en: true }` salen en inglés (el Taller lo pide según el idioma del juego).
+ * No se usa i18n.js aquí a propósito: así las pruebas en node no dependen del idioma del sistema.
+ */
+export function validar(diseno, catalogo, presupuesto, { en = false } = {}) {
+  const t = (es, ing) => (en ? ing : es);
+  const nom = (o) => (en && o.nombre_en ? o.nombre_en : o.nombre);
   const porId = Object.fromEntries(catalogo.map((p) => [p.id, p]));
   const errores = [];
   const vistas = new Set();
   for (const e of diseno || []) {
     const r = ranura(e.ranura);
-    if (!r) { errores.push(`Ranura desconocida: ${e.ranura}`); continue; }
-    if (vistas.has(r.id)) errores.push(`Ranura repetida: ${r.nombre}`);
+    if (!r) { errores.push(t(`Ranura desconocida: ${e.ranura}`, `Unknown slot: ${e.ranura}`)); continue; }
+    if (vistas.has(r.id)) errores.push(t(`Ranura repetida: ${r.nombre}`, `Repeated slot: ${nom(r)}`));
     vistas.add(r.id);
     const p = porId[e.pieza];
-    if (!p) errores.push(`Pieza inexistente en ${r.nombre}: ${e.pieza}`);
-    else if (p.sistema !== r.sistema) errores.push(`${p.nombre} no va en ${r.nombre}`);
+    if (!p) errores.push(t(`Pieza inexistente en ${r.nombre}: ${e.pieza}`, `Unknown part in ${nom(r)}: ${e.pieza}`));
+    else if (p.sistema !== r.sistema) errores.push(t(`${p.nombre} no va en ${r.nombre}`, `${nom(p)} does not fit in ${nom(r)}`));
   }
   for (const r of RANURAS) {
-    if (r.obligatoria && !vistas.has(r.id)) errores.push(`Falta: ${r.nombre}`);
+    if (r.obligatoria && !vistas.has(r.id)) errores.push(t(`Falta: ${r.nombre}`, `Missing: ${nom(r)}`));
   }
   const { costo } = resumen(diseno, catalogo); // el costo no depende de la carga
-  if (costo > presupuesto) errores.push(`Excede el presupuesto por ${costo - presupuesto} créditos`);
+  if (costo > presupuesto) {
+    errores.push(t(`Excede el presupuesto por ${costo - presupuesto} créditos`, `Over budget by ${costo - presupuesto} credits`));
+  }
   return errores;
 }
