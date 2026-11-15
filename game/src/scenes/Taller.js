@@ -151,6 +151,11 @@ export default class Taller extends Phaser.Scene {
   }
 
   create() {
+    // Fondo de arte del taller (Mauricio, #77), oscurecido para que el texto se lea encima.
+    if (this.textures.exists('pantallas/taller_fondo')) {
+      this.add.image(480, 270, 'pantallas/taller_fondo').setScale(3).setDepth(-10);
+      this.add.rectangle(480, 270, 960, 540, 0x0b0d17, 0.62).setDepth(-9);
+    }
     this.presupuesto = partida.presupuesto ?? PRESUPUESTO_INICIAL;
     // Al volver de una prueba se conserva el diseño; la primera vez arranca con el robot mínimo (ruedas estándar).
     // La pintura y el nombre (cosméticos) viajan en el mismo mapa para que Deshacer/Rehacer también los cubran.

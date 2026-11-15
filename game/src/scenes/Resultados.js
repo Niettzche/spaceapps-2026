@@ -62,6 +62,11 @@ export default class Resultados extends Phaser.Scene {
 
     // Fondo sólido: el arte del marco nunca determina el contraste del texto.
     this.add.rectangle(480, 284, 864, 228, 0x101827, 0.98).setStrokeStyle(2, 0x526782);
+    // Viñeta del final (Mauricio, #77): 96 × 64 ×2 a la derecha de las tarjetas; el texto se angosta para dejarle lugar.
+    const claveVineta = `pantallas/resultado_${motivo}`;
+    const conVineta = this.textures.exists(claveVineta);
+    if (conVineta) this.add.image(790, 284, claveVineta).setScale(2);
+    const anchoTexto = conVineta ? 590 : 820;
     const carga = Math.round(resultado.integridad_carga * 100);
     const energia = Math.round(resultado.energia_restante * 100);
     const robot = personalizacionActual().nombre ? ` · «${personalizacionActual().nombre}»` : '';
@@ -133,13 +138,13 @@ export default class Resultados extends Phaser.Scene {
       pagina = (indice + paginas.length) % paginas.length;
       contenido.removeAll(true);
       const p = paginas[pagina];
-      const encabezado = this.add.text(68, 186, p.titulo, { ...ESTILO, fontSize: '18px', color: '#ffffff', wordWrap: { width: 820 } });
+      const encabezado = this.add.text(68, 186, p.titulo, { ...ESTILO, fontSize: '18px', color: '#ffffff', wordWrap: { width: anchoTexto } });
       const texto = this.add.text(68, encabezado.y + encabezado.height + 14, p.texto, {
-        ...ESTILO, fontSize: '16px', color: '#ffd166', lineSpacing: 5, wordWrap: { width: 820 },
+        ...ESTILO, fontSize: '16px', color: '#ffd166', lineSpacing: 5, wordWrap: { width: anchoTexto },
       });
       contenido.add([encabezado, texto]);
       if (p.evidencia) contenido.add(this.add.text(68, texto.y + texto.height + 14, p.evidencia, {
-        ...ESTILO, fontSize: '16px', color: '#e1e8f0', lineSpacing: 5, wordWrap: { width: 820 },
+        ...ESTILO, fontSize: '16px', color: '#e1e8f0', lineSpacing: 5, wordWrap: { width: anchoTexto },
       }));
       contador.setText(`${pagina + 1} / ${paginas.length}`);
     };
@@ -173,7 +178,7 @@ export default class Resultados extends Phaser.Scene {
       const i = opciones.findIndex(([, escena]) => escena === 'Taller');
       opciones[i] = [tr('Aplicar y al taller', 'Apply & to workshop'), 'Taller', () => aplicarCambio(aplicable.cambio)];
       if (!exito) sugerida = i;
-      this.add.text(xs0(i), yb + 26, tr(`aplica: ${nombre}${ejes}`, `applies: ${nombre}${ejes}`), { ...ESTILO, fontSize: '11px', color: '#4cc38a' }).setOrigin(0.5);
+      this.add.text(xs0(i), yb + 23, tr(`aplica: ${nombre}${ejes}`, `applies: ${nombre}${ejes}`), { ...ESTILO, fontSize: '14px', color: '#4cc38a' }).setOrigin(0.5);
     }
     const xs = [190, 480, 770];
     const ir = (escena, antes) => { sonarBoton(); antes?.(); irA(this, escena); };

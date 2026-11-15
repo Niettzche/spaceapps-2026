@@ -10,7 +10,7 @@ export function boton(scene, x, y, texto, alPulsar) {
   return b;
 }
 export function nota(scene, texto) {
-  scene.add.text(480, 510, texto, { fontFamily: 'monospace', fontSize: '12px', color: '#6c7393', align: 'center', wordWrap: { width: 900 } }).setOrigin(0.5);
+  scene.add.text(480, 514, texto, { fontFamily: 'monospace', fontSize: '14px', color: '#a3abcc', align: 'center', wordWrap: { width: 900 } }).setOrigin(0.5);
 }
 
 // Una sola transición a la vez; Phaser limpia el fundido al reiniciar la cámara.
