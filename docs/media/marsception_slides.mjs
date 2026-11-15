@@ -115,9 +115,9 @@ function foot(s, label) { text(s, label, 48, 657, 1150, 35, 18, C.muted); }
 }
 // 5. Four vignettes of the golden path
 {
-  const s = slide('A design improves through testing', 'AGENTS.md section 11; docs/juego/ESPECIFICACION.md; docs/METHODOLOGY_EN.md. Samalayuca standard wheels slip; wide wheels improve the calibrated game test. Artwork illustrates the intended path and is not a screenshot of a completed run.');
+  const s = slide('A design improves through testing', 'AGENTS.md section 11; docs/juego/ESPECIFICACION.md; docs/METHODOLOGY_EN.md. Samalayuca standard wheels slip; wide wheels improve the calibrated game test. Lunar golden path: Al Hutaymah maar, g00263 (not Al Wahbah). Artwork illustrates the intended path and is not a screenshot of a completed run.');
   const titles = ['1  Choose an analog', '2  Build a rover', '3  Test and improve', '4  Deliver supplies'];
-  const details = ['Compare the evidence', 'Parts within a budget', 'Slip. Change wheels. Retry.', 'Mars or Moon mission'];
+  const details = ['Samalayuca / Mars\nAl Hutaymah / Moon', 'Parts within a budget', 'Slip. Change wheels. Retry.', 'Mars or Moon mission'];
   for (let i = 0; i < 4; i++) {
     const x = 40 + i * 304;
     await art(s, `assets/tutorial/tutorial_${i + 1}.png`, x, 190, 288, 192);
@@ -128,11 +128,11 @@ function foot(s, label) { text(s, label, 48, 657, 1150, 35, 18, C.muted); }
 }
 // 6. Limits
 {
-  const s = slide('Where the analogy breaks down', 'docs/METHODOLOGY_EN.md; data/targets; docs/taller/Space_Apps_Game_Data.xlsx, Judges and Ambiente. https://ssd.jpl.nasa.gov/planets/phys_par.html . Soft-soil sinkage is not modeled.');
+  const s = slide('Where the analogy breaks down', 'docs/METHODOLOGY_EN.md; data/targets; docs/taller/Space_Apps_Game_Data.xlsx, Judges and Ambiente. https://ssd.jpl.nasa.gov/planets/phys_par.html . Physics v2: Bekker-Wong sinkage, Mohr-Coulomb traction. Generic Earth sand, canonical draft lunar parameters and M90 Mars simulant are approximations, not site measurements. Source: https://github.com/Niettzche/spaceapps-2026/blob/dec602048e150599b2c652bf157055e471a81371/docs/juego/FISICA_V2.md .');
   await art(s, 'assets/pantallas/destino_polo_sur_lunar.png', 48, 192, 528, 352);
   const limits = [ ['Gravity', 'Earth 9.81 / Mars 3.71 / Moon 1.62 m/s²'], ['Atmosphere', 'Lunar vacuum / thin Martian air'], ['Radiation and cold', 'Destination conditions need separate tests'] ];
   limits.forEach(([name, detail], i) => { const y = 166 + i * 147; text(s, name, 624, y, 600, 52, 34, C.risk, true); text(s, detail, 624, y + 55, 588, 82, 26); });
-  foot(s, 'AI-assisted game art. The game models slip; sinkage stays outside its scope.');
+  foot(s, 'AI-assisted art. Physics v2: Bekker-Wong sinkage, Mohr-Coulomb traction.');
 }
 // 7. Impact and next step
 {

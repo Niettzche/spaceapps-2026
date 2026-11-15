@@ -21,19 +21,22 @@ Delivery version, 15 November 2026. English summary of [METODOLOGIA.md](METODOLO
 
 **Explainable model.** It is a logistic regression (Moon versus Mars) trained on **4,288 lunar and 573 Martian craters from 6 Mars sites**. With spatially grouped validation it reaches about **78%** balanced accuracy (76% using depth-to-diameter alone). On a Mars site it never saw, accuracy ranges from 70% (Gale) to 92% (Meridiani). It is not a neural network: its main rule is depth-to-diameter.
 
-**Game physics.** Real values carry a source; game values are marked **(P)**.
+**Game physics v2.** Real values carry a source; game values are marked **(P)**.
 - **Terrain:** each level is a real 250 m window of a DEM transect, never stretched. Dune slip faces (~32°) and ~0.3 m rocks that the DEM cannot resolve are added as declared recreations.
 - **Gravity:** real values (Earth 9.81, Mars 3.71, Moon 1.62 m/s²), scaled by one common factor that keeps the ratios.
-- **Grip:** wheel friction = (part grip)² (P) × soil grip tan φ.
-  - Moon regolith: φ 30–50° (Apollo).
-  - Mars: drift 15.6–20.4°, crusted soil 29.8–39.2° and rock 40–60° (Viking).
-  - Earth soil: a provisional value (P), shown on screen. A sourced dry-sand value (φ 28–34°) exists but stays off until the levels are rebalanced.
+- **Sinkage:** Bekker–Wong pressure–sinkage and rigid-wheel contact estimate sinkage and compaction resistance: `p = (kc/b + kφ) z^n`. Width `b`, radius and load affect contact; slip increases sinkage with a game multiplier (P).
+- **Traction:** Mohr–Coulomb limits thrust to `H = A c + W tan φ`, with contact area `A`, cohesion `c` and wheel load `W`. Matter friction maps this through tread grip and a calibrated multiplier (P); it is not a full shear-deformation model.
+  - Moon regolith: φ 30–50° (Apollo); Bekker constants use a canonical draft reference, not in-situ lunar measurements.
+  - Mars: drift 15.6–20.4°, crusted soil 29.8–39.2° and rock 40–60° (Viking). Drift Bekker constants come from the M90 **simulant**, not measured Martian dust.
+  - Earth dry sand uses generic Wong parameters, not a soil test at Samalayuca. Missing soil parameters remain missing; rock/compact-ground behavior and contact calibration retain declared game approximations (P).
 - **Game values (P):** prices, part stats, speed, cargo damage and the score. The score is not scientific evidence.
 
 **Limits.**
 - No place on Earth reproduces lunar vacuum, the destination's gravity, radiation or polar-shadow cold. The results screen lists what the Earth test could not show.
-- Soft-soil sinkage (Bekker) is not modeled: no true Bekker parameters exist for lunar regolith, and none are published for Martian dust.
+- Sinkage uses reference/simulant parameters, not a prediction validated for these sites or real rovers. Snow/ice soil constants are not supplied. The model omits shear-deformation dynamics, bulldozing and dynamic load transfer; wheel loads are evenly distributed.
 - Field access and operational suitability need separate review.
+
+**Version scope.** This describes physics v2, not confirmation of the currently deployed build. The [versioned equations and parameter sources](https://github.com/Niettzche/spaceapps-2026/blob/dec602048e150599b2c652bf157055e471a81371/docs/juego/FISICA_V2.md) still have an older experimental/default-v1 introduction; the [configuration at the same revision](https://github.com/Niettzche/spaceapps-2026/blob/dec602048e150599b2c652bf157055e471a81371/game/src/fisica/version.js) sets v2 as default.
 
 **Sources.**
 - **Validation and analysis:** [model validation](../model/VALIDATION.md), [shortlist](../ciencia_datos/salidas/lista_corta.md), [AI-label check](../ciencia_datos/etiquetado_ia/validacion.txt).

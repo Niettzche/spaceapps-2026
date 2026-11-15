@@ -20,6 +20,10 @@ The detector compares the three bodies at 200 m resolution. Mexico is the valida
 
 Distinct component evaluations include 9/11 documented Mexican craters in the original detector validation, about 78% spatially grouped balanced accuracy for Moon/Mars shape classification, 3/3 negative and 9/21 known-analog controls for the complementary comparator, and 29/33 correct externally checked AI-assisted labels from a non-random sample. These figures are not interchangeable and are not accuracy estimates for every candidate. See the [English methodology](METHODOLOGY_EN.md) and [validation report](../model/VALIDATION.md).
 
+Physics v2 adds Bekker–Wong wheel sinkage and Mohr–Coulomb traction. Earth sand uses generic reference parameters, lunar sinkage uses canonical reference parameters and Martian drift uses an M90 simulant; these are not site-specific measurements or validated predictions for real rovers. Gravity, atmosphere and radiation still limit what Earth training can demonstrate. See the methodology for omissions and game calibration.
+
+The updated demonstration routes are **Samalayuca → Mars** and **Al Hutaymah maar (`g00263`) → Moon**, with Earth testing, design iteration, destination delivery and the results screen showing where the analogy breaks down. Al Wahbah is a cited known analog, not the current lunar golden-path level. Record both routes in English after Mario publishes the new build; a completed UI run is still pending verification.
+
 ## Links · verify against Mario's next deployment before submission
 
 | Field | Value / status |

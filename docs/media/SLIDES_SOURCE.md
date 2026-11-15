@@ -7,7 +7,7 @@ Exactly seven slides, in English, in the requested order:
 3. Separate checks: 9/11 documented Mexican craters, about 78% spatially grouped balanced accuracy, 296 arid candidates.
 4. NASA MODIS, POWER, LRO/LOLA and MOLA, with ESA Copernicus and HRSC identified separately.
 5. Four illustrated steps of the golden path.
-6. Gravity, atmosphere, radiation/cold and the game's sinkage limit.
+6. Gravity, atmosphere and radiation/cold limits; physics v2 models Bekker–Wong sinkage and Mohr–Coulomb traction, with reference/simulant parameter limits in the notes.
 7. Educational use, open scientific review and next-step pilots.
 
 ## Files
