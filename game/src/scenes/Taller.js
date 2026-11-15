@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { titulo, boton, nota, irA } from './ui.js';
+import { boton, irA } from './ui.js';
 import { PIEZAS, DESTINOS } from '../data.js';
 import { PRESUPUESTO_INICIAL } from '../config/world.js';
 import { partida } from '../main.js';
@@ -23,17 +23,28 @@ const BORDE = 0x4a5275;
 const RELLENO = 0x141830;
 const FUENTE = 'monospace';
 
-// Posición de cada ranura en el esquema lateral (el robot avanza hacia la derecha).
+// Tamaño de letra (px del juego). En un teléfono en horizontal el lienzo de 960 × 540 se reduce a ~0.72:
+// 16 px del juego ≈ 11.5 px reales, el mínimo legible. Nada del Taller usa menos de TXT.
+const TXT = 16;       // texto general, esquema, catálogo, validación y ayuda
+const TXT_MEDIO = 17; // nombres de pieza, encabezado del catálogo y presupuesto
+
+// Posición de cada ranura en el esquema lateral (el robot avanza hacia la derecha). Columna izquierda: x 25–465;
+// termina antes de la fila de Regresar / Deshacer / Rehacer (y = BOTONES_Y).
 const ESQUEMA = {
-  modulo: { x: 365, y: 192, w: 120, h: 48 },
-  // Fila de arriba un poco más alta (60) para que quepan ícono + 3–4 líneas de texto sin salirse de la caja.
-  motor: { x: 115, y: 250, w: 120, h: 60 },
-  bateria: { x: 240, y: 250, w: 120, h: 60 },
-  carga: { x: 365, y: 250, w: 120, h: 60, etiqueta: 'Carga', etiqueta_en: 'Cargo' }, // "Soporte de carga" + nombre de la pieza no cabe con ícono
-  chasis: { x: 240, y: 318, w: 370, h: 52 },
-  rueda_tras: { x: 115, y: 392, rueda: true },
-  rueda_del: { x: 365, y: 392, rueda: true },
+  modulo: { x: 395, y: 142, w: 140, h: 56 }, // 3 renglones: "Módulo" + "Panel solar (opcional)" en 2
+  // Fila de arriba alta (86) para que quepan ícono + etiqueta + nombre de la pieza en 2–3 líneas a 16 px.
+  motor: { x: 95, y: 216, w: 140, h: 86 },
+  bateria: { x: 245, y: 216, w: 140, h: 86 },
+  carga: { x: 395, y: 216, w: 140, h: 86, etiqueta: 'Carga', etiqueta_en: 'Cargo' }, // "Soporte de carga" + nombre de la pieza no cabe con ícono
+  chasis: { x: 245, y: 292, w: 440, h: 46 },
+  rueda_tras: { x: 110, y: 359, rueda: true },
+  rueda_del: { x: 380, y: 359, rueda: true },
 };
+// Columna derecha (catálogo y validación): x 490–945.
+const CAT_X = 490;
+const CAT_Y = 128;    // encabezado del catálogo
+const FILA_Y = 152;   // primera pieza
+const FILA_PASO = 68; // alto de cada pieza (3 renglones de 16–17 px)
 
 const piezaPorId = Object.fromEntries(PIEZAS.map((p) => [p.id, p]));
 const ORDEN_RANURAS = RANURAS.map((r) => r.id);
@@ -52,8 +63,8 @@ const ICONOS = import.meta.glob('../../../assets/iconos/*.png', { eager: true, q
 const URL_ICONO = Object.fromEntries(Object.entries(ICONOS).map(([ruta, url]) => [ruta.split('/').pop().replace(/\.png$/, ''), url]));
 const claveIcono = (id) => `iconos/${id}`;
 
-// Columna derecha: la validación nunca baja de aquí (los botones están en y = BOTONES_Y).
-const VALIDACION_Y = 352;
+// Columna derecha: la validación empieza bajo la tercera pieza y nunca baja de aquí (los botones están en y = BOTONES_Y).
+const VALIDACION_Y = FILA_Y + 3 * FILA_PASO + 4;
 const VALIDACION_MAX_Y = 462;
 // Fila de botones de abajo: 2 px más arriba que el 485 original para no rozar la nota de teclado (2 líneas desde y ≈ 495).
 const BOTONES_Y = 483;
@@ -65,8 +76,8 @@ const sup = (s) => tr(s, SUPERFICIE_EN[s] ?? s);
 function datoClave(p) {
   if (p.agarre) {
     return tr(
-      `agarre rueda  arena ${f2(p.agarre.arena)} · roca ${f2(p.agarre.roca)} · compacto ${f2(p.agarre.compacto)}`,
-      `wheel grip  sand ${f2(p.agarre.arena)} · rock ${f2(p.agarre.roca)} · compact ${f2(p.agarre.compacto)}`,
+      `agarre: arena ${f2(p.agarre.arena)} · roca ${f2(p.agarre.roca)} · comp. ${f2(p.agarre.compacto)}`,
+      `grip: sand ${f2(p.agarre.arena)} · rock ${f2(p.agarre.roca)} · compact ${f2(p.agarre.compacto)}`,
     );
   }
   if (p.sistema === 'estructura') return tr(`resistencia ${p.resistencia}`, `durability ${p.resistencia}`);
@@ -141,27 +152,28 @@ export default class Taller extends Phaser.Scene {
       tipos ? tr(`superficies: ${tipos}`, `surfaces: ${tipos}`)
         : (sitio && sitio.prueba_util ? tr('prueba útil: ', 'tests: ') + trDato(sitio, 'prueba_util') : null),
     ].filter(Boolean).join(' · ');
-    titulo(this, tr('Taller', 'Workshop'), sub);
-    // Con sitios de nombre largo el subtítulo (14 px) se salía por los lados: se achica hasta caber en 930 px (mín. 11 px).
-    const txtSub = sub ? this.children.list[this.children.list.length - 1] : null;
-    if (txtSub && txtSub.type === 'Text' && txtSub.width > 930) txtSub.setFontSize(Math.max(11, Math.floor((14 * 930) / txtSub.width)));
-
-    this.txtPresupuesto = this.add.text(480, 132, '', { fontFamily: FUENTE, fontSize: '16px', color: C.claro }).setOrigin(0.5);
+    // Encabezado propio (no ui.titulo): título, subtítulo de hasta 2 líneas (los sitios de nombre largo ya no se achican)
+    // y presupuesto, todo a >= 16 px.
+    this.add.text(480, 22, tr('Taller', 'Workshop'), { fontFamily: FUENTE, fontSize: '28px', color: C.texto }).setOrigin(0.5);
+    this.add.text(480, 42, sub, {
+      fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.suave, align: 'center', wordWrap: { width: 930 },
+    }).setOrigin(0.5, 0);
+    this.txtPresupuesto = this.add.text(480, 98, '', { fontFamily: FUENTE, fontSize: `${TXT_MEDIO}px`, color: C.claro }).setOrigin(0.5);
 
     this.crearEsquema();
-    this.add.text(240, 452, tr('avance →', 'forward →'), { fontFamily: FUENTE, fontSize: '11px', color: C.apagado }).setOrigin(0.5);
+    this.add.text(245, ESQUEMA.rueda_tras.y, tr('avance →', 'forward →'), { fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.apagado }).setOrigin(0.5);
 
-    this.txtCatalogo = this.add.text(480, 165, '', { fontFamily: FUENTE, fontSize: '14px', color: C.texto });
+    this.txtCatalogo = this.add.text(CAT_X, CAT_Y, '', { fontFamily: FUENTE, fontSize: `${TXT_MEDIO}px`, color: C.texto }).setOrigin(0, 0.5);
     this.lista = this.add.container(0, 0);
-    this.btnQuitar = this.add.text(925, 167, tr('[ Quitar ]', '[ Remove ]'), { fontFamily: FUENTE, fontSize: '13px', color: C.acento })
-      .setOrigin(1, 0).on('pointerdown', () => this.quitar());
-    // Crece hacia arriba (y 124–187) y a la izquierda; abajo empieza la primera fila del catálogo (y 188).
-    zonaToque(this.btnQuitar, this.btnQuitar.width - 130, -43, 135, 63);
-    this.txtEstado = this.add.text(480, VALIDACION_Y, '', {
-      fontFamily: FUENTE, fontSize: '12px', color: C.ok, wordWrap: { width: 445 }, lineSpacing: 2,
+    this.btnQuitar = this.add.text(945, CAT_Y, tr('[ Quitar ]', '[ Remove ]'), { fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.acento })
+      .setOrigin(1, 0.5).on('pointerdown', () => this.quitar());
+    // Crece hacia arriba y a la izquierda; abajo empieza la primera fila del catálogo (y >= 150).
+    zonaToque(this.btnQuitar, this.btnQuitar.width - 130, -14, 135, this.btnQuitar.height + 18);
+    this.txtEstado = this.add.text(CAT_X, VALIDACION_Y, '', {
+      fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.ok, wordWrap: { width: 452 }, lineSpacing: 2,
     });
-    this.txtValidacion = this.add.text(480, VALIDACION_Y, '', {
-      fontFamily: FUENTE, fontSize: '12px', color: C.claro, wordWrap: { width: 445 }, lineSpacing: 2,
+    this.txtValidacion = this.add.text(CAT_X, VALIDACION_Y, '', {
+      fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.claro, wordWrap: { width: 452 }, lineSpacing: 2,
     });
 
     // Abajo a la izquierda (y BOTONES_Y, bajo el esquema): Regresar, Deshacer y Rehacer, en fila con 24 px entre botones.
@@ -183,14 +195,14 @@ export default class Taller extends Phaser.Scene {
     zonaCentrada(btnRestablecer, btnRestablecer.width + 24, 62);
     this.btnContinuar = boton(this, 790, BOTONES_Y, tr('Probar el robot', 'Test the robot'), () => this.continuar());
     zonaCentrada(this.btnContinuar, this.btnContinuar.width + 24, 62);
-    nota(this, tr(
-      'Teclado: ←/→ ranura · ↑/↓ pieza · Enter equipar · Supr quitar · R restablecer · C continuar · '
-        + 'Ctrl+Z deshacer · Ctrl+Y rehacer · Esc regresar. '
-        + 'Ruedas: cada eje lleva 2 (cobra 2 × costo y masa). Precios y estadísticas = valores de juego.',
-      'Keys: ←/→ slot · ↑/↓ part · Enter equip · Del remove · R reset · C continue · '
-        + 'Ctrl+Z undo · Ctrl+Y redo · Esc back. '
-        + 'Wheels: each axle takes 2 (2 × cost and mass). Prices and stats = game values.',
-    ));
+    // Ayuda de teclado en 2 líneas a 16 px (antes nota() de ui.js a 12 px). "Valores de juego" va en la línea del
+    // presupuesto y "cada eje lleva 2 ruedas" en el precio de las ruedas ("× 2") y al final de la validación.
+    this.add.text(480, 499, tr(
+      '←/→ ranura · ↑/↓ pieza · Enter equipar · Supr quitar · R restablecer\n'
+        + 'C probar · Ctrl+Z deshacer · Ctrl+Y rehacer · Esc regresar',
+      '←/→ slot · ↑/↓ part · Enter equip · Del remove · R reset\n'
+        + 'C test · Ctrl+Z undo · Ctrl+Y redo · Esc back',
+    ), { fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.apagado, align: 'center' }).setOrigin(0.5, 0);
 
     const k = this.input.keyboard;
     k.on('keydown-LEFT', () => this.elegirRanura(this.sel - 1));
@@ -231,8 +243,9 @@ export default class Taller extends Phaser.Scene {
     const g = this.add.graphics();
     // Suspensión: ejes unidos al chasis (solo decorativo).
     g.lineStyle(3, BORDE, 1);
-    g.lineBetween(115, 344, 115, 392);
-    g.lineBetween(365, 344, 365, 392);
+    const bajoChasis = ESQUEMA.chasis.y + ESQUEMA.chasis.h / 2;
+    g.lineBetween(ESQUEMA.rueda_tras.x, bajoChasis, ESQUEMA.rueda_tras.x, ESQUEMA.rueda_tras.y);
+    g.lineBetween(ESQUEMA.rueda_del.x, bajoChasis, ESQUEMA.rueda_del.x, ESQUEMA.rueda_del.y);
     for (const r of RANURAS) {
       const e = ESQUEMA[r.id];
       let forma;
@@ -251,10 +264,10 @@ export default class Taller extends Phaser.Scene {
         ? this.add.image(e.x, e.y, '__DEFAULT').setScale(2)
         : this.add.image(e.x - e.w / 2 + 14, e.y, '__DEFAULT');
       img.setVisible(false);
-      const ty = e.rueda ? e.y + 38 : e.y;
+      const ty = e.rueda ? e.y + 34 : e.y;
       const txt = this.add.text(e.x, ty, '', {
-        fontFamily: FUENTE, fontSize: '11px', color: C.texto, align: 'center',
-        wordWrap: { width: e.rueda ? 150 : e.w - 8 },
+        fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.texto, align: 'center', lineSpacing: -1,
+        wordWrap: { width: e.rueda ? 170 : e.w - 8 },
       }).setOrigin(0.5, e.rueda ? 0 : 0.5);
       this.ranurasUI[r.id] = { forma, txt, img, e };
     }
@@ -274,8 +287,7 @@ export default class Taller extends Phaser.Scene {
       if (!e.rueda) {
         // Con ícono, el texto se recorre a la derecha para no taparlo.
         txt.setX(clave ? e.x + 12 : e.x);
-        txt.setWordWrapWidth(clave ? e.w - 32 : e.w - 8);
-        txt.setFontSize(clave ? 10 : 11); // con ícono queda menos ancho: letra un punto más chica
+        txt.setWordWrapWidth(clave ? e.w - 32 : e.w - 8); // misma letra (TXT) con o sin ícono
       }
       const nombreRanura = e.etiqueta ? trDato(e, 'etiqueta') : trDato(r, 'nombre');
       const etiqueta = r.multiplicador > 1 ? `${nombreRanura} ×${r.multiplicador}` : nombreRanura;
@@ -366,28 +378,33 @@ export default class Taller extends Phaser.Scene {
       ? tr(`${r.nombre} — elige pieza`, `${trDato(r, 'nombre')} — pick a part`)
       : tr(`${r.nombre} (opcional) — elige pieza`, `${trDato(r, 'nombre')} (optional) — pick a part`));
     this.lista.removeAll(true);
-    // Si alguna pieza de la lista tiene ícono (32 px a × 2), todas las filas recorren el texto para quedar alineadas.
+    // Si alguna pieza de la lista tiene ícono (32 px a × 2), el nombre y el precio se recorren para quedar alineados.
     const dx = this.opciones().some((p) => this.icono(p.id)) ? 40 : 0;
     this.opciones().forEach((p, i) => {
-      const y = 195 + i * 52;
+      // Tres renglones por pieza: nombre · precio y masa · dato clave (todo a >= 16 px).
+      const y = FILA_Y + i * FILA_PASO;
       const puesta = this.mapa[r.id] === p.id;
       const resaltada = i === this.cursor;
       const costo = costoEnRanura(r.id, p);
       const xN = r.multiplicador > 1 ? ` (${p.costo} × ${r.multiplicador})` : '';
       const clave = this.icono(p.id);
-      const fondo = this.add.rectangle(700, y + 16, 450, 46, resaltada ? 0x222844 : RELLENO)
+      const l1 = this.add.text(CAT_X + 6 + dx, y + 2, `${puesta ? '●' : '○'} ${trDato(p, 'nombre')}`, {
+        fontFamily: FUENTE, fontSize: `${TXT_MEDIO}px`, color: puesta ? C.acento : C.texto,
+      });
+      const l2 = this.add.text(CAT_X + 6 + dx, y + 22, `${costo} cr${xN} · ${p.masa * r.multiplicador} kg`, {
+        fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.claro,
+      });
+      const l3 = this.add.text(CAT_X + 6, y + 42, datoClave(p), {
+        fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.suave, wordWrap: { width: 440 },
+      });
+      // Si el dato clave ocupa 2 líneas (p. ej. el panel solar, que es la única pieza de su ranura) la fila crece.
+      const alto = Math.max(FILA_PASO - 4, l3.y + l3.height - y + 4);
+      const fondo = this.add.rectangle(CAT_X + 227, y - 2 + alto / 2, 455, alto, resaltada ? 0x222844 : RELLENO)
         .setStrokeStyle(1, puesta ? ACENTO : BORDE)
         .on('pointerdown', () => this.equipar(i));
-      zonaToque(fondo, 0, -3, 450, 52); // toda la fila (52 px de paso): sin huecos entre una pieza y la siguiente
-      const l1 = this.add.text(485 + dx, y, `${puesta ? '●' : '○'} ${trDato(p, 'nombre')}`, {
-        fontFamily: FUENTE, fontSize: '13px', color: puesta ? C.acento : C.texto,
-      });
-      const l2 = this.add.text(915, y, `${costo} cr${xN} · ${p.masa * r.multiplicador} kg`, {
-        fontFamily: FUENTE, fontSize: '12px', color: C.claro,
-      }).setOrigin(1, 0);
-      const l3 = this.add.text(497 + dx, y + 19, datoClave(p), { fontFamily: FUENTE, fontSize: '11px', color: C.suave });
+      zonaToque(fondo, 0, 0, 455, alto + 4); // toda la fila: sin huecos entre una pieza y la siguiente
       this.lista.add([fondo, l1, l2, l3]);
-      if (clave) this.lista.add(this.add.image(501, y + 16, clave).setScale(2));
+      if (clave) this.lista.add(this.add.image(CAT_X + 22, y + 20, clave).setScale(2));
     });
     this.btnQuitar.setVisible(Boolean(this.mapa[r.id]));
   }
@@ -399,8 +416,8 @@ export default class Taller extends Phaser.Scene {
     const errores = validar(diseno, PIEZAS, this.presupuesto, { en: enIngles() });
     const restante = this.presupuesto - res.costo;
     this.txtPresupuesto.setText(tr(
-      `Costo ${res.costo} / ${this.presupuesto} créditos · Restante ${restante} · Masa ${res.masa} kg + carga ${MASA_CARGA_KG} kg`,
-      `Cost ${res.costo} / ${this.presupuesto} credits · Left ${restante} · Mass ${res.masa} kg + cargo ${MASA_CARGA_KG} kg`,
+      `Costo ${res.costo} / ${this.presupuesto} cr · Restante ${restante} · Masa ${res.masa} kg + carga ${MASA_CARGA_KG} kg (valores de juego)`,
+      `Cost ${res.costo} / ${this.presupuesto} cr · Left ${restante} · Mass ${res.masa} kg + cargo ${MASA_CARGA_KG} kg (game values)`,
     ));
     this.txtPresupuesto.setColor(restante < 0 ? C.error : C.claro);
 
@@ -410,7 +427,7 @@ export default class Taller extends Phaser.Scene {
       : tr('✓ Diseño válido', '✓ Valid design'));
     let n = errores.length;
     this.txtEstado.setText(estado(n)).setColor(errores.length ? C.error : C.ok);
-    while (n > 1 && this.txtEstado.height > 32) { n -= 1; this.txtEstado.setText(estado(n)); }
+    while (n > 1 && this.txtEstado.height > 42) { n -= 1; this.txtEstado.setText(estado(n)); }
 
     // 2) Aviso y resumen debajo; si no caben antes de los botones, se quitan líneas de resumen desde el final.
     const a = res.agarre;
@@ -421,22 +438,26 @@ export default class Taller extends Phaser.Scene {
           ? tr('Ejes distintos: con las dos anchas es más seguro.', 'Mixed axles: two wide axles are safer.')
           : tr('Ejes distintos: con las dos ruedas iguales es más seguro.', 'Mixed axles: matching wheels on both are safer.')]
         : []),
-      // El agarre que muestra el taller es el de la PIEZA; en la física se multiplica por el del suelo (fisica/suelos.js).
+      // Mismos datos que antes, en renglones cortos para 16 px; si no caben antes de los botones, se quitan desde el final.
+      // El agarre que muestra el taller es el de la PIEZA (promedio de ejes); en la física se multiplica por el del suelo.
       tr(
-        `Agarre rueda (prom. ejes): arena ${f2(a.arena)} · roca ${f2(a.roca)} · compacto ${f2(a.compacto)}`,
-        `Wheel grip (axle avg.): sand ${f2(a.arena)} · rock ${f2(a.roca)} · compact ${f2(a.compacto)}`,
+        `Agarre ejes: arena ${f2(a.arena)} · roca ${f2(a.roca)} · comp. ${f2(a.compacto)}`,
+        `Axle grip: sand ${f2(a.arena)} · rock ${f2(a.roca)} · compact ${f2(a.compacto)}`,
+      ),
+      tr(
+        `Autonomía ≈ ${res.autonomia_s != null ? Math.round(res.autonomia_s) + ' s a fondo' : '—'}, con carga (P)`,
+        `Battery ≈ ${res.autonomia_s != null ? Math.round(res.autonomia_s) + ' s at full power' : '—'}, loaded (P)`,
+      ),
+      tr(
+        `Protección de carga ${res.proteccion != null ? Math.round(res.proteccion * 100) + ' %' : '—'} · Resistencia ${res.resistencia ?? '—'}`,
+        `Cargo protection ${res.proteccion != null ? Math.round(res.proteccion * 100) + ' %' : '—'} · Durability ${res.resistencia ?? '—'}`,
+      ),
+      tr(
+        `Fuerza/masa ${res.fuerza_por_masa != null ? res.fuerza_por_masa.toFixed(2) : '—'}`,
+        `Force/mass ${res.fuerza_por_masa != null ? res.fuerza_por_masa.toFixed(2) : '—'}`,
       ),
       tr('En la prueba: agarre² × agarre del suelo (P)', 'In the test: grip² × soil grip (P)'), // fisica/robot.js: friccionDeAgarre = agarre²
-      tr(
-        `Resistencia ${res.resistencia ?? '—'} · Protección de carga ${res.proteccion != null ? Math.round(res.proteccion * 100) + ' %' : '—'}`,
-        `Durability ${res.resistencia ?? '—'} · Cargo protection ${res.proteccion != null ? Math.round(res.proteccion * 100) + ' %' : '—'}`,
-      ),
-      tr(
-        `Fuerza/masa ${res.fuerza_por_masa != null ? res.fuerza_por_masa.toFixed(2) : '—'} · `
-          + `Autonomía ≈ ${res.autonomia_s != null ? Math.round(res.autonomia_s) + ' s a fondo' : '—'} con carga (P)`,
-        `Force/mass ${res.fuerza_por_masa != null ? res.fuerza_por_masa.toFixed(2) : '—'} · `
-          + `Battery ≈ ${res.autonomia_s != null ? Math.round(res.autonomia_s) + ' s at full power' : '—'}, loaded (P)`,
-      ),
+      tr('Cada eje lleva 2 ruedas (2 × costo y masa)', 'Each axle takes 2 wheels (2 × cost and mass)'),
     ];
     this.txtValidacion.setY(VALIDACION_Y + this.txtEstado.height + 4);
     this.txtValidacion.setText(lineas.join('\n'));

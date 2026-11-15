@@ -1,7 +1,8 @@
 // Dueño: frente expediente. Cliente mínimo de la API del modelo (api/main.py). El juego NO depende de ella:
 // cualquier fallo se devuelve como { ok: false, tipo, mensaje } para que la interfaz lo explique.
-import { API_URL, API_CONFIGURADA, ESPERA_API_MS, ESPERA_SONDEO_API_MS } from './config.js';
+import { API_URL, API_CONFIGURADA, ESPERA_API_MS, ESPERA_SONDEO_API_MS, ESPERA_POWER_MS } from './config.js';
 import { apiSinPublicar } from './logica.js';
+import { urlPower, leerClimaPower } from './catalogo.js';
 import { tr } from '../../i18n.js';
 
 async function post(ruta, cuerpo, { espera = ESPERA_API_MS, senal } = {}) {
@@ -50,6 +51,27 @@ export async function apiDisponible({ espera = ESPERA_SONDEO_API_MS, senal, host
   try {
     const r = await fetch(`${API_URL}/health`, { signal: ctrl.signal });
     return r.ok ? { ok: true } : { ok: false, tipo: 'http', estado: r.status };
+  } catch {
+    return { ok: false, tipo: ctrl.signal.aborted ? ctrl.signal.reason : 'red' };
+  } finally {
+    clearTimeout(reloj);
+  }
+}
+
+/**
+ * Clima en vivo directo de NASA POWER (sin la API del modelo): API pública, sin llave, con CORS (Access-Control-Allow-Origin: *).
+ * Devuelve { ok: true, clima } (ver leerClimaPower) o { ok: false, tipo: 'espera' | 'red' | 'http' | 'sin_datos' | 'cancelado' }.
+ * Nunca lanza: si falla, la interfaz simplemente omite la sección de clima.
+ */
+export async function climaPower({ lat, lon }, { espera = ESPERA_POWER_MS, senal } = {}) {
+  const ctrl = new AbortController();
+  const reloj = setTimeout(() => ctrl.abort('espera'), espera);
+  if (senal) senal.addEventListener('abort', () => ctrl.abort('cancelado'), { once: true });
+  try {
+    const r = await fetch(urlPower(lat, lon), { signal: ctrl.signal });
+    if (!r.ok) return { ok: false, tipo: 'http', estado: r.status };
+    const clima = leerClimaPower(await r.json());
+    return clima ? { ok: true, clima } : { ok: false, tipo: 'sin_datos' };
   } catch {
     return { ok: false, tipo: ctrl.signal.aborted ? ctrl.signal.reason : 'red' };
   } finally {

@@ -10,6 +10,7 @@ import { notaSuelo } from './suelos.js';
 import { Telemetria, construirResultado } from './telemetria.js';
 import { Efectos } from './efectos.js';
 import { Sonido } from './sonido.js';
+import { Decoracion } from './decoracion.js';
 import { tr } from '../i18n.js';
 import { AspectoRobot, crearFondo, claveDeFondo, sprite, tira, hayArte } from './aspecto.js';
 import { ambienteDe, resumenAmbiente, efectosAmbiente, notaAmbiente } from './ambiente.js';
@@ -53,15 +54,18 @@ export class Recorrido {
     this.obstaculos = generarObstaculos(o.perfil, { mundo: o.mundo, semilla: (o.modo === 'prueba' ? o.sitioId : o.destinoId) ?? o.mundo });
     crearObstaculos(scene, o.perfil, this.terreno, this.obstaculos, { mundo: o.mundo, sprite, hayArte });
 
-    // Límites: paredes a los lados, sin techo ni piso (el suelo es el terreno).
-    const izq = xMundo(0) - m(2);
-    const der = xMundo(o.perfil.largo_m) + m(2);
+    // Límites: paredes a los lados, sin techo ni piso (el suelo es el terreno). Las paredes van justo donde empieza y termina
+    // el terreno: con 2 m de margen quedaba un hueco sin suelo al principio y el robot caía en reversa sin que pasara nada.
+    const izq = xMundo(0);
+    const der = xMundo(o.perfil.largo_m);
     scene.matter.world.setBounds(izq, this.terreno.arriba - m(60), der - izq, this.terreno.abajo - this.terreno.arriba + m(80), 64, true, true, false, false);
 
     // Meta de la prueba o zona de entrega de la misión, en el plano final.
     const inicioFinal = o.perfil.largo_m - PLANO_FINAL_M;
     this.meta_m = o.modo === 'prueba' ? inicioFinal + 4 : inicioFinal + 6;
-    this.zona = o.modo === 'mision' ? { desde: inicioFinal + 4, hasta: o.perfil.largo_m - 4 } : null;
+    // La zona llega hasta la pared del final: antes terminaba 4 m antes y un robot que se pasaba quedaba contra la pared,
+    // fuera de la zona y sin atasco (se apagaba al alcanzar la zona): la misión se quedaba colgada.
+    this.zona = o.modo === 'mision' ? { desde: inicioFinal, hasta: o.perfil.largo_m } : null;
     this._dibujarMeta(yMundo(alturaEn(o.perfil, this.meta_m)));
 
     // Robot sobre el plano de inicio.
@@ -80,20 +84,25 @@ export class Recorrido {
     const cam = scene.cameras.main;
     cam.setBounds(izq, this.terreno.arriba - m(25), der - izq, this.terreno.abajo - this.terreno.arriba + m(25));
     crearFondo(scene, claveDeFondo(o.mundo, o.sitioId), { x: izq, ancho: der - izq });
+    this.decoracion = new Decoracion(scene, o); // decoración de fondo, sin física (Alan, #61)
     cam.startFollow(this.robot, false, 0.12, 0.12, -m(6), m(1));
 
     this.controles = new Controles(scene);
     // Origen del agarre del suelo + aviso del nivel. El suelo va primero: es corto y el HUD corta el aviso a 3 líneas,
     // así los valores provisionales (P) siempre se declaran en pantalla.
     const notaObs = notaObstaculos(this.obstaculos);
-    const avisoNivel = `${o.perfil.ilustrativo ? '⚠ ' : ''}${o.perfil.nota}${notaObs ? ` · ${notaObs}` : ''}`;
+    const notaDecor = this.decoracion.tipo
+      ? tr('Aves, polvo distante y roca espacial: decoración recreada, sin efecto físico.', 'Birds, distant dust and space rock: recreated decoration, no physical effect.')
+      : null;
+    const avisoNivel = [`${o.perfil.ilustrativo ? '⚠ ' : ''}${o.perfil.nota}${notaObs ? ` · ${notaObs}` : ''}`, notaDecor].filter(Boolean).join(' ');
     const avisoSuelo = notaSuelo(o.mundo, o.perfil.superficies);
     const avisoAmbiente = notaAmbiente(this.ambiente);
     this.hud = new Hud(scene, { titulo: o.titulo, subtitulo: o.subtitulo, aviso: [avisoSuelo && `${avisoSuelo}.`, `${avisoNivel.replace(/\.$/, '')}.`, avisoAmbiente].filter(Boolean).join(' ') });
     this._botonAbandonar();
     // Instrucciones al empezar: objetivo + controles (teclado y táctil). Esc abandona.
     const controles = tr('→ / D acelerar   ← / A frenar   (táctil: ▶ ◀)   Esc pausa', '→ / D accelerate   ← / A brake   (touch: ▶ ◀)   Esc pause');
-    const ambiente = [resumenAmbiente(this.ambiente), efectosAmbiente(this.ambiente)].filter(Boolean);
+    const efectos = efectosAmbiente(this.ambiente);
+    const ambiente = [resumenAmbiente(this.ambiente), efectos && `(P) ${efectos}`].filter(Boolean);
     if (o.modo === 'prueba') this.hud.instrucciones(tr('Prueba en la Tierra: llega a la META con la carga', 'Earth test: reach the FINISH with the payload'), [...ambiente, controles]);
     else {
       // Llegada al destino: fundido desde negro y el cambio de mundo explicado con el dato de gravedad.
@@ -162,6 +171,7 @@ export class Recorrido {
     const delta = runner?.isFixed ? runner.delta : deltaCuadro;
     const r = this.robot;
     if (this.pausado) return; // mundo de física detenido; nada avanza
+    this.decoracion.actualizar(deltaCuadro);
     const acelerador = this.terminado ? 0 : this.controles.acelerador();
     if (acelerador !== 0) this.hud.ocultarInstrucciones();
     r.actualizar(delta, acelerador, this.superficieDe);
@@ -176,21 +186,21 @@ export class Recorrido {
     if (r.destruido) return this._terminar(false, 'chasis_destruido');
     if (r.cargaPerdida) return this._terminar(false, 'carga_perdida');
     if (r.volcado) return this._terminar(false, 'volcado');
+    // Respaldo: si el robot sale por debajo del terreno (no debería con las paredes), la partida termina en vez de colgarse.
+    if (r.chasis.position.y > this.terreno.abajo + m(3)) return this._terminar(false, 'caida');
     this.tSinEnergia = r.sinEnergia ? this.tSinEnergia + delta / 1000 : 0;
     if (r.sinEnergia && (r.quieto(0.4) || this.tSinEnergia >= SEG_SIN_ENERGIA_FIN)) return this._terminar(false, 'energia_agotada');
     // Atasco: sin avanzar a pesar de seguir en marcha (p. ej. patinando contra una duna).
     if (x_m > this.mejorX + M_AVANCE_ATASCO) { this.mejorX = x_m; this.tMejorX = r.t; }
     else if (acelerador === 0) this.tMejorX += delta / 1000; // quieto a propósito no cuenta como atasco
-    if (!this.zonaAlcanzada(x_m) && r.t - this.tMejorX > SEG_ATASCO) return this._terminar(false, 'atascado');
+    if (!this.enZona(r, x_m) && r.t - this.tMejorX > SEG_ATASCO) return this._terminar(false, 'atascado');
 
     if (this.o.modo === 'prueba') {
       if (x_m >= this.meta_m) this._terminar(true, 'meta');
       return;
     }
     // Misión: carga y robot en la zona, quietos 2 s.
-    const cargaX_m = (r.carga.position.x - this.xMundo(0)) / PX_POR_M;
-    const enZona = x_m >= this.zona.desde && x_m <= this.zona.hasta && cargaX_m >= this.zona.desde && cargaX_m <= this.zona.hasta;
-    this.tQuieto = enZona && r.quieto() ? this.tQuieto + delta / 1000 : 0;
+    this.tQuieto = this.enZona(r, x_m) && r.quieto() ? this.tQuieto + delta / 1000 : 0;
     if (this.tQuieto >= SEG_QUIETO_ENTREGA) {
       if (estado.integridad >= this.o.umbralIntegridad) this._terminar(true, 'entrega');
       else this._terminar(false, 'carga_danada');
@@ -218,6 +228,13 @@ export class Recorrido {
     return Boolean(this.zona) && x_m >= this.zona.desde - 2;
   }
 
+  /** Robot y carga dentro de la zona de entrega (hasta la pared del final). Con tolerancia de 1 m en la entrada. */
+  enZona(r, x_m) {
+    if (!this.zona) return false;
+    const cargaX_m = (r.carga.position.x - this.xMundo(0)) / PX_POR_M;
+    return x_m >= this.zona.desde - 1 && cargaX_m >= this.zona.desde - 1;
+  }
+
   _terminar(exito, motivo) {
     if (this.terminado) return;
     this.terminado = true;
@@ -241,11 +258,11 @@ export class Recorrido {
     const textos = tr({
       meta: '¡Prueba superada!', entrega: '¡Entrega completada!', chasis_destruido: 'Chasis destruido',
       carga_perdida: 'Se perdió la carga', volcado: 'El robot volcó', energia_agotada: 'Sin energía', atascado: 'El robot quedó atascado',
-      carga_danada: 'La carga llegó muy dañada', abandono: 'Prueba abandonada',
+      carga_danada: 'La carga llegó muy dañada', abandono: 'Prueba abandonada', caida: 'El robot se cayó del terreno',
     }, {
       meta: 'Test passed!', entrega: 'Delivery complete!', chasis_destruido: 'Chassis destroyed',
       carga_perdida: 'Payload lost', volcado: 'The robot flipped over', energia_agotada: 'Out of energy', atascado: 'The robot got stuck',
-      carga_danada: 'Payload arrived too damaged', abandono: 'Run abandoned',
+      carga_danada: 'Payload arrived too damaged', abandono: 'Run abandoned', caida: 'The robot fell off the terrain',
     });
     this.hud.mostrar(textos[motivo] ?? motivo);
     this.scene.time.delayedCall(ESPERA_FIN_MS, () => this.o.alTerminar({
@@ -263,6 +280,7 @@ export class Recorrido {
   }
 
   destruir() {
+    this.decoracion?.destruir();
     this.efectos?.destruir();
     this.sonido?.destruir();
     this.robot.destruir();

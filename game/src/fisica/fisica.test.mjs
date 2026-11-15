@@ -5,7 +5,7 @@ import { resolverDiseno, DISENO_POR_DEFECTO, RANURAS, RANURAS_OBLIGATORIAS, RUED
 import * as taller from '../scenes/Taller/diseno.js';
 import {
   SUPERFICIES, generarPerfil, perfilDesdeElevaciones, perfilDeSitio, perfilDeDestino, ventanaCritica, transectoEnSentido, metricasVentana, VENTANAS_JUEGO,
-  superficieEn, alturaEn, pendienteMaxima,
+  superficieEn, alturaEn, pendienteMaxima, PLANO_FINAL_M,
 } from './perfil.js';
 import { danioCarga, danioChasis } from './danio.js';
 import { gastoPorSegundo } from './energia.js';
@@ -117,7 +117,7 @@ caso('perfil con ventana fija en sentido inverso: sube, se declara y no recrea d
   const sup = [{ desde: 0, hasta: crater.total, tipo: 'arena' }];
   const p = perfilDesdeElevaciones(crater.elev, { paso_m: 30, superficies: sup, ventana: { desde_m: 270, hasta_m: 510, sentido: 'vuelta' }, dunasRecreadas: true, descripcion: ['salida del cráter', 'out of the crater'] });
   assert.equal(p.ventana.sentido, 'vuelta');
-  assert.equal(p.largo_m, 18 + 240 + 30);
+  assert.equal(p.largo_m, 18 + 240 + PLANO_FINAL_M);
   assert.ok(p.y_m.at(-1) - p.y_m[0] > 80, 'el tramo sube');
   assert.match(p.nota, /del m 510 al m 270, sentido inverso del transecto\) de un transecto de 1\.2 km, sube 87 m, pendiente máx\. 20° de subida: salida del cráter/);
   assert.ok(pendienteMaxima(p) < 21, `sin caras de duna sobre la pared de 20°: ${pendienteMaxima(p)}`);
@@ -279,11 +279,12 @@ caso('ambiente: datos con fuente de los 4 sitios jugables y los 2 destinos', () 
   assert.equal(ambienteDe({ modo: 'prueba', mundo: 'tierra', sitioId: 'pinacate' }).id, 'pinacate');
   assert.equal(ambienteDe({ modo: 'mision', mundo: 'marte', destinoId: 'jezero' }).id, 'jezero');
 });
-caso('ambiente: batería fría (−0.2 %/°C bajo 0 °C, piso 85 %)', () => {
+caso('ambiente: batería fría (−0.03 %/°C bajo 0 °C, piso 97 %)', () => {
   assert.equal(factorFrio(15), 1);
   assert.equal(factorFrio(0), 1);
-  assert.ok(Math.abs(factorFrio(-53) - 0.894) < 1e-9); // Luna, borde iluminado
-  assert.equal(factorFrio(-83), REGLAS.frio.piso); // Marte: 16.6 % → piso 85 %
+  assert.ok(Math.abs(factorFrio(-53) - 0.9841) < 1e-9); // Luna, borde iluminado
+  assert.ok(Math.abs(factorFrio(-83) - 0.9751) < 1e-9); // Marte (dos soles de MEDA)
+  assert.equal(factorFrio(-200), REGLAS.frio.piso); // muy frío → piso 97 %
   assert.equal(factorFrio(null), 1);
   for (const id of ['samalayuca', 'pinacate', 'mx0207', 'g00281']) assert.equal(factorFrio(ambienteDeSitio(id).temperatura_min_C), 1, id);
 });
@@ -329,13 +330,13 @@ caso('ambiente: luz rasante reduce la recarga del panel solar', () => {
 });
 caso('ambiente: textos bilingües para el Expediente y las instrucciones', () => {
   const jez = ambienteDeDestino('jezero', 'marte');
-  assert.equal(resumenAmbiente(jez), 'Marte: −83 a −22 °C · aire 0.017 kg/m³ (1 % de la Tierra): el motor se enfría poco');
+  assert.equal(resumenAmbiente(jez), 'Marte: −83 a −22 °C (dos soles, MEDA) · aire 0.017 kg/m³ (1 % de la Tierra): el motor se enfría poco');
   const l = lineasAmbiente(ambienteDeDestino('polo_sur_lunar', 'luna'));
-  assert.ok(l[0] === 'Temperatura: −53 °C' && l.some((x) => x.startsWith('Luz: rasante')) && l.at(-1).startsWith('Fuente: docs/taller/AMBIENTE.md: LRO Diviner'));
+  assert.ok(l[0] === 'Temperatura: −53 °C (borde iluminado)' && l.some((x) => x.startsWith('Luz: rasante')) && l.at(-1).startsWith('Fuente: docs/taller/AMBIENTE.md: LRO Diviner'));
   assert.ok(lineasAmbiente(ambienteDeSitio('pinacate'))[0].includes('extremos −4.7 / 48.4 °C'));
   setIdioma('en');
   try {
-    assert.ok(resumenAmbiente(jez).startsWith('Mars: −83 to −22 °C · air 0.017 kg/m³ (1 % of Earth'));
+    assert.ok(resumenAmbiente(jez).startsWith('Mars: −83 to −22 °C (2 sols, MEDA) · air 0.017 kg/m³ (1 % of Earth'));
     assert.ok(lineasAmbiente(jez).at(-1).startsWith('Source: docs/taller/AMBIENTE.md: MEDA'));
   } finally {
     setIdioma('es');
@@ -367,7 +368,7 @@ caso('feedback: sobrecalentamiento → línea de analogía y recomendación', ()
   const mision = { resultado: { destino: 'polo_sur_lunar', eventos: ev('sobrecalentamiento', 2), distancia_m: 250, energia_restante: 0.1 } };
   const lineas = compararAnalogia(prueba, mision, { id: 'polo_sur_lunar', mundo: 'luna', gravedad_ms2: 1.62, no_reproducible_en_tierra: [] });
   assert.ok(lineas.some((l) => l.startsWith('El motor se calentó 2 veces en la misión y ninguna en la prueba: el aire de la Tierra (1.045 kg/m³) lo enfría')));
-  assert.ok(lineas.some((l) => l.startsWith('Frío: en el destino hace −53 °C')));
+  assert.ok(lineas.some((l) => l.startsWith('Frío: la mínima medida en el destino fue −53 °C (borde iluminado)')));
   const recE = recomendar({ eventos: ev('sobrecalentamiento'), diseno: [{ ranura: 'motor', pieza: 'motor_eficiente' }] });
   assert.ok(recE.some((r) => r.id === 'pausas_motor'));
   const recP = recomendar({ eventos: ev('sobrecalentamiento'), diseno: [{ ranura: 'motor', pieza: 'motor_potente' }] });
