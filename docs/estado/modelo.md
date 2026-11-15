@@ -5,7 +5,7 @@
 **Responsable:** Mario  ·  **Agente:** Claude Code / Codex
 **Última actualización:** 15 nov 2026, mañana (landing con divulgación científica en `informe/divulgacion/`; ANA, la tutora de análogos, ya en `main`; demo en https://v1.marsception.us/)
 
-## Hecho (textos verificados de Jabal Bayda y Cananea, 15 nov, 10:00; pedido de integración)
+## Hecho (textos verificados de Jabal Bayda y Cananea, 15 nov, 09:40; pedido de integración)
 - **`data/sites/g00266.json`:** el nombre pasa de «Cono de toba» a «Anillo de toba Jabal Bayda (Harrat Khaybar, Arabia Saudita)» y
   `proceso` a «Volcánico: anillo de toba de comendita (una riolita), de origen freatomagmático». La nota dice las dos versiones:
   Németh (2026) y Alohali et al. (2022, que cita a Camp et al. 1991) lo describen como anillo de toba; el GVP y NASA Earth
