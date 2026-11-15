@@ -10,7 +10,7 @@ celdas 21 y 23; antes de medir reproduce idénticos los niveles de g00281 y mx02
   y, Meteor Crater, el candidato G00195 de global_crateres.csv). Forma con model/forma.py, destino con la regla 4 de model/scan.py,
   borde levantado con model/borde.py, variables complementarias con model/features.py y similitud con model/score.py.
 
-Uso:  uv run python -m model.niveles --medir   (consulta NASA POWER, MODIS y Earth Engine para los cráteres de impacto y guarda
+Uso:  uv run python -m model.niveles --medir   (consulta NASA POWER, MODIS y Earth Engine para los cráteres de impacto que falten y guarda
                                                ciencia_datos/datos/variables_impactos.json; solo hace falta una vez)
       uv run python -m model.niveles           (sin red: escribe data/sites desde los dos JSON; idempotente)
 """
@@ -40,6 +40,7 @@ IMPACTOS = {
     "tenoumer": ("I03", "impactos_tierra.csv", "Cráter de impacto Tenoumer (Mauritania)", "MR"),
     "roter_kamm": ("I06", "impactos_tierra.csv", "Cráter de impacto Roter Kamm (Namibia)", "NA"),
     "talemzane": ("I07", "impactos_tierra.csv", "Cráter de impacto Talemzane (Argelia)", "DZ"),
+    "pingualuit": ("I04", "impactos_tierra.csv", "Cráter de impacto Pingualuit (Nunavik, Quebec, Canadá)", "CA"),
 }
 CRATER_DE_SITIO = {sid: v[0] for sid, v in IMPACTOS.items()}       # lo usa model/borde.py (crater_de)
 NOMBRE_LISTA = {"G00195": "Meteor Crater"}                           # nombre del cráter en impactos_tierra.csv
@@ -69,6 +70,11 @@ def nivel_sitio(v: dict, anterior: dict, mundo: str | None) -> dict:
         nota += (" Ojo: la arena tiene prioridad sobre la pendiente (regla de la celda 21, para no confundir dunas con roca), así "
                  f"que donde hay arena las paredes quedan como arena aunque lleguen a {v['pend_max']}°; y OpenLandMap es un mapa "
                  "de suelo modelado a 250 m, no una medición en el cráter.")
+    if v.get("agua_puntos"):
+        nota += (f" Agua: {v['agua_puntos']} de {len(v['perfil_elevacion_m'])} puntos, entre {v['agua_desde_m']} y "
+                 f"{v['agua_hasta_m']} m, son agua superficial (JRC Global Surface Water, ocurrencia ≥ 50 %): el DEM ve la "
+                 "superficie del lago como piso plano y la regla la clasifica como suelo. El juego no tiene agua: ese tramo es "
+                 "recreación, no terreno real.")
     if v["grupo"] == "tajo":
         nota += (" Tajo minero: roca y compacto salen de la pendiente y la rugosidad del DEM; las paredes y los bancos del tajo "
                  "son una excavación, no una superficie natural (análogo operativo, no geológico).")
@@ -93,8 +99,10 @@ def _crater(cid: str, tabla: str) -> pd.Series:
 def medir_variables() -> dict:
     """Variables complementarias medidas (NASA POWER, MODIS, Copernicus DEM) en el centro del detector. Con red."""
     from model import features
-    out = {}
+    out = json.loads(VARIABLES.read_text(encoding="utf-8")) if VARIABLES.exists() else {}
     for sid, (cid, tabla, *_) in IMPACTOS.items():
+        if sid in out:
+            continue                               # ya medido: no se vuelve a consultar (idempotente)
         r = _crater(cid, tabla)
         out[sid] = {"cid": cid, "lat": float(r.lat), "lon": float(r.lon), "medido": FECHA,
                     **features.variables_tierra(float(r.lat), float(r.lon))}

@@ -43,18 +43,22 @@ SITIOS = [
     ("tenoumer", "impacto", "I03", "impactos_tierra.csv"),
     ("roter_kamm", "impacto", "I06", "impactos_tierra.csv"),
     ("talemzane", "impacto", "I07", "impactos_tierra.csv"),
+    ("pingualuit", "impacto", "I04", "impactos_tierra.csv"),         # la reserva, agregada como nivel ártico (15 nov)
     ("mx0023", "tajo", "MX0023", "crateres_mexico.csv"),
     ("mx0019", "tajo", "MX0019", "crateres_mexico.csv"),
     ("mx0155", "tajo", "MX0155", "crateres_mexico.csv"),
 ]
-RESERVA = [("pingualuit", "impacto", "I04", "impactos_tierra.csv")]
+RESERVA = []
+FUERA_MIN_M = 900          # terreno mínimo entre el borde del detector y cada orilla del transecto
+AGUA_MIN = 50              # % de ocurrencia de agua (JRC Global Surface Water) a partir del cual un punto se marca como agua
 
 
 def imagenes():
     glo = ee.ImageCollection("COPERNICUS/DEM/GLO30_2024_1").select("DEM")
     glo30 = glo.mosaic().setDefaultProjection(glo.first().projection()).toFloat()
     arena = ee.Image("OpenLandMap/SOL/SOL_SAND-WFRACTION_USDA-3A1A1A_M/v02").select("b0").rename("arena")
-    return glo30, arena
+    agua = ee.Image("JRC/GSW1_4/GlobalSurfaceWater").select("occurrence").unmask(0).rename("agua")
+    return glo30, arena, agua
 
 
 def ee_pixels(img, x_left, y_top, width, height, scale, crs, tries=4):
@@ -96,7 +100,7 @@ def utm(lat, lon):
 
 def nivel(imgs, sid, lat, lon, largo_m, crs):
     """nivel_tierra (celda 21) / nivel_utm (celda 23) con la proyección como parámetro."""
-    glo30, arena_img = imgs
+    glo30, arena_img = imgs[:2]
     x, y = Transformer.from_crs("EPSG:4326", crs, always_xy=True).transform(lon, lat)
     n = int(largo_m / PASO) + 1
     z = ee_pixels(glo30, x - largo_m / 2, y + PASO * 1.5, n, 3, PASO, crs)["DEM"].astype(float)   # franja de 3 filas (90 m)
@@ -131,12 +135,22 @@ def centro(cid, tabla):
 def medir(imgs, sid, grupo, cid, tabla):
     lat, lon, d = centro(cid, tabla)
     largo = 4000 if d > 1.2 else 3000
+    if d * 1000 + 2 * FUERA_MIN_M > largo:                        # cráter grande (Pingualuit): se alarga al km siguiente
+        largo = int(np.ceil((d * 1000 + 2 * FUERA_MIN_M) / 1000) * 1000)
     v = nivel(imgs, sid, lat, lon, largo, CRS_MX if tabla == "crateres_mexico.csv" else utm(lat, lon))
     p = np.array(v["perfil_elevacion_m"])
     v.update(grupo=grupo, cid=cid, tabla_detector=f"ciencia_datos/datos/{tabla}", diam_km=round(d, 4),
              terreno_fuera_del_borde_m=round(largo / 2 - d * 1000 / 2),        # de cada lado, entre el borde del detector y la orilla
              relieve_m=round(float(p.max() - p.min()), 1),
              punto_mas_bajo_m=round(float(np.argmin(p) * PASO)))              # ¿cae cerca del centro (largo/2)?
+    # Agua superficial (JRC Global Surface Water, ocurrencia 1984–2021): el DEM ve un lago como piso plano. No cambia la regla de
+    # superficie (el juego no tiene agua); solo se declara en la nota del nivel.
+    x, y = Transformer.from_crs("EPSG:4326", v["crs"], always_xy=True).transform(lon, lat)
+    occ = ee_pixels(imgs[2], x - largo / 2, y + PASO * 0.5, len(p), 1, PASO, v["crs"])["agua"][0].astype(float)
+    es = occ >= AGUA_MIN
+    v.update(agua_puntos=int(es.sum()),
+             agua_desde_m=round(float(np.argmax(es) * PASO)) if es.any() else None,
+             agua_hasta_m=round(float((len(es) - 1 - np.argmax(es[::-1])) * PASO)) if es.any() else None)
     return v
 
 
@@ -177,7 +191,7 @@ def main():
         print(f"{v['id']:>14} {v['grupo']:>17} {v['crs']:>10} {v['longitud_m']} m, {len(v['perfil_elevacion_m'])} pts · relieve "
               f"{v['relieve_m']:6.1f} m · pend. máx {v['pend_max']:5.1f}° · {v['resumen_superficie']} · arena del suelo "
               f"{v['arena_min']}–{v['arena_max']} % (sin dato {v['arena_sin_dato']}) · fuera del borde {v['terreno_fuera_del_borde_m']} m · "
-              f"más bajo en {v['punto_mas_bajo_m']} m")
+              f"más bajo en {v['punto_mas_bajo_m']} m · agua {v['agua_puntos']} pts ({v['agua_desde_m']}–{v['agua_hasta_m']} m)")
     print(f"{SALIDA.relative_to(RAIZ)}: {len(res)} niveles")
 
 
