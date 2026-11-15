@@ -69,7 +69,6 @@ Claude Code and Codex assisted code and documentation. Mauricio created MARSCEPT
 - [English submission draft](docs/ENTREGA_EN.md) · [pitch](docs/GUION_PITCH.md) · [team instructions](AGENTS.md).
 
 Repository visibility is currently private. The repository owner must make it public before judging; public demo/video links and official submission must be verified separately.
-
 ## Art credits
 - MARSCEPTION art (sprites, backgrounds, terrain, UI, title screen): original, generated with code in `assets/fuente/` (AI-assisted, see `docs/USO_IA.md`). See [assets/README.md](assets/README.md).
 - **[pixelfx](https://github.com/patch-gg/pixelfx)**: MIT license, Copyright (c) 2026 Patch and Copyright (c) 2026 Hugo Duprez.

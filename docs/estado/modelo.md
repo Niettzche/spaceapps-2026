@@ -7,7 +7,7 @@
 
 ## Hecho
 - Detector de cráteres (núcleo del modelo, AGENTS.md §6.1 y §8.1): `analisis/00–15`. Corre igual sobre México (5,208 depresiones),
-  el polo sur lunar (LOLA, 4,288 cráteres) y Marte (HRSC+MOLA, 8 sitios y 596 cráteres), todo a 200 m.
+  el polo sur lunar (LOLA, 4,288 cráteres) y Marte (HRSC+MOLA, 6 sitios y 573 cráteres), todo a 200 m.
 - Modelos explicables (`ciencia_datos/01–03`):
   - Luna contra Marte con 78 % de exactitud balanceada (grupos espaciales); entre 70 y 92 % en un sitio de Marte nunca visto.
   - Validación con cráteres de impacto terrestres: 8 de 8 dentro de la nube Luna+Marte.
