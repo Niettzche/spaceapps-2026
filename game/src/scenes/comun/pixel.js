@@ -94,11 +94,22 @@ export function barra(scene, x, y, w, h, frac, color) {
   if (marco) { objs.push(marco); ix += 4; iy += 4; iw -= 8; ih -= 8; }
   else objs.push(scene.add.rectangle(x, y, w, h, P.barraFondo).setOrigin(0, 0).setStrokeStyle(1, P.borde));
   const relleno = scene.add.rectangle(ix, iy, 0, Math.max(2, ih), num(color)).setOrigin(0, 0);
+  // Relleno de arte (ui_barra_relleno_<amarillo|verde|rojo>, #80) dentro del marco, para los 3 colores con significado fijo.
+  const ARTE = { [P.accion]: 'amarillo', [P.bien]: 'verde', [P.riesgo]: 'rojo' };
+  const img = marco ? scene.add.image(ix, iy, '__DEFAULT').setOrigin(0, 0).setVisible(false) : null;
   const fijar = (f, c = color) => {
     const v = typeof f === 'number' && Number.isFinite(f) ? Math.max(0, Math.min(1, f)) : 0;
-    relleno.width = Math.round(iw * v);
-    relleno.setFillStyle(num(c));
+    const w = Math.round(iw * v);
+    const clave = ARTE[c] ? `ui/ui_barra_relleno_${ARTE[c]}` : null;
+    const conArte = img && clave && scene.textures.exists(clave) && w > 0;
+    relleno.width = w;
+    relleno.setFillStyle(num(c)).setVisible(!conArte);
+    if (img) {
+      img.setVisible(Boolean(conArte));
+      if (conArte) img.setTexture(clave).setDisplaySize(w, Math.max(2, ih));
+    }
   };
+  if (img) objs.push(img);
   fijar(frac);
   objs.push(relleno);
   return { objs, fijar, relleno };
