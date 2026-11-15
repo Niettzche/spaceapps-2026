@@ -14,6 +14,9 @@ import { MUNDOS, ESTADOS, etiquetaVariable, etiquetaLimite } from './expediente/
 import { crearCapa, el, ESTILOS } from './expediente/capa.js';
 import { prepararIngles, enIdioma } from './expediente/datos_en.js';
 import { tr, trDato, idioma } from '../i18n.js';
+import { NIVELES_DESTACADOS } from '../content/niveles_destacados.js';
+import { porQueModelo, porQuePunto } from './expediente/descubrir.js';
+import CONOCIDOS from '../../../data/known_analogs.json';
 
 // Dueño: frente expediente. Explorador libre (AGENTS.md §6.4, punto 3):
 // coordenada → POST /score (similitud en vivo) → si supera el umbral, proponer el sitio (POST /submit).
@@ -24,9 +27,11 @@ import { tr, trDato, idioma } from '../i18n.js';
 export default class Explorador extends Phaser.Scene {
   constructor() { super('Explorador'); }
 
-  create() {
+  create(datos) {
     prepararIngles();
     this.consulta = null;
+    // «Descubrir» (Expediente) manda las coordenadas de un sitio sin nivel: se rellenan y se consultan solas.
+    this.puntoPedido = datos?.punto && Number.isFinite(datos.punto.lat) && Number.isFinite(datos.punto.lon) ? datos.punto : null;
     this.capa = crearCapa('mc-explorador', ESTILOS);
     this.capa.setAttribute('lang', idioma());
     this.events.once('shutdown', () => this.cerrar());
@@ -146,6 +151,37 @@ export default class Explorador extends Phaser.Scene {
     this.header.insertBefore(this.barraConsulta, this.header.lastChild);
     this.capa.append(this.panelFormulario, this.estado, this.resultado);
     this.lat.focus();
+    if (this.puntoPedido) {
+      const p = this.puntoPedido;
+      this.puntoPedido = null;
+      const h = aHemisferio(p.lat, p.lon);
+      this.lat.value = String(h.lat); this.latHem.value = h.latHem;
+      this.lon.value = String(h.lon); this.lonHem.value = h.lonHem;
+      if (DESTINOS[p.destino]) this.destino.value = p.destino;
+      this.consultar();
+    }
+  }
+
+  /** Tarjeta «¿Por qué el modelo…?» (las mismas filas que la tecla M del Expediente, descubrir.js). */
+  tarjetaPorQue(filas, titulo) {
+    return el('section', { class: 'porque' }, [
+      el('h3', {}, titulo),
+      el('dl', {}, filas.flatMap((f) => [el('dt', {}, f.titulo), el('dd', { class: f.color }, f.valor)])),
+    ]);
+  }
+
+  /** Botón «Probar mi robot aquí»: abre el sitio en el Expediente (sin gastar ticket: eso se confirma allá). */
+  botonJugar(s, km) {
+    const abrir = el('button', { type: 'button', class: 'primario' }, tr('Probar mi robot aquí', 'Test my robot here'));
+    abrir.addEventListener('click', () => {
+      visitarSitio(partida, s, { sitios: SITIOS, destinos: DESTINOS, presupuesto: PRESUPUESTO_INICIAL, tickets: TICKETS_POR_PARTIDA });
+      irA(this, 'Expediente');
+    });
+    return el('div', { class: 'jugar' }, [
+      el('p', {}, tr(`${trDato(s, 'nombre') || s.id} (a ${formatoDistancia(km)}) ya tiene nivel con su relieve real. Se abre su Expediente; el ticket se gasta solo si confirmas allá.`,
+        `${trDato(s, 'nombre') || s.id} (${formatoDistancia(km)} away) already has a level with its real terrain. Its site file opens; the ticket is spent only if you confirm there.`)),
+      abrir,
+    ]);
   }
 
   /** Oculta el formulario y deja una barra con el punto consultado y un botón para volver a abrirlo. */
@@ -275,7 +311,7 @@ export default class Explorador extends Phaser.Scene {
 
     const acciones = el('div', { class: 'fila' });
     if (jugable) {
-      const abrir = el('button', { type: 'button', class: 'primario' }, tr('Abrir su Expediente', 'Open its Site File'));
+      const abrir = el('button', { type: 'button', class: 'primario' }, tr('Probar mi robot aquí', 'Test my robot here'));
       abrir.addEventListener('click', () => {
         visitarSitio(partida, s, { sitios: SITIOS, destinos: DESTINOS, presupuesto: PRESUPUESTO_INICIAL, tickets: TICKETS_POR_PARTIDA });
         irA(this, 'Expediente');
@@ -305,10 +341,12 @@ export default class Explorador extends Phaser.Scene {
       el('p', {}, [el('strong', {}, tr('Lo que la Tierra no puede probar: ', 'What Earth cannot test: ')),
         noReproducible.length ? noReproducible.map((l) => l.etiqueta).join(' · ') : sinDato()]),
       ...notas.map((n) => el('p', { class: 'nota' }, `${tr('Límite del cálculo', 'Calculation limit')}: ${enIdioma(n)}`)),
-      jugable ? null : el('p', { class: 'nota' }, tr('Este sitio aún no es jugable (no tiene recorrido de prueba): es parte del catálogo del modelo.',
-        'This site is not playable yet (it has no test route): it is part of the model catalog.')),
+      jugable ? null : el('p', { class: 'nota' }, tr('Este lugar aún no tiene nivel: la API del modelo lo puede generar con el perfil real del DEM (aún no publicada en esta demo).',
+        'This place has no level yet: the model API can generate one from the real DEM profile (not yet published in this demo).')),
     ];
     const derecha = [
+      this.tarjetaPorQue(porQueModelo(s, { entrena: NIVELES_DESTACADOS[s.id]?.entrena ?? null }),
+        tr('¿Por qué el modelo eligió este lugar?', 'Why did the model pick this place?')),
       // 3 columnas para que quepa sin desplazarse: la similitud va debajo del nombre de la dimensión.
       el('table', { class: 'compacta' }, [
         el('thead', {}, el('tr', {}, [el('th', {}, tr('Dimensión · similitud', 'Dimension · similarity')),
@@ -433,26 +471,36 @@ export default class Explorador extends Phaser.Scene {
     const total = sim.total;
 
     this.ultimo = { datos: d, punto };
+    // ¿Coincide con un sitio del catálogo (≤ RADIO_CATALOGO_KM)? Si tiene nivel, se puede jugar ya; si no, su tarjeta.
+    const cat = buscarEnCatalogo(TODOS_LOS_SITIOS, punto, { radioKm: RADIO_CATALOGO_KM });
+    const cerca = cat.encontrado;
+    const jugar = cerca && SITIOS.includes(cerca.sitio) ? this.botonJugar(cerca.sitio, cerca.distanciaKm) : null;
+    const tarjeta = cerca
+      ? this.tarjetaPorQue(porQueModelo(cerca.sitio, { entrena: NIVELES_DESTACADOS[cerca.sitio.id]?.entrena ?? null }),
+        tr(`Ya en el catálogo: ${trDato(cerca.sitio, 'nombre') || cerca.sitio.id} (a ${formatoDistancia(cerca.distanciaKm)})`,
+          `Already in the catalog: ${trDato(cerca.sitio, 'nombre') || cerca.sitio.id} (${formatoDistancia(cerca.distanciaKm)} away)`))
+      : this.tarjetaPorQue(porQuePunto(d, punto, CONOCIDOS), tr('Lo que dice el modelo de este punto', 'What the model says about this point'));
     const izquierda = el('div', {}, [
+      jugar,
       el('div', { class: 'total' }, [
         el('span', { class: 'grande' }, formatoPorcentaje(total)),
         el('span', {}, tr(` similitud total con ${destino ? trDato(destino, 'nombre') : punto.destino} · confianza ${formatoPorcentaje(sim.confianza)}`,
           ` total similarity with ${destino ? trDato(destino, 'nombre') : punto.destino} · confidence ${formatoPorcentaje(sim.confianza)}`)
           + (sim.vetado ? tr(' · VETADO por vegetación', ' · VETOED by vegetation') : '')),
       ]),
-      el('p', { class: 'ayuda' }, tr(`Punto ${formatoCoordenada(punto.lat, punto.lon)} · método: ${d?.metodo || sinDato()}. `
+      el('p', { class: 'ayuda' }, tr(`Punto ${formatoCoordenada(punto.lat, punto.lon)} · método: ${trDato(d, 'metodo') || sinDato()}. `
         + 'La forma de cráter solo existe para depresiones medidas por el detector; en un punto cualquiera falta y baja la confianza.',
-      `Point ${formatoCoordenada(punto.lat, punto.lon)} · method: ${d?.metodo || sinDato()}. `
+      `Point ${formatoCoordenada(punto.lat, punto.lon)} · method: ${trDato(d, 'metodo') || sinDato()}. `
         + 'Crater shape only exists for depressions measured by the detector; at an arbitrary point it is missing and confidence drops.')),
       el('p', {}, [el('strong', {}, tr('Lo que la Tierra no puede probar: ', 'What Earth cannot test: ')), limites.length ? limites.join(' · ') : sinDato()]),
       ...notas.map((n) => el('p', { class: 'nota' }, n)),
       this.bloquePropuesta(d, punto),
     ]);
-    const derecha = el('div', {}, el('table', { class: 'compacta' }, [
+    const derecha = el('div', {}, [tarjeta, el('table', { class: 'compacta' }, [
       el('thead', {}, el('tr', {}, [el('th', {}, tr('Dimensión', 'Dimension')), el('th', {}, tr('Tierra (este punto)', 'Earth (this point)')),
         el('th', {}, tr('Destino', 'Destination')), el('th', {}, tr('Similitud', 'Similarity'))])),
       el('tbody', {}, filas.length ? filas : el('tr', {}, el('td', { colspan: 4 }, tr('La API no devolvió dimensiones.', 'The API returned no dimensions.')))),
-    ]));
+    ])]);
     this.resultado.replaceChildren(el('article', { class: 'dos-col' }, [izquierda, derecha]));
     this.colapsarFormulario(punto);
     this.enfocarResultado();

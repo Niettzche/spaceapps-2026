@@ -1,5 +1,5 @@
 // Dueño: frente expediente. Tutorial rápido del Expediente (coach marks): la primera vez que se abre el Expediente en
-// este navegador, 6 pasos cortos que oscurecen la pantalla y señalan una zona. Se repite con el botón «?» o la tecla ?.
+// este navegador, 7 pasos cortos que oscurecen la pantalla y señalan una zona. Se repite con el botón «?» o la tecla ?.
 // Lógica pura (sin Phaser) para probarla con `node --test`; la vista está en tutorial_vista.js.
 // Regla (AGENTS.md §3.3): los textos explican qué es cada zona; no dan cifras de ningún sitio.
 import { tr } from '../../i18n.js';
@@ -55,6 +55,12 @@ export function pasosTutorial(mundo) {
       titulo: tr('¿De dónde sale cada número?', 'Where does each number come from?'),
       texto: tr('I · Datos abre la fuente, la fecha y la unidad de cada dato. Toca una fila para ir directo a la suya.',
         'I · Data opens the source, date and unit of each value. Tap a row to jump straight to it.'),
+    },
+    {
+      zona: 'descubrir',
+      titulo: tr('¿Cómo eligió el modelo?', 'How did the model choose?'),
+      texto: tr('D · Descubrir: todos los lugares que halló el modelo, en un mapa. M · ¿Por qué aquí?: cómo lo encontró, su forma y si es novedoso.',
+        'D · Discover: every place the model found, on a map. M · Why here?: how it was found, its shape and whether it is novel.'),
     },
     {
       zona: 'probar',
