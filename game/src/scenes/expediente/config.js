@@ -50,3 +50,7 @@ export function urlFicha(sitio) {
     return null;
   }
 }
+
+// Validación del detector de cráteres (AGENTS.md §6.3; informe/validacion_detector.pdf): cráteres mexicanos conocidos
+// que encuentra. Se muestra como dato curioso en la pantalla de carga.
+export const DETECTOR_VALIDACION = { encontrados: 9, conocidos: 11 };

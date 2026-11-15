@@ -45,3 +45,30 @@ export function formatoBytes(n) {
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
   return `${(n / 1024 / 1024).toFixed(1)} MB`;
 }
+
+/**
+ * Mide el tamaño de varios archivos SIN trabar el Boot: a lo más `concurrencia` peticiones a la vez y un plazo total.
+ * `medir(item, esperaMs)` devuelve bytes o null. Lo que no alcanza a medirse se queda en null (y se carga: ver planDePrecarga).
+ * Antes se pedían ~160 HEAD a la vez con 5 s cada uno, y la carga podía quedarse varios segundos en 0 %.
+ * Devuelve cuántos se midieron y si se agotó el plazo.
+ */
+export async function medirConLimite(items, medir, { concurrencia = 6, plazoMs = 2500, esperaMs = 1500 } = {}) {
+  const inicio = Date.now();
+  let i = 0;
+  let medidos = 0;
+  let agotado = false;
+  const trabajador = async () => {
+    while (i < items.length) {
+      const resta = plazoMs - (Date.now() - inicio);
+      if (resta <= 0) { agotado = true; return; }
+      const item = items[i++];
+      const n = await medir(item, Math.min(esperaMs, resta));
+      if (typeof n === 'number') { item.bytes = n; medidos++; }
+    }
+  };
+  let reloj;
+  const plazo = new Promise((r) => { reloj = setTimeout(() => { agotado = true; r(); }, plazoMs); });
+  await Promise.race([Promise.all(Array.from({ length: Math.min(concurrencia, items.length) }, trabajador)), plazo]);
+  clearTimeout(reloj);
+  return { medidos, agotado: agotado && medidos < items.length };
+}
