@@ -1,9 +1,9 @@
 # Estado — Arte
 
-> Lo actualiza SOLO este frente. Ramas: `feat/arte` (#26) y `feat/arte-b` (#37), `feat/arte-c` (#49), `feat/arte-d` (#58), mergeadas; `feat/arte-e` (tutorial y portada de la web).
+> Lo actualiza SOLO este frente. Ramas: `feat/arte` (#26) y `feat/arte-b` (#37), `feat/arte-c` (#49), `feat/arte-d` (#58), `feat/arte-e` (#64), mergeadas; `feat/arte-f` (imágenes para compartir, favicons y revisión en el juego).
 
 **Responsable:** Mauricio  ·  **Agente:** Claude Code / Codex
-**Última actualización:** 15 nov 2026, 00:30
+**Última actualización:** 15 nov 2026, 02:00
 
 ## Hecho
 - **Prioridad A y B completas** (#26 y #37, en `main`):
@@ -64,6 +64,17 @@
     4. Misión.
   - `docs/media/web_portada_960x960.png`: imagen principal de la web. El robot llega con la carga a la base en Marte, con el astronauta y la zona de entrega (escena de 120 × 120 × 8). La coloca Alan en `web/`.
   - Las dos cosas salen de `assets/fuente/escenas.mjs`, que compone sprites, fondos, tiles y efectos ya generados (`node assets/fuente/generar.mjs escenas`).
+- **Imágenes para compartir y favicons (`feat/arte-f`):**
+  - `docs/media/og_1200x630.png`: el robot llega a la base en Marte, con el título y el lema.
+  - `docs/media/proyecto_space_apps.png`, de 1920 × 1080 (320 × 180 × 6):
+    - Con el título, el lema completo y la marca "AI-assisted pixel art".
+    - La guía de la plataforma no da medidas. Acepta JPG, PNG o GIF de hasta 10 MB y pide marcar lo generado con IA.
+  - `assets/ui/favicon_32.png`, `favicon_180.png` y `favicon.svg`: el robot con la carga sobre suelo de Marte; se reconoce a 32 px.
+  - Sin logo de NASA.
+- **Revisión en el juego** (Samalayuca, Pinacate, Marte y la Luna, con capturas en Edge):
+  - Los 4 íconos del HUD aparecen en los 4 niveles al entrar por el menú. No reproduje la corrida sin íconos.
+  - Rocas chicas: es del código. `crearObstaculos` recorta el sprite a lo que asoma del suelo: `alto_m × 8` px de arte, o sea 1–2 px con los radios de `REGLAS_OBSTACULOS`. De la roca solo se ve el contorno de arriba.
+  - Ver la nota del PR.
 - `node assets/fuente/fx/exportar.mjs` regenera con pixelfx las 22 hojas de efectos.
 
 ## En curso
@@ -75,6 +86,9 @@
 - [ ] Ver el arte con el juego corriendo (todavía no lo he revisado en pantalla): ruedas en el taller y en la prueba, calcomanías, posición de efectos y polvo.
 
 ## Bloqueos / necesito de otro frente
+- **Juego:** rocas recortadas a 1–2 px. La nota del PR de `feat/arte-f` trae opciones.
+- **Juego:** `game/e2e/camino_dorado.mjs` no pasa del Boot con el menú actual: falla el `waitForFunction` del paso boot.
+- **Juego:** en la Misión, a la izquierda del inicio, se ve un hueco sin terreno de unos 48 px de pantalla.
 - **Juego:** `FONDO_POR_SITIO` en `game/src/fisica/aspecto.js` (en `main`) solo tiene `samalayuca → dunas` y `pinacate → lava`. Si el mapeo de `mina` y `maar` todavía no está ahí, falta agregarlo.
 - **Integración (Alan):**
   - Poner `docs/media/web_portada_960x960.png` como imagen principal de la web: copiarla a `web/src/assets/` o `web/public/`, agregar `image-rendering: pixelated` a `.hero-visual img` y cambiar el pie de foto, que hoy describe el relieve de Rincón de Parangueo.
