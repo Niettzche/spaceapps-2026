@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from model.score import comparar
 from model.features import variables_tierra
+from api.tutor import router as tutor_router
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 DB = ROOT / "api" / "propuestas.db"
@@ -17,6 +18,7 @@ METODO_EN = "environmental prefilter v0 (climate, vegetation and slope; without 
 app = FastAPI(title="Misión Cero API")
 app.add_middleware(CORSMiddleware, allow_origins=os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(","),
                    allow_methods=["*"], allow_headers=["*"])
+app.include_router(tutor_router)  # POST /tutor: ANA, la tutora de análogos (api/tutor.py)
 
 
 def destino(target_id: str) -> dict:

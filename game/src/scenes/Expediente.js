@@ -27,6 +27,7 @@ import { NIVELES_DESTACADOS } from '../content/niveles_destacados.js';
 import {
   porQueModelo, chipsPorQue, filtrarDescubrir, resumenDescubrir, siguienteTipo, nombreTipo, tipoDeSitio, textoOrigen, nombreCorto } from './expediente/descubrir.js';
 import { cajaMapa, dibujarMapa } from './expediente/mapa_vista.js';
+import { abrirTutora } from '../tutor/panel.js';
 
 // Dueño: frente expediente. Comparación 1 a 1: sitio terrestre vs destino, misma variable y unidad.
 // Diseño (docs/juego/DISENO.md §2–§3): se entiende en 3 segundos. Arriba el sitio y su similitud total (barra + %);
@@ -68,7 +69,7 @@ export default class Expediente extends Phaser.Scene {
     prepararIngles();
     // La instancia de la escena se reutiliza entre visitas: reinicia el estado propio.
     this.botonesDetalle = null; this.botonesLista = []; this.foco = null; this.filaActual = null; this.filas = null;
-    this.capaCondiciones = null; this.detalle = null; this.tutorial = null; this.zonas = {}; this.capaPorQue = null;
+    this.capaCondiciones = null; this.detalle = null; this.tutorial = null; this.zonas = {}; this.capaPorQue = null; this.tutora = null;
     if (!DESTINOS[partida.destino]) partida.destino = DESTINOS[DESTINO_POR_DEFECTO] ? DESTINO_POR_DEFECTO : Object.keys(DESTINOS)[0];
     this.destino = DESTINOS[partida.destino] || null;
     this.sitios = sitiosParaDestino(SITIOS, partida.destino);
@@ -654,6 +655,8 @@ export default class Expediente extends Phaser.Scene {
     this.botonCondiciones = enFila(tr('C · Condiciones', 'C · Conditions'), () => this.abrirCondiciones(), { habilitado: !!s });
     const url = urlFicha(s);
     const ficha = enFila(url ? tr('Ficha web ↗', 'Fact sheet ↗') : tr('Sin ficha web', 'No fact sheet'), () => this.abrirFicha(url), { habilitado: !!url });
+    // ANA, la tutora de análogos (tecla A): explica este sitio con sus datos (src/tutor/, frente modelo).
+    this.botonTutora = enFila(tr('A · Tutora', 'A · Tutor'), () => this.abrirTutora());
     // Botón principal con la caja de arte (el mismo botón de todo el juego), anclado a la derecha.
     // Opción sugerida (⏎): confirma el paso del camino dorado.
     const probar = add(boton(this, X1, Y_PIE, etiqueta, () => this.probar(),
@@ -665,6 +668,12 @@ export default class Expediente extends Phaser.Scene {
   }
 
   regresar() { irA(this, 'Menu', { vista: 'destino' }); }
+
+  abrirTutora() {
+    if (this.tutora || this.tutorial) return;
+    this.tutora = abrirTutora(this, { sitio: this.seleccion, destino: this.destino, pantalla: 'expediente',
+      alCerrar: () => { this.tutora = null; } });
+  }
 
   // La ficha completa (mapa, gemelo lunar o marciano, método) vive en web/ y no se duplica en el juego (AGENTS.md §8.1).
   abrirFicha(url) {
@@ -692,6 +701,7 @@ export default class Expediente extends Phaser.Scene {
       l: () => this.cambiarIdioma(), L: () => this.cambiarIdioma(),
       m: () => this.abrirPorQue(), M: () => this.abrirPorQue(),
       d: alternarModo, D: alternarModo,
+      a: () => this.abrirTutora(), A: () => this.abrirTutora(),
       PageDown: () => this.cambiarPagina(1), PageUp: () => this.cambiarPagina(-1),
       ...(desc ? {
         j: () => this.filtroJugables?.activar(), J: () => this.filtroJugables?.activar(),
@@ -725,7 +735,7 @@ export default class Expediente extends Phaser.Scene {
     const filtros = desc ? [this.filtroJugables, this.filtroNovedosos, this.filtroTipo] : [];
     const porque = desc ? [] : [this.botonPorQue];
     this.teclado.poner([this.tabSugeridos, this.tabDescubrir, ...this.botonesLista, this.botonAnterior, this.botonSiguiente, ...filtros, ...porque,
-      ...this.botonesDetalle, this.botonRegresar, this.botonVolver, this.botonAyuda, this.botonIdioma].filter((b) => b?.obj?.active), preferido);
+      ...this.botonesDetalle, this.botonRegresar, this.botonVolver, this.botonAyuda, this.botonIdioma, this.botonTutora].filter((b) => b?.obj?.active), preferido);
   }
 
   // ---------- Panel de detalle (tecla I, botón «Datos» o clic en una fila) ----------
