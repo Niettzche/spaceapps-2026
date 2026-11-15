@@ -1,9 +1,9 @@
 # Estado — Expediente, explorador y menú
 
-> Lo actualiza SOLO este frente. Ramas: `feat/expediente` y `feat/expediente-ajustes` (ya en main),
-> `feat/expediente-accesibilidad` (en GitHub, PR pendiente de abrir).
+> Lo actualiza SOLO este frente. Todo el trabajo del frente ya está en main: entrega (#12), ajustes, accesibilidad (#48)
+> y Boot ligero (#50).
 
-**Responsable:** Diego  ·  **Agente:** Claude Code  ·  **Rama:** feat/expediente-accesibilidad
+**Responsable:** Diego  ·  **Agente:** Claude Code  ·  **Rama:** feat/expediente-estado
 **Última actualización:** 14 nov 2026
 
 ## Hecho
@@ -34,7 +34,8 @@
   siempre van al final.
 - [x] Boot, Menú, Expediente y Explorador usan `irA()` de `ui.js` (fundido) en vez de `scene.start`. No se modificó `ui.js`.
 
-### Accesibilidad (`feat/expediente-accesibilidad`, en GitHub, PR pendiente de abrir hacia main)
+### Accesibilidad (`feat/expediente-accesibilidad`, ya en main, PR #48)
+En la integración de la ronda 3 (`e68d856`) el Menú y el Expediente quedaron además bilingües.
 - [x] **Atajos numéricos como en Resultados:** botones con "1 · …" y teclas 1–9 (Menú 1–4; destino 1 Marte, 2 Luna,
   3 Volver; lista del Expediente 1–8). La opción sugerida va con ⏎ en verde; Enter ejecuta la enfocada o la sugerida.
   Flechas, Tab y Esc siguen igual. Se corrigió Shift+Tab (con Shift presionado Phaser reemitía el mismo evento 3 veces).
@@ -49,8 +50,19 @@
 - [x] **mx0207 (mina de Real de Ángeles) como análogo operativo:** sobre lo que el integrador ya había dejado en main
   (`esMina`, "Forma del tajo minero", estado "ANÁLOGO OPERATIVO (MINA)"), la columna del destino dice
   "vs. cráteres Luna+Marte" y la nota aclara que es una excavación, no un cráter natural.
-- [x] Pruebas de lógica: **14/14** (`cd game && node --test src/scenes/expediente/pruebas/`), incluidas 3 de hemisferios y
-  1 de mx0207 con los datos reales de `mx0207` y `g00281`.
+- [x] Pruebas de lógica: 14 en `logica.test.js`, incluidas 3 de hemisferios y 1 de mx0207 con los datos reales de
+  `mx0207` y `g00281`.
+- [x] **Probado en un teléfono real** (Diego): sin problemas.
+
+### Boot ligero (`feat/expediente-boot-ligero`, ya en main, PR #50)
+- [x] El Boot no precarga GIF, MP4, WebM ni archivos mayores a 300 KB (`LIMITE_PRECARGA_BYTES` y
+  `EXTENSIONES_SIN_PRECARGA` en `config.js`). El tamaño se mide sin descargar (URL `data:` o `HEAD`); lo que se salta se
+  registra en la consola (`[Boot] no se precarga …`) y en el resumen del Boot con su tamaño; la barra llega al 100 %.
+- [x] Regla en `game/src/scenes/expediente/precarga.js` con 3 pruebas en `pruebas/precarga.test.js`.
+- [x] Medido en el build de producción con el arte de entonces (93 PNG, el mayor de 22.4 KB): no se saltó nada; lo
+  descargado hasta el Menú pasó de 542.0 KB a 543.0 KB.
+
+Pruebas del frente hoy en main: **18/18** (`cd game && node --test src/scenes/expediente/pruebas/`).
 
 ## Prueba del camino completo en Luna y Marte
 Recorrido con clics y teclas reales (`npm run dev`, Chrome sin ventana): Menú → Nueva partida → destino → Expediente →
@@ -82,8 +94,8 @@ energía". El camino dorado completo (ruedas anchas → pasa → entrega) no se 
 - (nada)
 
 ## Siguiente
-- [ ] Abrir el PR de `feat/expediente-accesibilidad` hacia main y avisar al equipo.
-- [ ] **Probar en un teléfono real** (hasta ahora solo emulación táctil 390×844 y 844×390 en Chrome).
+- [ ] **Gravedad de Marte 3.73 si el equipo la cambia** (hoy 3.71): actualizar los 2 textos de
+  `game/src/scenes/expediente/numeros.js` (español e inglés) y el destino de prueba en `pruebas/logica.test.js`.
 - [ ] **Volver al Expediente tras elegir sitio** (Expediente / Juego): "Continuar" (`Menu.js`, `continuar()`) va al Taller si
   hay sitio y Resultados no ofrece ir al Expediente; los tickets restantes solo se usan con "Nueva partida".
 
@@ -101,8 +113,8 @@ energía". El camino dorado completo (ruedas anchas → pasa → entrega) no se 
 - **Modelo/API (Mario):** `/score` para (31.84, -113.39) devolvió total 0.60 con confianza 0.25 y `puede_proponer: true`.
   ¿Exigir una confianza mínima para proponer? Lo decide el frente modelo.
 - **API (CORS):** el servidor debe incluir el origen del juego en `ALLOWED_ORIGINS`.
-- **Arte:** Boot precarga lo que haya en `/assets` (`png, jpg, jpeg, webp, gif`). Hoy main no tiene GIF ni MP4; si se agregan
-  archivos pesados a `/assets`, el Boot los precargaría (ver la auditoría del Boot).
+- **Arte (Mauricio):** desde #50 el Boot ya no precarga GIF, MP4 ni WebM, pero si se ponen en `/assets` Vite los copia al
+  build (para poder listarlos y reportarlos). Conviene que los GIF y videos vivan en `docs/media/`.
 
 ## Cambios que propongo a contratos o AGENTS.md (los aplica el integrador)
 - **web/ (Alan):** leer `?ficha=<ID>` y `?sitio=<id>` al cargar para abrir la ficha o el sitio directamente.
