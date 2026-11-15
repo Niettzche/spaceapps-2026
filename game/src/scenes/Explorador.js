@@ -506,7 +506,7 @@ export default class Explorador extends Phaser.Scene {
     this.enfocarResultado();
   }
 
-  // "Proponer sitio" solo aparece si la API lo permite Y la similitud total alcanza el umbral (P: 0.6).
+  // "Proponer sitio" solo aparece si la API lo permite Y la similitud total alcanza el umbral (P: UMBRAL_PROPUESTA, en expediente/config.js).
   bloquePropuesta(d, punto) {
     const total = d?.similitud?.total;
     if (!puedeProponer(d, UMBRAL_PROPUESTA)) {

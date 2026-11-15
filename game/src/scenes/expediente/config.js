@@ -18,8 +18,9 @@ export const DESTINO_POR_DEFECTO = 'jezero';
 // Orden en que se ofrecen los destinos en el menú.
 export const ORDEN_DESTINOS = ['jezero', 'polo_sur_lunar'];
 
-// Umbral para proponer un sitio desde el Explorador (P) — AGENTS.md §6.4. La API aplica el suyo también.
-export const UMBRAL_PROPUESTA = 0.6;
+// Umbral para proponer un sitio desde el Explorador (P) — AGENTS.md §6.4. Es el mismo que usa la API (api/main.py, 0.4).
+// Con 0.6 ningún análogo conocido podía proponerse: el total más alto es 0.556 (model/VALIDATION.md, «Umbral del explorador libre»).
+export const UMBRAL_PROPUESTA = 0.4;
 // NASA POWER puede tardar: espera generosa antes de declarar que la API no responde.
 export const ESPERA_API_MS = 90000; // medido: ~60 s por punto con NASA POWER + MODIS
 
