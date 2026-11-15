@@ -11,7 +11,7 @@ import {
 import { buscarEnCatalogo, formatoDistancia, similitudClima, DIMENSIONES_CLIMA } from './expediente/catalogo.js';
 import { visitarSitio } from './expediente/guardado.js';
 import { MUNDOS, ESTADOS, etiquetaVariable, etiquetaLimite } from './expediente/textos.js';
-import { crearCapa, el, ESTILOS } from './expediente/capa.js';
+import { crearCapa, el, ESTILOS, barra, chip, detalle } from './expediente/capa.js';
 import { prepararIngles, enIdioma } from './expediente/datos_en.js';
 import { tr, trDato, idioma } from '../i18n.js';
 
@@ -74,12 +74,16 @@ export default class Explorador extends Phaser.Scene {
     const n = TODOS_LOS_SITIOS.filter((s) => Number.isFinite(s.lat) && Number.isFinite(s.lon)).length;
     return el('div', { class: 'modo', role: 'status' }, [
       el('strong', {}, tr('Modo sin API: catálogo precalculado', 'No-API mode: precomputed catalog')),
-      el('p', {}, tr(`La API del modelo no está publicada en esta demo. Tu coordenada se busca entre los ${n} sitios ya calculados `
-        + 'por el modelo (búsqueda en zonas áridas, no todo el planeta) y, si NASA POWER responde, se muestra su clima en vivo.',
-      `The model API is not published in this demo. Your coordinate is looked up among the ${n} sites already computed `
-        + 'by the model (a search of arid regions, not the whole planet) and, if NASA POWER answers, its live climate is shown.')),
-      r.tipo === 'no_publicada' ? null
-        : el('p', { class: 'nota' }, tr(`(${API_URL} no respondió a /health en 4 s)`, `(${API_URL} did not answer /health within 4 s)`)),
+      el('div', { class: 'chips' }, [chip(tr(`${n} sitios calculados`, `${n} computed sites`), 'dato'),
+        chip(tr('zonas áridas', 'arid regions')), chip(tr('clima NASA POWER en vivo', 'live NASA POWER climate'))]),
+      detalle(tr('Ver más', 'See more'), [
+        el('p', {}, tr(`La API del modelo no está publicada en esta demo. Tu coordenada se busca entre los ${n} sitios ya calculados `
+          + 'por el modelo (búsqueda en zonas áridas, no todo el planeta) y, si NASA POWER responde, se muestra su clima en vivo.',
+        `The model API is not published in this demo. Your coordinate is looked up among the ${n} sites already computed `
+          + 'by the model (a search of arid regions, not the whole planet) and, if NASA POWER answers, its live climate is shown.')),
+        r.tipo === 'no_publicada' ? null
+          : el('p', { class: 'nota' }, tr(`(${API_URL} no respondió a /health en 4 s)`, `(${API_URL} did not answer /health within 4 s)`)),
+      ]),
     ]);
   }
 
@@ -128,16 +132,24 @@ export default class Explorador extends Phaser.Scene {
     ]);
     form.addEventListener('submit', (ev) => { ev.preventDefault(); this.consultar(); });
 
-    const ayuda = this.conApi ? el('p', { class: 'ayuda' }, tr('Escribe una coordenada de la Tierra en grados decimales, sin signo, y elige N/S y E/O. La API del modelo descarga sus variables '
-        + '(NASA POWER, MODIS, relieve) y las compara con el destino. Si la similitud llega a '
-        + `${Math.round(UMBRAL_PROPUESTA * 100)} %, puedes proponer el sitio.`,
-      'Type an Earth coordinate in decimal degrees, without a sign, and pick N/S and E/W. The model API downloads its variables '
-        + '(NASA POWER, MODIS, terrain) and compares them with the destination. If similarity reaches '
-        + `${Math.round(UMBRAL_PROPUESTA * 100)} %, you can propose the site.`))
-      : el('p', { class: 'ayuda' }, tr('Escribe una coordenada de la Tierra en grados decimales, sin signo, y elige N/S y E/O. '
-        + `Si hay un sitio del catálogo a ${RADIO_CATALOGO_KM} km o menos, verás su ficha; si no, los 3 más cercanos.`,
-      'Type an Earth coordinate in decimal degrees, without a sign, and pick N/S and E/W. '
-        + `If a catalog site is within ${RADIO_CATALOGO_KM} km, you will see its card; if not, the 3 nearest ones.`));
+    // Keywords a la vista; la explicación completa en "ver más" (DISENO.md §2.3).
+    const umbral = Math.round(UMBRAL_PROPUESTA * 100);
+    const ayuda = el('div', { class: 'ayuda' }, [
+      el('div', { class: 'chips' }, this.conApi
+        ? [chip(tr('Grados sin signo', 'Degrees, no sign')), chip(tr('N/S y E/O en la lista', 'N/S and E/W in the list')),
+          chip(tr(`≥ ${umbral} % → proponer`, `≥ ${umbral} % → propose`), 'accion')]
+        : [chip(tr('Grados sin signo', 'Degrees, no sign')), chip(tr('N/S y E/O en la lista', 'N/S and E/W in the list')),
+          chip(tr(`sitio a ≤ ${RADIO_CATALOGO_KM} km → su ficha`, `site within ${RADIO_CATALOGO_KM} km → its card`), 'dato')]),
+      detalle(tr('Cómo funciona', 'How it works'), el('p', {}, this.conApi
+        ? tr('Escribe una coordenada de la Tierra en grados decimales, sin signo, y elige N/S y E/O. La API del modelo descarga sus variables '
+          + `(NASA POWER, MODIS, relieve) y las compara con el destino. Si la similitud llega a ${umbral} %, puedes proponer el sitio.`,
+        'Type an Earth coordinate in decimal degrees, without a sign, and pick N/S and E/W. The model API downloads its variables '
+          + `(NASA POWER, MODIS, terrain) and compares them with the destination. If similarity reaches ${umbral} %, you can propose the site.`)
+        : tr('Escribe una coordenada de la Tierra en grados decimales, sin signo, y elige N/S y E/O. '
+          + `Si hay un sitio del catálogo a ${RADIO_CATALOGO_KM} km o menos, verás su ficha; si no, los 3 más cercanos.`,
+        'Type an Earth coordinate in decimal degrees, without a sign, and pick N/S and E/W. '
+          + `If a catalog site is within ${RADIO_CATALOGO_KM} km, you will see its card; if not, the 3 nearest ones.`))),
+    ]);
     // Tras consultar, el formulario se colapsa en una barra corta ("Cambiar coordenada" lo vuelve a abrir) para que la
     // ficha se vea sin desplazarse a 960 × 540 y en el teléfono.
     this.panelFormulario = el('div', { class: 'panel-formulario' }, [ayuda, form]);
@@ -183,7 +195,7 @@ export default class Explorador extends Phaser.Scene {
 
   // El Explorador es un diálogo modal: Tab y Shift+Tab dan la vuelta dentro de él en vez de salir a la página.
   mantenerFoco(ev) {
-    const enfocables = [...this.capa.querySelectorAll('button, input, select, textarea, a[href], [tabindex]:not([tabindex="-1"])')]
+    const enfocables = [...this.capa.querySelectorAll('button, input, select, textarea, a[href], summary, [tabindex]:not([tabindex="-1"])')]
       .filter((e) => !e.disabled && e.offsetParent !== null);
     if (!enfocables.length) return;
     const primero = enfocables[0];
@@ -287,42 +299,42 @@ export default class Explorador extends Phaser.Scene {
 
     const izquierda = [
       el('h2', { tabindex: '-1' }, trDato(s, 'nombre') || s.id),
-      el('p', {}, [el('span', { style: `color: ${est.color}` }, est.texto),
-        ` · ${tr(`a ${formatoDistancia(km)} de tu punto`, `${formatoDistancia(km)} from your point`)} · ${formatoCoordenada(s.lat, s.lon)}`
-          + (s.novedoso === true ? tr(' · NOVEDOSO', ' · NOVEL') : '')]),
-      esDemostracion(s) ? el('p', { class: 'error' }, tr('ILUSTRATIVO · datos de demostración: no son mediciones del sitio',
-        'ILLUSTRATIVE · demo data: not measurements of the site')) : null,
-      el('div', { class: 'total' }, [
-        el('span', { class: 'grande' }, formatoPorcentaje(sim.total)),
-        el('span', {}, tr(` similitud total con su gemelo: ${nombreGemelo} · confianza ${formatoPorcentaje(sim.confianza)}`,
-          ` total similarity with its twin: ${nombreGemelo} · confidence ${formatoPorcentaje(sim.confianza)}`)),
+      el('div', { class: 'chips' }, [
+        chip(est.texto, '', { style: `color: ${est.color}; border-color: ${est.color}` }),
+        chip(tr(`a ${formatoDistancia(km)}`, `${formatoDistancia(km)} away`), 'neutro'),
+        s.novedoso === true ? chip(tr('NOVEDOSO', 'NOVEL'), 'bien') : null,
+        esDemostracion(s) ? chip(tr('ILUSTRATIVO · demo', 'ILLUSTRATIVE · demo'), 'riesgo') : null,
+        jugable ? null : chip(tr('Aún no jugable', 'Not playable yet'), 'neutro'),
+      ]),
+      // La pregunta de la pantalla, en grande: ¿qué tan parecido es? (DISENO.md §2.2)
+      el('div', { class: 'tarjeta' }, [
+        el('p', { class: 'titulo-medidor' }, tr('Similitud con su gemelo', 'Similarity with its twin')),
+        barra(sim.total, formatoPorcentaje(sim.total), { grande: true }),
+        el('div', { class: 'chips' }, [chip(nombreGemelo, 'dato'), chip(tr(`confianza ${formatoPorcentaje(sim.confianza)}`, `confidence ${formatoPorcentaje(sim.confianza)}`))]),
       ]),
       // La acción va arriba, junto al puntaje: a 960×540 se ve sin desplazar.
       acciones.childElementCount ? acciones : null,
-      elegido && gemelo && elegido.id !== gemelo.id
-        ? el('p', { class: 'nota' }, tr(`El modelo calculó este sitio contra su gemelo (${trDato(gemelo, 'nombre')}), no contra ${trDato(elegido, 'nombre')}.`,
-          `The model computed this site against its twin (${trDato(gemelo, 'nombre')}), not against ${trDato(elegido, 'nombre')}.`)) : null,
-      el('p', {}, [el('strong', {}, tr('Lo que la Tierra no puede probar: ', 'What Earth cannot test: ')),
-        noReproducible.length ? noReproducible.map((l) => l.etiqueta).join(' · ') : sinDato()]),
-      ...notas.map((n) => el('p', { class: 'nota' }, `${tr('Límite del cálculo', 'Calculation limit')}: ${enIdioma(n)}`)),
-      jugable ? null : el('p', { class: 'nota' }, tr('Este sitio aún no es jugable (no tiene recorrido de prueba): es parte del catálogo del modelo.',
-        'This site is not playable yet (it has no test route): it is part of the model catalog.')),
-    ];
-    const derecha = [
-      // 3 columnas para que quepa sin desplazarse: la similitud va debajo del nombre de la dimensión.
-      el('table', { class: 'compacta' }, [
-        el('thead', {}, el('tr', {}, [el('th', {}, tr('Dimensión · similitud', 'Dimension · similarity')),
-          el('th', {}, tr('Tierra (sitio)', 'Earth (site)')), el('th', {}, tr('Gemelo', 'Twin'))])),
-        el('tbody', {}, filas.length ? filas.map((f) => el('tr', {}, [
-          el('th', { scope: 'row' }, [f.etiqueta, el('small', { class: 'sim' },
-            f.mismaUnidad ? formatoPorcentaje(f.similitud) : tr('⚠ unidades distintas', '⚠ different units'))]),
-          // Fuente corta en la celda (el texto completo queda en el title y en el Expediente del sitio).
-          el('td', {}, [formatoValor(f.tierra), el('small', { title: trDato(f.tierra, 'fuente') || '' }, recortar(trDato(f.tierra, 'fuente') || '', 30))]),
-          el('td', {}, [f.destino?.texto && f.destino.valor == null ? f.destino.texto : formatoValor(f.destino),
-            el('small', { title: trDato(f.destino, 'fuente') || '' }, recortar(trDato(f.destino, 'fuente') || '', 30))]),
-        ])) : el('tr', {}, el('td', { colspan: 3 }, sinDato()))),
+      el('p', { class: 'titulo-medidor' }, tr('La Tierra no puede probar:', 'Earth cannot test:')),
+      el('div', { class: 'chips' }, noReproducible.length ? noReproducible.map((l) => chip(l.etiqueta, 'riesgo')) : [chip(sinDato())]),
+      detalle(tr('Ver más', 'See more'), [
+        el('p', {}, `${tr('Coordenadas', 'Coordinates')}: ${formatoCoordenada(s.lat, s.lon)}`),
+        elegido && gemelo && elegido.id !== gemelo.id
+          ? el('p', {}, tr(`El modelo calculó este sitio contra su gemelo (${trDato(gemelo, 'nombre')}), no contra ${trDato(elegido, 'nombre')}.`,
+            `The model computed this site against its twin (${trDato(gemelo, 'nombre')}), not against ${trDato(elegido, 'nombre')}.`)) : null,
+        ...notas.map((n) => el('p', {}, `${tr('Límite del cálculo', 'Calculation limit')}: ${enIdioma(n)}`)),
+        jugable ? null : el('p', {}, tr('Este sitio aún no es jugable (no tiene recorrido de prueba): es parte del catálogo del modelo.',
+          'This site is not playable yet (it has no test route): it is part of the model catalog.')),
       ]),
     ];
+    const derecha = tablaConBarras([tr('Dimensión', 'Dimension'), tr('Tierra', 'Earth'), tr('Gemelo', 'Twin')], filas.map((f) => ({
+      etiqueta: f.etiqueta,
+      similitud: f.mismaUnidad ? f.similitud : null,
+      textoSimilitud: f.mismaUnidad ? formatoPorcentaje(f.similitud) : tr('⚠ unidades distintas', '⚠ different units'),
+      tierra: formatoValor(f.tierra),
+      destino: f.destino?.texto && f.destino.valor == null ? f.destino.texto : formatoValor(f.destino),
+      fuenteTierra: trDato(f.tierra, 'fuente'),
+      fuenteDestino: trDato(f.destino, 'fuente'),
+    })));
     return el('article', { class: 'ficha dos-col' }, [el('div', {}, izquierda.filter(Boolean)), el('div', {}, derecha)]);
   }
 
@@ -337,10 +349,13 @@ export default class Explorador extends Phaser.Scene {
     }));
     return el('div', { class: 'fuera' }, [
       el('strong', {}, tr('Fuera del catálogo precalculado', 'Outside the precomputed catalog')),
-      el('p', {}, tr(`Ningún sitio del catálogo está a ${RADIO_CATALOGO_KM} km o menos de ${formatoCoordenada(punto.lat, punto.lon)}. `
-        + 'Sin la API, el modelo no puede medir la forma de cráter de un punto nuevo. Los 3 sitios más cercanos (elige uno para ver su ficha):',
+      el('div', { class: 'chips' }, [chip(tr(`nada a ≤ ${RADIO_CATALOGO_KM} km`, `nothing within ${RADIO_CATALOGO_KM} km`), 'riesgo'),
+        chip(tr('sin API: sin forma de cráter', 'no API: no crater shape'), 'neutro')]),
+      detalle(tr('Ver más', 'See more'), el('p', {}, tr(`Ningún sitio del catálogo está a ${RADIO_CATALOGO_KM} km o menos de ${formatoCoordenada(punto.lat, punto.lon)}. `
+        + 'Sin la API, el modelo no puede medir la forma de cráter de un punto nuevo.',
       `No catalog site is within ${RADIO_CATALOGO_KM} km of ${formatoCoordenada(punto.lat, punto.lon)}. `
-        + 'Without the API, the model cannot measure the crater shape of a new point. The 3 nearest sites (pick one to see its card):')),
+        + 'Without the API, the model cannot measure the crater shape of a new point.'))),
+      el('p', { class: 'titulo-medidor' }, tr('3 más cercanos (elige uno):', '3 nearest (pick one):')),
       cat.cercanos.length ? lista : el('p', { class: 'nota' }, sinDato()),
     ]);
   }
@@ -374,29 +389,30 @@ export default class Explorador extends Phaser.Scene {
     const escalas = Object.entries(DIMENSIONES_CLIMA)
       .map(([k, c]) => `${etiquetaVariable(k)} ${c.escala} ${unidadVisible(filas.find((f) => f.clave === k)?.tierra?.unidad || '')}`.trim()).join(', ');
     caja.replaceChildren(
-      el('h3', {}, tr('Similitud parcial (solo clima, sin forma del cráter)', 'Partial similarity (climate only, no crater shape)')),
-      el('p', { class: 'ayuda' }, tr(`Clima en vivo de este punto (NASA POWER, climatología anual) contra ${trDato(destino, 'nombre')}. `
-        + `s = exp(−|Tierra − destino| / escala); escalas del modelo (P): ${escalas}.`,
-      `Live climate of this point (NASA POWER, annual climatology) against ${trDato(destino, 'nombre')}. `
-        + `s = exp(−|Earth − destination| / scale); model scales (P): ${escalas}.`)),
-      // 3 columnas (como la ficha del catálogo): la similitud va debajo del nombre de la dimensión.
-      el('table', { class: 'compacta' }, [
-        el('thead', {}, el('tr', {}, [el('th', {}, tr('Dimensión · similitud', 'Dimension · similarity')),
-          el('th', {}, tr('Este punto', 'This point')), el('th', {}, tr('Destino', 'Destination'))])),
-        el('tbody', {}, filas.map((f) => {
-          const fuenteT = `${enIdioma(f.tierra?.fuente) || ''}${f.tierra?.fecha ? ` · ${f.tierra.fecha}` : ''}`;
-          return el('tr', {}, [
-            el('th', { scope: 'row' }, [etiquetaVariable(f.clave), el('small', { class: 'sim' }, formatoPorcentaje(f.similitud))]),
-            el('td', {}, [formatoValor(f.tierra), el('small', { title: fuenteT }, recortar(fuenteT, 30))]),
-            el('td', {}, [formatoValor(f.destino), el('small', { title: trDato(f.destino, 'fuente') || '' }, recortar(trDato(f.destino, 'fuente') || '', 30))]),
-          ]);
-        })),
+      el('h3', {}, tr('Similitud parcial · solo clima', 'Partial similarity · climate only')),
+      el('div', { class: 'chips' }, [chip(tr('NASA POWER en vivo', 'live NASA POWER'), 'dato'),
+        chip(tr(`vs ${trDato(destino, 'nombre')}`, `vs ${trDato(destino, 'nombre')}`)),
+        chip(tr('sin forma de cráter → sin total', 'no crater shape → no total'), 'riesgo')]),
+      ...tablaConBarras([tr('Dimensión', 'Dimension'), tr('Este punto', 'This point'), tr('Destino', 'Destination')], filas.map((f) => ({
+        etiqueta: etiquetaVariable(f.clave),
+        similitud: f.similitud,
+        textoSimilitud: formatoPorcentaje(f.similitud),
+        tierra: formatoValor(f.tierra),
+        destino: formatoValor(f.destino),
+        fuenteTierra: `${enIdioma(f.tierra?.fuente) || ''}${f.tierra?.fecha ? ` · ${f.tierra.fecha}` : ''}`,
+        fuenteDestino: trDato(f.destino, 'fuente'),
+      }))),
+      detalle(tr('Por qué es parcial', 'Why it is partial'), [
+        el('p', {}, tr(`Clima en vivo de este punto (NASA POWER, climatología anual) contra ${trDato(destino, 'nombre')}. `
+          + `s = exp(−|Tierra − destino| / escala); escalas del modelo (P): ${escalas}.`,
+        `Live climate of this point (NASA POWER, annual climatology) against ${trDato(destino, 'nombre')}. `
+          + `s = exp(−|Earth − destination| / scale); model scales (P): ${escalas}.`)),
+        ...recortes.map((t) => el('p', {}, t)),
+        el('p', {}, tr('Sin la forma del cráter (la dimensión principal) no hay similitud total. Tampoco se revisan vegetación (MODIS) '
+          + 'ni relieve: eso lo calcula la API del modelo. Un clima parecido, por sí solo, no hace análogo a un punto.',
+        'Without crater shape (the main dimension) there is no total similarity. Vegetation (MODIS) and terrain are not checked either: '
+          + 'the model API computes those. A similar climate alone does not make a point an analog.')),
       ]),
-      ...recortes.map((t) => el('p', { class: 'nota' }, t)),
-      el('p', { class: 'nota' }, tr('Sin la forma del cráter (la dimensión principal) no hay similitud total. Tampoco se revisan vegetación (MODIS) '
-        + 'ni relieve: eso lo calcula la API del modelo. Un clima parecido, por sí solo, no hace análogo a un punto.',
-      'Without crater shape (the main dimension) there is no total similarity. Vegetation (MODIS) and terrain are not checked either: '
-        + 'the model API computes those. A similar climate alone does not make a point an analog.')),
     );
   }
 
@@ -406,9 +422,8 @@ export default class Explorador extends Phaser.Scene {
     // Una sola fila (botón deshabilitado + motivo) para que quepa junto a los sitios cercanos sin desplazarse.
     return el('div', { class: 'propuesta compacta' }, [
       el('div', { class: 'fila' }, [boton,
-        el('p', { id: 'mc-propuesta-nota', class: 'nota' }, tr('Necesita la API del modelo (similitud total con la forma del cráter), '
-          + 'que no está publicada en esta demo.',
-        'It needs the model API (total similarity with crater shape), which is not published in this demo.'))]),
+        el('p', { id: 'mc-propuesta-nota', class: 'nota' }, tr('Necesita la API del modelo (no publicada en esta demo)',
+          'Needs the model API (not published in this demo)'))]),
     ]);
   }
 
@@ -420,12 +435,15 @@ export default class Explorador extends Phaser.Scene {
     const filas = Object.keys(porDim).map((k) => {
       const t = vars[k] && typeof vars[k] === 'object' ? vars[k] : { valor: vars[k] ?? null };
       const ds = destino?.variables?.[k];
-      return el('tr', {}, [
-        el('th', { scope: 'row' }, etiquetaVariable(k)),
-        el('td', {}, [formatoValor(t), el('small', {}, enIdioma(t.fuente) || (t.valor == null ? tr('no disponible para este punto', 'not available for this point') : ''))]),
-        el('td', {}, [ds ? formatoValor(ds) : sinDato(), el('small', {}, trDato(ds, 'fuente') || '')]),
-        el('td', { class: 'num' }, formatoPorcentaje(porDim[k])),
-      ]);
+      return {
+        etiqueta: etiquetaVariable(k),
+        similitud: porDim[k],
+        textoSimilitud: formatoPorcentaje(porDim[k]),
+        tierra: formatoValor(t),
+        destino: ds ? formatoValor(ds) : sinDato(),
+        fuenteTierra: enIdioma(t.fuente) || (t.valor == null ? tr('no disponible para este punto', 'not available for this point') : ''),
+        fuenteDestino: trDato(ds, 'fuente'),
+      };
     });
     const limites = (d?.no_reproducible_en_tierra || []).map(etiquetaLimite);
     const notas = [...(sim.limites_calculo || []).map(enIdioma),
@@ -434,25 +452,28 @@ export default class Explorador extends Phaser.Scene {
 
     this.ultimo = { datos: d, punto };
     const izquierda = el('div', {}, [
-      el('div', { class: 'total' }, [
-        el('span', { class: 'grande' }, formatoPorcentaje(total)),
-        el('span', {}, tr(` similitud total con ${destino ? trDato(destino, 'nombre') : punto.destino} · confianza ${formatoPorcentaje(sim.confianza)}`,
-          ` total similarity with ${destino ? trDato(destino, 'nombre') : punto.destino} · confidence ${formatoPorcentaje(sim.confianza)}`)
-          + (sim.vetado ? tr(' · VETADO por vegetación', ' · VETOED by vegetation') : '')),
+      el('h2', { tabindex: '-1' }, formatoCoordenada(punto.lat, punto.lon)),
+      el('div', { class: 'tarjeta' }, [
+        el('p', { class: 'titulo-medidor' }, tr(`Similitud con ${destino ? trDato(destino, 'nombre') : punto.destino}`,
+          `Similarity with ${destino ? trDato(destino, 'nombre') : punto.destino}`)),
+        barra(total, formatoPorcentaje(total), { grande: true }),
+        el('div', { class: 'chips' }, [chip(tr(`confianza ${formatoPorcentaje(sim.confianza)}`, `confidence ${formatoPorcentaje(sim.confianza)}`)),
+          sim.vetado ? chip(tr('VETADO por vegetación', 'VETOED by vegetation'), 'riesgo') : null]),
       ]),
-      el('p', { class: 'ayuda' }, tr(`Punto ${formatoCoordenada(punto.lat, punto.lon)} · método: ${d?.metodo || sinDato()}. `
-        + 'La forma de cráter solo existe para depresiones medidas por el detector; en un punto cualquiera falta y baja la confianza.',
-      `Point ${formatoCoordenada(punto.lat, punto.lon)} · method: ${d?.metodo || sinDato()}. `
-        + 'Crater shape only exists for depressions measured by the detector; at an arbitrary point it is missing and confidence drops.')),
-      el('p', {}, [el('strong', {}, tr('Lo que la Tierra no puede probar: ', 'What Earth cannot test: ')), limites.length ? limites.join(' · ') : sinDato()]),
-      ...notas.map((n) => el('p', { class: 'nota' }, n)),
+      el('p', { class: 'titulo-medidor' }, tr('La Tierra no puede probar:', 'Earth cannot test:')),
+      el('div', { class: 'chips' }, limites.length ? limites.map((l) => chip(l, 'riesgo')) : [chip(sinDato())]),
       this.bloquePropuesta(d, punto),
+      detalle(tr('Ver más', 'See more'), [
+        el('p', {}, tr(`Punto ${formatoCoordenada(punto.lat, punto.lon)} · método: ${d?.metodo || sinDato()}. `
+          + 'La forma de cráter solo existe para depresiones medidas por el detector; en un punto cualquiera falta y baja la confianza.',
+        `Point ${formatoCoordenada(punto.lat, punto.lon)} · method: ${d?.metodo || sinDato()}. `
+          + 'Crater shape only exists for depressions measured by the detector; at an arbitrary point it is missing and confidence drops.')),
+        ...notas.map((n) => el('p', {}, n)),
+      ]),
     ]);
-    const derecha = el('div', {}, el('table', { class: 'compacta' }, [
-      el('thead', {}, el('tr', {}, [el('th', {}, tr('Dimensión', 'Dimension')), el('th', {}, tr('Tierra (este punto)', 'Earth (this point)')),
-        el('th', {}, tr('Destino', 'Destination')), el('th', {}, tr('Similitud', 'Similarity'))])),
-      el('tbody', {}, filas.length ? filas : el('tr', {}, el('td', { colspan: 4 }, tr('La API no devolvió dimensiones.', 'The API returned no dimensions.')))),
-    ]));
+    const derecha = el('div', {}, filas.length
+      ? tablaConBarras([tr('Dimensión', 'Dimension'), tr('Este punto', 'This point'), tr('Destino', 'Destination')], filas)
+      : el('p', { class: 'nota' }, tr('La API no devolvió dimensiones.', 'The API returned no dimensions.')));
     this.resultado.replaceChildren(el('article', { class: 'dos-col' }, [izquierda, derecha]));
     this.colapsarFormulario(punto);
     this.enfocarResultado();
@@ -515,4 +536,24 @@ export default class Explorador extends Phaser.Scene {
     });
     return form;
   }
+}
+
+/**
+ * Tabla Dimensión | Tierra | destino con una barra de similitud bajo cada dimensión (número siempre escrito) y las
+ * fuentes completas en un "ver más" debajo (DISENO.md §2.7: fuentes a un paso, nunca borradas).
+ * filas: [{ etiqueta, similitud (0–1 o null), textoSimilitud, tierra, destino, fuenteTierra, fuenteDestino }]
+ */
+function tablaConBarras(cabeza, filas) {
+  const tabla = el('table', {}, [
+    el('thead', {}, el('tr', {}, cabeza.map((c) => el('th', {}, c)))),
+    el('tbody', {}, filas.length ? filas.map((f) => el('tr', {}, [
+      el('th', { scope: 'row' }, [f.etiqueta, barra(f.similitud, f.textoSimilitud)]),
+      el('td', { class: 'dato' }, f.tierra),
+      el('td', {}, f.destino),
+    ])) : el('tr', {}, el('td', { colspan: 3 }, sinDato()))),
+  ]);
+  const fuentes = filas.filter((f) => f.fuenteTierra || f.fuenteDestino).map((f) => el('li', {}, [
+    el('strong', {}, `${f.etiqueta}: `),
+    `${cabeza[1]}: ${f.fuenteTierra || sinDato()} · ${cabeza[2]}: ${f.fuenteDestino || sinDato()}`]));
+  return [tabla, fuentes.length ? detalle(tr('Fuentes, fechas y unidades', 'Sources, dates and units'), el('ul', {}, fuentes)) : null];
 }
