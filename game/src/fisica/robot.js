@@ -6,6 +6,7 @@ import { resolverDiseno, MASA_CARGA_KG, RUEDAS_POR_RANURA } from './diseno.js';
 import { gastoPorSegundo } from './energia.js';
 import { danioChasis, danioCarga, danioSacudida, UMBRAL_CARGA_MS } from './danio.js';
 import { agarreSuelo } from './suelos.js';
+import { factorFrio, temperaturaAmbienteMotor, pasoTemperaturaMotor, potenciaPermitida, recargaPanel, REGLAS } from './ambiente.js';
 
 const M = Phaser.Physics.Matter.Matter;
 
@@ -52,8 +53,10 @@ export class Robot {
    * @param {Array} piezas  catálogo (parts.json)
    * @param {(tipo: string, detalle: string) => void} alEvento  telemetría
    */
-  constructor(scene, x, y, diseno, piezas, alEvento = () => {}, { mundo = 'tierra' } = {}) {
+  constructor(scene, x, y, diseno, piezas, alEvento = () => {}, { mundo = 'tierra', ambiente = null, factorAgarre = null } = {}) {
     this.mundo = mundo; // para el agarre real del suelo (suelos.js)
+    this.ambiente = ambiente; // temperatura, aire y luz del nivel (ambiente.js); null = sin reglas de ambiente
+    this.factorAgarre = factorAgarre; // (xMundo) => factor; arena blanda recreada (obstaculos.js)
     this.scene = scene;
     this.alEvento = alEvento;
     this.resuelto = resolverDiseno(diseno, piezas);
@@ -115,7 +118,15 @@ export class Robot {
 
     // Estado
     this.energiaMax = p.bateria.capacidad;
-    this.energia = this.energiaMax;
+    // Batería fría: arranca con menos energía útil (ambiente.js, regla a). Sin ambiente = 100 %.
+    this.factorFrio = ambiente ? factorFrio(ambiente.temperatura_min_C) : 1;
+    this.energiaUtil = this.energiaMax * this.factorFrio;
+    this.energia = this.energiaUtil;
+    // Motor: temperatura (°C), empieza a la del ambiente (regla b).
+    this.tMotor = temperaturaAmbienteMotor(ambiente);
+    this.tMotorMax = this.tMotor;
+    this.sobrecalentado = false;
+    this.potenciaMotor = 1;
     this.vidaMax = p.chasis.resistencia;
     this.vida = this.vidaMax;
     this.integridad = 1;
@@ -210,16 +221,24 @@ export class Robot {
     for (const w of this.ruedas) {
       w.superficie = superficieDe(w.cuerpo.position.x);
       // Fricción = curva(agarre de la pieza) × agarre real del suelo (suelos.js; sin dato = 1).
-      w.cuerpo.friction = friccionDeAgarre(w.pieza.agarre?.[w.superficie] ?? 0.6) * agarreSuelo(this.mundo, w.superficie);
+      w.cuerpo.friction = friccionDeAgarre(w.pieza.agarre?.[w.superficie] ?? 0.6) * agarreSuelo(this.mundo, w.superficie)
+        * (this.factorAgarre?.(w.cuerpo.position.x) ?? 1);
     }
 
     // Energía
     const motorActivo = !this.destruido && !this.sinEnergia;
-    const a = motorActivo ? acelerador : 0;
-    this.energia = Math.max(0, this.energia - gastoPorSegundo(this.piezas.motor, this.masaTotal, a) * dt);
+    const pedido = motorActivo ? acelerador : 0;
+    // Motor caliente (regla b): empuja menos, pero la batería gasta lo que se pide (la diferencia se pierde como calor).
+    const a = this.ambiente ? this._termica(pedido, dt) : pedido;
+    this.energia = Math.max(0, this.energia - gastoPorSegundo(this.piezas.motor, this.masaTotal, pedido) * dt);
     if (this.energia <= 0 && !this.sinEnergia) {
       this.sinEnergia = true;
       this.alEvento('energia_agotada', this.piezas.bateria.id);
+    }
+
+    // Panel solar: recarga según la luz del nivel (regla c), sin pasar de la energía útil.
+    if (this.ambiente && this.energia > 0 && this.piezas.modulo) {
+      this.energia = Math.min(this.energiaUtil, this.energia + recargaPanel(this.piezas.modulo, this.ambiente) * dt);
     }
 
     // Motor: torque limitado por `fuerza`, hasta la velocidad máxima.
@@ -293,6 +312,29 @@ export class Robot {
     for (const w of this.ruedas) w.tocando = false;
   }
 
+  /**
+   * Calor del motor (ambiente.js, regla b): sube con acelerador × consumo y lo baja el aire (∝ densidad) y la radiación.
+   * Sobre el límite, el motor solo entrega la potencia que el ambiente alcanza a enfriar. Devuelve el acelerador efectivo.
+   */
+  _termica(a, dt) {
+    const R = REGLAS.motor;
+    const consumo = this.piezas.motor.consumo ?? 1;
+    this.potenciaMotor = this.sobrecalentado ? potenciaPermitida(this.tMotor, consumo, this.ambiente) : 1;
+    const ef = Math.sign(a) * Math.min(Math.abs(a), this.potenciaMotor);
+    this.tMotor = pasoTemperaturaMotor(this.tMotor, { a: ef, consumo, dt, amb: this.ambiente });
+    this.tMotorMax = Math.max(this.tMotorMax, this.tMotor);
+    if (!this.sobrecalentado && this.tMotor >= R.limite_C) {
+      this.sobrecalentado = true;
+      this.alEvento('sobrecalentamiento', `${Math.round(this.tMotor)} °C`);
+    } else if (this.sobrecalentado && this.tMotor < R.limite_C - R.histeresis_C) {
+      this.sobrecalentado = false;
+    }
+    return ef;
+  }
+
+  /** ¿Motor cerca del límite? (para un jugador que suelta el acelerador a tiempo) */
+  get motorCaliente() { return this.tMotor >= REGLAS.motor.limite_C - REGLAS.motor.aviso_C; }
+
   /** Estado normalizado para el HUD y la telemetría. */
   estado() {
     return {
@@ -302,6 +344,8 @@ export class Robot {
       velocidadMs: this.velocidadMs,
       superficie: this.ruedas[1].superficie,
       patina: this.ruedas.some((w) => w.tPatina > PATINA_SEG),
+      tMotor: this.ambiente ? this.tMotor : null,
+      sobrecalentado: this.sobrecalentado,
     };
   }
 

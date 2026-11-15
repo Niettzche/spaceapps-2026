@@ -67,6 +67,17 @@ export function recomendar(resultado) {
       recs.push({ id: 'motor_eficiente', texto: tr('Cambia al motor eficiente: gasta la mitad.', 'Switch to the efficient motor: it uses half the energy.'), evidencia: tr('Se acabó la energía aun con la batería grande.', 'The battery ran out even with the large battery.'), cambio: { ranuras: ['motor'], pieza: 'motor_eficiente' } });
     }
   }
+  // Motor sobrecalentado (ambiente.js): sin aire que lo enfríe, el motor potente se calienta el doble que el eficiente.
+  const calor = contar('sobrecalentamiento');
+  if (calor > 0) {
+    const evidencia = tr(`El motor pasó del límite de temperatura ${veces(calor)} y perdió potencia.`,
+      `The motor went over its temperature limit ${veces(calor)} and lost power.`);
+    if (usaPieza(d, 'motor_potente')) {
+      recs.push({ id: 'motor_eficiente_calor', texto: tr('Usa el motor eficiente: se calienta la mitad.', 'Use the efficient motor: it heats up half as much.'), evidencia, cambio: { ranuras: ['motor'], pieza: 'motor_eficiente' } });
+    } else {
+      recs.push({ id: 'pausas_motor', texto: tr('Maneja con pausas: suelta el acelerador para que el motor se enfríe.', 'Drive with pauses: release the throttle so the motor cools down.'), evidencia });
+    }
+  }
   if (contar('chasis_destruido') > 0 && !usaPieza(d, 'chasis_reforzado')) {
     recs.push({ id: 'chasis_reforzado', texto: tr('Usa el chasis reforzado.', 'Use the reinforced chassis.'), evidencia: tr('El chasis se destruyó por los golpes.', 'The chassis was destroyed by impacts.'), cambio: { ranuras: ['chasis'], pieza: 'chasis_reforzado' } });
   }
