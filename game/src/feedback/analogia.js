@@ -41,7 +41,7 @@ export function compararAnalogia(prueba, mision, destino) {
     const pa = contar(p, 'patinaje');
     const pm = contar(m, 'patinaje');
     let txt = tr(`Patinaje: ${pa} momentos en la prueba, ${pm} en la misión.`, `Wheel slip: ${pa} moments in the test, ${pm} in the mission.`);
-    if (pm > pa) txt += tr(' Con menos peso sobre las ruedas se agarra menos: eso la prueba no lo mostró.', ' Less weight on the wheels means less grip: the test could not show that.');
+    if (pm > pa) txt += tr(' Con menos peso sobre las ruedas hay menos fuerza de tracción: eso la prueba no lo mostró.', ' Less weight on the wheels means less traction force: the test could not show that.');
     else if (pm < pa) txt += tr(' El suelo del análogo fue más exigente que el del destino.', ' The analog site\'s ground was harder to drive than the destination\'s.');
     lineas.push(txt);
     const ep = gastoPor100m(p);
@@ -75,8 +75,8 @@ export function compararAnalogia(prueba, mision, destino) {
 
   const suelo = datosSuelo(destino?.mundo, 'arena');
   if (suelo) {
-    lineas.push(tr(`Suelo del destino: ${suelo.nombre}, fricción interna ${suelo.phi[0]}–${suelo.phi[1]}° (dato medido).`,
-      `Destination soil: ${trDato(suelo, 'nombre')}, internal friction angle ${suelo.phi[0]}–${suelo.phi[1]}° (measured value).`));
+    lineas.push(tr(`Suelo del destino: ${suelo.nombre}, fricción interna ${suelo.phi[0]}–${suelo.phi[1]}° (${destino?.mundo === 'luna' ? 'estimación de Apolo' : 'estimación de ingeniería con datos Viking'}).`,
+      `Destination soil: ${trDato(suelo, 'nombre')}, internal friction angle ${suelo.phi[0]}–${suelo.phi[1]}° (${destino?.mundo === 'luna' ? 'Apollo estimate' : 'engineering estimate from Viking data'}).`));
   }
 
   const nombres = NOMBRE_LIMITE();

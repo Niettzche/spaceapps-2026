@@ -103,7 +103,7 @@ export class Recorrido {
       const minimo = Math.round(o.umbralIntegridad * 100);
       this.hud.instrucciones(tr(`Llegada a ${nombreMundo} · gravedad ${o.gravedad} m/s² (${pct} % de la Tierra)`,
         `Arrival on ${nombreMundo} · gravity ${o.gravedad} m/s² (${pct} % of Earth's)`), [
-        tr('Pesas menos: las ruedas agarran menos y el robot rebota más', 'Less weight: the wheels grip less and the robot bounces more'),
+        tr('Pesas menos: las ruedas empujan con menos fuerza y el robot rebota más', 'Less weight: the wheels push with less force and the robot bounces more'),
         tr(`Frena y detente 2 s dentro de la ZONA DE ENTREGA con la carga ≥ ${minimo} %`, `Brake and stay still 2 s inside the DELIVERY ZONE with payload ≥ ${minimo} %`),
         ...ambiente,
         controles,
