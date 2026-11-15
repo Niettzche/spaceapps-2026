@@ -9,6 +9,7 @@
 // Sin dato → null + nota (nunca se inventa).
 
 import { tr } from '../i18n.js';
+import CLIMA_NIVELES from '../content/clima_niveles.js';
 
 // Densidad del aire de la Tierra a nivel del mar: 1.217 kg/m³ (WX-002, NSSDCA Earth Fact Sheet, S03). Es la referencia "1 ×".
 export const DENSIDAD_AIRE_TIERRA = 1.217;
@@ -29,6 +30,20 @@ export const CLIMA_SITIOS = {
   g00281: { min: 9.6, max: 42.1, ext: [0.6, 45.3], media: 25.9, ps: 89.41, rho: 1.042 },
 };
 
+// Niveles destacados (content/clima_niveles.js): mismo método con NASA POWER consultada el 15 nov, más el viento a 10 m
+// (WS10M media y WS10M_MAX) y la nieve (SNODP). Los sitios que ya estaban en la tabla conservan sus valores (pinacate da igual)
+// y solo reciben el viento.
+const POWER_DIRECTO_ES = `NASA POWER consultada ${CLIMA_NIVELES.fecha_consulta} (climatología 2001–2025; típicas de datos diarios 2015–2024; viento WS10M a 10 m); densidad derivada (gas ideal)`;
+const POWER_DIRECTO_EN = `NASA POWER queried ${CLIMA_NIVELES.fecha_consulta} (2001–2025 climatology; typical values from 2015–2024 daily data; WS10M wind at 10 m); density derived (ideal gas)`;
+for (const [id, c] of Object.entries(CLIMA_NIVELES.sitios)) {
+  const viento = { viento: c.viento_medio_ms, rafaga: c.viento_max_ms, nieve: c.nieve_media_cm };
+  if (CLIMA_SITIOS[id]) Object.assign(CLIMA_SITIOS[id], viento);
+  else {
+    CLIMA_SITIOS[id] = { min: c.min_tipica_C, max: c.max_tipica_C, ext: [c.min_extrema_C, c.max_extrema_C], media: c.media_C,
+      ps: c.ps_kPa, rho: c.rho_kg_m3, ...viento, directo: true };
+  }
+}
+
 /** Destinos, de docs/taller/AMBIENTE.md (+ luz e irradiancia del libro de datos). */
 const AMBIENTE_DESTINOS = {
   jezero: {
@@ -40,6 +55,9 @@ const AMBIENTE_DESTINOS = {
     densidad_aire_kg_m3: 0.017, // derivada de 718 Pa y −55 °C (CO₂, gas ideal); Mars Fact Sheet: 0.016 ± 0.006
     luz: 'directa',
     irradiancia_rel: 0.431, // WX-007 del libro: 586.2 W/m² en Marte / 1361 en la Tierra (antes del polvo)
+    // Viento (fisica/viento.js): ráfagas de ~10 m/s del primer reporte de MEDA (WX-017, S22). Sin viento medio con fuente.
+    viento_medio_ms: null,
+    viento_max_ms: 10,
     nota: 'Temperaturas de dos soles de primavera, no una climatología anual.',
     nota_en: 'Temperatures from two spring sols, not an annual climatology.',
     fuentes: [`${TABLA}: MEDA/Perseverance (S22, 2021-04-06; S21, S23); densidad derivada`, 'luz: WX-007 (NSSDCA Mars Fact Sheet)'],
@@ -93,10 +111,13 @@ export function ambienteDeSitio(sitioId) {
     densidad_aire_kg_m3: c.rho,
     luz: 'directa',
     irradiancia_rel: 1,
+    viento_medio_ms: c.viento ?? null, // WS10M a 10 m (content/clima_niveles.js); null = sin dato
+    viento_max_ms: c.rafaga ?? null, // WS10M_MAX a 10 m
+    nieve_media_cm: c.nieve ?? null, // SNODP
     nota: 'Valores de la celda de NASA POWER (~0.5° × 0.625°), no de una estación en el sitio.',
     nota_en: 'Values for the NASA POWER grid cell (~0.5° × 0.625°), not a station at the site.',
-    fuentes: [`${TABLA}: ${POWER_ES}`],
-    fuentes_en: [`${TABLA}: ${POWER_EN}`],
+    fuentes: [c.directo ? `game/src/content/clima_niveles.js: ${POWER_DIRECTO_ES}` : `${TABLA}: ${POWER_ES}`],
+    fuentes_en: [c.directo ? `game/src/content/clima_niveles.js: ${POWER_DIRECTO_EN}` : `${TABLA}: ${POWER_EN}`],
   };
 }
 

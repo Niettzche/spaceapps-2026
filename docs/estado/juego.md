@@ -26,6 +26,12 @@
 - **Pruebas:** `node game/src/fisica/fisica.test.mjs` (24 casos) y la prueba de punta a punta `game/e2e/camino_dorado.mjs`
   (Marte y Luna con clics y teclado reales; 22/23 en la última corrida, la falla fue una recarga de página ajena al juego).
 
+## Niveles destacados (15 nov)
+- 5 sitios de mayor similitud, uno por tipo (toba g00266, impacto en desierto tenoumer, mina mx0023, lava pinacate, impacto helado
+  pingualuit): clima real de NASA POWER (consultado el 15 nov), viento con arrastre ½ρv²CdA (en Marte casi no empuja), bloques y
+  parches recreados, eventos de fondo (remolinos, Fobos, la Tierra, micrometeoritos, desprendimientos) y «Entrena» en las
+  instrucciones. Detalle y tabla de balance (física 2): `docs/juego/NIVELES_DESTACADOS.md`. Pruebas: `fisica/niveles_destacados.test.mjs`.
+
 ## Física 2 (15 nov, experimental, `?fisica=2`)
 - Terramecánica Bekker–Wong en `game/src/fisica/suelo_v2.js` (pruebas `suelo_v2.test.mjs`), rama `v2` de robot.js, bandera en
   `version.js` (por defecto 1). Ecuaciones, fuentes, (P), calibración y tabla de niveles: `docs/juego/FISICA_V2.md`.

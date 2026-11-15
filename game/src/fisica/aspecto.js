@@ -9,6 +9,7 @@ import { textoPixel } from '../scenes/comun/fuente.js';
 import { ZOOM_ARTE } from './escala.js';
 import { UMBRAL_INTEGRIDAD } from '../config/world.js';
 import { personalizacionActual, pinturaPorId } from '../scenes/Taller/personalizacion.js'; // cosmética (frente taller)
+import { NIVELES_DESTACADOS } from '../content/niveles_destacados.js';
 
 // Sin assets/iconos/ ni assets/piezas/: son los íconos 16 × 16 y el arte 32 × 32 del taller (los carga Taller.js) y se llaman igual que las piezas
 // (rueda_tacos, chasis_reforzado...). Si entraran aquí, una pieza sin sprite propio usaría su ícono como sprite.
@@ -43,6 +44,11 @@ const TABLA = {
   baliza: { ancho: 4, cuadros: [1, 4], animaciones: { parpadea: 'todo' } },
   meta: { ancho: 8, cuadros: [1, 4], animaciones: { ondea: 'todo' } },
   zona_entrega: { ancho: 16, cuadros: [1] },
+  // Eventos de fondo (Mauricio, #93; fisica/eventos_fondo.js): remolino 8 cuadros de 16 × 40, micrometeorito 6 de 16 × 16.
+  evento_remolino: { ancho: 16, cuadros: [1, 8], animaciones: { gira: 'todo' } },
+  evento_micrometeorito: { ancho: 16, cuadros: [1, 6], animaciones: { destello: 'todo' } },
+  evento_fobos: { ancho: 8, cuadros: [1] },
+  evento_tierra: { ancho: 18, cuadros: [1] },
 };
 // Pintura del chasis (Taller, cosmética): chasis_<ligero|reforzado>_<color>, mismos cuadros que el original (2.º = dañado).
 for (const chasis of ['chasis_ligero', 'chasis_reforzado']) {
@@ -72,6 +78,8 @@ const ES_FONDO = /^fondo_[a-z0-9_]+_[123]$/;
 /** Fondo por sitio terrestre; Marte y Luna usan el del mundo. Sin fondo propio → 'desierto'. */
 // Fondo propio por sitio (si falta el arte, crearFondo usa 'desierto'). mx0207 = tajo minero; g00281 = maar Al Wahbah.
 const FONDO_POR_SITIO = { samalayuca: 'dunas', pinacate: 'lava', mx0207: 'mina', g00281: 'maar' };
+// Niveles destacados (content/niveles_destacados.js): el fondo de arte más parecido a cada lugar.
+for (const [id, n] of Object.entries(NIVELES_DESTACADOS)) FONDO_POR_SITIO[id] ??= n.fondo;
 const PARALAJE = [0, 0.2, 0.5]; // capas 1 (cielo fijo), 2 (lejana), 3 (cercana)
 
 // Índice nombre → { png, json } (URLs que resuelve Vite).
