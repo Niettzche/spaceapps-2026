@@ -1,10 +1,16 @@
 // Pruebas del frente expediente. Correr desde game/:  node --test src/scenes/expediente/pruebas/
 import { test } from 'node:test';
+import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import {
   sitiosParaDestino, filasComparacion, limitesDe, usarTicket, serializarPartida, leerGuardado,
-  validarCoordenadas, puedeProponer, validarNombrePropuesta, formatoValor, esDemostracion, SIN_DATO,
+  validarCoordenadas, validarCoordenadasHemisferio, esMina, aHemisferio, formatoCoordenada, puedeProponer, validarNombrePropuesta, formatoValor, esDemostracion, sinDato,
 } from '../logica.js';
+import { setIdioma } from '../../../i18n.js';
+import { ESTADOS, MUNDOS, etiquetaVariable } from '../textos.js';
+
+// Las pruebas comparan textos en español: el idioma se fija aquí (Node trae navigator.language, p. ej. en-US).
+setIdioma('es');
 
 const destino = {
   id: 'jezero', mundo: 'marte', gravedad_ms2: 3.71,
@@ -118,8 +124,8 @@ test('puedeProponer exige permiso de la API y umbral', () => {
 });
 
 test('formatos y marcas', () => {
-  assert.equal(formatoValor(null), SIN_DATO);
-  assert.equal(formatoValor({ valor: null, unidad: 'K' }), SIN_DATO);
+  assert.equal(formatoValor(null), sinDato());
+  assert.equal(formatoValor({ valor: null, unidad: 'K' }), sinDato());
   assert.equal(formatoValor({ valor: 14.513, unidad: 'K' }), '14.51 K');
   assert.equal(formatoValor({ valor: 0, unidad: '-' }), '0');
   assert.equal(esDemostracion({ estado: 'ilustrativo' }), true);
@@ -127,4 +133,66 @@ test('formatos y marcas', () => {
   assert.equal(esDemostracion({ estado: 'documentado' }), false);
   assert.equal(validarNombrePropuesta('  ab ').ok, false);
   assert.equal(validarNombrePropuesta('Cráter X').nombre, 'Cráter X');
+});
+
+test('hemisferio: S y O se convierten a grados negativos antes de llamar a /score', () => {
+  assert.deepEqual(validarCoordenadasHemisferio({ lat: '31.84', latHem: 'N', lon: '113.39', lonHem: 'O' }), { ok: true, lat: 31.84, lon: -113.39 });
+  assert.deepEqual(validarCoordenadasHemisferio({ lat: '22,9', latHem: 'S', lon: '41.14', lonHem: 'E' }), { ok: true, lat: -22.9, lon: 41.14 });
+  // 0 no lleva signo aunque el hemisferio sea S u O
+  const cero = validarCoordenadasHemisferio({ lat: '0', latHem: 'S', lon: '0', lonHem: 'O' });
+  assert.ok(cero.ok && Object.is(cero.lat, 0) && Object.is(cero.lon, 0));
+});
+
+test('hemisferio: rechaza signo, rangos fuera y hemisferio sin elegir', () => {
+  assert.equal(validarCoordenadasHemisferio({ lat: '-31', latHem: 'N', lon: '10', lonHem: 'E' }).ok, false);
+  assert.equal(validarCoordenadasHemisferio({ lat: '91', latHem: 'N', lon: '10', lonHem: 'E' }).ok, false);
+  assert.equal(validarCoordenadasHemisferio({ lat: '10', latHem: 'N', lon: '181', lonHem: 'E' }).ok, false);
+  assert.equal(validarCoordenadasHemisferio({ lat: '10', latHem: '', lon: '10', lonHem: 'E' }).ok, false);
+  assert.equal(validarCoordenadasHemisferio({ lat: '10', latHem: 'N', lon: '10', lonHem: 'W' }).ok, false);
+  assert.equal(validarCoordenadasHemisferio({ lat: 'abc', latHem: 'N', lon: '10', lonHem: 'E' }).ok, false);
+});
+
+test('aHemisferio y formatoCoordenada: ida y vuelta con un sitio del catálogo', () => {
+  const h = aHemisferio(-21.92, -68.832);
+  assert.deepEqual(h, { lat: 21.92, latHem: 'S', lon: 68.832, lonHem: 'O' });
+  const v = validarCoordenadasHemisferio({ lat: String(h.lat), latHem: h.latHem, lon: String(h.lon), lonHem: h.lonHem });
+  assert.deepEqual(v, { ok: true, lat: -21.92, lon: -68.832 });
+  assert.equal(formatoCoordenada(31.84, -113.39), '31.84° N, 113.39° O');
+});
+
+test('mina (mx0207): análogo operativo, no cráter natural', () => {
+  // Datos reales del frente modelo: no se inventan; si cambian, esta prueba avisa.
+  const leer = (id) => JSON.parse(readFileSync(new URL(`../../../../../data/sites/${id}.json`, import.meta.url), 'utf-8'));
+  const mina = leer('mx0207');
+  assert.equal(esMina(mina), true);
+  assert.equal(esMina(leer('g00281')), false); // el maar Al Wahbah sí es una depresión natural
+  const forma = filasComparacion(mina, destino).filas.find((f) => f.clave === 'forma');
+  assert.equal(forma.etiqueta, 'Forma del tajo minero');
+  assert.match(forma.destino.texto, /^vs\. /);
+  assert.match(forma.destino.nota, /no un cráter natural/);
+  // Un sitio que no es mina conserva las etiquetas de cráter
+  const crater = filasComparacion(sitio, destino).filas.find((f) => f.clave === 'forma');
+  assert.equal(crater.etiqueta, 'Forma del cráter');
+  assert.equal(crater.destino.texto, 'Cráteres Luna+Marte');
+});
+
+test('idioma: las etiquetas cambian al momento, sin recargar el módulo', () => {
+  try {
+    setIdioma('en');
+    assert.equal(formatoValor(null), 'no data');
+    assert.equal(ESTADOS.mina.texto, 'OPERATIONAL ANALOG (MINE)');
+    assert.equal(ESTADOS.ilustrativo.texto, 'ILLUSTRATIVE');
+    assert.equal(MUNDOS.luna, 'Moon');
+    assert.equal(etiquetaVariable('forma'), 'Crater shape');
+    assert.equal(formatoValor({ valor: 0.69, unidad: 'mm/día' }), '0.69 mm/day');
+    assert.equal(formatoCoordenada(31.84, -113.39), '31.84° N, 113.39° W');
+    const mina = { proceso: 'Probable tajo minero a cielo abierto', variables: { forma: { valor: 1, unidad: '0-1' } } };
+    assert.equal(filasComparacion(mina, destino).filas[0].etiqueta, 'Open-pit mine shape');
+    // El valor interno del hemisferio no cambia con el idioma.
+    assert.equal(aHemisferio(1, -1).lonHem, 'O');
+  } finally {
+    setIdioma('es');
+  }
+  assert.equal(formatoValor(null), 'sin dato');
+  assert.equal(ESTADOS.mina.texto, 'ANÁLOGO OPERATIVO (MINA)');
 });

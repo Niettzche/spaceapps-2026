@@ -1,6 +1,7 @@
 // Dueño: frente expediente. Cliente mínimo de la API del modelo (api/main.py). El juego NO depende de ella:
 // cualquier fallo se devuelve como { ok: false, tipo, mensaje } para que la interfaz lo explique.
 import { API_URL, ESPERA_API_MS } from './config.js';
+import { tr } from '../../i18n.js';
 
 async function post(ruta, cuerpo, { espera = ESPERA_API_MS, senal } = {}) {
   const ctrl = new AbortController();
@@ -21,9 +22,9 @@ async function post(ruta, cuerpo, { espera = ESPERA_API_MS, senal } = {}) {
     }
     return { ok: true, datos };
   } catch (e) {
-    if (ctrl.signal.aborted && ctrl.signal.reason === 'cancelado') return { ok: false, tipo: 'cancelado', mensaje: 'Consulta cancelada.' };
-    if (ctrl.signal.aborted) return { ok: false, tipo: 'espera', mensaje: `La API no respondió en ${Math.round(espera / 1000)} s.` };
-    return { ok: false, tipo: 'red', mensaje: 'No se pudo conectar con la API del modelo.' };
+    if (ctrl.signal.aborted && ctrl.signal.reason === 'cancelado') return { ok: false, tipo: 'cancelado', mensaje: tr('Consulta cancelada.', 'Request cancelled.') };
+    if (ctrl.signal.aborted) return { ok: false, tipo: 'espera', mensaje: tr(`La API no respondió en ${Math.round(espera / 1000)} s.`, `The API did not answer within ${Math.round(espera / 1000)} s.`) };
+    return { ok: false, tipo: 'red', mensaje: tr('No se pudo conectar con la API del modelo.', 'Could not connect to the model API.') };
   } finally {
     clearTimeout(reloj);
   }

@@ -2,6 +2,7 @@
 // Todo el contenido sale de AGENTS.md §5, §6 y §7 (fuentes, método, validación y límites). No agregar cifras que no
 // estén documentadas allí o en model/VALIDATION.md.
 import { COLOR, texto, boton, limpiar } from './interfaz.js';
+import { idioma } from '../../i18n.js';
 
 export const PAGINAS = {
   es: {
@@ -120,16 +121,16 @@ export const PAGINAS = {
   },
 };
 
-const estado = { idioma: 'es', pagina: 0 };
+const estado = { pagina: 0 };
 
-export function vistaNumeros(scene, volver) {
-  const T = PAGINAS[estado.idioma];
+/** `cambiarIdioma`: lo da el Menú (alterna el idioma de todo el juego y vuelve a crear esta vista). */
+export function vistaNumeros(scene, volver, cambiarIdioma) {
+  const T = PAGINAS[idioma()] || PAGINAS.es;
   const total = T.paginas.length;
   estado.pagina = Math.min(estado.pagina, total - 1);
   const p = T.paginas[estado.pagina];
-  const redibujar = () => { limpiar(scene); vistaNumeros(scene, volver); };
+  const redibujar = () => { limpiar(scene); vistaNumeros(scene, volver, cambiarIdioma); };
   const ir = (paso) => { estado.pagina = (estado.pagina + paso + total) % total; redibujar(); };
-  const cambiarIdioma = () => { estado.idioma = estado.idioma === 'es' ? 'en' : 'es'; redibujar(); };
 
   texto(scene, 480, 40, T.titulo, { size: 24, origen: [0.5, 0.5] });
   texto(scene, 480, 74, p.sub, { size: 15, color: COLOR.acento, origen: [0.5, 0.5] });
@@ -141,7 +142,7 @@ export function vistaNumeros(scene, volver) {
   const anterior = boton(scene, 300, 470, '◀', () => ir(-1), { size: 16 });
   texto(scene, 480, 470, `${T.pagina} ${estado.pagina + 1}/${total}`, { size: 13, color: COLOR.tenue, origen: [0.5, 0.5] });
   const siguiente = boton(scene, 660, 470, '▶', () => ir(1), { size: 16 });
-  const idioma = boton(scene, 860, 30, T.idioma, cambiarIdioma, { size: 13 });
+  const botonIdioma = boton(scene, 860, 30, T.idioma, cambiarIdioma, { size: 13 });
   const atras = boton(scene, 480, 510, T.volver, volver, { size: 15 });
   texto(scene, 20, 530, T.ayuda, { size: 10, color: COLOR.muyTenue, origen: [0, 1] });
 
@@ -149,5 +150,5 @@ export function vistaNumeros(scene, volver) {
     ArrowLeft: () => ir(-1), ArrowRight: () => ir(1), PageUp: () => ir(-1), PageDown: () => ir(1),
     l: cambiarIdioma, L: cambiarIdioma,
   };
-  scene.teclado.poner([siguiente, anterior, idioma, atras], siguiente);
+  scene.teclado.poner([siguiente, anterior, botonIdioma, atras], siguiente);
 }

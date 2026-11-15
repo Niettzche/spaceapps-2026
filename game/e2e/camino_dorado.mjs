@@ -14,7 +14,7 @@
 //   2) npm i --no-save playwright-core                       # o apunta PW_CORE a una copia ya instalada
 //   3) CHROMIUM=~/.cache/ms-playwright/chromium_headless_shell-1254/chrome-headless-shell-linux64/chrome-headless-shell \
 //      URL=http://localhost:5205/ OUT=/tmp/e2e node e2e/camino_dorado.mjs [marte|luna|ambos]
-// Variables: CHROMIUM (obligatoria: ejecutable de Chromium), URL (por defecto http://localhost:5173/),
+// Variables: CHROMIUM (obligatoria: ejecutable de Chromium), URL (por defecto http://localhost:5173/; se le agrega ?lang=es),
 //   OUT (carpeta de capturas, por defecto ./e2e-capturas), PW_CORE (ruta a playwright-core si no está en game/node_modules),
 //   LIMITE_S (segundos de pared máximos por recorrido, por defecto 360).
 // Sale con código 1 si algún paso falla. Al final imprime una tabla por corrida y los errores de consola o de página.
@@ -23,7 +23,12 @@ import { createRequire } from 'node:module';
 import { join, resolve } from 'node:path';
 
 const CHROMIUM = process.env.CHROMIUM;
-const URL = process.env.URL ?? 'http://localhost:5173/';
+// Los botones se buscan por su texto en español: la página se abre con ?lang=es (salvo que URL ya traiga ?lang=).
+const URL = (() => {
+  const u = new globalThis.URL(process.env.URL ?? 'http://localhost:5173/');
+  if (!u.searchParams.has('lang')) u.searchParams.set('lang', 'es');
+  return u.toString();
+})();
 const OUT = resolve(process.env.OUT ?? './e2e-capturas');
 const LIMITE_S = Number(process.env.LIMITE_S ?? 360);
 const PX_POR_M = 24;
@@ -214,7 +219,16 @@ async function resultados(esperado) {
   const txt = await textosDe('Resultados');
   await captura(`resultados_${reg.tipo}_${reg.exito ? 'exito' : 'falla'}`);
   const recs = txt.filter((t) => t.startsWith('• ')).map((t) => t.slice(2));
-  const puntos = txt.find((t) => /[★☆]/.test(t));
+  // Puntuación: texto con ★/☆ (sin arte) o estrellas de arte (Image 'ui/ui_estrella_llena|vacia') + el total como texto aparte.
+  const arte = await page.evaluate(() => {
+    const s = window.__mc.Prueba.game.scene.getScene('Resultados');
+    const claves = s.children.list.filter((o) => o.type === 'Image' && o.visible && String(o.texture?.key).startsWith('ui/ui_estrella'))
+      .map((o) => o.texture.key);
+    return { n: claves.length, llenas: claves.filter((k) => k === 'ui/ui_estrella_llena').length };
+  });
+  const total = txt.find((t) => /^\d+$/.test(t.trim()));
+  const puntos = txt.find((t) => /[★☆]/.test(t))
+    ?? (arte.n >= 3 && total ? `${total.trim()} (${'★'.repeat(arte.llenas)}${'☆'.repeat(arte.n - arte.llenas)}, arte: ${arte.llenas}/${arte.n} llenas)` : null);
   const r = reg.resultado;
   const base = `${reg.exito ? 'éxito' : 'falla'} (${reg.motivo}) · ${r.distancia_m} m · E ${Math.round(r.energia_restante * 100)} % · carga ${Math.round(r.integridad_carga * 100)} %`
     + (puntos ? ` · puntos ${puntos.replace('\n', ' ')}` : '') + (recs.length ? ` · recs: ${recs.join(' | ')}` : ' · sin recs');

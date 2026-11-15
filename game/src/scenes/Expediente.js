@@ -7,8 +7,10 @@ import { GRAVEDAD, TICKETS_POR_PARTIDA } from '../config/world.js';
 import { elegirSitio, sitioPagado } from './expediente/guardado.js';
 import { DESTINO_POR_DEFECTO, urlFicha } from './expediente/config.js';
 import {
-  sitiosParaDestino, filasComparacion, limitesDe, formatoValor, formatoPorcentaje, esDemostracion, recortar, SIN_DATO, esMina } from './expediente/logica.js';
+  sitiosParaDestino, filasComparacion, limitesDe, formatoValor, formatoPorcentaje, esDemostracion, recortar, sinDato, esMina } from './expediente/logica.js';
 import { ESTADOS, MUNDOS, PRUEBAS } from './expediente/textos.js';
+import { prepararIngles, enIdioma } from './expediente/datos_en.js';
+import { tr, trDato } from '../i18n.js';
 
 // Dueño: frente expediente. Comparación 1 a 1: sitio terrestre (izq.) vs destino (der.), misma variable y unidad,
 // con fuente y fecha de cada lado. Lista de sitios a la izquierda (sugeridos por el modelo para el destino elegido).
@@ -21,6 +23,7 @@ export default class Expediente extends Phaser.Scene {
   constructor() { super('Expediente'); }
 
   create() {
+    prepararIngles();
     // La instancia de la escena se reutiliza entre visitas: reinicia el estado propio.
     this.botonesDetalle = null; this.botonesLista = []; this.foco = null; this.filaActual = null; this.filas = null;
     if (!DESTINOS[partida.destino]) partida.destino = DESTINOS[DESTINO_POR_DEFECTO] ? DESTINO_POR_DEFECTO : Object.keys(DESTINOS)[0];
@@ -41,37 +44,41 @@ export default class Expediente extends Phaser.Scene {
 
   dibujarFijo() {
     const d = this.destino;
-    const mundo = d ? MUNDOS[d.mundo] || d.mundo : SIN_DATO;
-    texto(this, 15, 12, 'EXPEDIENTE', { size: 20 });
-    texto(this, 15, 38, `Destino: ${mundo} · ${d ? d.nombre : SIN_DATO}`, { size: 12, color: COLOR.tenue, ancho: 270 });
+    const mundo = d ? MUNDOS[d.mundo] || d.mundo : sinDato();
+    texto(this, 15, 12, tr('EXPEDIENTE', 'SITE FILE'), { size: 20 });
+    texto(this, 15, 38, `${tr('Destino', 'Destination')}: ${mundo} · ${d ? trDato(d, 'nombre') : sinDato()}`, { size: 12, color: COLOR.tenue, ancho: 270 });
     panel(this, 10, 80, 280, 400);
   }
 
   dibujarLista() {
     this.capaLista.removeAll(true);
     const add = (o) => { this.capaLista.add(o.obj || o); return o; };
-    add(texto(this, 20, 88, `Sitios sugeridos (${this.sitios.length})`, { size: 12, color: COLOR.tenue }));
+    const enPagina = Math.min(POR_PAGINA, this.sitios.length - this.pagina * POR_PAGINA);
+    const atajo = enPagina > 0 ? tr(` · teclas 1–${enPagina}`, ` · keys 1–${enPagina}`) : '';
+    add(texto(this, 20, 88, `${tr('Sitios sugeridos', 'Suggested sites')} (${this.sitios.length})${atajo}`, { size: 12, color: COLOR.tenue }));
     this.botonesLista = [];
     if (!this.sitios.length) {
-      add(texto(this, 20, 120, 'El modelo aún no tiene sitios para este destino. Elige otro destino desde el menú.',
+      add(texto(this, 20, 120, tr('El modelo aún no tiene sitios para este destino. Elige otro destino desde el menú.',
+        'The model has no sites for this destination yet. Pick another destination from the menu.'),
         { size: 12, color: COLOR.alerta, ancho: 260 }));
     }
     const desde = this.pagina * POR_PAGINA;
     this.sitios.slice(desde, desde + POR_PAGINA).forEach((s, k) => {
       const y = 112 + k * 42;
       const marca = s.id === this.seleccion?.id ? '● ' : '';
-      const b = add(boton(this, 20, y, `${marca}${recortar(s.nombre, 30)}`, () => this.seleccionar(s),
-        { size: 13, origen: [0, 0], marco: false, color: s.id === this.seleccion?.id ? COLOR.texto : COLOR.acento }));
+      const b = add(boton(this, 20, y, `${marca}${recortar(trDato(s, 'nombre'), 25)}`, () => this.seleccionar(s),
+        // Zona táctil: toda la fila (nombre y subtítulo), sin encimarse con la siguiente (filas cada 42 px).
+        { size: 13, origen: [0, 0], marco: false, color: s.id === this.seleccion?.id ? COLOR.texto : COLOR.acento, anchoMin: 262, altoMin: 40 }));
       const est = (esMina(s) && ESTADOS.mina) || ESTADOS[s.estado] || { texto: s.estado, color: COLOR.tenue };
       const total = typeof s.similitud?.total === 'number' ? formatoPorcentaje(s.similitud.total) : null;
-      const sub = [est.texto, s.prueba_util ? `prueba: ${PRUEBAS[s.prueba_util] || s.prueba_util}` : null, total].filter(Boolean).join(' · ');
+      const sub = [est.texto, s.prueba_util ? `${tr('prueba', 'test')}: ${PRUEBAS[s.prueba_util] || s.prueba_util}` : null, total].filter(Boolean).join(' · ');
       add(texto(this, 34, y + 17, recortar(sub, 38), { size: 10, color: esDemostracion(s) ? COLOR.alerta : COLOR.muyTenue }));
       b.sitioId = s.id;
       this.botonesLista.push(b);
     });
     const paginas = Math.max(1, Math.ceil(this.sitios.length / POR_PAGINA));
     this.botonAnterior = add(boton(this, 60, 455, '◀', () => this.cambiarPagina(-1, 'anterior'), { size: 14, habilitado: this.pagina > 0 }));
-    add(texto(this, 150, 455, `pág. ${this.pagina + 1}/${paginas}`, { size: 12, color: COLOR.tenue, origen: [0.5, 0.5] }));
+    add(texto(this, 150, 455, `${tr('pág.', 'p.')} ${this.pagina + 1}/${paginas}`, { size: 12, color: COLOR.tenue, origen: [0.5, 0.5] }));
     this.botonSiguiente = add(boton(this, 240, 455, '▶', () => this.cambiarPagina(1, 'siguiente'), { size: 14, habilitado: this.pagina < paginas - 1 }));
     this.registrarTeclado();
   }
@@ -85,7 +92,8 @@ export default class Expediente extends Phaser.Scene {
 
   seleccionar(s) {
     this.seleccion = s;
-    this.foco = 'seleccion';
+    // Elegir un sitio (número, Enter o toque) lleva el foco a "Gastar 1 ticket": el siguiente Enter confirma.
+    this.foco = 'probar';
     this.filaActual = null;
     this.dibujarLista();
     this.dibujarDetalle();
@@ -100,33 +108,36 @@ export default class Expediente extends Phaser.Scene {
     const s = this.seleccion;
     const d = this.destino;
     if (!s || !d) {
-      add(texto(this, XM, 250, !d ? 'Sin destino cargado (data/targets).' : 'Elige un sitio de la lista.', { size: 14, color: COLOR.tenue, origen: [0.5, 0.5] }));
+      add(texto(this, XM, 250, !d ? tr('Sin destino cargado (data/targets).', 'No destination loaded (data/targets).') : tr('Elige un sitio de la lista.', 'Pick a site from the list.'), { size: 14, color: COLOR.tenue, origen: [0.5, 0.5] }));
       this.dibujarAcciones(add);
       return;
     }
 
     // Encabezado del sitio
     const est = (esMina(s) && ESTADOS.mina) || ESTADOS[s.estado] || { texto: s.estado, color: COLOR.tenue };
-    add(texto(this, X0, 12, recortar(s.nombre, 42), { size: 18 }));
-    const coord = typeof s.lat === 'number' && typeof s.lon === 'number' ? `${s.lat.toFixed(3)}, ${s.lon.toFixed(3)}` : 'coordenadas: sin dato';
-    add(texto(this, X0, 36, `${est.texto} · ${s.pais || 'país: sin dato'} · ${coord}${s.novedoso === true ? ' · NOVEDOSO' : ''}`,
+    const nombre = trDato(s, 'nombre');
+    const proceso = trDato(s, 'proceso') || sinDato();
+    const uso = trDato(s, 'uso_exploracion') || sinDato();
+    add(texto(this, X0, 12, recortar(nombre, 42), { size: 18 }));
+    const coord = typeof s.lat === 'number' && typeof s.lon === 'number' ? `${s.lat.toFixed(3)}, ${s.lon.toFixed(3)}` : tr('coordenadas: sin dato', 'coordinates: no data');
+    add(texto(this, X0, 36, `${est.texto} · ${s.pais || tr('país: sin dato', 'country: no data')} · ${coord}${s.novedoso === true ? tr(' · NOVEDOSO', ' · NOVEL') : ''}`,
       { size: 11, color: est.color }));
-    add(texto(this, X1, 12, `Similitud total ${formatoPorcentaje(s.similitud?.total)}`, { size: 14, color: COLOR.acento, origen: [1, 0] }));
-    add(texto(this, X1, 32, `confianza ${formatoPorcentaje(s.similitud?.confianza)}`, { size: 11, color: COLOR.tenue, origen: [1, 0] }));
-    add(texto(this, X0, 52, recortar(`Proceso: ${s.proceso || SIN_DATO}`, 92), { size: 11, color: COLOR.tenue }));
-    add(texto(this, X0, 66, recortar(`Uso para la exploración: ${s.uso_exploracion || SIN_DATO}`, 92), { size: 11, color: COLOR.tenue }));
+    add(texto(this, X1, 12, `${tr('Similitud total', 'Total similarity')} ${formatoPorcentaje(s.similitud?.total)}`, { size: 14, color: COLOR.acento, origen: [1, 0] }));
+    add(texto(this, X1, 32, `${tr('confianza', 'confidence')} ${formatoPorcentaje(s.similitud?.confianza)}`, { size: 11, color: COLOR.tenue, origen: [1, 0] }));
+    add(texto(this, X0, 52, recortar(`${tr('Proceso', 'Process')}: ${proceso}`, 92), { size: 11, color: COLOR.tenue }));
+    add(texto(this, X0, 66, recortar(`${tr('Uso para la exploración', 'Use for exploration')}: ${uso}`, 92), { size: 11, color: COLOR.tenue }));
 
     let y = 84;
     if (esDemostracion(s)) {
       add(this.add.rectangle(X0, y, X1 - X0, 18, 0x4a1020).setOrigin(0, 0));
-      add(texto(this, XM, y + 9, 'ILUSTRATIVO · datos de demostración: no son mediciones del sitio', { size: 11, color: '#ffb3c1', origen: [0.5, 0.5] }));
+      add(texto(this, XM, y + 9, tr('ILUSTRATIVO · datos de demostración: no son mediciones del sitio', 'ILLUSTRATIVE · demo data: not measurements of the site'), { size: 11, color: '#ffb3c1', origen: [0.5, 0.5] }));
       y += 22;
     }
 
     // Cabecera de columnas: Tierra a la izquierda, destino a la derecha.
-    add(texto(this, X0, y, `TIERRA · ${recortar(s.nombre, 26)}`, { size: 11, color: COLOR.foco }));
+    add(texto(this, X0, y, `${tr('TIERRA', 'EARTH')} · ${recortar(nombre, 26)}`, { size: 11, color: COLOR.foco }));
     add(texto(this, XM, y, 'variable', { size: 11, color: COLOR.muyTenue, origen: [0.5, 0] }));
-    add(texto(this, X1, y, `${(MUNDOS[d.mundo] || d.mundo).toUpperCase()} · ${recortar(d.nombre, 24)}`, { size: 11, color: COLOR.foco, origen: [1, 0] }));
+    add(texto(this, X1, y, `${(MUNDOS[d.mundo] || d.mundo).toUpperCase()} · ${recortar(trDato(d, 'nombre'), 24)}`, { size: 11, color: COLOR.foco, origen: [1, 0] }));
     y += 16;
 
     const { filas, soloTierra } = filasComparacion(s, d);
@@ -137,22 +148,22 @@ export default class Expediente extends Phaser.Scene {
       fondo.setInteractive({ useHandCursor: true }).on('pointerdown', () => this.mostrarFuentes(f));
       const vt = formatoValor(f.tierra);
       const vd = f.destino?.texto && f.destino.valor == null ? f.destino.texto : formatoValor(f.destino);
-      add(texto(this, X0, y, recortar(vt, 24), { size: 14, color: vt === SIN_DATO ? COLOR.muyTenue : COLOR.texto }));
+      add(texto(this, X0, y, recortar(vt, 24), { size: 14, color: vt === sinDato() ? COLOR.muyTenue : COLOR.texto }));
       add(texto(this, XM, y, f.etiqueta, { size: 12, color: COLOR.acento, origen: [0.5, 0] }));
-      add(texto(this, X1, y, recortar(vd, 24), { size: 14, color: vd === SIN_DATO ? COLOR.muyTenue : COLOR.texto, origen: [1, 0] }));
-      const simil = f.mismaUnidad ? `similitud ${formatoPorcentaje(f.similitud)}` : '⚠ unidades distintas';
+      add(texto(this, X1, y, recortar(vd, 24), { size: 14, color: vd === sinDato() ? COLOR.muyTenue : COLOR.texto, origen: [1, 0] }));
+      const simil = f.mismaUnidad ? `${tr('similitud', 'similarity')} ${formatoPorcentaje(f.similitud)}` : tr('⚠ unidades distintas', '⚠ different units');
       add(texto(this, XM, y + 16, simil, { size: 10, color: f.mismaUnidad ? COLOR.tenue : COLOR.alerta, origen: [0.5, 0] }));
       add(texto(this, X0, y + 17, recortar(fuenteCorta(f.tierra), 34), { size: 10, color: COLOR.muyTenue }));
       add(texto(this, X1, y + 17, recortar(fuenteCorta(f.destino), 34), { size: 10, color: COLOR.muyTenue, origen: [1, 0] }));
       y += alto;
     });
     if (!filas.length) {
-      add(texto(this, XM, y + 10, 'Sin variables comparables entre el sitio y el destino.', { size: 12, color: COLOR.muyTenue, origen: [0.5, 0] }));
+      add(texto(this, XM, y + 10, tr('Sin variables comparables entre el sitio y el destino.', 'No comparable variables between the site and the destination.'), { size: 12, color: COLOR.muyTenue, origen: [0.5, 0] }));
       y += 30;
     }
     if (soloTierra.length) {
       const lista = soloTierra.map((x) => `${x.etiqueta} ${formatoValor(x.variable)}`).join(' · ');
-      add(texto(this, X0, y + 2, `Solo medido en la Tierra: ${lista}`, { size: 10, color: COLOR.tenue, ancho: X1 - X0 }));
+      add(texto(this, X0, y + 2, `${tr('Solo medido en la Tierra', 'Measured only on Earth')}: ${lista}`, { size: 10, color: COLOR.tenue, ancho: X1 - X0 }));
       y += 28;
     }
     y = this.dibujarLimites(add, s, d, Math.max(y + 2, 300));
@@ -169,11 +180,12 @@ export default class Expediente extends Phaser.Scene {
     const mundo = MUNDOS[d.mundo] || d.mundo;
     const alto = 52;
     add(this.add.rectangle(X0 - 4, y, X1 - X0 + 8, alto, 0x2a1a10).setOrigin(0, 0).setStrokeStyle(1, 0x6b4a2a));
-    add(texto(this, X0, y + 4, 'LO QUE LA TIERRA NO PUEDE PROBAR', { size: 11, color: COLOR.acento }));
+    add(texto(this, X0, y + 4, tr('LO QUE LA TIERRA NO PUEDE PROBAR', 'WHAT EARTH CANNOT TEST'), { size: 11, color: COLOR.acento }));
     const partes = noReproducible.map((l) => (l.clave === 'gravedad' && typeof d.gravedad_ms2 === 'number'
-      ? `Gravedad (${mundo} ${d.gravedad_ms2} vs Tierra ${GRAVEDAD.tierra} m/s²; solo en la misión)`
+      ? tr(`Gravedad (${mundo} ${d.gravedad_ms2} vs Tierra ${GRAVEDAD.tierra} m/s²; solo en la misión)`,
+        `Gravity (${mundo} ${d.gravedad_ms2} vs Earth ${GRAVEDAD.tierra} m/s²; mission only)`)
       : l.etiqueta));
-    const linea = partes.length ? partes.join(' · ') : 'sin dato (el destino no declara límites)';
+    const linea = partes.length ? partes.join(' · ') : tr('sin dato (el destino no declara límites)', 'no data (the destination declares no limits)');
     add(texto(this, X0, y + 20, recortar(linea, 200), { size: 11, color: COLOR.texto, ancho: X1 - X0 }));
     return y + alto;
   }
@@ -184,39 +196,54 @@ export default class Expediente extends Phaser.Scene {
     const s = this.seleccion;
     const { notas } = limitesDe(s, this.destino);
     const lineas = [
-      `Proceso: ${s.proceso || SIN_DATO}`,
-      `Uso para la exploración: ${s.uso_exploracion || SIN_DATO}`,
-      ...notas.map((n) => `Límite del cálculo: ${n}`),
-      'Toca una fila (o pulsa F) para ver fuente, fecha y nota completas de cada lado.',
+      `${tr('Proceso', 'Process')}: ${trDato(s, 'proceso') || sinDato()}`,
+      `${tr('Uso para la exploración', 'Use for exploration')}: ${trDato(s, 'uso_exploracion') || sinDato()}`,
+      ...notas.map((n) => `${tr('Límite del cálculo', 'Calculation limit')}: ${enIdioma(n)}`),
+      tr('Toca una fila (o pulsa F) para ver fuente, fecha y nota completas de cada lado.',
+        'Tap a row (or press F) to see the full source, date and note for each side.'),
     ];
     this.capaInfo.add(texto(this, X0, this.yInfo, recortar(lineas.join('\n'), 640), { size: 10, color: COLOR.muyTenue, ancho: X1 - X0 }));
   }
 
   mostrarFuentes(f) {
     this.capaInfo.removeAll(true);
-    const lado = (v) => (v ? `${v.fuente || 'fuente: sin dato'} · fecha: ${v.fecha || SIN_DATO}${v.nota ? `\n  nota: ${v.nota}` : ''}` : SIN_DATO);
-    let t = `${f.etiqueta}\nTierra: ${lado(f.tierra)}\nDestino: ${lado(f.destino)}`;
-    if (f.detalleForma) t += `\nPuntaje de forma: ${formatoValor(f.detalleForma)} · ${f.detalleForma.nota || ''}`;
+    const lado = (v) => {
+      if (!v) return sinDato();
+      const nota = trDato(v, 'nota');
+      return `${trDato(v, 'fuente') || tr('fuente: sin dato', 'source: no data')} · ${tr('fecha', 'date')}: ${trDato(v, 'fecha') || sinDato()}`
+        + (nota ? `\n  ${tr('nota', 'note')}: ${nota}` : '');
+    };
+    let t = `${f.etiqueta}\n${tr('Tierra', 'Earth')}: ${lado(f.tierra)}\n${tr('Destino', 'Destination')}: ${lado(f.destino)}`;
+    if (f.detalleForma) t += `\n${tr('Puntaje de forma', 'Shape score')}: ${formatoValor(f.detalleForma)} · ${trDato(f.detalleForma, 'nota') || ''}`;
     this.capaInfo.add(texto(this, X0, this.yInfo, recortar(t, 620), { size: 10, color: COLOR.tenue, ancho: X1 - X0 }));
   }
 
   dibujarAcciones(add) {
-    const volver = add(boton(this, 60, 515, 'Menú', () => irA(this, 'Menu'), { size: 14 }));
+    const volver = add(boton(this, 60, 515, tr('Menú', 'Menu'), () => irA(this, 'Menu'), { size: 14 }));
     // Tickets (AGENTS.md §4): 3 por partida, sin reposición; volver a probar un sitio ya pagado no cuesta.
     const n = Math.max(0, partida.tickets | 0);
     const total = Math.max(TICKETS_POR_PARTIDA, n);
     const fichas = '●'.repeat(n) + '○'.repeat(total - n);
-    add(texto(this, 150, 506, `Tickets de prueba ${fichas} ${n}/${total}`, { size: 13, color: n ? COLOR.acento : COLOR.alerta }));
+    add(texto(this, 150, 506, `${tr('Tickets de prueba', 'Test tickets')} ${fichas} ${n}/${total}`, { size: 13, color: n ? COLOR.acento : COLOR.alerta }));
     const s = this.seleccion;
     const pagado = s && sitioPagado(s.id);
-    let etiqueta = 'Gastar 1 ticket y probar';
-    let ayuda = 'Al probar, este sitio queda pagado: puedes volver a probarlo sin gastar otro ticket.';
-    if (pagado) { etiqueta = 'Probar de nuevo'; ayuda = 'Ya pagaste este sitio: no gasta ticket.'; }
-    else if (!n) { etiqueta = 'Sin tickets'; ayuda = 'Sin tickets: elige un sitio ya pagado o empieza una Nueva partida desde el menú.'; }
-    const probar = add(boton(this, 800, 506, etiqueta, () => this.probar(), { size: 16, habilitado: !!s && (pagado || n > 0) }));
+    let etiqueta = tr('Gastar 1 ticket y probar', 'Spend 1 ticket and test');
+    let ayuda = tr('Enter confirma. Al probar, el sitio queda pagado: puedes volver a probarlo sin gastar otro ticket.',
+      'Enter confirms. Once tested, the site is paid for: you can test it again without spending another ticket.');
+    if (pagado) {
+      etiqueta = tr('Probar de nuevo', 'Test again');
+      ayuda = tr('Enter confirma. Ya pagaste este sitio: no gasta ticket.', 'Enter confirms. You already paid for this site: no ticket spent.');
+    } else if (!n) {
+      etiqueta = tr('Sin tickets', 'No tickets');
+      ayuda = tr('Sin tickets: elige un sitio ya pagado o empieza una Nueva partida desde el menú.',
+        'No tickets: pick a site you already paid for or start a New game from the menu.');
+    }
+    const puede = !!s && (pagado || n > 0);
+    // Opción sugerida (⏎, como en Resultados.js): es la que confirma el paso del camino dorado.
+    const probar = add(boton(this, 800, 506, etiqueta, () => this.probar(), { size: 16, habilitado: puede, sugerido: puede }));
     add(texto(this, 150, 526, ayuda, { size: 10, color: COLOR.muyTenue }));
     const url = urlFicha(s);
-    const ficha = add(boton(this, 560, 506, url ? 'Ficha completa ↗' : 'Ficha web: sin enlace', () => this.abrirFicha(url),
+    const ficha = add(boton(this, 535, 506, url ? tr('Ficha completa ↗', 'Full fact sheet ↗') : tr('Ficha web: sin enlace', 'Web fact sheet: no link'), () => this.abrirFicha(url),
       { size: 13, habilitado: !!url }));
     this.botonesDetalle = [probar, ficha];
     this.botonVolver = volver;
@@ -243,10 +270,13 @@ export default class Expediente extends Phaser.Scene {
     };
     const preferido = {
       seleccion: this.botonesLista.find((b) => b.sitioId === this.seleccion?.id),
+      probar: this.botonesDetalle?.[0]?.habilitado ? this.botonesDetalle[0] : this.botonesLista.find((b) => b.sitioId === this.seleccion?.id),
       anterior: this.botonAnterior.habilitado ? this.botonAnterior : this.botonSiguiente,
       siguiente: this.botonSiguiente.habilitado ? this.botonSiguiente : this.botonAnterior,
       lista: this.botonesLista[0],
     }[this.foco] || this.botonesLista.find((b) => b.sitioId === this.seleccion?.id);
+    // Atajos 1–8: eligen el sitio de esa posición en la página (igual que los números de Resultados.js).
+    this.teclado.numerar(this.botonesLista);
     this.teclado.poner([...this.botonesLista, this.botonAnterior, this.botonSiguiente, ...this.botonesDetalle, this.botonVolver], preferido);
   }
 
@@ -258,6 +288,8 @@ export default class Expediente extends Phaser.Scene {
 }
 
 function fuenteCorta(v) {
-  if (!v) return 'fuente: sin dato';
-  return `${v.fuente || 'fuente: sin dato'}${v.fecha ? ` · ${v.fecha}` : ''}`;
+  const sinFuente = tr('fuente: sin dato', 'source: no data');
+  if (!v) return sinFuente;
+  const fecha = trDato(v, 'fecha');
+  return `${trDato(v, 'fuente') || sinFuente}${fecha ? ` · ${fecha}` : ''}`;
 }

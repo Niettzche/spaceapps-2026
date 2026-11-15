@@ -1,18 +1,26 @@
 // Dueño: frente expediente. Lógica pura (sin Phaser ni navegador) para poder probarla con `node --test`.
 // Regla de oro: nunca inventar datos. Lo que falta se devuelve como null y la interfaz dice "sin dato".
+// Bilingüe: los textos se arman al llamar a cada función (tr), nunca al cargar el módulo.
 
+import { tr } from '../../i18n.js';
 import { etiquetaVariable, etiquetaLimite, LIMITES } from './textos.js';
 
-export const SIN_DATO = 'sin dato';
+/** "sin dato" / "no data" en el idioma actual (función: el idioma puede cambiar durante la partida). */
+export const sinDato = () => tr('sin dato', 'no data');
 
 // Orden fijo de las dimensiones del modelo (AGENTS.md §6.2); las demás compartidas van después.
 const ORDEN = ['forma', 'oscilacion_termica', 'precipitacion', 'ndvi', 'pendiente'];
 
 // Fuente de la referencia de forma del destino (AGENTS.md §6.2: mismos datos con los que se entrenó el modelo).
 const REF_FORMA = {
-  luna: 'Cráteres del polo sur lunar: LRO LOLA ldem_80s_80m, remuestreado a 200 m',
-  marte: 'Cráteres de Marte: HRSC+MOLA blend, 200 m',
+  luna: () => tr('Cráteres del polo sur lunar: LRO LOLA ldem_80s_80m, remuestreado a 200 m',
+    'Lunar south pole craters: LRO LOLA ldem_80s_80m, resampled to 200 m'),
+  marte: () => tr('Cráteres de Marte: HRSC+MOLA blend, 200 m', 'Mars craters: HRSC+MOLA blend, 200 m'),
 };
+
+// Unidades que se muestran distinto en inglés (el dato guarda la unidad en español y se compara así).
+const UNIDADES_EN = { 'mm/día': 'mm/day', grados: 'degrees' };
+export const unidadVisible = (u) => tr(u, UNIDADES_EN[u] ?? u);
 
 /** ¿Es un tajo minero (análogo operativo, no geológico)? Lo dicen los datos del modelo en `proceso`. */
 export function esMina(sitio) {
@@ -46,7 +54,7 @@ export function sitiosParaDestino(sitios, destinoId) {
 }
 
 export function formatoNumero(valor) {
-  if (typeof valor !== 'number' || !Number.isFinite(valor)) return SIN_DATO;
+  if (typeof valor !== 'number' || !Number.isFinite(valor)) return sinDato();
   const abs = Math.abs(valor);
   const dec = abs === 0 ? 0 : abs >= 100 ? 1 : abs >= 1 ? 2 : abs >= 0.01 ? 3 : 4;
   return String(Number(valor.toFixed(dec)));
@@ -54,13 +62,13 @@ export function formatoNumero(valor) {
 
 /** "14.51 K" · "0.14" (unidad "-") · "sin dato". */
 export function formatoValor(v) {
-  if (!v || typeof v.valor !== 'number') return SIN_DATO;
-  const u = v.unidad && v.unidad !== '-' ? ` ${v.unidad}` : '';
+  if (!v || typeof v.valor !== 'number') return sinDato();
+  const u = v.unidad && v.unidad !== '-' ? ` ${unidadVisible(v.unidad)}` : '';
   return `${formatoNumero(v.valor)}${u}`;
 }
 
 export function formatoPorcentaje(x) {
-  return typeof x === 'number' && Number.isFinite(x) ? `${Math.round(x * 100)} %` : SIN_DATO;
+  return typeof x === 'number' && Number.isFinite(x) ? `${Math.round(x * 100)} %` : sinDato();
 }
 
 /**
@@ -84,19 +92,25 @@ export function filasComparacion(sitio, destino) {
       // La forma no es una medición del destino sino un puntaje contra la nube de cráteres Luna+Marte.
       // Del lado Tierra se muestra la medición que más pesa (profundidad/diámetro) si existe.
       tierra = vt.profundidad_diametro || vt.forma || null;
+      // Un tajo minero es un análogo operativo, no un cráter: la columna del destino aclara que solo se compara su forma.
+      const mina = esMina(sitio);
       dest = vd.forma || {
         valor: null,
-        texto: 'Cráteres Luna+Marte',
+        texto: mina ? tr('vs. cráteres Luna+Marte', 'vs. Moon+Mars craters') : tr('Cráteres Luna+Marte', 'Moon+Mars craters'),
         unidad: '-',
-        fuente: REF_FORMA[destino?.mundo] || 'Cráteres reales de la Luna y Marte',
+        fuente: REF_FORMA[destino?.mundo]?.() || tr('Cráteres reales de la Luna y Marte', 'Real craters of the Moon and Mars'),
         fecha: null,
-        nota: 'La forma se compara con un modelo explicable entrenado con cráteres de la Luna y Marte, no con un solo valor.',
+        nota: mina
+          ? tr('Es un tajo minero (excavación), no un cráter natural: solo se compara su forma con la de cráteres reales de la Luna y Marte.',
+            'It is an open-pit mine (an excavation), not a natural crater: only its shape is compared with real Moon and Mars craters.')
+          : tr('La forma se compara con un modelo explicable entrenado con cráteres de la Luna y Marte, no con un solo valor.',
+            'Shape is compared with an explainable model trained on Moon and Mars craters, not with a single value.'),
       };
     }
     const mismaUnidad = !(tierra && dest && dest.valor != null && tierra.unidad !== dest.unidad);
     return {
       clave,
-      etiqueta: clave === 'forma' && esMina(sitio) ? 'Forma del tajo minero' : etiquetaVariable(clave),
+      etiqueta: clave === 'forma' && esMina(sitio) ? tr('Forma del tajo minero', 'Open-pit mine shape') : etiquetaVariable(clave),
       tierra,
       destino: dest,
       similitud: typeof sim[clave] === 'number' ? sim[clave] : null,
@@ -191,11 +205,48 @@ function numero(txt) {
 export function validarCoordenadas(latTxt, lonTxt) {
   const lat = numero(latTxt);
   const lon = numero(lonTxt);
-  if (Number.isNaN(lat)) return { ok: false, error: 'Latitud no válida: usa grados decimales, por ejemplo 31.84.' };
-  if (Number.isNaN(lon)) return { ok: false, error: 'Longitud no válida: usa grados decimales, por ejemplo -113.39.' };
-  if (lat < -90 || lat > 90) return { ok: false, error: 'La latitud debe estar entre -90 y 90.' };
-  if (lon < -180 || lon > 180) return { ok: false, error: 'La longitud debe estar entre -180 y 180.' };
+  if (Number.isNaN(lat)) return { ok: false, error: tr('Latitud no válida: usa grados decimales, por ejemplo 31.84.', 'Invalid latitude: use decimal degrees, e.g. 31.84.') };
+  if (Number.isNaN(lon)) return { ok: false, error: tr('Longitud no válida: usa grados decimales, por ejemplo -113.39.', 'Invalid longitude: use decimal degrees, e.g. -113.39.') };
+  if (lat < -90 || lat > 90) return { ok: false, error: tr('La latitud debe estar entre -90 y 90.', 'Latitude must be between -90 and 90.') };
+  if (lon < -180 || lon > 180) return { ok: false, error: tr('La longitud debe estar entre -180 y 180.', 'Longitude must be between -180 and 180.') };
   return { ok: true, lat, lon };
+}
+
+// En el teléfono no se depende del signo menos (el teclado decimal de iOS no lo tiene): el usuario escribe solo
+// los grados y elige el hemisferio (N/S, E/O). Aquí se convierte a grados con signo antes de llamar a /score.
+export const HEMISFERIOS = { lat: ['N', 'S'], lon: ['E', 'O'] };
+
+/** Valida grados sin signo + hemisferio y devuelve { ok, lat, lon } con signo (S y O son negativos). */
+export function validarCoordenadasHemisferio({ lat, latHem, lon, lonHem }) {
+  const conSigno = (t) => /^\s*[-+]/.test(String(t ?? ''));
+  if (conSigno(lat) || conSigno(lon)) {
+    return { ok: false, error: tr('Escribe solo los grados, sin signo, y elige el hemisferio (N/S y E/O) en la lista.', 'Type only the degrees, without a sign, and pick the hemisphere (N/S and E/W) from the list.') };
+  }
+  const a = numero(lat);
+  const o = numero(lon);
+  if (Number.isNaN(a)) return { ok: false, error: tr('Latitud no válida: usa grados decimales, por ejemplo 31.84.', 'Invalid latitude: use decimal degrees, e.g. 31.84.') };
+  if (Number.isNaN(o)) return { ok: false, error: tr('Longitud no válida: usa grados decimales, por ejemplo 113.39.', 'Invalid longitude: use decimal degrees, e.g. 113.39.') };
+  if (!HEMISFERIOS.lat.includes(latHem)) return { ok: false, error: tr('Elige el hemisferio de la latitud: N o S.', 'Pick the latitude hemisphere: N or S.') };
+  if (!HEMISFERIOS.lon.includes(lonHem)) return { ok: false, error: tr('Elige el hemisferio de la longitud: E u O.', 'Pick the longitude hemisphere: E or W.') };
+  if (a > 90) return { ok: false, error: tr('La latitud va de 0 a 90 grados (y luego N o S).', 'Latitude goes from 0 to 90 degrees (then N or S).') };
+  if (o > 180) return { ok: false, error: tr('La longitud va de 0 a 180 grados (y luego E u O).', 'Longitude goes from 0 to 180 degrees (then E or W).') };
+  const lat2 = latHem === 'S' && a !== 0 ? -a : a;
+  const lon2 = lonHem === 'O' && o !== 0 ? -o : o;
+  return { ok: true, lat: lat2, lon: lon2 };
+}
+
+/** Grados con signo → grados sin signo + hemisferio (para rellenar el formulario con un sitio del catálogo). */
+export function aHemisferio(lat, lon) {
+  return { lat: Math.abs(lat), latHem: lat < 0 ? 'S' : 'N', lon: Math.abs(lon), lonHem: lon < 0 ? 'O' : 'E' };
+}
+
+/** Letra del hemisferio para mostrar: el valor interno es "O" (oeste); en inglés se muestra "W". */
+export const letraHemisferio = (h) => (h === 'O' ? tr('O', 'W') : h);
+
+/** "31.84° N, 113.39° O" (en inglés: "31.84° N, 113.39° W") */
+export function formatoCoordenada(lat, lon) {
+  const h = aHemisferio(lat, lon);
+  return `${h.lat}° ${h.latHem}, ${h.lon}° ${letraHemisferio(h.lonHem)}`;
 }
 
 /** ¿Se puede proponer el sitio? Solo si la API lo permite Y la similitud total alcanza el umbral. */
@@ -206,8 +257,8 @@ export function puedeProponer(respuesta, umbral) {
 
 export function validarNombrePropuesta(nombre) {
   const n = String(nombre ?? '').trim();
-  if (n.length < 3) return { ok: false, error: 'Escribe un nombre de al menos 3 caracteres.' };
-  if (n.length > 80) return { ok: false, error: 'El nombre no puede pasar de 80 caracteres.' };
+  if (n.length < 3) return { ok: false, error: tr('Escribe un nombre de al menos 3 caracteres.', 'Type a name with at least 3 characters.') };
+  if (n.length > 80) return { ok: false, error: tr('El nombre no puede pasar de 80 caracteres.', 'The name cannot be longer than 80 characters.') };
   return { ok: true, nombre: n };
 }
 

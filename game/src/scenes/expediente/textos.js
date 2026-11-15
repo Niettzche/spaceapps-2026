@@ -1,40 +1,52 @@
 // Dueño: frente expediente. Etiquetas legibles para claves de los contratos de datos (data/schema/).
 // Solo traducen nombres: nunca agregan valores. Una clave desconocida se muestra "humanizada".
+// Bilingüe: cada etiqueta es un getter que se evalúa al leerla, así un cambio de idioma se nota al redibujar
+// (VARIABLES.forma, MUNDOS[d.mundo], ESTADOS.mina… siguen funcionando igual que con constantes).
+import { tr } from '../../i18n.js';
 
-export const VARIABLES = {
-  forma: 'Forma del cráter',
-  oscilacion_termica: 'Oscilación térmica diaria',
-  precipitacion: 'Precipitación',
-  ndvi: 'Vegetación (NDVI)',
-  pendiente: 'Pendiente media',
-  diametro: 'Diámetro',
-  profundidad: 'Profundidad',
-  profundidad_diametro: 'Profundidad / diámetro',
-  borde: 'Altura del borde',
-  ndvi_p90: 'NDVI percentil 90',
-};
+/** { clave: [es, en] } → objeto con getters que devuelven el texto en el idioma actual. */
+function perezoso(def, armar = (t) => t) {
+  const o = {};
+  for (const [k, [es, en, ...resto]] of Object.entries(def)) {
+    Object.defineProperty(o, k, { enumerable: true, get: () => armar(tr(es, en), ...resto) });
+  }
+  return o;
+}
 
-export const ESTADOS = {
-  documentado: { texto: 'DOCUMENTADO', color: '#06d6a0' },
-  candidato_modelo: { texto: 'CANDIDATO DEL MODELO', color: '#ffd166' },
-  propuesto_usuario: { texto: 'PROPUESTO POR USUARIO', color: '#9aa4c7' },
-  ilustrativo: { texto: 'ILUSTRATIVO', color: '#ef476f' },
+export const VARIABLES = perezoso({
+  forma: ['Forma del cráter', 'Crater shape'],
+  oscilacion_termica: ['Oscilación térmica diaria', 'Daily temperature range'],
+  precipitacion: ['Precipitación', 'Precipitation'],
+  ndvi: ['Vegetación (NDVI)', 'Vegetation (NDVI)'],
+  pendiente: ['Pendiente media', 'Mean slope'],
+  diametro: ['Diámetro', 'Diameter'],
+  profundidad: ['Profundidad', 'Depth'],
+  profundidad_diametro: ['Profundidad / diámetro', 'Depth / diameter'],
+  borde: ['Altura del borde', 'Rim height'],
+  ndvi_p90: ['NDVI percentil 90', 'NDVI 90th percentile'],
+});
+
+export const ESTADOS = perezoso({
+  documentado: ['DOCUMENTADO', 'DOCUMENTED', '#06d6a0'],
+  candidato_modelo: ['CANDIDATO DEL MODELO', 'MODEL CANDIDATE', '#ffd166'],
+  propuesto_usuario: ['PROPUESTO POR USUARIO', 'USER PROPOSED', '#9aa4c7'],
+  ilustrativo: ['ILUSTRATIVO', 'ILLUSTRATIVE', '#ef476f'],
   // No es un estado del contrato: se muestra en lugar del estado cuando el sitio es un tajo minero (esMina).
-  mina: { texto: 'ANÁLOGO OPERATIVO (MINA)', color: '#f2701f' },
-};
+  mina: ['ANÁLOGO OPERATIVO (MINA)', 'OPERATIONAL ANALOG (MINE)', '#f2701f'],
+}, (texto, color) => ({ texto, color }));
 
-export const LIMITES = {
-  gravedad: 'Gravedad',
-  presion: 'Presión atmosférica',
-  presion_atmosferica: 'Presión atmosférica',
-  radiacion: 'Radiación',
-  vacio: 'Vacío',
-  iluminacion_polar_rasante: 'Iluminación polar rasante',
-};
+export const LIMITES = perezoso({
+  gravedad: ['Gravedad', 'Gravity'],
+  presion: ['Presión atmosférica', 'Atmospheric pressure'],
+  presion_atmosferica: ['Presión atmosférica', 'Atmospheric pressure'],
+  radiacion: ['Radiación', 'Radiation'],
+  vacio: ['Vacío', 'Vacuum'],
+  iluminacion_polar_rasante: ['Iluminación polar rasante', 'Low-angle polar lighting'],
+});
 
-export const PRUEBAS = { agarre: 'agarre', relieve: 'relieve', energia: 'energía' };
+export const PRUEBAS = perezoso({ agarre: ['agarre', 'traction'], relieve: ['relieve', 'terrain'], energia: ['energía', 'energy'] });
 
-export const MUNDOS = { marte: 'Marte', luna: 'Luna' };
+export const MUNDOS = perezoso({ marte: ['Marte', 'Mars'], luna: ['Luna', 'Moon'] });
 
 export function humanizar(clave) {
   const s = String(clave).replace(/_/g, ' ');
