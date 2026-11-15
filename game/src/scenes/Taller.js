@@ -587,7 +587,7 @@ export default class Taller extends Phaser.Scene {
     const etiqueta = this.add.text(PERS_X, PERS_Y1, tr('Pintura', 'Paint'), { fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.claro }).setOrigin(0, 0.5);
     const x0 = PERS_X + etiqueta.width + 22;
     this.muestras = PINTURAS.map((pint, i) => {
-      const cuadro = this.add.rectangle(x0 + i * 30, PERS_Y1, 22, 22, pint.figura).setStrokeStyle(2, BORDE);
+      const cuadro = this.add.rectangle(x0 + i * 30, PERS_Y1, 22, 22, pint.muestra).setStrokeStyle(2, BORDE);
       // Zona de 30 × 30 (sin huecos entre muestras; no toca la fila del nombre, que empieza en y 143).
       zonaToque(cuadro, -4, -4, 30, 30);
       cuadro.on('pointerdown', () => this.pintar(pint.id));

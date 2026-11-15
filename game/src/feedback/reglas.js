@@ -68,13 +68,13 @@ export function recomendar(resultado, motivo) {
   if (motivo === 'energia_agotada' || contar('energia_agotada') > 0) {
     // Batería fría (ambiente.js, regla a): el robot registra `bateria_fria` al arrancar si el frío le quitó carga útil.
     const fria = ev.find((e) => e.tipo === 'bateria_fria');
-    if (fria && !usaPieza(d, 'aislante_bateria')) {
+    if (fria && !usaPieza(d, 'calentador_bateria')) {
       recs.push({
-        id: 'aislante_bateria',
-        texto: tr('Pon el aislante de batería en el módulo.', 'Fit the battery insulation in the module bay.'),
+        id: 'calentador_bateria',
+        texto: tr('Pon el calentador de batería en el módulo.', 'Fit the battery heater in the module bay.'),
         evidencia: tr(`El frío dejó la batería al ${fria.detalle} al arrancar y la energía se acabó.`,
           `The cold left the battery at ${fria.detalle} at the start and the energy ran out.`),
-        cambio: { ranuras: ['modulo'], pieza: 'aislante_bateria' },
+        cambio: { ranuras: ['modulo'], pieza: 'calentador_bateria' },
       });
     }
     if (!usaPieza(d, 'bateria_grande')) {
@@ -90,9 +90,9 @@ export function recomendar(resultado, motivo) {
       `The motor went over its temperature limit ${veces(calor)} and lost power.`);
     if (usaPieza(d, 'motor_potente')) {
       recs.push({ id: 'motor_eficiente_calor', texto: tr('Usa el motor eficiente: se calienta la mitad.', 'Use the efficient motor: it heats up half as much.'), evidencia, cambio: { ranuras: ['motor'], pieza: 'motor_eficiente' } });
-    } else if (!usaPieza(d, 'radiador_motor')) {
+    } else if (!usaPieza(d, 'radiador')) {
       // Sin aire el motor solo se enfría por radiación: el radiador agrega enfriamiento (parts.json `radiador`, P).
-      recs.push({ id: 'radiador_motor', texto: tr('Pon el radiador del motor en el módulo.', 'Fit the motor radiator in the module bay.'), evidencia, cambio: { ranuras: ['modulo'], pieza: 'radiador_motor' } });
+      recs.push({ id: 'radiador', texto: tr('Pon el radiador del motor en el módulo.', 'Fit the motor radiator in the module bay.'), evidencia, cambio: { ranuras: ['modulo'], pieza: 'radiador' } });
     } else if (usaPieza(d, 'motor_equilibrado')) {
       recs.push({ id: 'motor_eficiente_calor', texto: tr('Usa el motor eficiente: se calienta menos.', 'Use the efficient motor: it heats up less.'), evidencia, cambio: { ranuras: ['motor'], pieza: 'motor_eficiente' } });
     } else {
@@ -110,7 +110,7 @@ export function recomendar(resultado, motivo) {
   // primero las ruedas, luego la batería. Así «Aplicar y al taller» cambia las ruedas (camino dorado lunar).
   const patinoMucho = patinaArena + patinaRoca >= PATINAJES_CAUSA_ENERGIA;
   const prioridad = {
-    energia_agotada: patinoMucho ? ['rueda_ancha', 'rueda_tacos', 'bateria_grande', 'motor_eficiente', 'aislante_bateria'] : ['bateria_grande', 'motor_eficiente', 'aislante_bateria'],
+    energia_agotada: patinoMucho ? ['rueda_ancha', 'rueda_tacos', 'bateria_grande', 'motor_eficiente', 'calentador_bateria'] : ['bateria_grande', 'motor_eficiente', 'calentador_bateria'],
     chasis_destruido: ['chasis_reforzado'],
     carga_perdida: ['soporte_amortiguado'],
     carga_danada: ['soporte_amortiguado'],

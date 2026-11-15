@@ -120,10 +120,10 @@ las pruebas en teléfono se hicieron con Claude Code. Cada dato se revisó contr
 - **15 nov (fuentes de piezas nuevas):** referencias con fuente en `docs/taller/PIEZAS.md` §5 y en Parts PT-013…PT-018 (no están en parts.json). Battery heater: Gap; motor radiator: Gap para el motor. Corregido S40 (batería −40…+40 °C no verificada) y la pregunta 9 de PITCH_QA_EN.md.
 - **15 nov (agente del frente taller, rama de feat/juego):** más piezas y personalización.
   - 7 piezas nuevas (P) con efecto físico: `rueda_malla`, `bateria_mediana`, `motor_equilibrado`, `soporte_correas`,
-    `panel_solar_grande`, `aislante_bateria` (sin pérdida de batería por frío; con la regla suave de frío el efecto es de ~2 puntos) y `radiador_motor` (enfría el motor sin aire).
-    Fuentes de §5 de Leo citadas; aislante y radiador del motor quedan como (P) sin fuente primaria. Tabla: `PIEZAS.md` §6.
+    `panel_solar_grande`, `calentador_bateria` (sin pérdida de batería por frío; con la regla suave de frío el efecto es de ~2 puntos) y `radiador` (enfría el motor sin aire).
+    Fuentes de §5 de Leo citadas; calentador y radiador del motor quedan como (P) sin fuente primaria. Tabla: `PIEZAS.md` §6.
   - Pintura (6 colores) y nombre del robot, cosméticos, con Deshacer/Rehacer; se ven en la prueba, la misión y Resultados.
   - Sobre el layout de Diego (#69, 16–17 px): ranuras con 4 piezas se recorren con ▲ / ▼, ↑/↓ o la rueda; línea del efecto
     del módulo en el destino. Revisado a 960 × 540 en es/en.
   - Pruebas nuevas: `node game/src/scenes/Taller/piezas.test.mjs` (13 casos). Sprites pendientes: `docs/arte/SPRITES_PENDIENTES.md` §6.
-  - Sigue: arte de las piezas nuevas; decidir si el aislante y el radiador se quedan sin fuente o se cambian.
+  - Sigue: arte de las piezas nuevas; decidir si el calentador y el radiador se quedan sin fuente o se cambian.

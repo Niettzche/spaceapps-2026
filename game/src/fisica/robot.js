@@ -121,13 +121,13 @@ export class Robot {
     // Estado
     this.energiaMax = p.bateria.capacidad;
     // Batería fría: arranca con menos energía útil (ambiente.js, regla a). Sin ambiente = 100 %.
-    // El módulo aislante (`aislamiento_termico`) evita parte de esa pérdida; el radiador (`radiador`) enfría el motor. (P)
+    // El módulo calentador (`aislamiento_termico`) evita parte de esa pérdida; el radiador (`radiador`) enfría el motor. (P)
     this.aislamiento = p.modulo?.aislamiento_termico ?? 0;
     this.radiador = p.modulo?.radiador ?? 0;
     this.factorFrio = ambiente ? factorFrio(ambiente.temperatura_min_C, REGLAS.frio, this.aislamiento) : 1;
     this.energiaUtil = this.energiaMax * this.factorFrio;
     this.energia = this.energiaUtil;
-    // Queda en la telemetría para que el feedback pueda culpar al frío (feedback/reglas.js: aislante de batería).
+    // Queda en la telemetría para que el feedback pueda culpar al frío (feedback/reglas.js: calentador de batería).
     if (this.factorFrio < 1) alEvento('bateria_fria', `${Math.round(this.factorFrio * 100)} %`);
     // Motor: temperatura (°C), empieza a la del ambiente (regla b).
     this.tMotor = temperaturaAmbienteMotor(ambiente);

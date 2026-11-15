@@ -11,17 +11,18 @@ const CLAVE = 'marsception.robot.v1';
 export const LARGO_NOMBRE = 14;
 
 /**
- * Pinturas (cosméticas). Colores de assets/paletas.json (paleta del pixel art de Mauricio).
- * `figura` = color del chasis dibujado con figuras; `tinte` = tinte (multiplicativo) del sprite, más claro para que el
- * sprite no se oscurezca. La primera es la de siempre (sin tinte).
+ * Pinturas (cosméticas). Mismos colores que las variantes de arte de Mauricio (assets/fuente/entidades.mjs, PINTURAS):
+ * chasis_<ligero|reforzado>_<color>.png. Con esa variante, el juego usa el sprite; sin ella, tiñe el sprite base (`tinte`,
+ * multiplicativo y claro para no oscurecerlo) o pinta la figura (`figura`). `muestra` = color del cuadro del Taller.
+ * La primera (gris) es el chasis original, sin variante ni tinte.
  */
 export const PINTURAS = [
-  { id: 'blanco', nombre: 'Blanco lunar', nombre_en: 'Lunar white', figura: 0xdfe3ee, tinte: 0xffffff },
-  { id: 'naranja', nombre: 'Naranja', nombre_en: 'Orange', figura: 0xf2701f, tinte: 0xffa86a },
-  { id: 'amarillo', nombre: 'Amarillo', nombre_en: 'Yellow', figura: 0xffd23c, tinte: 0xffe680 },
-  { id: 'turquesa', nombre: 'Turquesa', nombre_en: 'Teal', figura: 0x4ce8d8, tinte: 0x8ff5ea },
-  { id: 'rojo', nombre: 'Rojo', nombre_en: 'Red', figura: 0xff5a4a, tinte: 0xff9a8e },
-  { id: 'lavanda', nombre: 'Lavanda', nombre_en: 'Lavender', figura: 0xb9a6ff, tinte: 0xcfc2ff },
+  { id: 'gris', nombre: 'Gris', nombre_en: 'Grey', muestra: 0x9aa6ba, figura: 0xdfe3ee, tinte: 0xffffff },
+  { id: 'rojo', nombre: 'Rojo', nombre_en: 'Red', muestra: 0xe0483a, figura: 0xe0483a, tinte: 0xff8a7a },
+  { id: 'azul', nombre: 'Azul', nombre_en: 'Blue', muestra: 0x4c8ce8, figura: 0x4c8ce8, tinte: 0x9fd8ff },
+  { id: 'verde', nombre: 'Verde', nombre_en: 'Green', muestra: 0x3ec466, figura: 0x3ec466, tinte: 0xa8f0b0 },
+  { id: 'amarillo', nombre: 'Amarillo', nombre_en: 'Yellow', muestra: 0xffd23c, figura: 0xffd23c, tinte: 0xfff08a },
+  { id: 'morado', nombre: 'Morado', nombre_en: 'Purple', muestra: 0xb9a6ff, figura: 0xb9a6ff, tinte: 0xe0d4ff },
 ];
 export const PINTURA_POR_DEFECTO = PINTURAS[0].id;
 

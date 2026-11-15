@@ -28,9 +28,10 @@ const TABLA = {
   rueda_estandar: { ancho: 7, cuadros: [1, 4] },
   rueda_ancha: { ancho: 8, cuadros: [1, 4] },
   rueda_tacos: { ancho: 7, cuadros: [1, 4] },
-  rueda_malla: { ancho: 9, cuadros: [1, 4] }, // pendiente de arte (docs/arte/SPRITES_PENDIENTES.md): hoy usa la figura
+  rueda_malla: { ancho: 8, cuadros: [1, 4] }, // malla tipo LRV (Mauricio, #72)
+  rueda_grousers: { ancho: 7, cuadros: [1, 4] }, // arte de #72; hoy ninguna pieza usa este id
   soporte_basico: { ancho: 10, cuadros: [1] },
-  soporte_correas: { ancho: 10, cuadros: [1] }, // pendiente de arte
+  soporte_correas: { ancho: 10, cuadros: [1] }, // pendiente de arte (docs/arte/SPRITES_PENDIENTES.md): hoy usa la figura
   soporte_amortiguado: { ancho: 10, cuadros: [1] },
   carga: { ancho: 7, cuadros: [1, 3] },
   astronauta: { ancho: 8, cuadros: [1, 4, 8, 14], animaciones: { reposo: [0, 3], saluda: [4, 7], celebra: [8, 13] } },
@@ -39,6 +40,10 @@ const TABLA = {
   meta: { ancho: 8, cuadros: [1, 4], animaciones: { ondea: 'todo' } },
   zona_entrega: { ancho: 16, cuadros: [1] },
 };
+// Pintura del chasis (Taller, cosmética): chasis_<ligero|reforzado>_<color>, mismos cuadros que el original (2.º = dañado).
+for (const chasis of ['chasis_ligero', 'chasis_reforzado']) {
+  for (const color of ['rojo', 'azul', 'verde', 'amarillo', 'morado']) TABLA[`${chasis}_${color}`] = { ancho: 24, cuadros: [1, 2] };
+}
 const SUPERFICIES = ['arena', 'roca', 'compacto'];
 const ES_TILE = /^(tierra|marte|luna)_(arena|roca|compacto)(_borde)?$/;
 const ES_FONDO = /^fondo_[a-z0-9_]+_[123]$/;
@@ -189,12 +194,14 @@ export class AspectoRobot {
     this.scene = scene;
     this.robot = robot;
     const p = robot.piezas;
-    this.chasis = sprite(scene, p.chasis.id, { profundidad: 11 });
     // Personalización del Taller (solo cosmética): pintura del chasis y nombre sobre el robot.
+    // Con la variante de arte (chasis_<id>_<color>) se usa ese sprite; si no, el sprite base teñido; sin arte, la figura.
     const { pintura, nombre } = personalizacionActual();
     const color = pinturaPorId(pintura);
+    this.claveChasis = hayArte(scene, `${p.chasis.id}_${color.id}`) ? `${p.chasis.id}_${color.id}` : p.chasis.id;
+    this.chasis = sprite(scene, this.claveChasis, { profundidad: 11 });
     robot.colorChasis = color.figura; // figura de respaldo (robot.dibujar)
-    if (this.chasis && color.tinte !== 0xffffff) this.chasis.setTint(color.tinte);
+    if (this.chasis && this.claveChasis === p.chasis.id && color.tinte !== 0xffffff) this.chasis.setTint(color.tinte);
     this.nombre = nombre
       ? scene.add.text(0, 0, nombre, { fontFamily: 'monospace', fontSize: '13px', color: '#ffffff', stroke: '#0b0d17', strokeThickness: 4 })
         .setOrigin(0.5, 1).setDepth(12).setAlpha(0.9)
@@ -218,7 +225,7 @@ export class AspectoRobot {
     const ang = r.chasis.angle;
     if (this.chasis) {
       const base = partes.length > 1 ? partes[1] : partes[0];
-      const n = cuadros(this.scene, r.piezas.chasis.id);
+      const n = cuadros(this.scene, this.claveChasis);
       const danado = r.destruido || (r.vidaMax && r.vida / r.vidaMax < 0.5);
       this.chasis.setPosition(base.position.x, base.position.y).setRotation(ang).setFrame(n[danado && n.length > 1 ? 1 : 0]);
     }

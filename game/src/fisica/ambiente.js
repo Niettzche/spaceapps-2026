@@ -121,8 +121,8 @@ export const REGLAS = {
   // entre −40 y +50 °C, ver PIEZAS.md §5), así que el frío cuesta poco. Antes 0.2 %/°C y piso 85 %: dejaba las misiones
   // del camino dorado sin energía a 12 m de la meta. Se usa la temperatura MÍNIMA del nivel.
   frio: { desde_C: 0, perdida_por_C: 0.0003, piso: 0.97 },
-  // El módulo `aislante_bateria` (parts.json, `aislamiento_termico`, P) evita una fracción de esa pérdida. Sin fuente
-  // primaria para el aislante (PIEZAS.md §5: Gap).
+  // El módulo `calentador_bateria` (parts.json, `aislamiento_termico`, P) evita una fracción de esa pérdida. Sin fuente
+  // primaria para el calentador (PIEZAS.md §5: Gap).
   // b) Motor. dT/dt = CALOR × |acelerador| × consumo − k × (T − T_ambiente), k = RADIACION + AIRE × ρ / ρ_Tierra. (P)
   // Con el motor eficiente a fondo, la Tierra lo deja ~25–30 °C sobre el ambiente; sin aire, el equilibrio pasa de 500 °C.
   motor: { calor: 4, radiacion: 0.004, aire: 0.1, limite_C: 100, histeresis_C: 5, potencia_minima: 0.2, aviso_C: 10 },
@@ -132,7 +132,7 @@ export const REGLAS = {
 
 /**
  * a) Fracción de la batería utilizable con la temperatura mínima del nivel (1 = sin pérdida).
- * `aislamiento` (0..1) = fracción de la pérdida por frío que evita el aislante de la batería (módulo, P).
+ * `aislamiento` (0..1) = fracción de la pérdida por frío que evita el calentador de la batería (módulo, P).
  */
 export function factorFrio(tMinC, reglas = REGLAS.frio, aislamiento = 0) {
   if (tMinC == null) return 1;
@@ -152,7 +152,7 @@ export function temperaturaAmbienteMotor(amb) {
 
 /**
  * b) Coeficiente de enfriamiento del motor (1/s): radiación + aire (∝ densidad).
- * `radiador` (1/s) = enfriamiento por radiación que agrega el módulo `radiador_motor` (parts.json, P). No depende del aire:
+ * `radiador` (1/s) = enfriamiento por radiación que agrega el módulo `radiador` (parts.json, P). No depende del aire:
  * en el vacío el calor solo sale por radiación, así que ahí es donde más se nota.
  */
 export function enfriamientoMotor(amb, reglas = REGLAS.motor, radiador = 0) {
@@ -234,7 +234,7 @@ export function efectosAmbiente(amb) {
   const f = factorFrio(amb.temperatura_min_C);
   const partes = [];
   partes.push(f < 1
-    ? tr(`batería fría: arranca al ${Math.round(f * 100)} % sin aislante`, `cold battery: starts at ${Math.round(f * 100)} % without insulation`)
+    ? tr(`batería fría: arranca al ${Math.round(f * 100)} % sin calentador`, `cold battery: starts at ${Math.round(f * 100)} % without heater`)
     : tr('batería sin pérdida por frío', 'no cold loss in the battery'));
   partes.push(tr(`motor: límite ${REGLAS.motor.limite_C} °C`, `motor: limit ${REGLAS.motor.limite_C} °C`));
   if (amb.luz === 'rasante') partes.push(tr('luz rasante: el panel solar recarga 20 %', 'grazing light: the solar panel recharges 20 %'));

@@ -19,7 +19,7 @@ const porId = Object.fromEntries(catalogo.map((p) => [p.id, p]));
 const PRESUPUESTO = 1000;
 const con = (cambios) => comoDiseno({ ...comoMapa(DISENO_POR_DEFECTO), ...cambios });
 const res = (cambios) => resumen(con(cambios), catalogo, { masaCarga: MASA_CARGA_KG });
-const NUEVAS = ['rueda_malla', 'bateria_mediana', 'motor_equilibrado', 'soporte_correas', 'panel_solar_grande', 'aislante_bateria', 'radiador_motor'];
+const NUEVAS = ['rueda_malla', 'bateria_mediana', 'motor_equilibrado', 'soporte_correas', 'panel_solar_grande', 'calentador_bateria', 'radiador'];
 const JEZERO = ambienteDeDestino('jezero', 'marte');
 const LUNA = ambienteDeDestino('polo_sur_lunar', 'luna');
 let n = 0;
@@ -46,8 +46,8 @@ caso('las piezas del camino dorado no cambiaron (calibración de juego)', () => 
   assert.equal(resumen(con({ rueda_del: 'rueda_ancha', rueda_tras: 'rueda_ancha' }), catalogo).costo, 890);
 });
 
-caso('con ruedas anchas sigue cabiendo el aislante o el radiador (≤ 1,000)', () => {
-  for (const modulo of ['aislante_bateria', 'radiador_motor']) {
+caso('con ruedas anchas sigue cabiendo el calentador o el radiador (≤ 1,000)', () => {
+  for (const modulo of ['calentador_bateria', 'radiador']) {
     const d = con({ rueda_del: 'rueda_ancha', rueda_tras: 'rueda_ancha', modulo });
     assert.deepEqual(validar(d, catalogo, PRESUPUESTO), [], modulo);
   }
@@ -74,7 +74,7 @@ caso('batería mediana, motor equilibrado y soporte con correas quedan entre sus
   assert.ok(p('soporte_basico') < p('soporte_correas') && p('soporte_correas') < p('soporte_amortiguado'));
 });
 
-caso('factorFrio: sin aislante igual que antes; con aislante pierde menos', () => {
+caso('factorFrio: sin calentador igual que antes; con calentador pierde menos', () => {
   for (const t of [-248, -83, -53, -10, 0, 0.3, 20]) {
     const viejo = Math.max(REGLAS.frio.piso, 1 - Math.max(0, REGLAS.frio.desde_C - t) * REGLAS.frio.perdida_por_C);
     assert.ok(Math.abs(factorFrio(t) - viejo) < 1e-12, `t=${t}`);
@@ -83,26 +83,26 @@ caso('factorFrio: sin aislante igual que antes; con aislante pierde menos', () =
   assert.equal(factorFrio(-83, REGLAS.frio, 1), 1);
 });
 
-caso('aislante: en Jezero la batería arranca más llena; en la Tierra (Samalayuca) no cambia nada', () => {
+caso('calentador: en Jezero la batería arranca más llena; en la Tierra (Samalayuca) no cambia nada', () => {
   const sin = efectosEn(res({}), JEZERO);
-  const conA = efectosEn(res({ modulo: 'aislante_bateria' }), JEZERO);
-  // Regla de frío suave (−0.03 %/°C, piso 97 %): Jezero −83 °C → 97.5 %; con el aislante, 100 %.
+  const conA = efectosEn(res({ modulo: 'calentador_bateria' }), JEZERO);
+  // Regla de frío suave (−0.03 %/°C, piso 97 %): Jezero −83 °C → 97.5 %; con el calentador, 100 %.
   assert.ok(sin.bateria < 1 && sin.bateria >= REGLAS.frio.piso);
   assert.equal(conA.bateria, 1);
   assert.equal(conA.bateria_sin_modulo, sin.bateria);
-  const tierra = efectosEn(res({ modulo: 'aislante_bateria' }), ambienteDeSitio('samalayuca'));
+  const tierra = efectosEn(res({ modulo: 'calentador_bateria' }), ambienteDeSitio('samalayuca'));
   assert.equal(tierra.bateria, 1);
 });
 
 caso('radiador: el motor caliente conserva más potencia en la Luna y en Marte; equilibrio más bajo', () => {
   for (const amb of [LUNA, JEZERO]) {
     const sin = efectosEn(res({}), amb);
-    const conR = efectosEn(res({ modulo: 'radiador_motor' }), amb);
+    const conR = efectosEn(res({ modulo: 'radiador' }), amb);
     assert.ok(conR.potencia_caliente > sin.potencia_caliente * 1.8, `${amb.id}: ${sin.potencia_caliente} → ${conR.potencia_caliente}`);
-    assert.ok(temperaturaEquilibrio(1, 0.6, amb, REGLAS.motor, porId.radiador_motor.radiador) < temperaturaEquilibrio(1, 0.6, amb));
+    assert.ok(temperaturaEquilibrio(1, 0.6, amb, REGLAS.motor, porId.radiador.radiador) < temperaturaEquilibrio(1, 0.6, amb));
   }
   // En la Tierra el aire ya enfría: el motor nunca pierde potencia.
-  assert.equal(efectosEn(res({ modulo: 'radiador_motor' }), ambienteDeSitio('samalayuca')).potencia_caliente, 1);
+  assert.equal(efectosEn(res({ modulo: 'radiador' }), ambienteDeSitio('samalayuca')).potencia_caliente, 1);
 });
 
 caso('panel solar: recarga solo con panel y menos con luz rasante (Luna) que en Marte', () => {
@@ -112,16 +112,16 @@ caso('panel solar: recarga solo con panel y menos con luz rasante (Luna) que en 
   assert.ok(Math.abs(efectosEn(res({ modulo: 'panel_solar_grande' }), JEZERO).recarga_s - 2 * chico) < 1e-12, 'el grande recarga el doble');
 });
 
-caso('feedback: frío + energía agotada → aislante (Aplicar y al taller pone el módulo)', () => {
+caso('feedback: frío + energía agotada → calentador (Aplicar y al taller pone el módulo)', () => {
   const ev = [{ t: 0, tipo: 'bateria_fria', detalle: '85 %' }, { t: 50, tipo: 'energia_agotada', detalle: 'bateria_chica' }];
   const r = recomendar({ eventos: ev, diseno: DISENO_POR_DEFECTO }, 'energia_agotada');
-  const a = r.find((x) => x.id === 'aislante_bateria');
-  assert.ok(a && a.cambio.ranuras[0] === 'modulo' && a.cambio.pieza === 'aislante_bateria');
+  const a = r.find((x) => x.id === 'calentador_bateria');
+  assert.ok(a && a.cambio.ranuras[0] === 'modulo' && a.cambio.pieza === 'calentador_bateria');
   assert.match(a.evidencia, /85 %/);
-  const conA = recomendar({ eventos: ev, diseno: con({ modulo: 'aislante_bateria' }) }, 'energia_agotada');
-  assert.ok(!conA.some((x) => x.id === 'aislante_bateria'));
-  // Sin frío no se recomienda el aislante.
-  assert.ok(!recomendar({ eventos: ev.slice(1), diseno: DISENO_POR_DEFECTO }, 'energia_agotada').some((x) => x.id === 'aislante_bateria'));
+  const conA = recomendar({ eventos: ev, diseno: con({ modulo: 'calentador_bateria' }) }, 'energia_agotada');
+  assert.ok(!conA.some((x) => x.id === 'calentador_bateria'));
+  // Sin frío no se recomienda el calentador.
+  assert.ok(!recomendar({ eventos: ev.slice(1), diseno: DISENO_POR_DEFECTO }, 'energia_agotada').some((x) => x.id === 'calentador_bateria'));
 });
 
 caso('personalización: nombres limpios y pinturas válidas', () => {
@@ -141,26 +141,26 @@ caso('personalización: se guarda en la partida y en el navegador, y no toca el 
   globalThis.localStorage = { getItem: (k) => mem.get(k) ?? null, setItem: (k, v) => mem.set(k, String(v)), removeItem: (k) => mem.delete(k) };
   _olvidar();
   const partida = { diseno: DISENO_POR_DEFECTO };
-  fijar(partida, { pintura: 'turquesa', nombre: 'Duna-1' });
-  assert.deepEqual(partida.robot, { pintura: 'turquesa', nombre: 'Duna-1' });
+  fijar(partida, { pintura: 'azul', nombre: 'Duna-1' });
+  assert.deepEqual(partida.robot, { pintura: 'azul', nombre: 'Duna-1' });
   assert.deepEqual(partida.diseno, DISENO_POR_DEFECTO);
   _olvidar();
-  assert.deepEqual(cargar(), { pintura: 'turquesa', nombre: 'Duna-1' }); // sobrevive a una partida nueva
-  assert.deepEqual(personalizacionDe({}), { pintura: 'turquesa', nombre: 'Duna-1' });
-  assert.deepEqual(personalizacionActual(), { pintura: 'turquesa', nombre: 'Duna-1' });
+  assert.deepEqual(cargar(), { pintura: 'azul', nombre: 'Duna-1' }); // sobrevive a una partida nueva
+  assert.deepEqual(personalizacionDe({}), { pintura: 'azul', nombre: 'Duna-1' });
+  assert.deepEqual(personalizacionActual(), { pintura: 'azul', nombre: 'Duna-1' });
   mem.set('marsception.robot.v1', '{roto');
   _olvidar();
   assert.deepEqual(cargar(), { pintura: PINTURA_POR_DEFECTO, nombre: null }); // guardado corrupto → por defecto
 });
 
 caso('Deshacer/Rehacer cubren la pintura y el nombre; comoDiseno los ignora', () => {
-  const base = { ...comoMapa(DISENO_POR_DEFECTO), pintura: 'blanco' };
+  const base = { ...comoMapa(DISENO_POR_DEFECTO), pintura: 'gris' };
   const h = new Historial(base);
   h.registrar({ ...base, pintura: 'rojo' });
-  h.registrar({ ...base, pintura: 'rojo', nombre: 'Ro', modulo: 'radiador_motor' });
-  assert.deepEqual(comoDiseno(h.actual), con({ modulo: 'radiador_motor' }));
+  h.registrar({ ...base, pintura: 'rojo', nombre: 'Ro', modulo: 'radiador' });
+  assert.deepEqual(comoDiseno(h.actual), con({ modulo: 'radiador' }));
   assert.equal(h.deshacer().estado.nombre, undefined);
-  assert.equal(h.deshacer().estado.pintura, 'blanco');
+  assert.equal(h.deshacer().estado.pintura, 'gris');
   assert.equal(h.rehacer().estado.pintura, 'rojo');
 });
 

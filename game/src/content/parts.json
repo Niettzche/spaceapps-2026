@@ -193,17 +193,17 @@
     "nota": "valor de juego (P): recarga el doble que el panel chico (fisica/ambiente.js, regla c). Inspiración: paneles de Spirit y Opportunity, 1.3 m² de celdas triunión, 140 W en la superficie de Marte y unos 900 Wh por sol que bajaron a unos 600 Wh por el polvo (NASA/JPL, MER launch press kit pp. 8 y 44, S77; PIEZAS.md §5)"
   },
   {
-    "id": "aislante_bateria",
-    "nombre": "Aislante de batería",
-    "nombre_en": "Battery insulation",
+    "id": "calentador_bateria",
+    "nombre": "Calentador de batería",
+    "nombre_en": "Battery heater",
     "sistema": "modulo",
     "costo": 40,
     "masa": 2,
     "aislamiento_termico": 1,
-    "nota": "valor de juego (P), SIN fuente primaria para un aislante o calentador de batería (PIEZAS.md §5: Gap): evita toda la pérdida de batería por frío de la regla (P) de fisica/ambiente.js. Contexto real: calentadores de radioisótopos calentaban la caja de la electrónica de Sojourner, Spirit y Opportunity (NTRS 20150008894, S78)"
+    "nota": "valor de juego (P), SIN fuente primaria (PIEZAS.md §5: Gap). Regla de juego: evita toda la pérdida de batería por frío de fisica/ambiente.js (regla a)"
   },
   {
-    "id": "radiador_motor",
+    "id": "radiador",
     "nombre": "Radiador del motor",
     "nombre_en": "Motor radiator",
     "sistema": "modulo",

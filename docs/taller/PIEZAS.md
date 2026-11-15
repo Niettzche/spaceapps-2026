@@ -99,7 +99,7 @@ quité ese dato de la pregunta 9 de `docs/PITCH_QA_EN.md`.
 
 Siete piezas nuevas en `game/src/content/parts.json`, todas **valores de juego (P)**; donde §5 tiene fuente, la nota la cita.
 Las de §2 no cambiaron (el camino dorado sigue calibrado con ellas). El módulo sigue siendo **una sola ranura opcional**:
-hay que elegir entre panel, aislante o radiador.
+hay que elegir entre panel, calentador o radiador.
 
 | Pieza (`id`) | Ranura | Costo | Masa | Efecto en la física | Fuente o (P) |
 |---|---|---|---|---|---|
@@ -108,13 +108,13 @@ hay que elegir entre panel, aislante o radiador.
 | `motor_equilibrado` | motor | 145 | 8 | Fuerza 70, consumo 0.9 (y se calienta 1.5 × el eficiente) | H1 (S14). Números (P) |
 | `soporte_correas` | carga | 95 | 4 | Protección 0.6; paredes de 0.35 m | (P), mecánica de juego |
 | `panel_solar_grande` | módulo | 230 | 7 | Capacidad 80: recarga el doble que el chico (regla c de `fisica/ambiente.js`) | Paneles MER, S77 (§5). Números (P) |
-| `aislante_bateria` | módulo | 40 | 2 | `aislamiento_termico` 1: evita toda la pérdida por frío (regla a). Con la regla suave de juego (−0.03 %/°C, piso 97 %) el efecto es chico: Jezero 97.5 % → 100 %, Luna 98 % → 100 % | **(P), Gap** (§5). Contexto: S78 |
-| `radiador_motor` | módulo | 90 | 3 | `radiador` +0.006 /s de enfriamiento por radiación (regla b). Al límite de 100 °C el motor conserva 64 % de potencia en la Luna (26 % sin él) y ~74 % en Jezero (~35 %) | **(P), Gap para el motor** (§5). Radiadores de la electrónica: S78 |
+| `calentador_bateria` | módulo | 40 | 2 | `aislamiento_termico` 1: evita toda la pérdida por frío (regla a). Con la regla suave de juego (−0.03 %/°C, piso 97 %) el efecto es chico: Jezero 97.5 % → 100 %, Luna 98 % → 100 % | **(P), Gap** (§5). Contexto: S78 |
+| `radiador` | módulo | 90 | 3 | `radiador` +0.006 /s de enfriamiento por radiación (regla b). Al límite de 100 °C el motor conserva 64 % de potencia en la Luna (26 % sin él) y ~74 % en Jezero (~35 %) | **(P), Gap para el motor** (§5). Radiadores de la electrónica: S78 |
 
-- Con ruedas anchas (890) todavía caben el aislante (930) o el radiador (980). El panel grande no cabe con ruedas anchas.
+- Con ruedas anchas (890) todavía caben el calentador (930) o el radiador (980). El panel grande no cabe con ruedas anchas.
 - El Taller muestra el efecto del módulo en el destino elegido, en un renglón: "Luna (P): motor caliente 64 % (sin él 26 %)"
   ("motor caliente" = potencia que conserva el motor al llegar a 100 °C).
-- Feedback (`feedback/reglas.js`): si la energía se acabó y hubo `bateria_fria` → aislante; si el motor se sobrecalentó sin
+- Feedback (`feedback/reglas.js`): si la energía se acabó y hubo `bateria_fria` → calentador; si el motor se sobrecalentó sin
   radiador → radiador ("Aplicar y al taller" lo pone en el módulo).
 - `panel_solar`: §2 dice "sin efecto en el MVP", pero la física ya aplica la regla de luz (c) de `fisica/ambiente.js`.
 

@@ -109,7 +109,7 @@ export function resumen(diseno, catalogo, { masaCarga = 0 } = {}) {
     consumo,
     capacidad,
     proteccion: carga ? carga.proteccion ?? null : null,
-    // Módulo opcional (una sola bahía): panel solar, aislante de batería o radiador del motor. 0 = sin ese efecto.
+    // Módulo opcional (una sola bahía): panel solar, calentador de batería o radiador del motor. 0 = sin ese efecto.
     modulo: modulo ? modulo.id : null,
     panel: modulo && modulo.capacidad ? modulo.capacidad : 0,
     aislamiento: modulo ? modulo.aislamiento_termico ?? 0 : 0,
@@ -121,7 +121,7 @@ export function resumen(diseno, catalogo, { masaCarga = 0 } = {}) {
 
 /**
  * Lo que el ambiente le hace a ESTE diseño en un lugar (ambiente de fisica/ambiente.js), con las mismas reglas que la física:
- *   bateria: fracción de la batería útil al arrancar por el frío (con el aislante, si lo lleva) y sin aislante;
+ *   bateria: fracción de la batería útil al arrancar por el frío (con el calentador, si lo lleva) y sin calentador;
  *   potencia_caliente: potencia que conserva el motor al llegar al límite de temperatura (con y sin radiador);
  *   recarga_s: unidades de batería por segundo que recarga el panel con la luz del lugar.
  * Todo es regla de juego (P); el ambiente (temperatura, aire, luz) sí es dato con fuente.
