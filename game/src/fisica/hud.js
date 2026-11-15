@@ -1,4 +1,4 @@
-// HUD provisional de la prueba y la misión (se reemplaza con la UI de arte). Fijo a la cámara.
+// HUD de la prueba y la misión, fijo a la cámara. Usa la UI de arte (assets/ui) si existe; si no, figuras.
 const ESTILO = { fontFamily: 'monospace', fontSize: '13px', color: '#cfd6ff' };
 const ANCHO_IZQ = 530;
 
@@ -19,29 +19,77 @@ export class Hud {
     fijo(encoger(scene.add.text(16, 34, subtitulo, ESTILO), ANCHO_IZQ, 10));
     // La nota de datos puede ser larga (fuente, tramo real, recreaciones): se ajusta a la columna izquierda.
     // maxLines corta en silencio a media frase: si no cabe, la tercera línea termina en "…" para que se note el recorte.
+    // Nota de datos: en el HUD solo una línea (para no distraer al manejar); el texto completo se abre con la tecla I.
     if (aviso) {
-      const t = fijo(scene.add.text(16, 54, aviso, { ...ESTILO, fontSize: '10px', color: '#ffd166', wordWrap: { width: ANCHO_IZQ } }));
-      const lineas = t.getWrappedText(aviso);
-      if (lineas.length > 3) t.setText([...lineas.slice(0, 2), `${lineas[2].trimEnd().slice(0, -1)}…`]);
+      const t = fijo(scene.add.text(16, 56, '', { ...ESTILO, fontSize: '11px', color: '#ffd166' }));
+      const pie = ' · [I] datos';
+      let corto = aviso;
+      t.setText(corto + pie);
+      while (t.width > ANCHO_IZQ && corto.length > 10) { corto = corto.slice(0, -2); t.setText(`${corto.trimEnd()}…${pie}`); }
+      this._panelDatos(aviso);
+      scene.input.keyboard.on('keydown-I', () => this.alternarDatos());
+      t.setInteractive({ useHandCursor: true }).on('pointerdown', () => this.alternarDatos());
     }
 
     this.barras = {};
-    [['energia', 'Energía', 0x4cc38a], ['integridad', 'Carga', 0xffd166], ['chasis', 'Chasis', 0x9aa4c7]].forEach(([clave, etiqueta, color], i) => {
+    const hay = (k) => scene.textures.exists(k);
+    [['energia', 'Energía', 0x4cc38a, 'ui/ui_icono_energia'], ['integridad', 'Carga', 0xffd166, 'ui/ui_icono_carga'],
+      ['chasis', 'Chasis', 0x9aa4c7, 'ui/ui_icono_chasis']].forEach(([clave, etiqueta, color, icono], i) => {
       const x = 560;
       const y = 12 + i * 18;
-      fijo(scene.add.text(x, y - 1, etiqueta, ESTILO));
-      fijo(scene.add.rectangle(x + 70, y + 7, 160, 10, 0x2b2d3a).setOrigin(0, 0.5));
-      this.barras[clave] = fijo(scene.add.rectangle(x + 70, y + 7, 160, 10, color).setOrigin(0, 0.5));
+      // Ícono de arte (8 × 8 × 2) si existe; si no, el nombre.
+      if (hay(icono)) fijo(scene.add.image(x + 8, y + 7, icono).setScale(2));
+      fijo(scene.add.text(x + (hay(icono) ? 22 : 0), y - 1, etiqueta, ESTILO));
+      if (hay('ui/ui_marco_barra')) fijo(scene.add.nineslice(x + 82, y + 7, 'ui/ui_marco_barra', undefined, 76, 7, 2, 2, 2, 2).setOrigin(0, 0.5).setScale(2));
+      else fijo(scene.add.rectangle(x + 70, y + 7, 160, 10, 0x2b2d3a).setOrigin(0, 0.5));
+      this.barras[clave] = fijo(scene.add.rectangle(x + 86, y + 7, 144, 8, color).setOrigin(0, 0.5));
     });
+
+    // Progreso hacia la meta o la zona de entrega (franja bajo el encabezado).
+    fijo(scene.add.rectangle(16, 92, 928, 4, 0x2b2d3a).setOrigin(0, 0.5));
+    this.progreso = fijo(scene.add.rectangle(16, 92, 0, 4, 0x4cc38a).setOrigin(0, 0.5));
+    fijo(scene.add.text(944, 98, '⚑', { ...ESTILO, fontSize: '12px', color: '#ffffff' }).setOrigin(1, 0));
     this.lectura = fijo(scene.add.text(944, 12, '', { ...ESTILO, align: 'right' }).setOrigin(1, 0));
     this.mensaje = fijo(scene.add.text(480, 200, '', { ...ESTILO, fontSize: '26px', color: '#ffffff', align: 'center' }).setOrigin(0.5));
   }
 
   actualizar(estado, { distancia_m, meta_m }) {
-    for (const [clave, barra] of Object.entries(this.barras)) barra.width = 160 * Math.max(0, Math.min(1, estado[clave]));
+    for (const [clave, barra] of Object.entries(this.barras)) barra.width = 144 * Math.max(0, Math.min(1, estado[clave]));
+    this.progreso.width = 928 * Math.max(0, Math.min(1, distancia_m / Math.max(1, meta_m)));
     this.lectura.setText(
       `${estado.velocidadMs.toFixed(1)} m/s · ${Math.floor(distancia_m)}/${Math.floor(meta_m)} m\n${estado.superficie ?? ''}${estado.patina ? ' · PATINA' : ''}`,
     );
+  }
+
+  /** Panel con la nota de datos completa (fuentes, tramo real, recreaciones). Se abre y cierra con I o tocando la nota. */
+  _panelDatos(aviso) {
+    const s = this.scene;
+    const fijo = (o) => o.setScrollFactor(0).setDepth(98).setVisible(false);
+    const t = fijo(s.add.text(480, 270, `Datos de este nivel\n\n${aviso}\n\n[I] cerrar`, {
+      ...ESTILO, fontSize: '13px', color: '#ffffff', align: 'left', wordWrap: { width: 760 }, lineSpacing: 4,
+    }).setOrigin(0.5));
+    const fondo = fijo(s.add.rectangle(480, 270, 800, t.height + 32, 0x0b0d17, 0.92).setStrokeStyle(2, 0xffd166, 0.7));
+    t.setDepth(99);
+    this.datos = [fondo, t];
+  }
+
+  alternarDatos() {
+    if (!this.datos) return;
+    const ver = !this.datos[0].visible;
+    this.datos.forEach((o) => o.setVisible(ver));
+  }
+
+  /** Overlay de pausa. Devuelve los objetos para destruirlos al reanudar. */
+  pausa(alContinuar, alAbandonar) {
+    const s = this.scene;
+    const fijo = (o) => o.setScrollFactor(0).setDepth(110);
+    const fondo = fijo(s.add.rectangle(480, 270, 960, 540, 0x0b0d17, 0.7));
+    const titulo = fijo(s.add.text(480, 210, 'Pausa', { ...ESTILO, fontSize: '30px', color: '#ffffff' }).setOrigin(0.5));
+    const boton = (y, texto, color, fn) => fijo(s.add.text(480, y, texto, { ...ESTILO, fontSize: '18px', color })
+      .setOrigin(0.5).setInteractive({ useHandCursor: true }).on('pointerdown', fn));
+    const seguir = boton(275, '[ Continuar · Esc / Enter ]', '#4cc38a', alContinuar);
+    const salir = boton(320, '[ Abandonar · X ]', '#ff9b9b', alAbandonar);
+    return [fondo, titulo, seguir, salir];
   }
 
   mostrar(texto) {

@@ -80,10 +80,13 @@ export class Recorrido {
     this.hud = new Hud(scene, { titulo: o.titulo, subtitulo: o.subtitulo, aviso: [avisoSuelo && `${avisoSuelo}.`, avisoNivel].filter(Boolean).join(' ') });
     this._botonAbandonar();
     // Instrucciones al empezar: objetivo + controles (teclado y táctil). Esc abandona.
-    const controles = '→ / D acelerar   ← / A frenar   (táctil: ▶ ◀)   Esc abandonar';
+    const controles = '→ / D acelerar   ← / A frenar   (táctil: ▶ ◀)   Esc pausa';
     if (o.modo === 'prueba') this.hud.instrucciones('Prueba en la Tierra: llega a la META con la carga', [controles]);
     else this.hud.instrucciones('Misión: entrega el suministro', ['Frena y detente 2 s dentro de la ZONA DE ENTREGA con la carga ≥ 60 %', controles]);
-    scene.input.keyboard.on('keydown-ESC', () => this._terminar(false, 'abandono'));
+    // Esc pausa (un toque accidental ya no abandona la partida). En la pausa: Esc/Enter continúa, X abandona.
+    scene.input.keyboard.on('keydown-ESC', () => (this.pausado ? this.reanudar() : this.pausar()));
+    scene.input.keyboard.on('keydown-ENTER', () => { if (this.pausado) this.reanudar(); });
+    scene.input.keyboard.on('keydown-X', () => { if (this.pausado) { this.reanudar(); this._terminar(false, 'abandono'); } });
   }
 
   _dibujarMeta(yMeta) {
@@ -132,6 +135,7 @@ export class Recorrido {
     const runner = this.scene.matter.world.runner;
     const delta = runner?.isFixed ? runner.delta : deltaCuadro;
     const r = this.robot;
+    if (this.pausado) return; // mundo de física detenido; nada avanza
     const acelerador = this.terminado ? 0 : this.controles.acelerador();
     if (acelerador !== 0) this.hud.ocultarInstrucciones();
     r.actualizar(delta, acelerador, this.superficieDe);
@@ -164,6 +168,22 @@ export class Recorrido {
       if (estado.integridad >= this.o.umbralIntegridad) this._terminar(true, 'entrega');
       else this._terminar(false, 'carga_danada');
     }
+  }
+
+  pausar() {
+    if (this.terminado || this.pausado) return;
+    this.pausado = true;
+    this.scene.matter.world.pause();
+    this.hud.ocultarInstrucciones();
+    this.overlayPausa = this.hud.pausa(() => this.reanudar(), () => { this.reanudar(); this._terminar(false, 'abandono'); });
+  }
+
+  reanudar() {
+    if (!this.pausado) return;
+    this.pausado = false;
+    this.scene.matter.world.resume();
+    this.overlayPausa?.forEach((o) => o.destroy());
+    this.overlayPausa = null;
   }
 
   /** ¿Está en la zona de entrega (misión)? Ahí detenerse es lo esperado, no un atasco. */

@@ -11,12 +11,21 @@ export class Controles {
     scene.input.addPointer(2); // dos dedos a la vez
 
     const boton = (x, lado, etiqueta) => {
+      // Zona táctil grande (120 × 90) aunque el dibujo sea más chico.
       const zona = scene.add.rectangle(x, 470, 120, 90, 0xffffff, 0.08).setStrokeStyle(2, 0xffffff, 0.25)
         .setScrollFactor(0).setDepth(100).setInteractive();
-      scene.add.text(x, 470, etiqueta, { fontFamily: 'monospace', fontSize: '28px', color: '#ffffff' })
-        .setOrigin(0.5).setAlpha(0.6).setScrollFactor(0).setDepth(101);
-      const soltar = () => { this.tactil[lado] = false; zona.setFillStyle(0xffffff, 0.08); };
-      zona.on('pointerdown', () => { this.tactil[lado] = true; zona.setFillStyle(0xffffff, 0.22); });
+      const arte = `ui/ui_boton_${lado}`;
+      let img = null;
+      if (scene.textures.exists(arte)) {
+        zona.setFillStyle(0xffffff, 0).setStrokeStyle(0);
+        img = scene.add.image(x, 470, arte).setScale(3).setAlpha(0.85).setScrollFactor(0).setDepth(101);
+      } else {
+        scene.add.text(x, 470, etiqueta, { fontFamily: 'monospace', fontSize: '28px', color: '#ffffff' })
+          .setOrigin(0.5).setAlpha(0.6).setScrollFactor(0).setDepth(101);
+      }
+      const presionado = scene.textures.exists(`${arte}_presionado`) ? `${arte}_presionado` : arte;
+      const soltar = () => { this.tactil[lado] = false; if (img) img.setTexture(arte); else zona.setFillStyle(0xffffff, 0.08); };
+      zona.on('pointerdown', () => { this.tactil[lado] = true; if (img) img.setTexture(presionado); else zona.setFillStyle(0xffffff, 0.22); });
       zona.on('pointerup', soltar);
       zona.on('pointerout', soltar);
     };
