@@ -15,9 +15,8 @@
   `model/VALIDATION.md`, `model/NIVEL2.md`, `docs/METODOLOGIA.md` y `data/sites/pinacate.json` (hoy coinciden todas). Incluye la
   prueba fuera de muestra del borde (7 de 8) y el orden por borde contra forma (11 cráteres y 1 mina contra 3 y 14).
 - Probada en Firefox sin ventana (escritorio de 1280 a 1920, teléfono de 390 px, inglés): sin errores ni desbordamiento horizontal.
-- Pendiente: **correo de ventas** (`data-correo` en `#boton-ventas`), decidir dónde publicarla (la raíz de v1.marsception.us con el
-  juego en `/play/`, o `/ciencia/`) y verificar dos datos que no vienen del repo, ambos solo en los detalles técnicos: Pike (1977) y
-  la presión de Marte (menos del 1 %).
+- «Contactar a ventas» escribe a hola@marsception.us. Pendiente: publicarla en marsception.us cuando Mario lo decida y verificar dos
+  datos que no vienen del repo, ambos solo en los detalles técnicos: Pike (1977) y la presión de Marte (menos del 1 %).
 
 ## Hecho (publicación de la demo, 15 nov, madrugada)
 - **Demo pública: https://v1.marsception.us/**, en inglés con https://v1.marsception.us/?lang=en. Este frente es el

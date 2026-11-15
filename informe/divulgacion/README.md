@@ -39,7 +39,8 @@ con «reducir movimiento») y los enlaces internos viajan suave a cada sección.
 
 **Marsception for Business** (`#business`): planes Gratis (B2C, con anuncios y premium opcional), licencia para universidades y
 licencia de datos y modelo (B2B), anuncios y patrocinio, y «Contactar a ventas». Es un modelo de negocio propuesto y la página lo
-dice. **Falta el correo de ventas:** va en `data-correo` del botón `#boton-ventas` en `index.html`; sin él, el botón no hace nada.
+dice. «Contactar a ventas» abre un correo a **hola@marsception.us** (`data-correo` del botón `#boton-ventas` en `index.html`) con el
+tipo de licencia en el asunto.
 
 ## Cómo verla
 
