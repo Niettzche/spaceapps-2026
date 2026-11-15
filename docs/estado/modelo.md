@@ -5,6 +5,23 @@
 **Responsable:** Mario  ·  **Agente:** Claude Code / Codex
 **Última actualización:** 15 nov 2026, mañana (landing con divulgación científica en `informe/divulgacion/`; ANA, la tutora de análogos, ya en `main`; demo en https://v1.marsception.us/)
 
+## Hecho (textos verificados de Jabal Bayda y Cananea, 15 nov, 09:40; pedido de integración)
+- **`data/sites/g00266.json`:** el nombre pasa de «Cono de toba» a «Anillo de toba Jabal Bayda (Harrat Khaybar, Arabia Saudita)» y
+  `proceso` a «Volcánico: anillo de toba de comendita (una riolita), de origen freatomagmático». La nota dice las dos versiones:
+  Németh (2026) y Alohali et al. (2022, que cita a Camp et al. 1991) lo describen como anillo de toba; el GVP y NASA Earth
+  Observatory, como cono de toba. Fuentes del frente taller (`docs/taller/FUENTES_NIVELES.md`, filas AM-038 a AM-042).
+- **`data/sites/mx0023.json` (Cananea):** `proceso` pasa de «Probable tajo… por verificar» a «Tajo minero a cielo abierto: mina de
+  cobre Buenavista del Cobre, en Cananea», y la nota cambia «Nombre por verificar» por la fuente (informe técnico S-K 1300 de
+  Southern Copper ante la SEC, fila AM-066). Los otros 21 tajos siguen diciendo «Probable… por verificar»: no tienen fuente.
+- **Cómo:** `model/scan.py` (`PROCESOS_VERIFICADOS`, `NOMBRES_VERIFICADOS`, modo `--solo-textos`); no se editó ningún JSON a mano
+  y no cambian `novedoso`, `nivel`, variables ni similitud. Los otros modos (`--solo-ia`, `--solo-categoria`,
+  `--solo-literatura`) no deshacen el cambio. Cananea sigue siendo tajo para el modelo (regla 6) y para el juego (`esMina`).
+  3 pruebas nuevas (26 en total).
+- **Otro frente (expediente), en commit aparte:** dos líneas en `game/src/scenes/expediente/datos_en.js` con la traducción de los
+  dos `proceso` nuevos; sin ellas, el juego en inglés los mostraría en español. La corrección `NOMBRES_ES.g00266` de ese archivo
+  ya no hace falta, y se puede quitar.
+- **Visto de paso:** `game/tests/game-config.test.cjs` («60 Hz cap…») falla en `main` sin este cambio (133 de 134 pasan).
+
 ## Hecho (landing con divulgación científica, 15 nov)
 - **`informe/divulgacion/`: landing del juego con la ciencia explicada** (Vite, bilingüe con `?lang=en`, tema oscuro y claro).
   Portada inspirada en la pantalla de inicio del juego (pixel art animado, con el rover del juego), cómo se juega con capturas
@@ -17,6 +34,24 @@
 - Probada en Firefox sin ventana (escritorio de 1280 a 1920, teléfono de 390 px, inglés): sin errores ni desbordamiento horizontal.
 - «Contactar a ventas» escribe a hola@marsception.us. Pendiente: publicarla en marsception.us cuando Mario lo decida y verificar dos
   datos que no vienen del repo, ambos solo en los detalles técnicos: Pike (1977) y la presión de Marte (menos del 1 %).
+
+## Hecho (`POST /nivel`, 15 nov, 09:45; pedido opcional de integración)
+- **Qué es:** `POST /nivel {lat, lon}` devuelve el `nivel` de cualquier coordenada con los mismos campos que los de `data/sites`
+  (`perfil_elevacion_m`, `paso_m`, `superficies`, `superficies_nota`, `fuente`…), para que el frente expediente vuelva jugables
+  los lugares de «Descubrir» que no tienen nivel (47 de 63). Opcionales: `diam_km` (alarga el corte como en `analisis/26`:
+  3 km, 4 km si pasa de 1.2 km, más si hace falta) y `destino` (solo añade la nota del regolito en la Luna).
+  Respuesta: `{punto, nivel, resumen, avisos, metodo}`.
+- **Cómo:** `model/nivel_vivo.py`, mismo método y misma regla de superficie v2 que `analisis/26_niveles_15.py`. No agrega
+  dependencias al servidor (el centro se proyecta con Earth Engine en vez de pyproj). `python -m model.nivel_vivo` recalcula los
+  niveles publicados de Meteor Crater y Al Hutaymah y salen **idénticos** (101 y 134 puntos, 5 tramos cada uno).
+- **Probado en local con Earth Engine:** un sitio de Atacama sin nivel (g00003) responde en 3.5 s con 134 puntos; la misma
+  consulta repetida sale de caché; mar y lago grande dan 422 con explicación; latitud fuera de rango, 422; si Earth Engine no
+  responde, 502 sin detalles internos. 13 pruebas nuevas sin red (6 de la regla en `model/tests`, 7 del endpoint en `api/tests`).
+- **Límites:** siempre usa la zona UTM local, así que en México no sale idéntico a los niveles hechos con EPSG:6372 (en
+  Samalayuca aparece un tramo de roca que el nivel publicado no tiene); el corte va centrado en el punto que se manda, no en
+  un cráter medido; sin límite de consultas por persona (igual que `/score`); cada consulta nueva son 4 llamadas a Earth Engine.
+- **Falta, de otros frentes:** que el frente expediente lo llame desde «Descubrir»; que integración lo agregue a la lista de
+  endpoints de `AGENTS.md` §8; y volver a publicar la API (no hay que instalar nada nuevo).
 
 ## Hecho (ANA, la tutora de análogos, 15 nov, mañana; rama `feat/modelo-tutor`)
 - **Qué es:** una tutora en el juego (Expediente: botón «A · Tutora» o tecla A; menú principal: botón «Tutora ANA» arriba a la
