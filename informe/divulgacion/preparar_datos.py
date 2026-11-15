@@ -57,7 +57,7 @@ CIFRAS = {
         "con la ventana estrecha (0.83–1.33) pasan 5; con la usada y umbral 0.002, 6",
         "Xiuyan (el detector le mide 0.81 km y el diámetro esperado es 1.8 km",
         "Pasan solo con la ventana ancha: Lonar, Talemzane",
-        "De los 57 sitios de `data/sites` con un cráter medido",
+        "De los 62 sitios de `data/sites` con un cráter medido",
     ],
     "model/NIVEL2.md": ["0.027 (284)", "0.019 (53)", "unos 463 m", "Para D ≥ 2 km la diferencia no es instrumental"],
     "docs/METODOLOGIA.md": [

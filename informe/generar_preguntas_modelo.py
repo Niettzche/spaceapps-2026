@@ -36,7 +36,7 @@ CITAS = {
         "el 84% cae dentro del 95 % de la nube",
         "### Controles negativos: 3 de 3 pasan",
         "### Análogos conocidos: 9 de 21 pasan",
-        "percentiles 10–90: 0.32–0.51",
+        "percentiles 10–90: 0.32–0.52",
         "vale entre 0.20 y 0.33 en todos los sitios",
         "puntaje de forma 0.42",
         "encuentra el 40% y el 32% pasa el filtro",
@@ -162,7 +162,7 @@ SECCIONES = [
          "model/score.py", False),
         ("¿Qué significa ese porcentaje? ¿Un 55 % es un buen análogo?",
          "Es un filtro, no una calificación. Descarta lo que no puede ser análogo: selvas, cultivos y nieve quedan cerca de cero. Entre "
-         "sitios áridos casi no ordena: sin contar la forma, 8 de cada 10 sitios de nuestro catálogo quedan entre 0.32 y 0.51.",
+         "sitios áridos casi no ordena: sin contar la forma, 8 de cada 10 sitios de nuestro catálogo quedan entre 0.32 y 0.52.",
          "Qué es cada sitio lo dicen la etiqueta contrastada con fuentes y el borde medido, no el número.",
          "model/VALIDATION.md, sección A («Tasa del prefiltro»)", True),
         ("¿Por qué todos los sitios salen con porcentajes bajos?",
