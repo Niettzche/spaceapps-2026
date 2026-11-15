@@ -114,6 +114,9 @@ export function resumen(diseno, catalogo, { masaCarga = 0 } = {}) {
     panel: modulo && modulo.capacidad ? modulo.capacidad : 0,
     aislamiento: modulo ? modulo.aislamiento_termico ?? 0 : 0,
     radiador: modulo ? modulo.radiador ?? 0 : 0,
+    auto_rescate: modulo ? modulo.auto_rescate ?? null : null, // AB-002: { atasco_s, duracion_s, agarre, energia, espera_s }
+    // Llanta superelástica (Nitinol): fracción de las sacudidas que no llega a la carga, promedio de los ejes (igual que la física).
+    amortiguacion: del && tras ? ((del.amortiguacion ?? 0) + (tras.amortiguacion ?? 0)) / 2 : 0,
     fuerza_por_masa: motor && masaConCarga > 0 ? motor.fuerza / masaConCarga : null,
     autonomia_s: capacidad != null && gasto ? capacidad / gasto : null,
   };

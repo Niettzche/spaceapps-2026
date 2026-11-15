@@ -60,6 +60,23 @@
     "nota": "valor de juego (P). Inspiración: rueda del Lunar Roving Vehicle, tejido de hilos de acero galvanizado sobre cubo de aluminio, 81.8 cm de diámetro y 23 cm de ancho, con chevrones de titanio en el 50 % del contacto (NASA NSSDC, S64; PIEZAS.md H5 y §5). Ligera y grande: buen agarre en arena y regolito, menos fuerza al suelo (radio mayor) y floja en roca"
   },
   {
+    "id": "rueda_nitinol",
+    "nombre": "Rueda de Nitinol",
+    "nombre_en": "Nitinol wheel",
+    "sistema": "movilidad",
+    "costo": 140,
+    "masa": 7,
+    "radio_m": 0.45,
+    "agarre": {
+      "arena": 0.55,
+      "roca": 0.85,
+      "compacto": 0.85
+    },
+    "amortiguacion": 0.5,
+    "fuente": "Space_Apps_Game_Data.xlsx, hojas Abilities AB-004 y Materials MT-005 (Draft): llanta superelástica de níquel-titanio de NASA Glenn, deformación de 10–12 % contra 0.3 % de materiales anteriores, probada a −130 °C (S18)",
+    "nota": "valor de juego (P). La llanta se deforma y recupera su forma: absorbe el 50 % (P) de las sacudidas que llegan a la carga (fisica/robot.js, amortiguacion). Agarre (P) sin medición: la hoja solo dice 'más tolerancia de agarre en roca'. Densidad y límite elástico no están en el libro (Gap)"
+  },
+  {
     "id": "chasis_ligero",
     "nombre": "Chasis ligero",
     "nombre_en": "Light chassis",
@@ -78,6 +95,28 @@
     "masa": 35,
     "resistencia": 80,
     "nota": "valor de juego (P). Compromiso masa contra robustez (PIEZAS.md H2)"
+  },
+  {
+    "id": "chasis_titanio",
+    "nombre": "Chasis de titanio",
+    "nombre_en": "Titanium chassis",
+    "sistema": "estructura",
+    "costo": 300,
+    "masa": 33,
+    "resistencia": 120,
+    "fuente": "Space_Apps_Game_Data.xlsx, hoja Materials, MT-002 (Ti-6Al-4V, Verified): densidad 4430 kg/m³ y límite elástico ≥ 828 MPa (S36; S14)",
+    "nota": "valor de juego (P). Mismo tamaño que el chasis ligero (aluminio 6061, MT-001: 2700 kg/m³, 276 MPa): masa 20 × 4430/2700 ≈ 33 kg y resistencia 40 × 828/276 = 120 (regla de juego: la resistencia crece con el límite elástico). Costo (P): nivel de costo 4 de 5 en la hoja Materials. Uso real del material: rayos de las ruedas de Perseverance (S14)"
+  },
+  {
+    "id": "chasis_carbono",
+    "nombre": "Chasis de fibra de carbono",
+    "nombre_en": "Carbon-fiber chassis",
+    "sistema": "estructura",
+    "costo": 240,
+    "masa": 12,
+    "resistencia": 35,
+    "fuente": "Space_Apps_Game_Data.xlsx, hoja Materials, MT-004 (CFRP, Draft): densidad 1590 kg/m³ (S41, MIL-HDBK-17)",
+    "nota": "valor de juego (P). Masa 20 × 1590/2700 ≈ 12 kg. El libro no trae límite elástico (laminado frágil, sin punto de fluencia): la resistencia 35 es (P) SIN fuente. Sin uso documentado en un rover (Draft): es un concepto"
   },
   {
     "id": "bateria_chica",
@@ -211,5 +250,22 @@
     "masa": 3,
     "radiador": 0.006,
     "nota": "valor de juego (P): +0.006 /s de enfriamiento por radiación del motor (fisica/ambiente.js, regla b); para el motor no hay fuente primaria (PIEZAS.md §5: Gap). Hecho real: los radiadores externos de Curiosity disipan el calor de desecho de la electrónica hacia el ambiente marciano (NTRS 20150008894, S78; MSL press kit p. 38, S76). Sin aire el calor solo sale por radiación: se nota más en la Luna y en Marte"
+  },
+  {
+    "id": "auto_rescate",
+    "nombre": "Auto-rescate (wheel-walking)",
+    "nombre_en": "Self-rescue (wheel-walking)",
+    "sistema": "modulo",
+    "costo": 100,
+    "masa": 4,
+    "auto_rescate": {
+      "atasco_s": 1.5,
+      "duracion_s": 2,
+      "agarre": 1.5,
+      "energia": 6,
+      "espera_s": 4
+    },
+    "fuente": "Space_Apps_Game_Data.xlsx, hoja Abilities, AB-002 (Verified): VIPER puede mover sus ruedas una a una para salir de suelo blando (S34); Spirit quedó atascado en 'Troy' con 50–90 % de hundimiento (S20)",
+    "nota": "valor de juego (P): si el robot acelera 1.5 s seguidos sin avanzar (menos de 0.5 m/s), gasta 6 de energía y tiene +50 % de agarre durante 2 s; después espera 4 s para volver a usarlo (fisica/robot.js). La suspensión activa de VIPER es un diseño que aún no vuela"
   }
 ]

@@ -9,6 +9,8 @@
 // Volumen general 0.35; M o el botón "♪" silencian (se guarda en localStorage). El AudioContext se crea o reanuda
 // con el primer gesto (pointerdown / keydown), por la política de autoplay. Sin Web Audio (headless, navegador
 // antiguo), todo queda en silencio sin lanzar errores. Volúmenes, tonos y filtros = valores de juego (P).
+import { textoPixel } from '../scenes/comun/fuente.js';
+import { tr } from '../i18n.js';
 import { PATINA_SEG } from './robot.js';
 
 const VOLUMEN = 0.35;
@@ -196,12 +198,19 @@ export class Sonido {
     this.tActualizado = 0;
 
     // Botón "♪" (18 px, DISENO.md §2.1) y tecla M. Recorrido lo coloca debajo de «Abandonar».
-    this.boton = scene.add.text(944, 70, '', { fontFamily: 'monospace', fontSize: '18px', color: '#a3abcc' })
-      .setOrigin(1, 0.5).setScrollFactor(0).setDepth(95).setPadding(10, 8).setInteractive({ useHandCursor: true });
+    // Fuente pixel (comun/fuente.js): no tiene «♪», así que el botón dice «M · sonido» / «M · silencio».
+    this.boton = textoPixel(scene, 944, 70, '', { size: 14, color: '#a3abcc', origen: [1, 0.5] })
+      .setScrollFactor(0).setDepth(95).setInteractive({ useHandCursor: true });
     this.boton.on('pointerdown', () => alternarSilencio());
     this.alTecla = () => alternarSilencio();
     scene.input.keyboard?.on('keydown-M', this.alTecla);
-    this.alSilencio = (s) => this.boton?.active && this.boton.setText(s ? '♪ ×' : '♪').setAlpha(s ? 0.5 : 0.9);
+    this.alSilencio = (s) => {
+      if (!this.boton?.active) return;
+      this.boton.setText(this.boton.esPixel ? (s ? tr('M · silencio', 'M · muted') : tr('M · sonido', 'M · sound')) : (s ? '♪ ×' : '♪')).setAlpha(s ? 0.6 : 0.95);
+      // Zona táctil ≥ 64 × 44 alrededor del texto (coordenadas locales).
+      const w = Math.max(64, this.boton.width + 20), h = Math.max(44, this.boton.height + 16);
+      this.boton.input.hitArea.setTo(-(w - this.boton.width) / 2, -(h - this.boton.height) / 2, w, h);
+    };
     this.alSilencio(silencio);
     oyentes.add(this.alSilencio);
 

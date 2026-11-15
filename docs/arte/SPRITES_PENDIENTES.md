@@ -70,3 +70,23 @@ Falta (sin arte el juego ya funciona: figura en la prueba y solo texto en el Tal
 | `iconos/motor_equilibrado.png`, `iconos/soporte_correas.png` | 16 × 16 | Íconos del taller |
 | `entidades/soporte_correas.png` | 10 de ancho, 1 cuadro | Soporte con paredes medianas (0.35 m, entre el básico y el amortiguado) y correas cruzadas |
 | `entidades/deco_motor_equilibrado.png` | ~4 × 3 | Calcomanía como las de los otros motores (x −8 del chasis) |
+
+## 7. Taller por arrastre: piezas del libro y bloqueadas (15 nov, frente taller)
+Las 19 piezas de antes ya tienen `piezas/<id>.png` (32 × 32, #85) y el Taller los usa en la bandeja, en los sockets y en la
+pieza que se arrastra. Faltan estas, con **nombre exacto** (mientras no existan, el juego usa el respaldo indicado):
+
+| Archivo | Medida | Respaldo de hoy | Descripción |
+|---|---|---|---|
+| `piezas/chasis_titanio.png` | 32 × 32 | `piezas/chasis_ligero` teñido gris titanio | Chasis de titanio (MT-002): gris metálico frío |
+| `piezas/chasis_carbono.png` | 32 × 32 | `piezas/chasis_ligero` teñido gris carbón | Chasis de fibra de carbono (MT-004): negro con trama tejida |
+| `piezas/rueda_nitinol.png` | 32 × 32 | `piezas/rueda_malla` teñida plateada | Rueda de Nitinol (AB-004): llanta de resortes/malla metálica superelástica |
+| `piezas/auto_rescate.png` | 32 × 32 | `iconos/ico_subida` ×2 | Módulo auto-rescate (AB-002, VIPER): pata/rueda que "camina" o flecha de salida de un hoyo |
+| `entidades/chasis_titanio.png`, `entidades/chasis_carbono.png` | 24 de ancho, 2 cuadros (normal + dañado) | `chasis_ligero` teñido | Mismo tamaño que el chasis ligero; variantes de pintura opcionales `chasis_titanio_<color>` |
+| `entidades/rueda_nitinol.png` | 7 × 7, 4 cuadros | `rueda_malla` teñida | Llanta metálica de malla, más clara que la del LRV |
+| `entidades/deco_auto_rescate.png` | ~5 × 4 | ícono encima del chasis (solo en el Taller) | Calcomanía del módulo (x +5, y −4 del chasis) |
+| `ui/ui_candado.png` | 8 × 8 | candado dibujado con figuras | Candado de las piezas bloqueadas (pestaña «Bloqueadas») |
+
+Bloqueadas (opcional, hoy usan un ícono genérico atenuado + candado): `piezas/orugas.png`, `piezas/patas.png`,
+`piezas/rappel.png`, `piezas/rotor.png`, `piezas/serpiente.png`, `piezas/direccion_independiente.png`,
+`piezas/sellos_polvo.png`, `piezas/sensor_sol.png`, `piezas/hibernacion.png`, `piezas/blindaje.png`, `piezas/rueda_goma.png`
+(32 × 32; el Taller aún no los busca: avisar a taller si se dibujan).

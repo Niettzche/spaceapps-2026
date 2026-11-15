@@ -6,13 +6,10 @@
 // - Respaldo sin el cuadro: Marte grande que gira (marte_grande.js), logo con brillo y lema en la fuente pixel.
 // - Fondo del menú de opciones y zoom a la escotilla: menu_nave.js (este archivo conserva el respaldo en código).
 // Todo es ILUSTRACIÓN (arte del juego). Con prefers-reduced-motion: nada gira ni parpadea y las transiciones son fundidos.
-import Phaser from 'phaser';
-import pixelXml from '../../../../assets/fuentes/pixel.xml?raw';
-import pixelTituloXml from '../../../../assets/fuentes/pixel_titulo.xml?raw';
 import { crearMarteGrande } from './marte_grande.js';
 import { ARTE_NAVE, pintarFondoNave } from './nave_pixeles.js';
 import { movimientoReducido, soltarTweensAlDestruir } from './efectos.js';
-import { texto } from './interfaz.js';
+import { textoPixel, hayFuente, FUENTE_CUERPO } from '../comun/fuente.js';
 import { MARTE_TITULO } from './fondo_menu.js';
 
 const ESCALA = 3; // un pixel de arte = 3 px del juego (fondos de 320 × 180)
@@ -56,18 +53,16 @@ export function videoInicio(scene) {
   return r;
 }
 
-/** Texto en la fuente pixel (BMFont de Mauricio) con un color; respaldo: texto normal. Escala 2 = mayúscula de 14 px. */
+/**
+ * Texto en la fuente pixel del juego (textoPixel de comun/fuente.js, una sola carga en el Boot) a escala entera:
+ * escala 2 = mayúscula de 14 px, 3 = 21 px. Respaldo monospace si la fuente no cargó.
+ */
 export function textoPx(scene, x, y, s, { escala = 2, color = '#ffffff', origen = [0, 0.5], profundidad = 2 } = {}) {
-  const f = fuentePixel(scene);
-  const o = f ? scene.add.bitmapText(x, y, f, s).setScale(escala).setTint(Phaser.Display.Color.HexStringToColor(color).color)
-    : texto(scene, x, y, s, { size: 7 * escala, color });
-  return o.setOrigin(origen[0], origen[1]).setDepth(profundidad);
+  return textoPixel(scene, x, y, s, { size: escala * 9.5, color, origen }).setDepth(profundidad);
 }
-/** Cambia el color de un texto hecho con textoPx (BitmapText o Text). */
+/** Cambia el color de un texto hecho con textoPx (BitmapText teñido o Text de respaldo). */
 export function colorPx(o, color) {
-  if (o.type === 'BitmapText') o.setTint(Phaser.Display.Color.HexStringToColor(color).color);
-  else o.setColor(color);
-  return o;
+  return o.setColor(color);
 }
 
 // ---------- salto (warp): estrellas que se estiran en líneas ----------
@@ -151,28 +146,10 @@ export function destelloSalida(scene, duracion = 380) {
   return b;
 }
 
-// ---------- fuente pixel (BMFont de Mauricio) ----------
-const FUENTES = { pixel: ['fuentes/pixel', pixelXml], pixel_titulo: ['fuentes/pixel_titulo', pixelTituloXml] };
-
-/**
- * Registra la fuente BMFont a partir de la textura que ya precargó el Boot (assets/fuentes/<nombre>.png) y del XML.
- * Devuelve la clave de la fuente o null si falta la textura (entonces se usa el texto normal).
- */
-export function fuentePixel(scene, nombre = 'pixel') {
-  const clave = `inicio_${nombre}`;
-  if (scene.cache.bitmapFont.exists(clave)) return clave;
-  const [tex, xml] = FUENTES[nombre];
-  if (!scene.textures.exists(tex) || typeof DOMParser === 'undefined') return null;
-  try {
-    const doc = new DOMParser().parseFromString(xml, 'text/xml');
-    const textura = scene.textures.get(tex);
-    const data = Phaser.GameObjects.BitmapText.ParseXMLBitmapFont(doc, textura.get(), 0, 0, textura);
-    scene.cache.bitmapFont.add(clave, { data, texture: tex, frame: null });
-    return clave;
-  } catch (e) {
-    console.warn('[inicio] no se pudo registrar la fuente', nombre, e);
-    return null;
-  }
+// ---------- fuente pixel (BMFont de Mauricio, cargada por el Boot: comun/fuente.js) ----------
+/** Clave de la fuente bitmap ('pixel' o 'pixel_titulo') si se puede usar; null → texto normal. */
+export function fuentePixel(scene, nombre = FUENTE_CUERPO) {
+  return hayFuente(scene, nombre) ? nombre : null;
 }
 
 /**
@@ -180,13 +157,7 @@ export function fuentePixel(scene, nombre = 'pixel') {
  * Respaldo sin la fuente: texto normal (monoespaciado) del mismo color por tramo.
  */
 export function lineaPixel(scene, x, y, tramos, { escala = 3, profundidad = 2 } = {}) {
-  const fuente = fuentePixel(scene);
-  const objs = tramos.map(([s, c]) => {
-    const o = fuente
-      ? scene.add.bitmapText(0, y, fuente, s).setScale(escala).setTint(Phaser.Display.Color.HexStringToColor(c).color)
-      : texto(scene, 0, y, s, { size: 7 * escala, color: c });
-    return o.setOrigin(0, 0.5).setDepth(profundidad);
-  });
+  const objs = tramos.map(([s, c]) => textoPx(scene, 0, y, s, { escala, color: c, profundidad }));
   const ancho = objs.reduce((s, o) => s + o.displayWidth, 0);
   let cx = Math.round(x - ancho / 2);
   for (const o of objs) { o.x = cx; cx += o.displayWidth; }
@@ -209,9 +180,7 @@ export function logoBrillo(scene, x, y, escala = 9) {
     if (!movimientoReducido()) s.play('logo_brillo');
     return s;
   }
-  const f = fuentePixel(scene, 'pixel_titulo');
-  if (f) return scene.add.bitmapText(x, y, f, 'MARSCEPTION').setOrigin(0.5).setScale(Math.max(1, Math.round(escala / 1.5))).setDepth(2);
-  return texto(scene, x, y, 'MARSCEPTION', { size: 40, origen: [0.5, 0.5] }).setDepth(2);
+  return textoPixel(scene, x, y, 'MARSCEPTION', { size: Math.max(28, escala * 6), origen: [0.5, 0.5], titulo: true }).setDepth(2);
 }
 
 // ---------- Marte grande que gira (pantalla de inicio) ----------

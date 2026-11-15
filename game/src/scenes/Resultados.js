@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { ajustarAncho } from './comun/fuente.js';
 import { titulo, nota, irA } from './ui.js';
 import * as K from './comun/pixel.js'; // botones, chips, panel e íconos de arte (DISENO.md §2)
 import { PRESUPUESTO_INICIAL } from '../config/world.js';
@@ -39,7 +40,8 @@ const MOTIVOS = () => tr({
   abandono: 'The run was abandoned.',
   caida: 'The robot fell off the terrain.',
 });
-const ESTILO = { fontFamily: 'monospace', fontSize: '15px', color: '#cfd6ff', wordWrap: { width: 820 } };
+// Fuente pixel del juego (comun/fuente.js) en todos los textos: K.txt devuelve BitmapText ×2 o más (respaldo monospace).
+const T = (scene, x, y, s, o = {}) => K.txt(scene, x, y, s, { size: 15, color: '#cfd6ff', ...o });
 
 export default class Resultados extends Phaser.Scene {
   constructor() {
@@ -78,15 +80,15 @@ export default class Resultados extends Phaser.Scene {
     const COL = 790;
     const p = esMision ? puntuar(resultado, PRESUPUESTO_INICIAL) : null;
     if (esMision) {
-      this.add.text(COL + 4, 142, `${p.total}`, { ...ESTILO, fontSize: '44px', fontStyle: 'bold', color: '#ffd166' }).setOrigin(1, 0.5);
-      this.add.text(COL + 10, 150, '/ 1000', { ...ESTILO, fontSize: '18px', color: K.P.sec }).setOrigin(0, 0.5);
+      T(this, COL + 4, 136, `${p.total}`, { size: 40, color: '#ffd166', origen: [1, 0.5] });
+      T(this, COL + 10, 146, '/ 1000', { size: 18, color: K.P.sec, origen: [0, 0.5] });
       // Estrellas de arte (assets/ui/ui_estrella_*.png, 16 × 16 × 3); si no hay arte, texto ★/☆ (la e2e acepta los dos).
       if (this.textures.exists('ui/ui_estrella_llena') && this.textures.exists('ui/ui_estrella_vacia')) {
         for (let i = 0; i < 3; i++) {
-          this.add.image(COL + (i - 1) * 56, 196, i < p.estrellas ? 'ui/ui_estrella_llena' : 'ui/ui_estrella_vacia').setScale(3);
+          this.add.image(COL + (i - 1) * 56, 184, i < p.estrellas ? 'ui/ui_estrella_llena' : 'ui/ui_estrella_vacia').setScale(3);
         }
       } else {
-        this.add.text(COL, 196, '★'.repeat(p.estrellas) + '☆'.repeat(3 - p.estrellas), { ...ESTILO, fontSize: '36px', color: '#ffd166' }).setOrigin(0.5);
+        T(this, COL, 184, '★'.repeat(p.estrellas) + '☆'.repeat(3 - p.estrellas), { size: 36, color: '#ffd166', origen: [0.5, 0.5] });
       }
       // Mejor marca por destino (guardada en el navegador) y cuánto falta para la siguiente estrella.
       if (resultado.entrega) {
@@ -102,7 +104,7 @@ export default class Resultados extends Phaser.Scene {
         }
         const meta = p.estrellas < 2 ? ESTRELLAS.dos : p.estrellas < 3 ? ESTRELLAS.tres : null;
         if (meta) txt += tr(`\nfaltan ${meta - p.total} para ${'★'.repeat(p.estrellas + 1)}`, `\n${meta - p.total} to ${'★'.repeat(p.estrellas + 1)}`);
-        this.add.text(COL, 224, txt, { ...ESTILO, fontSize: '14px', color: '#4cc38a', align: 'center' }).setOrigin(0.5, 0);
+        T(this, COL, 212, txt, { size: 14, color: '#4cc38a', alinear: 'center', origen: [0.5, 0] });
       }
     }
     const claveVineta = `pantallas/resultado_${motivo}`;
@@ -145,19 +147,25 @@ export default class Resultados extends Phaser.Scene {
     const anchoTexto = PW - 48;
     let pagina = 0;
     const contenido = this.add.container(0, 0);
-    const contador = this.add.text(PX + PW / 2, 402, '', { ...ESTILO, fontSize: '16px' }).setOrigin(0.5);
+    const contador = T(this, PX + PW / 2, 402, '', { size: 16, origen: [0.5, 0.5] });
     const mostrar = (indice) => {
       pagina = (indice + paginas.length) % paginas.length;
       contenido.removeAll(true);
       const pg = paginas[pagina];
-      const enc = this.add.text(PX + 24, PY + 22, pg.titulo, { ...ESTILO, fontSize: '18px', color: '#ffffff', wordWrap: { width: anchoTexto } });
-      const texto = this.add.text(PX + 24, enc.y + enc.height + 12, pg.texto, {
-        ...ESTILO, fontSize: '16px', color: '#ffd166', lineSpacing: 5, wordWrap: { width: anchoTexto },
-      });
+      const enc = T(this, PX + 24, PY + 16, pg.titulo, { size: 18, color: '#ffffff', ancho: anchoTexto });
+      const texto = T(this, PX + 24, enc.y + enc.height + 8, pg.texto, { size: 16, color: '#ffd166', ancho: anchoTexto });
       contenido.add([enc, texto]);
-      if (pg.evidencia) contenido.add(this.add.text(PX + 24, texto.y + texto.height + 12, pg.evidencia, {
-        ...ESTILO, fontSize: '16px', color: '#e1e8f0', lineSpacing: 5, wordWrap: { width: anchoTexto },
-      }));
+      if (pg.evidencia) {
+        // Fuente ×2: si la evidencia no cabe en la tarjeta se recorta con «…» (completa en la página web y el detalle I).
+        const ev = T(this, PX + 24, texto.y + texto.height + 8, pg.evidencia, { size: 16, color: '#e1e8f0', ancho: anchoTexto });
+        const libre = PY + PH - 10 - ev.y;
+        if (ev.height > libre) {
+          const lineas = ev.getWrappedText ? ev.getWrappedText(pg.evidencia) : [pg.evidencia];
+          const caben = Math.max(1, Math.floor((libre + 2) / 24));
+          if (lineas.length > caben) ev.setText(`${lineas.slice(0, caben).join('\n').replace(/\s*\S*$/, '')}…`);
+        }
+        contenido.add(ev);
+      }
       contador.setText(`${pagina + 1} / ${paginas.length}`);
     };
     const nav = { size: 15, alto: 36, reservaFoco: false, color: '#ffffff' };
@@ -192,14 +200,13 @@ export default class Resultados extends Phaser.Scene {
     const textoConsejo = consejo ? consejo.texto : diagnostico.consejo;
     const iconoConsejo = consejo?.cambio ? `iconos/${consejo.cambio.pieza}` : null;
     K.icono(this, PX + 16, 446, iconoConsejo, { escala: 2, respaldo: '▸', color: '#ffd166', size: 22 });
-    const tConsejo = this.add.text(PX + 40, 446, textoConsejo, {
-      ...ESTILO, fontSize: consejo ? '18px' : '16px', color: '#ffd166', wordWrap: { width: 880 - 40 },
-    }).setOrigin(0, 0.5);
+    const tConsejo = T(this, PX + 40, 446, textoConsejo, { size: consejo ? 18 : 16, color: '#ffd166', origen: [0, 0.5] });
     if (aplica) {
       const x = tConsejo.x + tConsejo.width + 14;
-      if (x + aplica.length * 8.4 + 16 <= 920) K.chip(this, x, 446 - 13, aplica, { tipo: 'cian' });
-      else tConsejo.setText(`${textoConsejo} (${aplica})`);
+      const ch = K.chip(this, x, 446 - 17, aplica, { tipo: 'cian' });
+      if (x + ch.ancho > 920) { ch.objs.forEach((o) => o.destroy()); tConsejo.setText(`${textoConsejo} (${aplica})`); }
     }
+    ajustarAncho(tConsejo, 920 - tConsejo.x);
 
     const xs = [170, 480, 795];
     const ir = (escena, antes) => { antes?.(); irA(this, escena); };
