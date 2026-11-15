@@ -34,7 +34,7 @@ suelo y se hunde menos en arena suelta. Así se justifica en el juego la rueda a
 | `bateria_chica` / `bateria_grande` | Baterías de ion litio que respaldan los picos de demanda (H6) | `capacidad` = energía de juego; más capacidad = más masa |
 | `motor_eficiente` / `motor_potente` | Cada rueda de Perseverance tiene su propio motor (H1) | `fuerza` (subir pendientes) contra `consumo` (gasto de batería) |
 | `soporte_basico` / `soporte_amortiguado` | Sin referencia específica verificada: es mecánica de juego (proteger el suministro) | `proteccion` = fracción del daño que no llega a la carga |
-| `panel_solar` | Spirit y Opportunity fueron solares; el polvo acabó con Opportunity (H7) | **Sin efecto en el MVP**: no hay regla de iluminación explicable todavía (espec. de juego §6) |
+| `panel_solar` | Spirit y Opportunity fueron solares; el polvo acabó con Opportunity (H7) | Recarga la batería según la luz del sitio: capacidad × 0.0025 × luz por segundo; con luz rasante (polo sur lunar), 20 % (P) (regla c de `fisica/ambiente.js`) |
 
 `radio_m` (ruedas) es un valor de juego a la escala del robot del juego (3 m de largo, 8 px de arte = 1 m), no el radio de una rueda real.
 
@@ -77,3 +77,99 @@ suelo y se hunde menos en arena suelta. Así se justifica en el juego la rueda a
   no tiene cifras de hundimiento ni menciona Troy. Se quitó y se reemplazó por lo que dice NASA (S65, S72). S19 y S20 ahora
   nombran el documento exacto de NTRS; la tabla de Marte avisa que son estimaciones de ingeniería, no mediciones directas.
 - Cada cambio quedó en la hoja **Review Log** (RV-094…RV-149) y las fuentes nuevas en **Sources** (S59–S73).
+
+## 5. Piezas nuevas: fuentes (15 nov, Leo)
+
+Cada valor tiene fuente o es (P). Los de Excel están en la hoja **Parts** (PT-013…PT-018), marcados como referencia. Desde el 15 nov estas piezas **sí están en `parts.json`** con números de juego (P): la tabla de §6 dice qué pieza usa cada fuente.
+
+| Pieza | Dato con fuente | Fuente | Estado | Uso en el juego |
+|---|---|---|---|---|
+| Rueda de malla tipo LRV (Apolo) | Tejido de hilos de acero galvanizado sobre cubo de aluminio; 81.8 cm de diámetro, 23 cm de ancho; chevrones de titanio en el 50 % del área de contacto | [NASA NSSDC, Apollo LRV](https://nssdc.gsfc.nasa.gov/planetary/lunar/apollo_lrv.html) (S64) | Verified | `rueda_malla` (§6) |
+| Rueda rígida de aluminio con grousers (Curiosity/Perseverance) | Curiosity: 50.8 cm, 24 chevrones. Perseverance: 52.6 cm, 48 garras curvas, 6 ruedas con motor propio | [NASA, Perseverance (S14)](https://science.nasa.gov/mission/mars-2020-perseverance/rover-components/); [JPL, Apr 2020 (S70)](https://www.nasa.gov/solar-system/nasas-perseverance-mars-rover-gets-its-wheels-and-air-brakes/) | Verified | Referencia de `rueda_tacos` / `rueda_estandar` |
+| Calentador o aislamiento de la batería | **No confirmado.** Lo que sí dice NASA: el calor de desecho del MMRTG se bombea por un lazo de fluido que mantiene la electrónica en el rango −40 a +50 °C; los calentadores de radioisótopos calentaban la caja de la electrónica de Sojourner, Spirit y Opportunity | [NASA/JPL, MSL launch press kit, p. 38](https://www.jpl.nasa.gov/news/press_kits/MSLLaunch.pdf) (S76); [NTRS 20150008894](https://ntrs.nasa.gov/citations/20150008894) (S78) | Gap | `calentador_bateria` (§6): pieza (P) **sin fuente primaria**; evita la pérdida de batería por frío (regla a de `fisica/ambiente.js`). En el pitch: "valor de juego; no confirmamos que un rover use calentador de batería" |
+| Radiador / disipación del motor | Los radiadores externos disipan el calor de desecho de la electrónica hacia el ambiente marciano; el MMRTG produce 110 W eléctricos y unos 2000 W de calor de desecho | [NTRS 20150008894](https://ntrs.nasa.gov/citations/20150008894) (S78); [MSL press kit, p. 38](https://www.jpl.nasa.gov/news/press_kits/MSLLaunch.pdf) (S76) | Verified para la electrónica; **Gap para el motor** | `radiador` (§6): suma enfriamiento por radiación al motor (regla b de `fisica/ambiente.js`, (P)) |
+| Batería mediana (par MSL) | Dos baterías de ion litio de unos 42 Ah cada una, 28 V, que cubren los picos de demanda por encima de la salida del generador | [NASA/JPL, MSL launch press kit, p. 43](https://www.jpl.nasa.gov/news/press_kits/MSLLaunch.pdf) (S76) | Verified | `bateria_mediana` (§6); Ah no es comparable con las unidades de capacidad del juego (P) |
+| Panel solar grande (MER) | 1.3 m² de celdas triunión de tres capas; 140 W en la superficie de Marte; unos 900 Wh por sol, que bajan a unos 600 Wh por sol al final de la misión por el polvo | [NASA/JPL, MER launch press kit, pp. 8 y 44](https://www.jpl.nasa.gov/news/press_kits/merlaunch.pdf) (S77) | Verified | `panel_solar_grande` (§6): recarga el doble que `panel_solar` (regla c, (P)) |
+
+**Corrección:** la hoja Sources (S40) citaba un artículo de aerogeles para decir que las baterías de un rover se mantienen entre
+−40 y +40 °C frente a noches de −96 °C. Lo revisé y **esa página no lo dice**, así que bajé S40 a Draft. Por la misma razón
+quité ese dato de la pregunta 9 de `docs/PITCH_QA_EN.md`.
+
+## 6. Piezas nuevas en el juego (15 nov, agente del frente taller)
+
+Siete piezas nuevas en `game/src/content/parts.json`, todas **valores de juego (P)**; donde §5 tiene fuente, la nota la cita.
+Las de §2 no cambiaron (el camino dorado sigue calibrado con ellas). El módulo sigue siendo **una sola ranura opcional**:
+hay que elegir entre panel, calentador o radiador.
+
+| Pieza (`id`) | Ranura | Costo | Masa | Efecto en la física | Fuente o (P) |
+|---|---|---|---|---|---|
+| `rueda_malla` | eje (× 2) | 100 | 5 | Agarre arena 0.75 · roca 0.45 · compacto 0.75; radio 0.55 m (menos fuerza al suelo); la más ligera | LRV, S64 (§5). Números (P) |
+| `bateria_mediana` | batería | 130 | 8 | Capacidad 160 (entre 100 y 220) | Par de baterías MSL, S76 (§5). Capacidad (P) |
+| `motor_equilibrado` | motor | 145 | 8 | Fuerza 70, consumo 0.9 (y se calienta 1.5 × el eficiente) | H1 (S14). Números (P) |
+| `soporte_correas` | carga | 95 | 4 | Protección 0.6; paredes de 0.35 m | (P), mecánica de juego |
+| `panel_solar_grande` | módulo | 230 | 7 | Capacidad 80: recarga el doble que el chico (regla c de `fisica/ambiente.js`) | Paneles MER, S77 (§5). Números (P) |
+| `calentador_bateria` | módulo | 40 | 2 | `aislamiento_termico` 1: evita toda la pérdida por frío (regla a). Con la regla suave de juego (−0.03 %/°C, piso 97 %) el efecto es chico: Jezero 97.5 % → 100 %, Luna 98 % → 100 % | **(P), Gap** (§5). Contexto: S78 |
+| `radiador` | módulo | 90 | 3 | `radiador` +0.006 /s de enfriamiento por radiación (regla b). Al límite de 100 °C el motor conserva 64 % de potencia en la Luna (26 % sin él) y ~74 % en Jezero (~35 %) | **(P), Gap para el motor** (§5). Radiadores de la electrónica: S78 |
+
+- Con ruedas anchas (890) todavía caben el calentador (930) o el radiador (980). El panel grande no cabe con ruedas anchas.
+- El Taller muestra el efecto del módulo en el destino elegido, en un renglón: "Luna (P): motor caliente 64 % (sin él 26 %)"
+  ("motor caliente" = potencia que conserva el motor al llegar a 100 °C).
+- Feedback (`feedback/reglas.js`): si la energía se acabó y hubo `bateria_fria` → calentador; si el motor se sobrecalentó sin
+  radiador → radiador ("Aplicar y al taller" lo pone en el módulo).
+- `panel_solar`: §2 ya dice que recarga con la regla de luz (c) de `fisica/ambiente.js` (antes decía "sin efecto en el MVP").
+
+**Personalización (cosmética, no cambia la física):** pintura del chasis (6 colores de `assets/paletas.json`) y nombre del robot
+(hasta 14 letras). Vive en `partida.robot = { pintura, nombre }` y en `localStorage` (`marsception.robot.v1`), por eso
+sobrevive a una partida nueva. Código: `game/src/scenes/Taller/personalizacion.js`; la prueba y la misión tiñen el chasis y
+ponen el nombre sobre el robot (`fisica/aspecto.js`); Resultados lo muestra. Deshacer/Rehacer también cubren pintura y nombre.
+
+- El catálogo muestra 3 piezas a la vez (layout de Diego, filas de 68 px); los ejes y el módulo tienen 4 y se recorren con ▲ / ▼, ↑/↓ o la rueda del ratón.
+
+Pruebas: `node game/src/scenes/Taller/piezas.test.mjs` (13 casos).
+
+## 7. Taller por arrastre y piezas del libro (15 nov, agente del frente taller)
+
+**Cómo se arma.** El robot grande (sprites de la prueba ×8) tiene 7 sockets: chasis, 2 ejes, motor, batería, carga y módulo.
+La bandeja de abajo tiene pestañas por sistema (Movilidad · Estructura · Energía [baterías y motores] · Protección · Módulo ·
+Bloqueadas) con tarjetas de 6 en 6. Tres formas equivalentes (AGENTS.md §12):
+- **Arrastrar** una tarjeta a un socket (los válidos se iluminan en verde; uno inválido la regresa). Arrastrar una pieza del
+  robot hacia afuera la **quita**; a otro socket válido, la **mueve**. Clic derecho en un socket = quitar.
+- **Tocar** una tarjeta y luego el socket (dos toques en la tarjeta la ponen en su socket).
+- **Teclado:** ←/→ socket · ↑/↓ pieza · Enter poner · Supr quitar · Tab pestaña · A «igual en ambos ejes» · Ctrl+Z/Y.
+El presupuesto se anima con «+N / −N» y, si se excede o falta una pieza obligatoria, «Probar el robot» se deshabilita.
+Reglas puras: `game/src/scenes/Taller/arrastre.js` (prueba: `arrastre.test.mjs`).
+
+**Piezas nuevas jugables** (todas (P); fuente en el campo `fuente` de `parts.json`):
+
+| Pieza (`id`) | Ranura | Costo | Masa | Efecto en la física | Fuente |
+|---|---|---|---|---|---|
+| `chasis_titanio` | chasis | 300 | 33 | Resistencia 120 (= 40 × 828/276). Masa = 20 × 4430/2700 | Materials MT-002 (Verified, S36, S14) |
+| `chasis_carbono` | chasis | 240 | 12 | Resistencia 35 **sin fuente** (el libro no da límite elástico). Masa = 20 × 1590/2700 → gasta menos energía | Materials MT-004 (Draft, S41) |
+| `rueda_nitinol` | eje (× 2) | 140 | 7 | Agarre 0.55 / 0.85 / 0.85 (P) y `amortiguacion` 0.5: la carga recibe la mitad de las sacudidas | Abilities AB-004 / MT-005 (Draft, S18) |
+| `auto_rescate` | módulo | 100 | 4 | Acelerando 1.5 s a < 0.5 m/s: gasta 6 de energía y +50 % de agarre durante 2 s; espera 4 s. Evento `auto_rescate` | Abilities AB-002 (Verified, S34, S20) |
+
+Combinaciones dentro de 1,000: Nitinol en los dos ejes (970), carbono + anchas (980), auto-rescate + anchas (990),
+titanio + malla (960). Titanio + anchas (1,040) **no cabe**. Con ruedas estándar, el auto-rescate no basta para Samalayuca
+(se atasca igual a 41 m tras 2 rescates): no reemplaza a las ruedas anchas. Feedback: `rueda_nitinol` (carga dañada aun con
+soporte amortiguado), `auto_rescate` (el intento falló por atasco o energía, patinó ≥ 3 veces con ruedas ya adecuadas y sin módulo) y aviso de uso del rescate.
+
+**Bloqueadas** (`game/src/scenes/Taller/bloqueadas.js`, no están en `parts.json`): se ven con candado y su razón para que
+estén todas las filas del libro, sin inventar física.
+
+| Excel | Pieza | Razón |
+|---|---|---|
+| RT-002 | Orugas | sin referencia espacial verificada (Gap) |
+| RT-003 | Patas | sin referencia espacial verificada (Gap) |
+| RT-004 · AB-006 | Rappel (Axel) | otro tipo de misión (bajar paredes) |
+| RT-005 · AB-007 | Rotor (Ingenuity) | otro tipo de misión (explora, no lleva carga; no vuela en la Luna) |
+| RT-006 · AB-008 | Serpiente (EELS) | otro tipo de misión (cuevas, hielo) |
+| AB-001 | Dirección independiente | sin mecánica: la prueba es lateral (2D), no hay giros |
+| AB-003 · MT-007 | Sellos antipolvo | sin mecánica de desgaste por polvo |
+| AB-009 | Ruta con sol | sin mecánica: el recorrido es fijo |
+| AB-010 | Hibernación | sin mecánica: no hay tormentas |
+| AB-011 · MT-009 | Blindaje de radiación | la radiación es un límite declarado, no se simula |
+| MT-012 | Rueda de goma | sin fuente (Gap), solo para la Tierra |
+
+Del libro quedan fuera como pieza: MT-001 (aluminio, base de las piezas actuales), MT-003 (acero inoxidable: sería un chasis
+más pesado y débil que el ligero, sin uso en rover en el libro), MT-006/MT-008 (Kapton y aerogel: ya representados por el
+calentador/aislamiento), MT-010/MT-011 (celdas solares y Li-ion: ya son paneles y baterías), AB-005 (= calentador).

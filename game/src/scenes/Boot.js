@@ -7,6 +7,7 @@ import { LIMITE_PRECARGA_BYTES, EXTENSIONES_SIN_PRECARGA } from './expediente/co
 import { planDePrecarga, bytesDeDataUri, formatoBytes } from './expediente/precarga.js';
 import { prepararIngles } from './expediente/datos_en.js';
 import { tr } from '../i18n.js';
+import { cargarFuentes } from './comun/fuente.js';
 
 // Dueño: frente expediente. Pantalla de carga con progreso REAL:
 // la barra sigue los eventos del cargador de Phaser para el arte de /assets (ver expediente/assets.js).
@@ -33,6 +34,15 @@ async function medirBytes(url) {
 
 export default class Boot extends Phaser.Scene {
   constructor() { super('Boot'); }
+
+  // La fuente pixel (2 PNG + 2 XML, pocos KB) se carga antes de dibujar nada: así la pantalla de carga ya la usa.
+  // Si falla, texto() sigue con monospace (comun/fuente.js).
+  preload() {
+    const aviso = (f) => console.warn(`[Boot] fuente no cargada: ${f.key}; se usa monospace`);
+    this.load.on('loaderror', aviso);
+    this.load.once('complete', () => this.load.off('loaderror', aviso));
+    cargarFuentes(this);
+  }
 
   create() {
     prepararIngles(); // agrega <campo>_en a los datos de data/ para trDato() en todas las escenas
@@ -100,24 +110,16 @@ export default class Boot extends Phaser.Scene {
       texto(this, 480, 390, tr('Faltan datos en data/sites o data/targets: el Expediente mostrará "sin dato".', 'Missing data in data/sites or data/targets: the Site File will show "no data".'),
         { size: 12, color: COLOR.alerta, origen: [0.5, 0.5] });
     }
-    // Si hubo algo que avisar (saltados o errores), el resumen queda visible un momento antes de la portada o el Menú.
+    // Si hubo algo que avisar (saltados o errores), el resumen queda visible un momento antes de la pantalla de inicio.
     const pausa = this.errores.length || this.saltados.length ? 1800 : 0;
     this.time.delayedCall(pausa, () => this.portada());
   }
 
+  // La portada ya no vive aquí: el Boot entra directo a la pantalla de inicio del Menú (Marte grande que gira, logo con
+  // brillo y «Presiona Enter», vista 'inicio'), que reemplaza a la imagen fija assets/titulo/titulo.png.
   portada() {
-    const ir = () => { if (this.saliendo) return; this.saliendo = true; irA(this, 'Menu'); };
-    // Portada de arte (assets/titulo/titulo.png, 320 × 180 × 3): 3.5 s o hasta que el jugador toque o presione una tecla.
-    if (this.textures.exists('titulo/titulo') && !this.errores.length) {
-      this.children.list.slice().forEach((o) => o.destroy());
-      this.add.image(480, 270, 'titulo/titulo').setScale(3);
-      const aviso = texto(this, 480, 515, tr('Presiona una tecla o toca para empezar', 'Press any key or tap to start'), { size: 14, origen: [0.5, 0.5] });
-      this.tweens.add({ targets: aviso, alpha: 0.35, duration: 700, yoyo: true, repeat: -1 });
-      this.input.keyboard.once('keydown', ir);
-      this.input.once('pointerdown', ir);
-      this.time.delayedCall(3500, ir);
-    } else {
-      this.time.delayedCall(this.errores.length ? 0 : 450, ir);
-    }
+    if (this.saliendo) return;
+    this.saliendo = true;
+    irA(this, 'Menu', { vista: 'inicio' });
   }
 }

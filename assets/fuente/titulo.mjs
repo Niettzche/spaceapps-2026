@@ -37,8 +37,8 @@ function fondo(f) {
 }
 
 /** Texto con relleno en degradado (blanco → lavanda → morado), contorno y sombra, como el logotipo del GIF. */
-function textoTitulo(f, str, cx, y, { font = 'big', scale = 1, rampaTexto, contorno, sombra, sombraDy = 1 }) {
-  const tmp = createFrame(W, H);
+export function textoTitulo(f, str, cx, y, { font = 'big', scale = 1, rampaTexto, contorno, sombra, sombraDy = 1 }) {
+  const W = f.w, H = f.h, tmp = createFrame(W, H);
   painterFor(tmp).text(str, cx, y, hex('#ffffff'), { font, scale, align: 'center' });
   const M = tmp.color, C = f.color, alto = (font === 'big' ? 7 : 5) * scale;
   const lleno = (x, y) => x >= 0 && y >= 0 && x < W && y < H && M[y * W + x];
@@ -58,9 +58,9 @@ function textoTitulo(f, str, cx, y, { font = 'big', scale = 1, rampaTexto, conto
 }
 
 /** Una línea del lema con tramos de colores: [[texto, color], ...], centrada, fuente mini con contorno. */
-function lema(f, tramos, cy) {
+export function lema(f, tramos, cy, cx = f.w / 2) {
   const total = textWidth(tramos.map(([s]) => s).join(''), 'mini');
-  let x = Math.round(160 - total / 2);
+  let x = Math.round(cx - total / 2);
   const p = painterFor(f);
   for (const [s, c] of tramos) {
     p.text(s, x, cy, hex(c), { font: 'mini', outline: hex('#0d051c') });
@@ -88,6 +88,25 @@ export function generar() {
   textoTitulo(entrada, 'MARSCEPTION', 160, 46, { scale: 3, rampaTexto: T.logo, contorno: '#0d051c', sombra: '#2e0d6b', sombraDy: 3 });
   guardar('../docs/media/video_entrada_1280x720.png', escalar(entrada, 4));
   guardar('../docs/media/video_cierre_1280x720.png', escalar(f, 4));
+
+  // Pantalla de carga (Boot): el fondo del título con el logo y el marco vacío de la barra de progreso.
+  // El hueco de la barra (para el relleno del juego) queda en x 64..255, y 147..150 (192 × 4 px de arte; × 3 en pantalla:
+  // x 192..767, y 441..452). Sin texto: el porcentaje y "Cargando" los pone el juego con la fuente pixel.
+  const carga = createFrame(W, H);
+  fondo(carga);
+  textoTitulo(carga, 'MARSCEPTION', 160, 46, { scale: 3, rampaTexto: T.logo, contorno: '#0d051c', sombra: '#2e0d6b', sombraDy: 3 });
+  const BARRA = { x: 61, y: 144, w: 198, h: 10 };                // marco con borde de 3 px (contorno, luz y sombra)
+  for (let y = BARRA.y; y < BARRA.y + BARRA.h; y++) for (let x = BARRA.x; x < BARRA.x + BARRA.w; x++) {
+    const ex = Math.min(x - BARRA.x, BARRA.x + BARRA.w - 1 - x), ey = Math.min(y - BARRA.y, BARRA.y + BARRA.h - 1 - y);
+    let c;
+    if (ex + ey === 0) continue;
+    if (ex === 0 || ey === 0) c = '#0d051c';
+    else if (ex === 1 || ey === 1) c = y - BARRA.y === 1 || x - BARRA.x === 1 ? '#c9a7ff' : '#7a4cff';
+    else if (ex === 2 || ey === 2) c = '#0d051c';
+    else c = '#180630';                                          // hueco vacío
+    carga.color[y * W + x] = hex(c);
+  }
+  guardar('pantallas/carga_fondo.png', carga);
 }
 
 /** Copia un cuadro escalado × k con vecino más cercano (para video o pantallas grandes). */

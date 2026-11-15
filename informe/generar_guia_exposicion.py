@@ -46,7 +46,7 @@ CITAS = [
     "el d/D lunar baja de 0.058 a 0.043",
     "Entre los 25 primeros por borde hay 11 cráteres naturales según la IA y 1 mina",
     "entre los 25 primeros por forma, 3 cráteres naturales y 14 minas",
-    "percentiles 10–90: 0.32–0.51",
+    "percentiles 10–90: 0.32–0.52",
 ]
 faltan = [c for c in CITAS if c not in VAL]
 if faltan:
@@ -301,7 +301,7 @@ PREGUNTAS = [
      "model/VALIDATION.md, «Prueba fuera de muestra» · cuaderno 01, sección 9"),
     ("¿Qué significa el porcentaje de similitud?",
      "Es un filtro, no una calificación. Descarta lo que no puede ser análogo: selvas, cultivos y nieve quedan cerca de cero. Entre "
-     "sitios áridos casi no ordena: sin contar la forma, 8 de cada 10 sitios de nuestro catálogo quedan entre 0.32 y 0.51. Qué es "
+     "sitios áridos casi no ordena: sin contar la forma, 8 de cada 10 sitios de nuestro catálogo quedan entre 0.32 y 0.52. Qué es "
      "cada sitio lo dicen la etiqueta contrastada con fuentes y el borde medido.",
      "model/VALIDATION.md, sección A («Tasa del prefiltro en los sitios del detector»)"),
     ("¿Qué tiene que ver el borde con los análogos?",
@@ -365,7 +365,7 @@ NO_DECIR = [
     ("«Escaneamos todo el planeta»", "Fueron México y tres de diez regiones áridas."),
     ("«Encontramos análogos nuevos»",
      "Al Hutaymah ya está en una base global de 2024 para Marte. Jabal Bayda es una propuesta: «no lo encontramos en lo que revisamos». "
-     "Los «novedosos» del catálogo son minas."),
+     "En el catálogo ningún sitio se marca como novedoso; los tajos mineros son análogos operativos, no hallazgos."),
     ("«La regla acierta en 9 de 9 cráteres de impacto»",
      f"Son {K_IMP} de {N_IMP} nunca vistos; Meteor Crater ya era un candidato y no cuenta. Y son cráteres conocidos, no una muestra al azar."),
     ("«El puntaje mide qué tan buen análogo es»", "Describe la forma. No ordena análogos reales por encima de otros hoyos."),
@@ -385,7 +385,7 @@ FUENTES = [
      "model/VALIDATION.md, «Borde levantado» · cuaderno 01, sección 4"),
     (f"Puestos {int(EJ_C.p_forma)} y {int(EJ_M.p_forma)} por forma: {NOMBRE_C} y el tajo {EJ_M.id} (etiqueta de IA {EJ_M.conf_ia:.2f}; cantera de "
      f"OpenStreetMap a {EJ_M.km_mina:.1f} km)", "cuaderno 01, sección 6"),
-    ("8 de cada 10 sitios áridos entre 0.32 y 0.51 (sin la forma)", "model/VALIDATION.md, sección A (percentiles 10 y 90)"),
+    ("8 de cada 10 sitios áridos entre 0.32 y 0.52 (sin la forma)", "model/VALIDATION.md, sección A (percentiles 10 y 90)"),
     (f"{K_IMP} de {N_IMP} cráteres de impacto nunca vistos por la regla (zona estrecha: {K_ESTRECHA}; umbral 0.002: {K_UMBRAL})",
      "model/VALIDATION.md, «Prueba fuera de muestra» · cuaderno 01, sección 9"),
     ("78 % y 77.6 % (cráteres de 2 km o más)", "model/VALIDATION.md, sección B"),

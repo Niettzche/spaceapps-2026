@@ -41,7 +41,7 @@ export function compararAnalogia(prueba, mision, destino) {
     const pa = contar(p, 'patinaje');
     const pm = contar(m, 'patinaje');
     let txt = tr(`Patinaje: ${pa} momentos en la prueba, ${pm} en la misión.`, `Wheel slip: ${pa} moments in the test, ${pm} in the mission.`);
-    if (pm > pa) txt += tr(' Con menos peso sobre las ruedas se agarra menos: eso la prueba no lo mostró.', ' Less weight on the wheels means less grip: the test could not show that.');
+    if (pm > pa) txt += tr(' Con menos peso sobre las ruedas hay menos fuerza de tracción: eso la prueba no lo mostró.', ' Less weight on the wheels means less traction force: the test could not show that.');
     else if (pm < pa) txt += tr(' El suelo del análogo fue más exigente que el del destino.', ' The analog site\'s ground was harder to drive than the destination\'s.');
     lineas.push(txt);
     const ep = gastoPor100m(p);
@@ -69,14 +69,14 @@ export function compararAnalogia(prueba, mision, destino) {
   }
   const fD = ambD ? factorFrio(ambD.temperatura_min_C) : 1;
   if (fD < 1) {
-    lineas.push(tr(`Frío: en el destino hace ${String(ambD.temperatura_min_C).replace('-', '−')} °C y la batería arrancó al ${Math.round(fD * 100)} %; en la prueba no se notó.`,
-      `Cold: the destination reaches ${String(ambD.temperatura_min_C).replace('-', '−')} °C and the battery started at ${Math.round(fD * 100)} %; the test did not show it.`));
+    lineas.push(tr(`Frío: la mínima medida en el destino fue ${String(ambD.temperatura_min_C).replace('-', '−')} °C${ambD.etiqueta_temp ? ` (${ambD.etiqueta_temp})` : ''} y la batería arrancó al ${Math.round(fD * 100)} %; en la prueba no se notó.`,
+      `Cold: the lowest measured temperature at the destination was ${String(ambD.temperatura_min_C).replace('-', '−')} °C${ambD.etiqueta_temp_en ? ` (${ambD.etiqueta_temp_en})` : ''} and the battery started at ${Math.round(fD * 100)} %; the test did not show it.`));
   }
 
   const suelo = datosSuelo(destino?.mundo, 'arena');
   if (suelo) {
-    lineas.push(tr(`Suelo del destino: ${suelo.nombre}, fricción interna ${suelo.phi[0]}–${suelo.phi[1]}° (dato medido).`,
-      `Destination soil: ${trDato(suelo, 'nombre')}, internal friction angle ${suelo.phi[0]}–${suelo.phi[1]}° (measured value).`));
+    lineas.push(tr(`Suelo del destino: ${suelo.nombre}, fricción interna ${suelo.phi[0]}–${suelo.phi[1]}° (${destino?.mundo === 'luna' ? 'estimación de Apolo' : 'estimación de ingeniería con datos Viking'}).`,
+      `Destination soil: ${trDato(suelo, 'nombre')}, internal friction angle ${suelo.phi[0]}–${suelo.phi[1]}° (${destino?.mundo === 'luna' ? 'Apollo estimate' : 'engineering estimate from Viking data'}).`));
   }
 
   const nombres = NOMBRE_LIMITE();

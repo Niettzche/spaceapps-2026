@@ -5,6 +5,10 @@ const env = import.meta.env || {};
 
 // API del modelo (FastAPI en el VPS). El juego funciona sin ella: el Explorador avisa si no responde.
 export const API_URL = String(env.VITE_API_URL || 'http://localhost:8000').replace(/\/+$/, '');
+// true si el build trae VITE_API_URL. Sin ella, la API por defecto (localhost:8000) solo existe en una máquina de desarrollo.
+export const API_CONFIGURADA = !!env.VITE_API_URL;
+// Sondeo GET /health al abrir el Explorador: si no contesta en este tiempo, se avisa que la consulta en vivo no está.
+export const ESPERA_SONDEO_API_MS = 4000;
 
 // Página pública (web/). Si no está configurada, el botón de ficha se muestra deshabilitado con su nota.
 export const WEB_URL = env.VITE_WEB_URL ? String(env.VITE_WEB_URL) : null;
@@ -14,10 +18,16 @@ export const DESTINO_POR_DEFECTO = 'jezero';
 // Orden en que se ofrecen los destinos en el menú.
 export const ORDEN_DESTINOS = ['jezero', 'polo_sur_lunar'];
 
-// Umbral para proponer un sitio desde el Explorador (P) — AGENTS.md §6.4. La API aplica el suyo también.
-export const UMBRAL_PROPUESTA = 0.6;
+// Umbral para proponer un sitio desde el Explorador (P) — AGENTS.md §6.4. Es el mismo que usa la API (api/main.py, 0.4).
+// Con 0.6 ningún análogo conocido podía proponerse: el total más alto es 0.556 (model/VALIDATION.md, «Umbral del explorador libre»).
+export const UMBRAL_PROPUESTA = 0.4;
 // NASA POWER puede tardar: espera generosa antes de declarar que la API no responde.
 export const ESPERA_API_MS = 90000; // medido: ~60 s por punto con NASA POWER + MODIS
+
+// Explorador SIN API (AGENTS.md §3 regla 7). Radio para dar por encontrado un sitio del catálogo precalculado (P).
+export const RADIO_CATALOGO_KM = 25;
+// Clima en vivo directo de NASA POWER desde el navegador (API pública con CORS, sin llave). Responde en ~0.1–1 s.
+export const ESPERA_POWER_MS = 8000;
 
 // Boot: no precarga formatos pesados ni archivos mayores a este límite (P). El arte del juego en /assets pesa hoy
 // ≤ 23 KB por archivo; 300 KB deja margen para fondos grandes y frena GIF o video que se cuelen en /assets.

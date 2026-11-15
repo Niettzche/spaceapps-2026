@@ -3,7 +3,7 @@
 > Lo actualiza SOLO este frente. Rama: `feat/modelo`.
 
 **Responsable:** Mario  ·  **Agente:** Claude Code / Codex
-**Última actualización:** 15 nov 2026 (landing con divulgación científica en `informe/divulgacion/`)
+**Última actualización:** 15 nov 2026, mañana (landing con divulgación científica en `informe/divulgacion/`; ANA, la tutora de análogos, ya en `main`; demo en https://v1.marsception.us/)
 
 ## Hecho (landing con divulgación científica, 15 nov)
 - **`informe/divulgacion/`: landing del juego con la ciencia explicada** (Vite, bilingüe con `?lang=en`, tema oscuro y claro).
@@ -17,6 +17,48 @@
 - Probada en Firefox sin ventana (escritorio de 1280 a 1920, teléfono de 390 px, inglés): sin errores ni desbordamiento horizontal.
 - «Contactar a ventas» escribe a hola@marsception.us. Pendiente: publicarla en marsception.us cuando Mario lo decida y verificar dos
   datos que no vienen del repo, ambos solo en los detalles técnicos: Pike (1977) y la presión de Marte (menos del 1 %).
+
+## Hecho (ANA, la tutora de análogos, 15 nov, mañana; rama `feat/modelo-tutor`)
+- **Qué es:** una tutora en el juego (Expediente: botón «A · Tutora» o tecla A) que explica qué es un análogo, por qué el
+  sitio se parece a su destino, dónde se rompe la analogía y de dónde sale cada dato. Es un extra (AGENTS.md §15): el juego
+  funciona igual sin ella.
+- **Preguntas sugeridas = reglas, sin IA ni red** (`game/src/tutor/conocimiento.js`): leen solo campos de data/sites y
+  data/targets con las funciones del Expediente (filasComparacion, limitesDe). Las cifras fijas son las de numeros.js
+  (METODOLOGIA.md + VALIDATION.md). Probado con los 58 sitios en es/en (`node --test src/tutor/`).
+- **Preguntas libres = `POST /tutor`** (`api/tutor.py`). El servidor arma el contexto con METODOLOGIA.md, VALIDATION.md,
+  un catálogo de una línea por sitio y el JSON del sitio y del destino; el navegador solo manda la pregunta. Usa OpenAI
+  Chat Completions con `requests`, sin dependencias nuevas. Modelo por defecto `gpt-4.1-mini` (`OPENAI_MODEL`). Sin llave → 503 y el
+  panel lo dice. Unos 14 k tokens de entrada por pregunta, con el bloque fijo al inicio para la caché del proveedor.
+- **Defensa contra prompt injection, por capas.** La tutora no tiene herramientas ni secretos en su contexto:
+  - historial firmado con HMAC (un turno «tutor» inventado se descarta);
+  - entrada saneada (invisibles, bidi, etiquetas Unicode) y pregunta entre `<pregunta_jugador>`;
+  - filtro de patrones es/en antes del modelo;
+  - moderación del proveedor (falla abierta);
+  - canario + filtro de salida;
+  - límites de 15 preguntas por IP cada 5 min y 1500 por día, pregunta ≤ 400 caracteres y texto plano (textContent).
+  12 pruebas en `api/tests/test_tutor.py`.
+- **Landing** (`informe/divulgacion/src/tutora.js`, rama `feat/modelo`): misma ANA como botón flotante, con 4 preguntas
+  del método y pregunta libre con `pantalla: "landing"`.
+- **Para publicar:** `OPENAI_API_KEY` en el entorno del servicio `marsception-api`. Agregar `https://marsception.us` a
+  `ALLOWED_ORIGINS` (la landing llama a v1.marsception.us/api). Agregar `docs/METODOLOGIA.md` al `git archive` de la API:
+  si no, la tutora pierde la metodología y solo le queda VALIDATION.md. Poner un tope de gasto en el panel de OpenAI.
+- **Pendientes de otros frentes:**
+  - el frente expediente revisa el botón del pie de Expediente.js (2 líneas + método `abrirTutora`);
+  - el integrador agrega la tutora a `docs/USO_IA.md`;
+  - discrepancia: METODOLOGIA.md dice 9/20 análogos conocidos y VALIDATION.md, 9 de 21.
+
+## Hecho (15 niveles jugables, 15 nov, madrugada; rama `feat/modelo-niveles-15`)
+- **11 niveles nuevos con relieve real** (antes 4: samalayuca, pinacate, g00281, mx0207). Cráteres con fuente: g00266,
+  g00263, g00176, mx0261. Cráteres de impacto (sitios nuevos): meteor_crater, tenoumer, roter_kamm, talemzane. Tajos: mx0023,
+  mx0019, mx0155. Reparto: 10 Luna, 5 Marte (Jezero: samalayuca, g00266, tenoumer, roter_kamm, talemzane, por la regla 4).
+- `analisis/26_niveles_15.py`: celdas 21 y 23 pasadas a script local. `--comprobar` reproduce idénticos los niveles de g00281 y
+  mx0207 antes de medir. `model/niveles.py` escribe data/sites sin red. Corrido dos veces: la segunda no cambia nada.
+- En los sitios existentes solo cambia `nivel`. Los 4 de impacto son controles positivos del detector, no hallazgos:
+  `estado: documentado`, borde levantado positivo en los 4, novedoso false (Meteor) o null.
+- `model/borde.py` ahora lee también `perfiles_impactos.json`. `python -m model.borde` no cambia ningún sitio.
+- Sin obstáculos (`obstaculos: []`). Pendiente máxima del transecto: tajos 49–63°; en la ventana de 250 m que juega el juego, 34–37°.
+- Pendiente: `model/VALIDATION.md` (lo genera `model/validate.py` desde data/sites) no se regeneró; sus cuentas de sitios
+  no incluyen los 4 nuevos.
 
 ## Hecho (publicación de la demo, 15 nov, madrugada)
 - **Demo pública: https://v1.marsception.us/**, en inglés con https://v1.marsception.us/?lang=en. Este frente es el
@@ -38,6 +80,20 @@
   que subirlo aparte o publicarlo junto al juego.
 - **Cómo volver a publicar:** compilar `origin/main` en un worktree aparte (nunca la rama local), subir a `releases/game-<commit>`,
   cambiar el enlace `current` y probar `/` y `/?lang=en`.
+
+## Hecho (15 nov, mañana: los tajos ya no salen como novedosos)
+- **Los tajos mineros ya no se marcan como novedosos** (`model/scan.py`, regla 5): 17 sitios pasan de `novedoso: true` a `null`,
+  con la razón en la nota. El juego mostraba la etiqueta NOVEDOSO en Cananea, Peñasquito y La Herradura, y Cananea era el primer
+  sitio sugerido para la Luna; eso contradecía al guion («no son descubrimientos nuevos»). Ahora ningún sitio del catálogo es
+  novedoso. Solo cambian `novedoso` y la frase correspondiente de la nota en esos 17 archivos; ningún total, destino ni nivel.
+- El modo `--solo-ia` ya respeta la revisión de literatura (antes habría marcado g00266 como novedoso) y no reescribe los sitios
+  cuya nota queda igual. Tres pruebas nuevas (`model/tests/test_novedoso.py`).
+- `model/VALIDATION.md` regenerado con los datos de `main`: ahora cuenta 62 sitios con cráter medido (entraron los cinco cráteres
+  de impacto documentados), y el intervalo del prefiltro pasa de 0.32–0.51 a 0.32–0.52. La guía y su README ya dicen 0.52.
+  Aparece un aviso nuevo de medición: ORNL rechaza la consulta de NDVI de los Valles Secos de McMurdo (antes ese NDVI ya era nulo).
+- **Para otros frentes:** el orden de la lista del Expediente sigue siendo por similitud, así que el primer sugerido lunar sigue
+  siendo un tajo (Cananea, 0.59). Si se quiere que encabece un cráter verificado, hay que ordenar por categoría en el juego.
+  Y el umbral del Explorador va en un PR aparte (0.6 → 0.4, igual que la API).
 
 ## Hecho (borde levantado, 14 nov, noche)
 - **`model/borde.py`: evidencia medida de que una depresión es un cráter.** `h/D` = altura máxima del perfil radial promedio a
@@ -175,3 +231,7 @@
 - `game/src/scenes/expediente/config.js`: `UMBRAL_PROPUESTA` sigue en 0.6 en `main` (la API ya usa 0.4). Con 0.6 ningún análogo
   conocido puede proponerse desde el Explorador (el más alto da 0.556).
 - `docs/METODOLOGIA.md` dice «9/20 análogos conocidos»; lo correcto es 9 de 21, como ya dice el guion.
+- `site.schema.json`: valor de `estado` nuevo `control_positivo` para los cráteres de impacto conocidos (meteor_crater,
+  tenoumer, roter_kamm, talemzane). Hoy van como `documentado` con la explicación en la nota.
+- Pinacate: sumar MacDougal (MX0007), Sykes (MX0010) y Cerro Colorado (MX0012) como niveles alternos del sitio curado
+  (p. ej. `nivel` por cráter); hoy el contrato tiene un solo `nivel` por sitio.

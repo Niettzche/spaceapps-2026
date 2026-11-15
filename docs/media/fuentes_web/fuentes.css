@@ -1,0 +1,15 @@
+/* Fuente pixel de MARSCEPTION (la misma letra que el juego). Copiar esta carpeta a web/public/fonts/. */
+@font-face {
+  font-family: "MARSCEPTION Pixel";
+  src: url("marsception-pixel.woff2") format("woff2"), url("marsception-pixel.otf") format("opentype");
+  font-display: swap;
+}
+/* Cuerpo: múltiplos de 11 px para que cada píxel de la fuente caiga en píxeles enteros (22 px = × 2 como el juego). */
+.pixel { font-family: "MARSCEPTION Pixel", monospace; font-size: 22px; line-height: 24px; -webkit-font-smoothing: none; font-smooth: never; }
+/* Título con el estilo del logo (pixel_titulo): degradado blanco → lavanda → morado, contorno oscuro y sombra morada. */
+.pixel-titulo {
+  font-family: "MARSCEPTION Pixel", monospace; font-size: 33px; line-height: 42px;
+  background: linear-gradient(#ffffff 0%, #f0e8ff 30%, #d4c0ff 50%, #b090ff 70%, #8a60e8 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(3px 0 0 #0d051c) drop-shadow(-3px 0 0 #0d051c) drop-shadow(0 3px 0 #0d051c) drop-shadow(0 -3px 0 #0d051c) drop-shadow(0 3px 0 #2e0d6b);
+}

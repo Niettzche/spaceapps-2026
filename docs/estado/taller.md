@@ -13,7 +13,7 @@
 | `game/src/scenes/Taller/diseno.js` | Reglas del diseño, sin Phaser: 7 ranuras, ruedas × 2 (costo y masa), `resumen()`, `validar()` |
 | `game/src/scenes/Taller/diseno.test.mjs` | Prueba: `node game/src/scenes/Taller/diseno.test.mjs` → **14 casos OK** |
 | `game/src/scenes/Taller.js` | La escena: esquema del robot, catálogo, presupuesto, validación, teclado, toque e íconos |
-| `game/src/content/parts.json` | Las 12 piezas (valores de juego, P) |
+| `game/src/content/parts.json` | Las 19 piezas (12 originales + 7 del 15 nov; valores de juego, P) |
 | `docs/taller/Space_Apps_Game_Data.xlsx` | Libro de datos en inglés, 13 hojas, con la hoja **Judges** para el pitch |
 | `docs/taller/PIEZAS.md` | Qué hecho real inspira cada pieza, las reglas del armado y el resumen del libro de datos |
 
@@ -29,7 +29,8 @@
 **Cómo verificar que todo sigue bien**
 ```
 node game/src/scenes/Taller/diseno.test.mjs   # 14 casos
-node game/src/fisica/fisica.test.mjs          # 22 casos (la física usa las reglas del taller)
+node game/src/fisica/fisica.test.mjs          # 35 casos (la física usa las reglas del taller)
+node game/src/scenes/Taller/piezas.test.mjs   # 13 casos (piezas nuevas y personalización)
 python model/validate_data.py                  # valida parts.json contra el esquema
 cd game && npm run build
 ```
@@ -82,18 +83,18 @@ Camino dorado completo (pasa por el Taller real): ver la cabecera de `game/e2e/c
 ## Lo que queda
 1. **Pitch:** usar la hoja `Judges` para las preguntas de velocidad, Spirit y agarre. Decir siempre que el 0.1 m/s de VIPER es
    de diseño y que los valores de Marte son estimaciones de ingeniería (lo dice la tabla de NASA).
-2. **Íconos de las ruedas:** a 16 px, la estándar y la ancha solo difieren en 44 de 256 píxeles. Arte (Mauricio) lo tiene como
-   prioridad alta en `docs/arte/SPRITES_PENDIENTES.md`. Cuando los cambie, abrir el Taller y revisar que se distingan en el
-   catálogo y dentro de las ruedas.
+2. ~~Íconos de las ruedas~~ **Hecho** (15 nov): Mauricio los cambió (c9b921d; ahora difieren en 156 de 256 píxeles) y se
+   distinguen en el catálogo y en el robot, también en el Taller en pixel art (e659c32). Ver `docs/taller/PLAYTEST_LEO.md`.
 3. **Texto chico en teléfono** (~8 px en pantalla): necesita un diseño propio para móvil. Queda **para después de la entrega**
    (acordado con juego).
-4. **`docs/DECISIONES.md`:** anotar "precio por pieza para el MVP (taller + juego, 14 nov)". Está en el libro de datos
-   (Index A34), pero no en DECISIONES.
+4. ~~`docs/DECISIONES.md`~~ **Hecho:** ya está la línea "Precio por pieza para el MVP" (la escribió integración).
 5. **Corridas de verificación:** el camino dorado de Marte y de la Luna está automatizado en `game/e2e/camino_dorado.mjs`. Las
    demás corridas de la tabla de juego (Pinacate con rueda ancha contra tacos, y soporte básico ~82 % contra amortiguado ~94 %)
    las reportó juego, pero no están automatizadas.
-6. **Después de la entrega:** precio por kilo de material (hoja Materials), Bekker para Marte si se publica, panel solar con
-   regla de iluminación (hoy está marcado "sin efecto en el MVP") y balance fino con telemetría.
+6. **Después de la entrega:** precio por kilo de material (hoja Materials), Bekker para Marte si se publica y balance fino con
+   telemetría. (El panel solar ya recarga con la regla de luz; `PIEZAS.md` y la hoja Parts quedaron al día el 15 nov.)
+7. **Playtest completo (15 nov):** camino dorado de Marte y Luna, ES con ratón y EN solo con teclado: pasa. Fallos para otros
+   frentes en `docs/taller/PLAYTEST_LEO.md`; el más urgente es el **6 que se lee como G** en la fuente pixel de Resultados (Arte).
 
 ## Verificación final (15 nov, sobre `main` 5503a6a)
 - `diseno.test.mjs` 14/14 y `fisica.test.mjs` 22/22.
@@ -116,3 +117,33 @@ Camino dorado completo (pasa por el Taller real): ver la cabecera de `game/e2e/c
 ## Uso de IA (para `docs/USO_IA.md`)
 La investigación de piezas, la búsqueda y verificación de fuentes del libro de datos, la hoja Judges, el código del taller y
 las pruebas en teléfono se hicieron con Claude Code. Cada dato se revisó contra su fuente primaria.
+
+- **15 nov (fuentes de piezas nuevas):** referencias con fuente en `docs/taller/PIEZAS.md` §5 y en Parts PT-013…PT-018 (no están en parts.json). Battery heater: Gap; motor radiator: Gap para el motor. Corregido S40 (batería −40…+40 °C no verificada) y la pregunta 9 de PITCH_QA_EN.md.
+- **15 nov (agente del frente taller, rama de feat/juego):** más piezas y personalización.
+  - 7 piezas nuevas (P) con efecto físico: `rueda_malla`, `bateria_mediana`, `motor_equilibrado`, `soporte_correas`,
+    `panel_solar_grande`, `calentador_bateria` (sin pérdida de batería por frío; con la regla suave de frío el efecto es de ~2 puntos) y `radiador` (enfría el motor sin aire).
+    Fuentes de §5 de Leo citadas; calentador y radiador del motor quedan como (P) sin fuente primaria. Tabla: `PIEZAS.md` §6.
+  - Pintura (6 colores) y nombre del robot, cosméticos, con Deshacer/Rehacer; se ven en la prueba, la misión y Resultados.
+  - Sobre el layout de Diego (#69, 16–17 px): ranuras con 4 piezas se recorren con ▲ / ▼, ↑/↓ o la rueda; línea del efecto
+    del módulo en el destino. Revisado a 960 × 540 en es/en.
+  - Pruebas nuevas: `node game/src/scenes/Taller/piezas.test.mjs` (13 casos). Sprites pendientes: `docs/arte/SPRITES_PENDIENTES.md` §6.
+  - Sigue: arte de las piezas nuevas; decidir si el calentador y el radiador se quedan sin fuente o se cambian.
+- **15 nov (agente del frente taller): Taller por arrastre en pixel art.**
+  - Robot grande (sprites ×8) con 7 sockets; bandeja por sistema (Movilidad, Estructura, Energía, Protección, Módulo, Bloqueadas)
+    con el arte 32 × 32 de `assets/piezas` (#85). Arrastrar, tocar → socket o teclado; quitar arrastrando afuera o clic derecho;
+    presupuesto animado y «Probar» deshabilitado si excede o falta algo. Reglas en `Taller/arrastre.js`.
+  - Piezas del libro: `chasis_titanio` (MT-002), `chasis_carbono` (MT-004), `rueda_nitinol` (AB-004, amortigua sacudidas) y
+    `auto_rescate` (AB-002, +agarre al atascarse). 11 filas bloqueadas con razón (RT-002…RT-006, AB-001, AB-003, AB-009…011, MT-012).
+    Tabla: `PIEZAS.md` §7. Arte pendiente: `SPRITES_PENDIENTES.md` §7.
+  - Pruebas: `node game/src/scenes/Taller/arrastre.test.mjs` (8 casos). Camino dorado simulado: estándar falla, anchas pasa, misiones entregan.
+  - ~~Sigue: conectar la fuente bitmap~~ hecho (ver abajo).
+
+- **15 nov, pulido del Taller con la fuente pixel:** todo el texto del Taller usa la fuente bitmap (`textoPixel`), sin
+  monospace, y nada se encima ni se corta a 960 × 540 en es y en (revisión automática de 18 estados × 2 idiomas: 0 problemas).
+  - Encabezado: título + sitio y destino en 2 líneas; botones «Personalizar» y «? Ayuda». El presupuesto pasó al panel derecho.
+  - Panel derecho: validación · costo «(P)» y lo que queda + barra · masa, autonomía y efecto del destino con íconos ·
+    agarre en 3 barras · protección y resistencia · lo especial del diseño.
+  - Pintura y nombre en el panel «Personalizar» (las teclas P y N siguen funcionando directo; Deshacer los revierte).
+  - Botones de abajo en una fila sin cortes; «Igual en ambos ejes» sin el glifo ⇄ (la fuente no lo tiene).
+  - Arte nuevo (#89): `chasis_fibra_carbono` → `chasis_carbono` y `modulo_autorescate` → `auto_rescate` (alias en el Taller),
+    candado de arte en la pestaña y las tarjetas, siluetas de orugas, patas, rotor, serpiente y rappel en Bloqueadas.

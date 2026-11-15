@@ -1,6 +1,6 @@
 // Genera el arte de MARSCEPTION en /assets.
 //   node assets/fuente/generar.mjs [grupo ...] [--vista carpeta]
-// Grupos: entidades, terreno, fondos, ui, iconos, titulo (sin grupos = todos).
+// Grupos: entidades, terreno, fondos, ui, iconos, titulo, menu, fuentes, eventos, escenas (sin grupos = todos).
 // --vista escribe hojas de revisión ampliadas (no van al repo).
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -9,7 +9,7 @@ import { registro, composite, core } from './comun.mjs';
 const args = process.argv.slice(2);
 const iv = args.indexOf('--vista');
 const vista = iv >= 0 ? args.splice(iv, 2)[1] : null;
-const GRUPOS = ['entidades', 'terreno', 'fondos', 'ui', 'iconos', 'titulo'];
+const GRUPOS = ['entidades', 'terreno', 'fondos', 'ui', 'iconos', 'titulo', 'menu', 'fuentes', 'eventos', 'escenas']; // escenas va al final: compone el arte ya generado
 const pedidos = args.length ? args : GRUPOS;
 
 for (const g of pedidos) {

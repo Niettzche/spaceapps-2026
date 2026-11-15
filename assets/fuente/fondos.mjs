@@ -1,7 +1,7 @@
 // Fondos de 3 capas (320 × 180, repetibles a lo ancho): fondo_<clave>_1 cielo fijo, _2 lejana, _3 cercana.
 // Prioridad A: dunas (Samalayuca), marte (Jezero), luna (polo sur).
 // Todo lo que varía a lo ancho usa periodos enteros de 320 px, así la imagen empata consigo misma.
-import { createFrame, painterFor, guardar, tileFbm, tileNoise, rampa, tramado, clamp, hex, mix, TAU } from './comun.mjs';
+import { createFrame, painterFor, guardar, tileFbm, tileNoise, rampa, tramado, clamp, hex, mix, TAU, bayer } from './comun.mjs';
 import { PALETAS } from './paletas.mjs';
 
 const W = 320, H = 180;
@@ -53,6 +53,9 @@ export function generar() {
   luna();
   mina();
   maar();
+  toba();
+  sahara();
+  artico();
 }
 
 // ---------------------------------------------------------------- Tierra: mina a cielo abierto (Real de Ángeles, Zacatecas)
@@ -436,4 +439,105 @@ function lava() {
     if (grieta) return BAS[0];
     return tramado(BAS.slice(0, 5), 0.45 - i.prof / 45 + (i.luz - 0.5) * 0.6 + (vidrio ? 0.35 : 0), x, y);
   }, { luzDesde: 'derecha', elev: 0.5 });
+}
+
+/** Ruido 2D repetible a lo ancho (periodo de 320 px): kx ondas en x, escala ky en y. */
+const ruido2 = (x, y, kx, ky, seed, oct = 3) => tileFbm((per(x) / W) * kx, y / ky, kx, 0, seed, oct);
+
+// ---------------------------------------------------------------- Tierra: cono de toba (Jabal Bayda, Arabia)
+// Cono de ceniza clara, ancho y de cima truncada con cráter, con cárcavas; alrededor, coladas de basalto oscuro.
+function toba() {
+  const P = PALETAS.tierra, CIELO = rampa(P.cielo_maar), TOBA = rampa(P.toba_clara), HAR = rampa(P.harrat);
+  const SOL = [250, 32];
+  cielo('fondos/fondo_toba_1.png', (x, y) => {
+    const dx = Math.min(Math.abs(x - SOL[0]), W - Math.abs(x - SOL[0])), d = Math.hypot(dx, y - SOL[1]);
+    if (d < 6) return hex('#ffffff');
+    if (d < 8) return (x + y) % 2 ? hex('#ffffff') : CIELO[5];
+    return tramado(CIELO, Math.pow(clamp(y / 115, 0, 1), 0.85) + clamp(1 - d / 100, 0, 1) * 0.2, x, y);
+  });
+  const CONO = { cx: 150, r: 110, alto: 50 };
+  capa('fondos/fondo_toba_2.png', (x) => {
+    let dx = Math.abs(x - CONO.cx); dx = Math.min(dx, W - dx);
+    const u = dx / CONO.r, base = 128 + 2 * ruido(x, 10, 121, 2);
+    if (u >= 1) return base;
+    const cima = u < 0.22 ? CONO.alto - 3 + (u / 0.22) * 3 : CONO.alto * Math.pow(1 - (u - 0.22) / 0.78, 1.15);   // cima truncada con cráter
+    return Math.min(base, 128 - cima);
+  }, (x, y, i) => {
+    let dx = Math.abs(x - CONO.cx); dx = Math.min(dx, W - dx);
+    if (dx / CONO.r >= 1 || y >= 128 + 2 * ruido(x, 10, 121, 2)) return tramado(HAR.slice(2, 6), 0.6 - (y - 124) / 30, x, y);   // llano lejano (también al pie del cono)
+    if (i.prof < 1) return i.luz > 0.5 ? TOBA[5] : TOBA[3];
+    const carcava = Math.sin(x * 1.1 + ruido(x, 14, 122, 2) * 5) > 0.93 && i.prof > 3;                // surcos de erosión
+    return tramado(TOBA, 0.78 - i.prof / 70 + (i.luz - 0.5) * 0.35 - (carcava ? 0.18 : 0), x, y);
+  }, { luzDesde: 'derecha', elev: 0.55 });
+  capa('fondos/fondo_toba_3.png', (x) => 150 + 3 * onda(x, 2, 0.4) + 2 * ruido(x, 18, 123, 2), (x, y, i) => {
+    if (i.prof < 1) return i.luz > 0.5 ? HAR[5] : HAR[4];
+    const ceniza = ruido(x, 6, 124, 2) > 0.18 && i.prof < 10;                                       // parches de ceniza clara
+    if (ceniza) return tramado(TOBA.slice(1, 5), 0.6 - i.prof / 20, x, y);
+    if (hash(x, y, 125) > 0.9) return HAR[0];
+    return tramado(HAR.slice(1, 6), 0.55 - i.prof / 36 + (i.luz - 0.5) * 0.4, x, y);
+  }, { luzDesde: 'derecha', elev: 0.45 });
+}
+
+// ---------------------------------------------------------------- Tierra: Sáhara (llanura con mesetas y polvo)
+function sahara() {
+  const P = PALETAS.tierra, CIELO = rampa(P.cielo_sahara), MES = rampa(P.meseta), REG = rampa(P.reg);
+  const SOL = [70, 44];
+  cielo('fondos/fondo_sahara_1.png', (x, y) => {
+    const dx = Math.min(Math.abs(x - SOL[0]), W - Math.abs(x - SOL[0])), d = Math.hypot(dx, y - SOL[1]);
+    if (d < 5) return hex('#fff4dc');
+    if (d < 9) return (x + y) % 2 ? hex('#fff4dc') : CIELO[5];                                       // sol velado por el polvo
+    const velo = ruido(x + y * 3, 5, 131, 3) * 0.1;
+    return tramado(CIELO, Math.pow(clamp(y / 125, 0, 1), 0.7) + velo + clamp(1 - d / 90, 0, 1) * 0.15, x, y);
+  });
+  // mesetas de cima plana y paredes verticales, con bruma de polvo al pie
+  const mesetas = [[30, 34, 22], [112, 22, 14], [190, 44, 26], [276, 26, 16]];
+  capa('fondos/fondo_sahara_2.png', (x) => {
+    let h = 126 + 2 * ruido(x, 8, 132, 2);
+    for (const [cx, r, alto] of mesetas) {
+      let dx = Math.abs(x - cx); dx = Math.min(dx, W - dx);
+      if (dx < r) h = Math.min(h, 126 - alto + (dx > r - 4 ? (dx - (r - 4)) * alto / 5 : 0));
+    }
+    return h;
+  }, (x, y, i) => {
+    if (i.prof < 1) return i.luz > 0.5 ? MES[5] : MES[3];
+    const estrato = (y % 5 === 0) ? -0.12 : 0;
+    const bruma = clamp((y - 112) / 16, 0, 1);                                                       // polvo al pie de las mesetas
+    if (bruma > 0 && bayer(x, y) < bruma * 0.35) return CIELO[3];                                     // tramado ordenado
+    return tramado(MES, 0.5 - i.prof / 70 + (i.luz - 0.5) * 0.6 + estrato, x, y);
+  }, { luzDesde: 'izquierda', elev: 0.7 });
+  capa('fondos/fondo_sahara_3.png', (x) => 150 + 2 * onda(x, 3, 1.2) + 3 * Math.max(0, onda(x, 5, 0.3)) * 1.4 + ruido(x, 20, 134, 2), (x, y, i) => {
+    if (i.prof < 1) return i.luz > 0.5 ? REG[5] : REG[4];
+    const h = hash(x, y, 135);
+    if (h > 0.9 && i.prof > 1) return h > 0.96 ? REG[0] : REG[1];                                    // grava del reg
+    const rizo = Math.sin(x * 0.7 + y * 1.9) > 0.85 && i.prof > 3 && i.prof < 14;                    // rizos de arena
+    return tramado(REG.slice(1, 6), 0.62 - i.prof / 36 + (i.luz - 0.5) * 0.5 + (rizo ? 0.15 : 0), x, y);
+  }, { luzDesde: 'izquierda', elev: 0.45 });
+}
+
+// ---------------------------------------------------------------- Tierra: Ártico (tundra, nieve y lago helado; Pingualuit)
+function artico() {
+  const P = PALETAS.tierra, CIELO = rampa(P.cielo_artico), TUN = rampa(P.tundra), NIE = rampa(P.nieve), HL = rampa(P.hielo_lago);
+  const SOL = [236, 112];
+  cielo('fondos/fondo_artico_1.png', (x, y) => {
+    const dx = Math.min(Math.abs(x - SOL[0]), W - Math.abs(x - SOL[0])), d = Math.hypot(dx, (y - SOL[1]) * 1.2);
+    if (d < 6) return hex('#fff4e0');                                                                // sol bajo
+    if (d < 9) return (x + y) % 2 ? hex('#fff4e0') : CIELO[5];
+    return tramado(CIELO, Math.pow(clamp(y / 125, 0, 1), 1.1) + clamp(1 - d / 120, 0, 1) * 0.3, x, y);
+  });
+  capa('fondos/fondo_artico_2.png', (x) => 118 - 10 * clamp(1 - Math.abs(ruido(x, 4, 141, 4)) * 2.2, 0, 1) - 3 * onda(x, 3, 0.8), (x, y, i) => {
+    if (i.prof < 1) return NIE[4];
+    const roca = ruido2(x, y, 16, 7, 142, 2) > 0.2 && i.luz < 0.5;                                          // roca asomando en las laderas en sombra
+    if (roca) return tramado(TUN.slice(1, 4), 0.5 - i.prof / 40, x, y);
+    return tramado(NIE.slice(0, 5), 0.75 - i.prof / 50 + (i.luz - 0.5) * 0.4, x, y);
+  }, { luzDesde: 'derecha', elev: 0.4 });
+  capa('fondos/fondo_artico_3.png', (x) => 148 + 2 * onda(x, 2, 2.0) + 1.5 * ruido(x, 16, 143, 2), (x, y, i) => {
+    if (i.prof < 1) return NIE[4];
+    // lago helado: franja plana con grietas y brillos
+    const lago = i.prof > 4 + ruido2(x, y, 6, 20, 148, 2) * 3 && i.prof < 13 && ruido(x, 3, 144, 2) > -0.05;
+    if (lago) return (x * 7 + y * 3) % 23 === 0 ? HL[3] : Math.sin(x * 0.5 - y * 1.3) > 0.93 ? HL[0] : tramado(HL.slice(1), 0.55 + ruido(x, 30, 145, 2) * 0.4, x, y);
+    const nieve = ruido2(x, y, 14, 5, 146, 3) > -0.02;                                                         // manchas de nieve sobre la tundra
+    if (nieve) return tramado(NIE.slice(1, 5), 0.7 - i.prof / 40 + (i.luz - 0.5) * 0.3, x, y);
+    if (hash(x, y, 147) > 0.92) return TUN[0];
+    return tramado(TUN, 0.55 - i.prof / 40, x, y);
+  }, { luzDesde: 'derecha', elev: 0.45 });
 }

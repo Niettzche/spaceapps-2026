@@ -110,7 +110,7 @@ original de cada fila. `ambiente.js` copia esos valores; si la tabla cambia, se 
 
 | Regla | Fórmula (P) | Efecto medido |
 |---|---|---|
-| a) Batería fría | capacidad útil = 1 − 0.2 % × (0 °C − T_mín típica), piso 85 %. Calefactor: no implementado | Tierra 100 % (típica mínima > 0 °C en los 4 sitios); Luna 89 %; Marte 85 % (piso). La barra de energía arranca baja |
+| a) Batería fría | capacidad útil = 1 − 0.03 % × (0 °C − T_mín típica), piso 97 % (antes 0.2 %/°C y 85 %: dejaba sin energía las misiones del camino dorado. Sin fuente primaria de calentadores de batería: regla de juego, P). Calefactor: no implementado | Tierra 100 % (típica mínima > 0 °C en los 4 sitios); Luna 98 %; Marte 97.5 % |
 | b) Calor del motor | dT/dt = 4 × \|acelerador\| × consumo − k (T − T_amb), k = 0.004 (radiación) + 0.1 × ρ / 1.217 (aire). Límite 100 °C | Tierra, eficiente a fondo: equilibrio ~45–55 °C; potente ~75–85 °C: nunca se sobrecalienta. Luna (k = 0.004): el eficiente pasa 100 °C a los ~70 s a fondo; el potente, en ~30 s. Marte (k = 0.0053): parecido |
 | b') Sobrecalentado | sobre 100 °C el motor empuja solo lo que el ambiente alcanza a enfriar (mín. 20 %), **pero la batería gasta lo que se pide** (la diferencia se pierde como calor); sale a < 95 °C. Evento `sobrecalentamiento` (humo, dos pitidos) | Soltar el acelerador lo enfría. HUD: barra "Motor" + °C, naranja a 90 °C, roja y "CALIENTE" al límite |
 | c) Luz → panel solar | recarga = capacidad del panel × 0.0025 /s × luz; luz = irradiancia / Tierra (Marte 0.431, WX-007) × 0.2 si es rasante | Panel (40): Tierra 0.1 /s, Marte 0.043 /s, polo sur lunar 0.02 /s |

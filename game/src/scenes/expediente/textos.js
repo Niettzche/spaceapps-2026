@@ -23,6 +23,7 @@ export const VARIABLES = perezoso({
   profundidad: ['Profundidad', 'Depth'],
   profundidad_diametro: ['Profundidad / diámetro', 'Depth / diameter'],
   borde: ['Altura del borde', 'Rim height'],
+  borde_levantado: ['Borde levantado', 'Raised rim'],
   ndvi_p90: ['NDVI percentil 90', 'NDVI 90th percentile'],
 });
 
@@ -30,7 +31,7 @@ export const ESTADOS = perezoso({
   documentado: ['DOCUMENTADO', 'DOCUMENTED', '#06d6a0'],
   candidato_modelo: ['CANDIDATO DEL MODELO', 'MODEL CANDIDATE', '#ffd166'],
   propuesto_usuario: ['PROPUESTO POR USUARIO', 'USER PROPOSED', '#9aa4c7'],
-  ilustrativo: ['ILUSTRATIVO', 'ILLUSTRATIVE', '#ef476f'],
+  ilustrativo: ['ILUSTRATIVO', 'ILLUSTRATIVE', '#ff7a93'], // = COLOR.alerta (AA)
   // No es un estado del contrato: se muestra en lugar del estado cuando el sitio es un tajo minero (esMina).
   mina: ['ANÁLOGO OPERATIVO (MINA)', 'OPERATIONAL ANALOG (MINE)', '#f2701f'],
 }, (texto, color) => ({ texto, color }));

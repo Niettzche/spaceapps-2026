@@ -9,6 +9,8 @@
 // Volumen general 0.35; M o el botón "♪" silencian (se guarda en localStorage). El AudioContext se crea o reanuda
 // con el primer gesto (pointerdown / keydown), por la política de autoplay. Sin Web Audio (headless, navegador
 // antiguo), todo queda en silencio sin lanzar errores. Volúmenes, tonos y filtros = valores de juego (P).
+import { textoPixel } from '../scenes/comun/fuente.js';
+import { tr } from '../i18n.js';
 import { PATINA_SEG } from './robot.js';
 
 const VOLUMEN = 0.35;
@@ -81,6 +83,8 @@ export function alternarSilencio() {
   try { globalThis.localStorage?.setItem(CLAVE_SILENCIO, silencio ? '1' : '0'); } catch { /* sin almacenamiento */ }
   try { if (maestro) maestro.gain.setTargetAtTime(silencio ? 0 : VOLUMEN, ctx.currentTime, 0.02); } catch { /* sin audio */ }
   for (const f of oyentes) f(silencio);
+  // La música (audio/musica.js) también calla con el silencio general.
+  try { globalThis.dispatchEvent?.(new CustomEvent('marsception:silencio', { detail: silencio })); } catch { /* sin eventos */ }
   return silencio;
 }
 
@@ -195,13 +199,20 @@ export class Sonido {
     this.ultimo = new Map(); // tipo → tiempo del último golpe (s de audio)
     this.tActualizado = 0;
 
-    // Botón "♪" bajo [ Abandonar ] y tecla M.
-    this.boton = scene.add.text(944, 70, '', { fontFamily: 'monospace', fontSize: '12px', color: '#9aa4c7' })
-      .setOrigin(1, 0).setScrollFactor(0).setDepth(95).setInteractive({ useHandCursor: true });
+    // Botón "♪" (18 px, DISENO.md §2.1) y tecla M. Recorrido lo coloca debajo de «Abandonar».
+    // Fuente pixel (comun/fuente.js): no tiene «♪», así que el botón dice «M · sonido» / «M · silencio».
+    this.boton = textoPixel(scene, 944, 70, '', { size: 14, color: '#a3abcc', origen: [1, 0.5] })
+      .setScrollFactor(0).setDepth(95).setInteractive({ useHandCursor: true });
     this.boton.on('pointerdown', () => alternarSilencio());
     this.alTecla = () => alternarSilencio();
     scene.input.keyboard?.on('keydown-M', this.alTecla);
-    this.alSilencio = (s) => this.boton?.active && this.boton.setText(s ? '♪ ×' : '♪').setAlpha(s ? 0.5 : 0.9);
+    this.alSilencio = (s) => {
+      if (!this.boton?.active) return;
+      this.boton.setText(this.boton.esPixel ? (s ? tr('M · silencio', 'M · muted') : tr('M · sonido', 'M · sound')) : (s ? '♪ ×' : '♪')).setAlpha(s ? 0.6 : 0.95);
+      // Zona táctil ≥ 64 × 44 alrededor del texto (coordenadas locales).
+      const w = Math.max(64, this.boton.width + 20), h = Math.max(44, this.boton.height + 16);
+      this.boton.input.hitArea.setTo(-(w - this.boton.width) / 2, -(h - this.boton.height) / 2, w, h);
+    };
     this.alSilencio(silencio);
     oyentes.add(this.alSilencio);
 

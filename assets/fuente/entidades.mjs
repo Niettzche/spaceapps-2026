@@ -31,6 +31,19 @@ export function generar() {
     ],
   ];
   tira(D + 'chasis_ligero.png', 24, 6, 2, (p, i) => filas(p, chasis[i]));
+  pinturas('chasis_ligero', chasis, 6);
+  // materiales (SPRITES_PENDIENTES §7): mismo dibujo y tamaño que el chasis ligero, con la carrocería del material
+  const MATERIALES = {
+    chasis_titanio: ['#c8d4ec', '#8c9cc4', '#5a6a94', '#28304c'],      // gris metálico frío, azulado (distinto del ligero)
+    chasis_carbono: ['#6a6a78', '#3a3a46', '#22222c', '#0a0a10'],      // negro
+  };
+  for (const [id, [h, l, m, d]] of Object.entries(MATERIALES)) {
+    const pal = { ...BASE, h, l, m, d };
+    tira(D + id + '.png', 24, 6, 2, (q, i) => {
+      filas(q, chasis[i], 0, 0, pal);
+      if (id === 'chasis_carbono') for (let x = 2; x < 22; x++) if ((x >> 1) % 2 === 0 && !/[kxO]/.test(chasis[i][3][x])) q.px(x, 3, hex('#3a3a46'));   // trama tejida
+    });
+  }
 
   // ---- rueda_estandar: 7 × 7, 4 cuadros en orden de giro horario (marca naranja que avanza 90° por cuadro).
   // Se distingue de la ancha por el tono: llanta delgada y rin plateado brillante (se lee "metálica").
@@ -148,6 +161,9 @@ export function generar() {
   generarB();
   generarDeco();
   generarObstaculos();
+  generarGeologia();
+  generarMontados();
+  generarPiezasNuevas();
 
   tira(D + 'zona_entrega.png', 16, 4, 1, (p) => {
     const rows = [0, 1, 2].map((y) => Array.from({ length: 16 }, (_, x) => ((x + y) % 8 < 4 ? 'y' : 'k')).join(''));
@@ -180,6 +196,7 @@ export function generarB() {
     ],
   ];
   tira(D + 'chasis_reforzado.png', 24, 7, 2, (p, i) => filas(p, reforzado[i]));
+  pinturas('chasis_reforzado', reforzado, 7);
 
   // ---- rueda_tacos: 7 × 7, 4 cuadros. Tacos alternos en la llanta que avanzan 90° (3 posiciones) por cuadro, horario.
   const borde = [[2, 1], [3, 1], [4, 1], [5, 2], [5, 3], [5, 4], [4, 5], [3, 5], [2, 5], [1, 4], [1, 3], [1, 2]];
@@ -195,6 +212,10 @@ export function generarB() {
 
   // ---- soporte_amortiguado: 10 × 4, paredes de 0.45 m y resortes bajo la bandeja.
   tira(D + 'soporte_amortiguado.png', 10, 4, 1, (p) => filas(p, ['hl......lh', 'mO......Om', 'mmmmmmmmmm', 'yOy....yOy']), { contorno: false });
+
+  // ---- soporte_correas: 10 × 3, paredes de 0.35 m (entre el básico y el amortiguado) con las correas amarillas
+  // enganchadas arriba de cada pared y hebillas a media altura.
+  tira(D + 'soporte_correas.png', 10, 3, 1, (p) => filas(p, ['hy......yh', 'mY......Ym', 'mmmmmmmmmm']), { contorno: false });
 
   // ---- base (hábitat): 40 × 24, detrás de la zona de entrega. Origen: centro inferior.
   tira(D + 'base.png', 40, 24, 1, (p) => {
@@ -243,9 +264,16 @@ export function generarDeco() {
   const decos = {
     deco_motor_eficiente: ['.....', '.hcl.', '.mCd.', '.....'],   // motor con acento turquesa (eficiente)
     deco_motor_potente: ['.....', '.hyr.', '.mOd.', '.....'],     // motor con rayo naranja y rojo (potente)
+    deco_motor_equilibrado: ['.....', '.hcy.', '.mCo.', '.....'], // mitad turquesa y mitad naranja (equilibrado)
     deco_bateria_chica: ['....', '.he.', '.dE.', '....'],          // celda chica verde
     deco_bateria_grande: ['.....', '.hee.', '.dEE.', '.....'],     // bloque más ancho
     deco_panel_solar: ['..........', '.SsSsSsSs.', '..........'],  // panel delgado encima
+    // piezas nuevas (ids provisionales)
+    deco_bateria_mediana: ['.....', '.hhe.', '.dEE.', '.....'],    // entre la chica y la grande: carga a medias
+    deco_panel_solar_grande: ['..............', '.SsSsSsmSsSsS.', '..............'], // dos módulos, más largo
+    deco_calentador_bateria: ['.....', '.oOo.', '.OoO.', '.....'],  // resistencia naranja (calor)
+    deco_radiador: ['......', '.hdhd.', '.ldld.', '......'],         // aletas de disipación
+    deco_auto_rescate: ['.....', '.y.y.', '.lml.', '.....'],       // módulo con dos patas que se levantan
   };
   for (const [nombre, rows] of Object.entries(decos)) tira(D + nombre + '.png', rows[0].length, rows.length, 1, (p) => filas(p, rows));
 }
@@ -287,4 +315,121 @@ export function generarObstaculos() {
     ];
     tira(`${O}obstaculo_arena_blanda${sufijo}.png`, 16, 4, 1, (p) => filas(p, rows, 0, 0, pal), { contorno: false });
   }
+}
+
+// ---------------------------------------------------------------- pintura del chasis
+// Variantes de color: la carrocería (h, l, m, d) toma una rampa de la paleta; contorno, faro, franja naranja, borde
+// turquesa y daños no cambian. chasis_<tipo>_<color>.png, mismos cuadros que el original (normal y dañado).
+export const PINTURAS = {
+  rojo: ['#ff8a7a', '#e0483a', '#a8301a', '#6a101c'],
+  azul: ['#9fd8ff', '#4c8ce8', '#2550d0', '#172a78'],
+  verde: ['#a8f0b0', '#3ec466', '#2a8a4a', '#17663e'],
+  amarillo: ['#fff08a', '#ffd23c', '#d89a1c', '#8a5a14'],
+  morado: ['#e0d4ff', '#b9a6ff', '#7a4cff', '#40188a'],
+};
+function pinturas(id, cuadros, alto) {
+  for (const [color, [h, l, m, d]] of Object.entries(PINTURAS)) {
+    const pal = { ...BASE, h, l, m, d };
+    tira(`${D}${id}_${color}.png`, 24, alto, cuadros.length, (p, i) => filas(p, cuadros[i], 0, 0, pal));
+  }
+}
+
+// ---------------------------------------------------------------- piezas nuevas del taller (ids provisionales)
+export function generarPiezasNuevas() {
+  // ---- rueda_nitinol: 7 × 7, 4 cuadros. Llanta de malla de resortes superelástica, más clara que la del LRV; marca turquesa.
+  const borde7 = [[2, 1], [3, 1], [4, 1], [5, 2], [5, 3], [5, 4], [4, 5], [3, 5], [2, 5], [1, 4], [1, 3], [1, 2]];
+  tira(D + 'rueda_nitinol.png', 7, 7, 4, (q, i) => {
+    const r = ['.......', '.......', '..g.g..', '...l...', '..g.g..', '.......', '.......'].map((x) => [...x]);
+    borde7.forEach(([x, y], j) => { r[y][x] = (j + i) % 2 ? 'w' : 'h'; });
+    const [mx, my] = borde7[(i * 3) % 12];
+    r[my][mx] = 'c';
+    filas(q, r.map((a) => a.join('')));
+  });
+
+  // ---- rueda_malla: 8 × 8, 4 cuadros. Malla de acero tejida (LRV de Apolo): llanta plateada en cuadrícula abierta,
+  // chevrón de titanio oscuro que avanza 90° por cuadro (horario) y cubo de aluminio.
+  const anillo8 = [[3, 1], [4, 1], [5, 2], [6, 3], [6, 4], [5, 5], [4, 6], [3, 6], [2, 5], [1, 4], [1, 3], [2, 2]];
+  tira(D + 'rueda_malla.png', 8, 8, 4, (p, i) => {
+    const r = ['........', '........', '........', '...mm...', '...md...', '........', '........', '........'].map((x) => [...x]);
+    anillo8.forEach(([x, y], j) => { r[y][x] = (j + i) % 2 ? 'h' : 'l'; });   // tejido que brilla al girar
+    for (const [x, y] of [[2, 3], [5, 3], [2, 4], [5, 4], [3, 2], [4, 2], [3, 5], [4, 5]]) r[y][x] = 'g'; // malla abierta
+    const ch = anillo8[(i * 3) % 12];
+    r[ch[1]][ch[0]] = 'c';                                                   // chevrón de titanio, turquesa (marca de giro)
+    filas(p, r.map((a) => a.join('')));
+  });
+}
+
+// ---------------------------------------------------------------- obstáculos por geología (recreación de juego)
+// Bloques (sprite, la fila de abajo toca el suelo, contorno automático) y tiles de superficie de 16 × 4 (se repiten a lo ancho).
+export function generarGeologia() {
+  const O = 'obstaculos/';
+  const pal = (t) => ({ 1: t[0], 2: t[1], 3: t[2], 4: t[3] });
+  // bloques de eyecta (cráteres de impacto): angulosos, con caras planas; 3 tamaños, con variante por mundo
+  const EYECTA = [
+    ['.44.', '4432', '3321'],                                                 // chico (4 px de alto con contorno)
+    ['..443.', '.44432', '443321', '332211'],                                 // mediano (5 px)
+    ['...44...', '..4443..', '.444332.', '4433321.', '33322111', '32221111'], // grande (7 px)
+  ];
+  const tonosEyecta = {
+    '': PALETAS.tierra.roca.slice(2, 6), marte_: PALETAS.marte.roca.slice(2, 6),
+    luna_: [PALETAS.luna.roca[1], PALETAS.luna.roca[3], PALETAS.luna.roca[5], PALETAS.luna.roca[6]],
+  };
+  for (const [mundo, t] of Object.entries(tonosEyecta)) EYECTA.forEach((rows, i) => {
+    tira(`${O}obstaculo_eyecta_${mundo}${i + 1}.png`, rows[0].length + 2, rows.length + 1, 1, (q) => filas(q, rows, 1, 1, pal(t)));
+  });
+
+  // talud de roca suelta (minas): montón en cuña de piedras sueltas de tepetate, 24 × 8
+  const B = PALETAS.tierra.banco;
+  tira(O + 'obstaculo_talud.png', 24, 8, 1, (q) => {
+    for (let y = 1; y < 8; y++) for (let x = 1; x < 23; x++) {
+      const alto = 7 - Math.abs(x - 9) * (x < 9 ? 0.75 : 0.42);                // cuña: sube rápido y baja largo
+      if (8 - y > alto) continue;
+      const h = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453, r = h - Math.floor(h);   // piedras sueltas al azar
+      const piedra = r > 0.86 ? B[5] : r < 0.1 ? B[1] : null;
+      q.px(x, y, hex(piedra ?? (y < 4 ? B[4] : x + y < 14 ? B[3] : B[2])));
+    }
+  });
+
+  // bloques de lava aa: escoria áspera, casi negra con brillos rojizos y cresta dentada; 2 tamaños
+  const AA = ['#140e10', '#2a1c1c', '#4a2c26', '#7a3a2a'];
+  const lavaAA = [['.4.4..', '434342', '332321'], ['.4..4.4.', '4344343.', '33433322', '32322211']];
+  lavaAA.forEach((rows, i) => tira(`${O}obstaculo_lava_aa_${i + 1}.png`, rows[0].length + 2, rows.length + 1, 1, (q) => filas(q, rows, 1, 1, pal(AA))));
+
+  // tiles de superficie (16 × 4, sin contorno, se repiten a lo ancho)
+  const tile = (nombre, fn) => tira(O + nombre + '.png', 16, 4, 1, (q) => { for (let y = 0; y < 4; y++) for (let x = 0; x < 16; x++) { const c = fn(x, y); if (c) q.px(x, y, hex(c)); } }, { contorno: false });
+  const TOBA = PALETAS.tierra.toba, SAL = PALETAS.tierra.salar;
+  // toba o ceniza (maar): capas finas claras y oscuras, suelta
+  tile('obstaculo_toba', (x, y) => (y === 0 ? ((x * 5) % 7 < 2 ? TOBA[5] : TOBA[4]) : y === 1 ? TOBA[3] : y === 2 ? ((x + 3) % 6 === 0 ? TOBA[4] : TOBA[2]) : TOBA[1]));
+  // costra de sal: blanca con grietas poligonales
+  tile('obstaculo_sal', (x, y) => ((x === 5 || x === 12) && y > 0 ? SAL[1] : y === 0 ? ((x % 7 === 3) ? SAL[2] : SAL[3]) : (x + y) % 9 === 0 ? SAL[1] : SAL[2]));
+  // nieve o hielo: blanco azulado con brillos, hielo más azul abajo
+  tile('obstaculo_hielo', (x, y) => (y === 0 ? ((x * 3) % 8 === 1 ? '#ffffff' : '#e6f2ff') : y === 1 ? ((x % 5 === 2) ? '#ffffff' : '#c4dcf4') : y === 2 ? '#9cc4ec' : '#6a9ad0'));
+}
+
+// ---------------------------------------------------------------- sprites montados en el robot (piezas de la ronda 2)
+// suspension_blanda (3 × 6) y suspension_dura (3 × 5): resorte que va entre el chasis y el eje de cada rueda (uno por rueda).
+// faro (4 × 3, 2 cuadros: apagado y encendido): va en la punta delantera del chasis; faro_haz (12 × 5) es el cono de luz.
+// chasis_rocker_bogie (28 × 10, 2 cuadros: normal y dañado): caja de 24 px con el balancín abajo; las 6 ruedas las pone el
+// juego en los extremos de los brazos: x 2, 13 y 25, y 9 (centro de cada rueda, en px de arte desde la esquina del sprite).
+export function generarMontados() {
+  tira(D + 'suspension_blanda.png', 3, 6, 1, (q) => filas(q, ['lml', '.Y.', 'Y.Y', '.Y.', 'Y.Y', 'lml']));
+  tira(D + 'suspension_dura.png', 3, 5, 1, (q) => filas(q, ['lml', 'RhR', 'rhr', 'RhR', 'lml']));
+  tira(D + 'faro.png', 4, 3, 2, (q, i) => filas(q, i ? ['mYY.', 'mwY.', 'mYY.'] : ['mll.', 'mhl.', 'mll.']));
+  tira(D + 'faro_haz.png', 12, 5, 1, (q) => {
+    for (let x = 0; x < 12; x++) for (let y = 0; y < 5; y++) {
+      const ancho = 0.5 + x * 0.2;
+      if (Math.abs(y - 2) <= ancho && (x + y) % 2 === 0) q.px(x, y, hex(x < 4 ? '#fff6c0' : '#ffd166'));
+    }
+  }, { contorno: false });
+  const cuerpo = [
+    ['............................', '..hhhhhhhhhhhhhhhhhhhhhhY...', '..cllloooooolllllllllllyy...', '..mmmmmmmmmmdmmmmmmmdmmmm...'],
+    ['............................', '..hhhhhhh..hhhhhxhhhhhhdd...', '..cllkOOOOOxlllllkllllldd...', '..mmmmmkmmmmdmmxxmmmdmmmm...'],
+  ];
+  tira(D + 'chasis_rocker_bogie.png', 28, 10, 2, (q, i) => {
+    filas(q, cuerpo[i], 0, 0);
+    // rocker: del pivote bajo la caja (x 9) a la rueda trasera (x 2) y al pivote del bogie (x 18); bogie a las ruedas x 13 y 25
+    const linea = (x0, y0, x1, y1) => { const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)); for (let k = 0; k <= n; k++) q.px(Math.round(x0 + ((x1 - x0) * k) / n), Math.round(y0 + ((y1 - y0) * k) / n), hex(BASE.m)); };
+    linea(9, 4, 2, 9); linea(9, 4, 18, 7); linea(18, 7, 13, 9); linea(18, 7, 25, 9);
+    q.px(9, 4, hex(BASE.y)); q.px(18, 7, hex(BASE.y));
+  });
 }

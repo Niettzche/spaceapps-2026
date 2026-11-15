@@ -5,8 +5,9 @@ Nunca se rellenan valores a mano: si una consulta falla, la variable queda en No
 Fuentes verificadas el 14 nov 2026:
 - NASA POWER, climatología por punto (API v2.10, periodo 2001-2025): T2M_RANGE (°C, igual a K en diferencias)
   y PRECTOTCORR (mm/día). Responde en ~0.1 s, sin llave.
-- MODIS MOD13Q1 NDVI (250 m, 16 días). Primero el servicio de subconjuntos de ORNL DAAC; si falla (el 14 nov
-  respondía 503 por mantenimiento), Google Earth Engine (colección MODIS/061/MOD13Q1, media 2021-2025).
+- MODIS MOD13Q1 NDVI (250 m, 16 días). Primero el servicio de subconjuntos de ORNL DAAC (media de 2023, pedida en
+  3 tramos porque acepta como máximo 10 compuestos por petición); si falla (el 14 nov respondía 503 por
+  mantenimiento), Google Earth Engine (colección MODIS/061/MOD13Q1, media 2021-2025).
 - Pendiente: Copernicus DEM GLO-30 (ESA) promediado a 200 m, la MISMA resolución con la que se midieron la Luna
   (LOLA) y Marte (HRSC+MOLA) en analisis/02-03. Media de la pendiente en un cuadro de 10 km centrado en el punto.
   Requiere Earth Engine autenticado (`earthengine authenticate`).
@@ -15,6 +16,7 @@ from __future__ import annotations
 
 import math
 import time
+from concurrent.futures import ThreadPoolExecutor
 
 import requests
 
@@ -53,12 +55,26 @@ def nasa_power(lat: float, lon: float, reintentos: int = 2) -> dict:
     return {"error": f"NASA POWER: {ultimo}"}
 
 
-def _ndvi_ornl(lat: float, lon: float) -> float | None:
+# ORNL DAAC entrega como máximo 10 compuestos de 16 días por petición ("exceeds maximum subset tiles support of 10"):
+# el año 2023 (23 compuestos) se pide en 3 tramos en paralelo. Día del año de inicio de cada compuesto: 1, 17, ..., 353.
+ORNL_TRAMOS = (("A2023001", "A2023145"), ("A2023161", "A2023305"), ("A2023321", "A2023365"))
+NDVI_RELLENO = -3000  # valor de relleno de MOD13Q1 (píxel sin dato); no entra a la media
+
+
+def _ndvi_ornl_tramo(lat: float, lon: float, inicio: str, fin: str) -> list[float]:
     params = {"latitude": lat, "longitude": lon, "band": "250m_16_days_NDVI",
-              "startDate": "A2023001", "endDate": "A2023365", "kmAboveBelow": 0, "kmLeftRight": 0}
-    r = requests.get(MODIS_URL, params=params, headers={"Accept": "application/json"}, timeout=30)
+              "startDate": inicio, "endDate": fin, "kmAboveBelow": 0, "kmLeftRight": 0}
+    r = requests.get(MODIS_URL, params=params, headers={"Accept": "application/json"}, timeout=60)
     r.raise_for_status()
-    vals = [d["data"][0] * 0.0001 for d in r.json().get("subset", []) if d.get("data")]
+    return [d["data"][0] * 0.0001 for d in r.json().get("subset", [])
+            if d.get("data") and d["data"][0] is not None and d["data"][0] > NDVI_RELLENO]
+
+
+def _ndvi_ornl(lat: float, lon: float) -> float | None:
+    """Media anual 2023 del píxel de 250 m. Si falla cualquier tramo se lanza el error (no se promedia un año incompleto)."""
+    with ThreadPoolExecutor(max_workers=len(ORNL_TRAMOS)) as ex:
+        tramos = list(ex.map(lambda t: _ndvi_ornl_tramo(lat, lon, *t), ORNL_TRAMOS))
+    vals = [v for tramo in tramos for v in tramo]
     return round(sum(vals) / len(vals), 4) if vals else None
 
 
@@ -82,21 +98,26 @@ def _ndvi_ee(lat: float, lon: float) -> float | None:
 
 
 def modis_ndvi(lat: float, lon: float) -> dict:
-    """NDVI medio del píxel de 250 m (MOD13Q1). Intenta ORNL DAAC y, si falla, Earth Engine."""
+    """NDVI medio del píxel de 250 m (MOD13Q1). Intenta Earth Engine y, si falla o no hay dato, ORNL DAAC.
+
+    Earth Engine va primero porque responde en segundos; ORNL tarda 36-60 s por tramo y desde el VPS a veces no
+    responde, lo que hacía esperar ~60 s cada consulta del Explorador antes de llegar a Earth Engine."""
     errores = []
+    try:
+        v = _ndvi_ee(lat, lon)
+        if v is not None:
+            return {"ndvi": {"valor": v, "unidad": "-", "fuente": "MODIS MOD13Q1 (Google Earth Engine, MODIS/061/MOD13Q1)",
+                             "fecha": "2021-2025", "nota": "media del píxel de 250 m"}}
+    except Exception as e:  # noqa: BLE001
+        errores.append(f"Earth Engine: {e}")
     try:
         v = _ndvi_ornl(lat, lon)
         if v is not None:
             return {"ndvi": {"valor": v, "unidad": "-", "fuente": "MODIS MOD13Q1 (ORNL DAAC)", "fecha": "2023",
                              "nota": "media anual del píxel de 250 m"}}
+        errores.append("ORNL: sin dato para el píxel")
     except Exception as e:  # noqa: BLE001
         errores.append(f"ORNL: {e}")
-    try:
-        v = _ndvi_ee(lat, lon)
-        return {"ndvi": {"valor": v, "unidad": "-", "fuente": "MODIS MOD13Q1 (Google Earth Engine, MODIS/061/MOD13Q1)",
-                         "fecha": "2021-2025", "nota": "media del píxel de 250 m"}}
-    except Exception as e:  # noqa: BLE001
-        errores.append(f"Earth Engine: {e}")
     return {"error": "MODIS: " + " | ".join(errores)}
 
 
@@ -147,9 +168,11 @@ def perfil_elevacion(lat: float, lon: float, rumbo_grados: float = 90.0, largo_m
 
 
 def variables_tierra(lat: float, lon: float) -> dict:
+    """Las tres fuentes se consultan en paralelo (cada una tarda de 20 a 40 s); el orden del resultado no cambia."""
+    with ThreadPoolExecutor(max_workers=3) as ex:
+        resultados = list(ex.map(lambda f: f(lat, lon), (nasa_power, modis_ndvi, pendiente)))
     out, errores = {}, []
-    for f in (nasa_power, modis_ndvi, pendiente):
-        res = f(lat, lon)
+    for res in resultados:
         if "error" in res:
             errores.append(res.pop("error"))
         out.update(res)

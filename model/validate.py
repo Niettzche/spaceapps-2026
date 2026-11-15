@@ -419,7 +419,8 @@ def parte_borde() -> list[str]:
         *parte_impactos,
         "**En `data/sites`** (sitios con cráter medido; la variable es `variables.borde_levantado`, en metros):", "",
         tabla_md(tsit, list(tsit.columns)), "",
-        f"De los {len(nov_tajos)} tajos mineros con `novedoso: true`, {nov_lev} tienen borde levantado."
+        (f"De los {len(nov_tajos)} tajos mineros con `novedoso: true`, {nov_lev} tienen borde levantado." if nov_tajos else
+         "Ningún tajo minero se marca como novedoso (`model/scan.py`, regla 5): son minas conocidas y análogos operativos, no hallazgos.")
         + (f" Sin perfil a 80 m (variable en `null`): {', '.join(sin_perfil)}." if sin_perfil else ""), "",
         "**Cómo se usa.** Es la segunda evidencia de la categoría de cada sitio (`model/scan.py`, regla 6), junto a la etiqueta verificada: "
         "la nota dice si la medida apoya a la etiqueta o no. **No entra al puntaje ni cambia ningún total.**", "",

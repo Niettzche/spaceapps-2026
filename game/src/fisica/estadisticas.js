@@ -71,7 +71,7 @@ function alturaLineal(X, Y, x) {
   return Y[i] * (1 - t) + Y[i + 1] * t;
 }
 
-/** Texto corto del suelo y su agarre: dato medido (φ) o provisional (P). */
+/** Texto corto del suelo y su agarre: dato con fuente (φ, estimación de Apolo o Viking) o provisional (P). */
 export function textoSuelo(mundo, tipo) {
   const d = datosSuelo(mundo, tipo);
   const nombre = NOMBRE_SUP()[tipo] ?? tipo;
