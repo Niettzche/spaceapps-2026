@@ -55,11 +55,13 @@ const browser = await chromium.launch({ executablePath: CHROMIUM, args: ['--use-
 const page = await browser.newPage({ viewport: { width: 960, height: 540 } });
 // "Cómo jugar" (Menú) sale la primera vez que se pulsa "Nueva partida" en un navegador; la prueba lo da por visto con
 // la misma marca que deja el juego (game/src/scenes/expediente/como_jugar.js), así el camino dorado no cambia.
-// Igual con el tutorial rápido del Expediente (expediente/tutorial_expediente.js); en el juego también se salta con Esc.
+// Igual con los tutoriales del Expediente (expediente/tutorial_expediente.js) y del Taller (Taller/tutorial.js); en el juego
+// también se saltan con Esc.
 await page.addInitScript(() => {
   try {
     localStorage.setItem('marsception.como_jugar.visto', '1');
     localStorage.setItem('marsception.tutorial_expediente.visto', '1');
+    localStorage.setItem('marsception.tutorial_taller.visto', '1'); // Taller/tutorial.js
   } catch { /* sin almacenamiento */ }
 });
 const errores = [];
