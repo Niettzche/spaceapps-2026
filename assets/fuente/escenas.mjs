@@ -1,14 +1,18 @@
 // Escenas compuestas con el arte ya generado (sprites, fondos, tiles, efectos e íconos de /assets):
 //   tutorial/tutorial_1..4.png  viñetas de 96 × 64 para la pantalla "Cómo jugar" (sin texto: el texto lo pone el juego)
 //   ../docs/media/web_portada_960x960.png  imagen principal de la página web (escena de 120 × 120 × 8, sin texto).
-//     Va en docs/media y no en assets/, porque el Boot del juego precarga todas las imágenes de assets/.
+//   ../docs/media/og_1200x630.png  imagen para compartir el enlace (240 × 126 × 5), con título y lema
+//   ../docs/media/proyecto_space_apps.png  imagen de la página del proyecto (320 × 180 × 6 = 1920 × 1080), con marca de arte con IA
+//     Estas van en docs/media y no en assets/, porque el Boot del juego precarga todas las imágenes de assets/.
+//   ui/favicon_32.png, ui/favicon_180.png (apple-touch, sin transparencia) y ui/favicon.svg: el robot con la carga en Marte
 // Correr después de los demás grupos: lee sus PNG del disco.
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { inflateSync } from 'node:zlib';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createFrame, guardar, rampa, tramado, clamp, hex, BASE } from './comun.mjs';
+import { createFrame, guardar, rampa, tramado, clamp, hex, BASE, core } from './comun.mjs';
 import { PALETAS } from './paletas.mjs';
+import { textoTitulo, lema } from './titulo.mjs';
 
 const ASSETS = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const K = hex(BASE.k);
@@ -71,9 +75,13 @@ function efecto(f, nombre, i, x, y, origen) {
   const [ox, oy] = origen ?? [r.w >> 1, r.h >> 1];
   pegar(f, img, x - ox, y - oy, { sx: r.x, sy: r.y, w: r.w, h: r.h });
 }
-/** Las 3 capas de un fondo, recortadas desde (sx, sy). */
+/** Las 3 capas de un fondo, recortadas desde (sx, sy). Los fondos se repiten a lo ancho: si el recorte se pasa del borde, da la vuelta. */
 function fondo(f, clave, sx, sy, x = 0, y = 0, w = f.w, h = f.h) {
-  for (const n of [1, 2, 3]) pegar(f, leer(`fondos/fondo_${clave}_${n}.png`), x, y, { sx, sy, w, h });
+  for (const n of [1, 2, 3]) {
+    const img = leer(`fondos/fondo_${clave}_${n}.png`), a = Math.min(w, img.w - sx);
+    pegar(f, img, x, y, { sx, sy, w: a, h });
+    if (a < w) pegar(f, img, x + a, y, { sx: 0, sy, w: w - a, h });
+  }
 }
 /** Suelo de tiles: borde de 16 × 4 encima y tile de 16 × 16 debajo, de y hasta abajo. */
 function suelo(f, tile, y) {
@@ -139,6 +147,84 @@ export function generar() {
   tutorial3();
   tutorial4();
   portadaWeb();
+  imagenCompartir();
+  imagenProyecto();
+  favicons();
+}
+
+const T = PALETAS.titulo, B = '#e8e2ff';
+const LEMA_1 = [['TRAIN ON ', B], ['EARTH', T.tierra], ['. LAND ON THE ', B], ['MOON', T.luna], [' / ', B], ['MARS', T.rojo], ['.', B]];
+const titulo = (f, y, scale, sombraDy) => textoTitulo(f, 'MARSCEPTION', f.w / 2, y, { scale, rampaTexto: T.logo, contorno: '#0d051c', sombra: '#2e0d6b', sombraDy });
+
+/** Escena común: el robot con la carga llega a la base en Marte, con el astronauta, sobre el suelo en y = s. */
+function llegada(f, s, xRobot, xBase) {
+  suelo(f, 'marte_arena', s);
+  pegar(f, leer('entidades/base.png'), xBase, s - 24);
+  pegar(f, leer('entidades/zona_entrega.png'), xBase - 18, s);
+  cuadro(f, 'entidades/baliza.png', 2, 4, xBase + 42, s - 8);
+  cuadro(f, 'entidades/astronauta.png', 5, 10, xBase - 12, s - 17);
+  const r = robot(f, xRobot, s + 2, { rueda: 'rueda_ancha', giro: 2, decos: [['deco_motor_eficiente', 0, 1], ['deco_panel_solar', 7, -2]] });
+  efecto(f, 'fx_polvo_marte_arena', 4, r.trasera[0], r.trasera[1], [12, 14]);
+  pegar(f, leer('obstaculos/obstaculo_roca_marte_2.png'), xRobot - 18, s + 2 - 4);
+}
+
+// ---------------------------------------------------------------- imagen para compartir (Open Graph, 1200 × 630)
+function imagenCompartir() {
+  const f = createFrame(240, 126);
+  fondo(f, 'marte', 40, 58, 0, 0, 240, 126);
+  llegada(f, 104, 70, 150);
+  titulo(f, 14, 2, 2);
+  lema(f, LEMA_1, 36);
+  guardar('../docs/media/og_1200x630.png', escalar(f, 5));
+}
+
+// ---------------------------------------------------------------- imagen del proyecto en la plataforma de Space Apps (1920 × 1080)
+function imagenProyecto() {
+  const f = createFrame(320, 180);
+  fondo(f, 'marte', 60, 0, 0, 0, 320, 180);   // el sol queda a la izquierda del título
+  llegada(f, 152, 104, 214);
+  titulo(f, 30, 3, 3);
+  lema(f, LEMA_1, 64);
+  lema(f, [['RUN IT ', B], ['ANYWHERE', T.lavanda], ['.', B]], 73);
+  // marca visible de arte hecho con ayuda de IA (la plataforma pide marcar lo generado con IA)
+  const marca = 'AI-ASSISTED PIXEL ART';
+  lema(f, [[marca, T.lavanda]], 171, 320 - 4 - core.textWidth(marca, 'mini') / 2);
+  guardar('../docs/media/proyecto_space_apps.png', escalar(f, 6));
+}
+
+// ---------------------------------------------------------------- favicons: el robot con la carga sobre suelo de Marte
+function icono(n, redondeo) {
+  const f = createFrame(n, n), ESP = T.espacio, A = PALETAS.marte.arena, m = (n - 24) >> 1, s = n - 5;
+  pintar(f, 0, 0, n, n, (x, y) => {
+    // esquinas redondeadas (transparentes) en el de 32; el de 180 va lleno (iOS lo redondea)
+    if (redondeo) {
+      const cx = Math.min(x, n - 1 - x), cy = Math.min(y, n - 1 - y);
+      if (cx + cy < redondeo) return 0;
+    }
+    if (y >= s) return y === s ? hex(A[5]) : (x * 3 + y * 5) % 7 < 2 ? hex(A[2]) : hex(A[3]);
+    return tramado(rampa(ESP.slice(1, 5)), 0.15 + (y / s) * 0.5, x, y);
+  });
+  for (const [x, y] of [[3, 3], [n - 6, 5], [n - 3, 11], [6, 9]]) f.color[y * n + x] = hex(T.estrella);
+  robot(f, m, s + 1, { rueda: 'rueda_ancha' });
+  return f;
+}
+function favicons() {
+  const f32 = icono(32, 3);
+  guardar('ui/favicon_32.png', f32);
+  guardar('ui/favicon_180.png', escalar(icono(36, 0), 5));
+  // SVG: un rectángulo por cada tramo horizontal del mismo color del ícono de 32 (nítido a cualquier tamaño)
+  const rects = [];
+  for (let y = 0; y < 32; y++) for (let x = 0; x < 32;) {
+    const c = f32.color[y * 32 + x];
+    let x2 = x + 1;
+    while (x2 < 32 && f32.color[y * 32 + x2] === c) x2++;
+    if (c >>> 24) rects.push(`<rect x="${x}" y="${y}" width="${x2 - x}" height="1" fill="#${[0, 8, 16].map((sh) => ((c >>> sh) & 255).toString(16).padStart(2, '0')).join('')}"/>`);
+    x = x2;
+  }
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" shape-rendering="crispEdges">${rects.join('')}</svg>
+`;
+  writeFileSync(join(ASSETS, 'ui/favicon.svg'), svg);
+  console.log(`  ui/favicon.svg  32×32 (${rects.length} rectángulos)`);
 }
 
 // ---------------------------------------------------------------- 1. elige un análogo: la Tierra y la Luna/Marte lado a lado

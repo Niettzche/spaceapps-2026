@@ -37,8 +37,8 @@ function fondo(f) {
 }
 
 /** Texto con relleno en degradado (blanco → lavanda → morado), contorno y sombra, como el logotipo del GIF. */
-function textoTitulo(f, str, cx, y, { font = 'big', scale = 1, rampaTexto, contorno, sombra, sombraDy = 1 }) {
-  const tmp = createFrame(W, H);
+export function textoTitulo(f, str, cx, y, { font = 'big', scale = 1, rampaTexto, contorno, sombra, sombraDy = 1 }) {
+  const W = f.w, H = f.h, tmp = createFrame(W, H);
   painterFor(tmp).text(str, cx, y, hex('#ffffff'), { font, scale, align: 'center' });
   const M = tmp.color, C = f.color, alto = (font === 'big' ? 7 : 5) * scale;
   const lleno = (x, y) => x >= 0 && y >= 0 && x < W && y < H && M[y * W + x];
@@ -58,9 +58,9 @@ function textoTitulo(f, str, cx, y, { font = 'big', scale = 1, rampaTexto, conto
 }
 
 /** Una línea del lema con tramos de colores: [[texto, color], ...], centrada, fuente mini con contorno. */
-function lema(f, tramos, cy) {
+export function lema(f, tramos, cy, cx = f.w / 2) {
   const total = textWidth(tramos.map(([s]) => s).join(''), 'mini');
-  let x = Math.round(160 - total / 2);
+  let x = Math.round(cx - total / 2);
   const p = painterFor(f);
   for (const [s, c] of tramos) {
     p.text(s, x, cy, hex(c), { font: 'mini', outline: hex('#0d051c') });
