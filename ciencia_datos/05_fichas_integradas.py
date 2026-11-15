@@ -100,7 +100,7 @@ lista_nuevos = "; ".join(f"{r.id} ({r.region}, dif. relativa {r.dif_rel:.2f})" f
 md += ["", f"**Lectura principal:** {len(base_nat)} cráteres naturales pasan la regla base; {len(nuevos)} de ellos **no están en ninguna lista de análogos conocidos** "
        f"y son candidatos nuevos a revisar: {lista_nuevos}. Los {len(nat)} de la lista corta son los de perfil más parecido y {conocidos_en_lista} ya son análogos conocidos, "
        f"así que también funcionan como **controles** de que el método encuentra lo que debe. Si el equipo quiere, los nuevos mejor puntuados pueden entrar a la lista. "
-       f"Ojo: \"no está en la lista\" no significa \"nunca usado\". `data/known_analogs.json` tiene 20 sitios, y algunos de estos caen en campos volcánicos usados para entrenamiento (por ejemplo, G00176 en el campo volcánico de San Francisco, Arizona); hay que verificarlos en la literatura antes de llamarlos novedosos. "
+       f"Ojo: \"no está en la lista\" no significa \"nunca usado\". `data/known_analogs.json` no es exhaustivo. Revisión del 2026-11-14 (`model/NIVEL2.md` §A): G00176 resultó ser Colton Crater, del entrenamiento del Apolo 15, y ya está en esa lista. G00263 (maar Al Hutaymah) y G00266 (cono Jabal Bayda) no aparecen como análogos en la literatura revisada. G00041 y G00037 no se revisaron. "
        f"Los **tajos mineros** ({mn.region.nunique()} regiones) son el otro hallazgo: análogo operativo de pendientes extremas, con la analogía rota por exceso de profundidad, sobre todo en el fondo."]
 pd.DataFrame(nuevos[["id", "region", "lat", "lon", "diam_km", "prof_diam", "etiqueta_ia", "conf_ia", "dif_media", "dif_rel", "sombra_crater_tierra", "razon_ia"]]).to_csv(S / "naturales_nuevos.csv", index=False)
 md += ["", "**Cómo leerla:**",
