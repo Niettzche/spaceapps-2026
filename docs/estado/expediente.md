@@ -95,6 +95,22 @@ Pedido: "agrega los efectos de menú dentro de Nueva partida y ¿De dónde salen
   suenan con `sonarBoton()` al pulsar (también con teclado). Con `prefers-reduced-motion` no hay animación.
 - [x] Revisado a 960×540 en es/en (principal, destino, números 1–3, cómo jugar): ningún texto se toca ni sale de pantalla.
 
+### Diseño de menús (`feat/juego-menus`, 15 nov; DISENO.md §2–§3)
+- [x] **Paleta AA:** `COLOR.muyTenue` #6c7393 → #a3abcc, `COLOR.alerta` #ef476f → #ff7a93 (y ILUSTRATIVO en textos.js);
+  Taller `C.apagado` → #a3abcc, `C.error` #ff6b6b → #ff7a7a. Nuevo token `COLOR.decoracion` (#6c7393, solo marcos).
+  Peor contraste de texto: 4.87:1 (antes 2.6:1). Textos secundarios sobre el arte del fondo llevan franja oscura (`conFondo`).
+- [x] **`boton()` con caja:** relleno + borde del estado (amarillo acción, verde foco, blanco ratón, gris deshabilitado),
+  colores del arte `ui_boton`. Misma firma; `obj` sigue siendo el Text (la caja es un Graphics que lo sigue, también dentro
+  de contenedores). Sin `[ ]`. Opciones nuevas: `anchoCaja`, `alEnfocar`. `ayudaFija()` = tooltip de 1 línea en lugar fijo.
+- [x] **Menú:** sin frase bajo cada botón (tooltip al enfocar/pasar el ratón; el resumen de la partida guardada es el de
+  Continuar), sin «Datos cargados», pie de 1 línea, L en la etiqueta del idioma.
+- [x] **Nueva partida:** fondo de Mauricio `pantallas/menu_fondo` (sin FondoMenu en esa vista), nombre 28 px, 2 datos grandes
+  (0.38 g / 0.17 g y nº de sitios), nota de gravedad como tooltip del botón Elegir; «3 tickets · 1,000 créditos» por defecto.
+- [x] **Números:** tarjetas keyword + fuente, 3 cifras grandes (9/11 · ~78 % · 296, verificadas en METODOLOGIA/VALIDATION),
+  chips de lo que la Tierra no puede probar. **Cómo jugar:** viñetas `tutorial_1..4` ×3 y 2–3 keywords por pantalla.
+- [x] Capturas es/en 960×540 con script: 0 textos < 14 px, 0 fuera de pantalla, 0 encimados en principal, destino,
+  números 1–3 y cómo jugar 1–4.
+
 ## Prueba del camino completo en Luna y Marte
 Recorrido con clics y teclas reales (`npm run dev`, Chrome sin ventana): Menú → Nueva partida → destino → Expediente →
 ticket → Taller → Prueba → Resultados → Misión → Resultados → Menú → recarga → Continuar.

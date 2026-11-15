@@ -3,7 +3,7 @@ import { irA } from './ui.js';
 import { SITIOS, DESTINOS } from '../data.js';
 import { partida } from '../main.js';
 import { PRESUPUESTO_INICIAL, TICKETS_POR_PARTIDA, GRAVEDAD } from '../config/world.js';
-import { COLOR, texto, boton, panel, Teclado, limpiar } from './expediente/interfaz.js';
+import { COLOR, texto, boton, panel, Teclado, limpiar, ayudaFija, conFondo } from './expediente/interfaz.js';
 import { DESTINO_POR_DEFECTO, ORDEN_DESTINOS } from './expediente/config.js';
 import { guardadoDisponible, restaurar, nuevaPartida, guardar, partidaActiva } from './expediente/guardado.js';
 import { sitiosParaDestino } from './expediente/logica.js';
@@ -47,22 +47,24 @@ export default class Menu extends Phaser.Scene {
    */
   botonIdioma(vista) {
     // Sin crecer al pasar el ratón: el subrayado del idioma actual se dibuja aparte y quedaría desfasado.
-    const b = boton(this, 945, 26, 'Español / English', () => this.cambiarIdioma(vista), { size: 14, origen: [1, 0.5], crecer: false });
+    // La tecla L va en la propia etiqueta (antes era una nota de 10 px debajo).
+    const b = boton(this, 945, 28, 'Español / English (L)', () => this.cambiarIdioma(vista), { size: 14, origen: [1, 0.5], crecer: false });
     const t = b.obj;
-    const ancho = t.width / t.text.length; // fuente monoespaciada
-    const finDesdeDerecha = idioma() === 'en' ? 2 : 12; // "English ]" o "Español / English ]"
-    const x = t.x - (finDesdeDerecha + 7) * ancho;
-    this.add.rectangle(x - 2, t.y, 7 * ancho + 4, t.height + 2, 0xffd166, 0.22).setOrigin(0, 0.5).setDepth(-1);
-    this.add.rectangle(x, t.y + t.height / 2, 7 * ancho, 2, 0xffd166).setOrigin(0, 0.5).setDepth(-1);
-    texto(this, 945, 46, tr('L: idioma / language', 'L: language / idioma'), { size: 10, color: COLOR.muyTenue, origen: [1, 0] });
+    const ancho = (t.width - t.padding.left - t.padding.right) / t.text.length; // fuente monoespaciada
+    const finDesdeDerecha = idioma() === 'en' ? 4 : 14; // "English (L)" o "Español / English (L)"
+    const x = t.x - t.padding.right - (finDesdeDerecha + 7) * ancho;
+    // Subrayado del idioma actual (encima de la caja del botón; no solo color: es una línea).
+    this.add.rectangle(x, t.y + t.height / 2 - t.padding.bottom + 1, 7 * ancho, 2, 0xffd166).setOrigin(0, 0.5).setDepth(1);
     return b;
   }
 
   mostrar(vista) {
     limpiar(this);
-    // Fondo de arte (assets/titulo/titulo_fondo.png, sin texto) oscurecido para que se lean los botones.
-    if (this.textures.exists('titulo/titulo_fondo')) {
-      this.add.image(480, 270, 'titulo/titulo_fondo').setScale(3).setDepth(-10);
+    // Fondo de arte (sin texto) oscurecido para que se lean los botones. «Nueva partida» usa el de Mauricio (#77) con la
+    // Tierra, la Luna y Marte (centro libre); el resto, el de título, donde el fondo vivo pasa planetas detrás de Marte.
+    const fondo = vista === 'destino' && this.textures.exists('pantallas/menu_fondo') ? 'pantallas/menu_fondo' : 'titulo/titulo_fondo';
+    if (this.textures.exists(fondo)) {
+      this.add.image(480, 270, fondo).setScale(3).setDepth(-10);
       this.add.rectangle(480, 270, 960, 540, 0x0b0d17, 0.6).setDepth(-9);
     }
     this.eligiendo = false;
@@ -87,38 +89,45 @@ export default class Menu extends Phaser.Scene {
     else this.vistaPrincipal();
     estrellas(this); // titilan detrás de todo y lejos del texto (quietas con prefers-reduced-motion)
     // Fondo vivo de Leo (#76): asteroides, cometa, planetas detrás de Marte, galaxia, destellos y agujero negro al volver.
+    // En «Nueva partida» con el fondo de Mauricio no va: su máscara supone el Marte del fondo de título al centro.
     this.fondoMenu?.destruir();
-    this.fondoMenu = new FondoMenu(this, { resultados: partida.resultados?.length ?? 0 });
+    this.fondoMenu = fondo === 'titulo/titulo_fondo' ? new FondoMenu(this, { resultados: partida.resultados?.length ?? 0 }) : null;
   }
 
   vistaPrincipal() {
-    texto(this, 480, 70, 'MARSCEPTION', { size: 36, origen: [0.5, 0.5] });
-    texto(this, 480, 112, tr('Prueba tu robot en un análogo de la Tierra antes de mandarlo a la Luna o a Marte',
-      'Test your robot at an Earth analog before sending it to the Moon or Mars'),
-      { size: 14, color: COLOR.tenue, origen: [0.5, 0.5] });
+    texto(this, 480, 66, 'MARSCEPTION', { size: 40, origen: [0.5, 0.5] });
+    conFondo(this, texto(this, 480, 108, tr('Entrena en la Tierra. Aterriza en la Luna o Marte.', 'Train on Earth. Land on the Moon or Mars.'),
+      { size: 16, color: COLOR.tenue, origen: [0.5, 0.5] }));
 
+    // Ayuda de 1 línea en un lugar fijo: aparece al enfocar o pasar el ratón por un botón (antes, una frase bajo cada uno).
+    const ayuda = ayudaFija(this, 480, 452);
     const g = guardadoDisponible(DESTINOS);
-    const nueva = boton(this, 480, 200, tr('Nueva partida', 'New game'), () => this.alNuevaPartida());
-    const continuar = boton(this, 480, 250, tr('Continuar', 'Continue'), () => this.continuar(), { habilitado: !!g });
-    const resumen = g ? this.resumenGuardado(g) : tr('No hay partida guardada en este navegador', 'No saved game in this browser');
-    texto(this, 480, 274, resumen, { size: 12, color: COLOR.muyTenue, origen: [0.5, 0.5] });
-    const explorador = boton(this, 480, 315, tr('Explorador libre', 'Free explorer'), () => irA(this, 'Explorador'));
-    texto(this, 480, 339, tr('Consulta cualquier coordenada de la Tierra y propón un sitio', 'Check any coordinate on Earth and propose a site'),
-      { size: 12, color: COLOR.muyTenue, origen: [0.5, 0.5] });
-    const numeros = boton(this, 480, 380, tr('¿De dónde salen los números?', 'Where do the numbers come from?'), () => this.mostrar('numeros'));
-    const comoJugar = boton(this, 480, 428, tr('Cómo jugar', 'How to play'), () => this.verComoJugar('principal'));
+    const opciones = [
+      [tr('Nueva partida', 'New game'), () => this.alNuevaPartida(), tr('Elige destino: la Luna o Marte', 'Choose a destination: the Moon or Mars')],
+      [tr('Continuar', 'Continue'), () => this.continuar(),
+        g ? this.resumenGuardado(g) : tr('No hay partida guardada en este navegador', 'No saved game in this browser'), !!g],
+      [tr('Explorador libre', 'Free explorer'), () => irA(this, 'Explorador'), tr('Consulta cualquier coordenada de la Tierra', 'Check any coordinate on Earth')],
+      [tr('¿De dónde salen los números?', 'Where do the numbers come from?'), () => this.mostrar('numeros'),
+        tr('Datos NASA · modelo · validación', 'NASA data · model · validation')],
+      [tr('Cómo jugar', 'How to play'), () => this.verComoJugar('principal'), tr('4 pasos, menos de 1 minuto', '4 steps, under a minute')],
+    ];
+    const botones = opciones.map(([etiqueta, accion, pista, habilitado = true], i) => {
+      const b = boton(this, 480, 164 + i * 54, etiqueta, accion, {
+        size: 18, anchoCaja: 420, habilitado, alEnfocar: (v) => ayuda.mostrar(v ? pista : '', b),
+      });
+      // Deshabilitado no recibe foco: su razón («No hay partida guardada») se ve al pasar el ratón.
+      if (!habilitado) b.obj.on('pointerover', () => ayuda.mostrar(pista, b)).on('pointerout', () => ayuda.mostrar('', b));
+      return b;
+    });
+    const [nueva, continuar] = botones;
     const idiomaBoton = this.botonIdioma('principal');
 
-    texto(this, 480, 470, tr(`Datos cargados: ${SITIOS.length} sitios terrestres · ${Object.keys(DESTINOS).length} destinos`,
-      `Data loaded: ${SITIOS.length} Earth sites · ${Object.keys(DESTINOS).length} destinations`),
-      { size: 12, color: COLOR.muyTenue, origen: [0.5, 0.5] });
-    texto(this, 480, 500, tr('Flechas o Tab para moverte · 1–5 o Enter para elegir · Esc para volver · También con toque',
-      'Arrows or Tab to move · 1–5 or Enter to choose · Esc to go back · Touch works too'),
-      { size: 12, color: COLOR.muyTenue, origen: [0.5, 0.5] });
+    conFondo(this, texto(this, 480, 512, tr('↑↓ Tab: mover · 1–5 / Enter: elegir · L: idioma', '↑↓ Tab: move · 1–5 / Enter: choose · L: language'),
+      { size: 14, color: COLOR.muyTenue, origen: [0.5, 0.5] }));
     // Atajos 1–5 y opción sugerida (⏎), igual que Resultados.js. "Cómo jugar" va al final para no mover los atajos 1–4.
-    this.teclado.numerar([nueva, continuar, explorador, numeros, comoJugar]);
+    this.teclado.numerar(botones);
     (g ? continuar : nueva).setSugerido(true);
-    this.teclado.poner([nueva, continuar, explorador, numeros, comoJugar, idiomaBoton], g ? continuar : nueva);
+    this.teclado.poner([...botones, idiomaBoton], g ? continuar : nueva);
   }
 
   /** "Nueva partida": la primera vez en este navegador muestra "Cómo jugar" antes de elegir destino. */
@@ -147,34 +156,44 @@ export default class Menu extends Phaser.Scene {
   }
 
   vistaDestino() {
-    texto(this, 480, 48, tr('¿A dónde va tu robot?', 'Where is your robot going?'), { size: 28, origen: [0.5, 0.5] });
-    texto(this, 480, 82, tr('Misma mecánica en los dos destinos: cambian la gravedad, el perfil del destino y los sitios análogos',
-      'Same mechanics at both destinations: gravity, destination profile and analog sites change'),
-      { size: 12, color: COLOR.tenue, origen: [0.5, 0.5] });
+    texto(this, 480, 44, tr('¿A dónde va tu robot?', 'Where is your robot going?'), { size: 30, origen: [0.5, 0.5] });
 
     const ids = [...ORDEN_DESTINOS.filter((id) => DESTINOS[id]), ...Object.keys(DESTINOS).filter((id) => !ORDEN_DESTINOS.includes(id))];
-    const ancho = 380;
-    const x0 = 480 - (ids.length * ancho + (ids.length - 1) * 30) / 2;
+    const ancho = 360;
+    const sep = 60;
+    const formato = (v, d = 2) => new Intl.NumberFormat(idioma() === 'en' ? 'en-US' : 'es-MX', { maximumFractionDigits: d, minimumFractionDigits: d }).format(v);
+    const x0 = 480 - (ids.length * ancho + (ids.length - 1) * sep) / 2;
+    // Ayuda fija: sin nada resaltado muestra los recursos de inicio (valores de juego); al enfocar un destino, su nota de gravedad.
+    const ayuda = ayudaFija(this, 480, 466, {
+      ancho: 860,
+      porDefecto: tr(`${TICKETS_POR_PARTIDA} tickets · ${formato(PRESUPUESTO_INICIAL, 0)} créditos`,
+        `${TICKETS_POR_PARTIDA} tickets · ${formato(PRESUPUESTO_INICIAL, 0)} credits`),
+    });
     this.planetas = {};
     const botones = ids.map((id, i) => {
       const d = DESTINOS[id];
-      const x = x0 + i * (ancho + 30);
+      const x = x0 + i * (ancho + sep);
       const cx = x + ancho / 2;
-      panel(this, x, 106, ancho, 348);
+      panel(this, x, 76, ancho, 364).setFillStyle(COLOR.panel, 0.82);
       const n = sitiosParaDestino(SITIOS, id).length;
       const g = typeof d.gravedad_ms2 === 'number' ? d.gravedad_ms2 : GRAVEDAD[d.mundo];
-      texto(this, cx, 130, (MUNDOS[d.mundo] || d.mundo).toUpperCase(), { size: 24, origen: [0.5, 0.5] });
+      const mundo = MUNDOS[d.mundo] || trDato(d, 'nombre');
+      texto(this, cx, 104, mundo.toUpperCase(), { size: 28, origen: [0.5, 0.5] });
       // Planeta girando (spritesheet del frente arte o generado en código); clic o toque en él = "Elegir".
-      const planeta = this.planetas[id] = planetaGirando(this, cx, 226, d.mundo === 'luna' ? 'luna' : 'marte', { inicio: i * 0.37 });
-      texto(this, cx, 314, trDato(d, 'nombre'), { size: 13, color: COLOR.tenue, origen: [0.5, 0.5], ancho: ancho - 30, alinear: 'center' });
-      texto(this, x + 20, 332, tr(`Gravedad: ${g} m/s² (Tierra: ${GRAVEDAD.tierra})`, `Gravity: ${g} m/s² (Earth: ${GRAVEDAD.tierra})`), { size: 13 });
-      texto(this, x + 20, 354, n ? tr(`Sitios análogos sugeridos: ${n}`, `Suggested analog sites: ${n}`)
-        : tr('Sitios análogos sugeridos: sin dato aún', 'Suggested analog sites: no data yet'),
-        { size: 13, color: n ? COLOR.texto : COLOR.alerta });
-      texto(this, x + 20, 376, tr('La gravedad del destino solo se usa en la misión,\nnunca en la prueba terrestre.',
-        'Destination gravity is used only in the mission,\nnever in the Earth test.'), { size: 11, color: COLOR.muyTenue });
-      const b = boton(this, cx, 428, `${tr('Elegir', 'Choose')} ${MUNDOS[d.mundo] || trDato(d, 'nombre')}`, () => this.elegirDestino(id),
-        { alSobre: (v) => planeta.rapido(v) });
+      const planeta = this.planetas[id] = planetaGirando(this, cx, 196, d.mundo === 'luna' ? 'luna' : 'marte', { lado: 128, inicio: i * 0.37 });
+      texto(this, cx, 274, trDato(d, 'nombre'), { size: 16, color: COLOR.tenue, origen: [0.5, 0.5], ancho: ancho - 30, alinear: 'center' });
+      // 2 datos grandes: gravedad en «g» (con m/s² debajo) y cuántos sitios análogos tiene.
+      const izq = x + ancho * 0.27, der = x + ancho * 0.73;
+      texto(this, izq, 332, typeof g === 'number' ? `${formato(g / GRAVEDAD.tierra)} g` : '—', { size: 28, color: COLOR.acento, origen: [0.5, 0.5] });
+      texto(this, izq, 362, typeof g === 'number' ? `${tr('gravedad', 'gravity')} · ${formato(g)} m/s²` : tr('gravedad: sin dato', 'gravity: no data'),
+        { size: 14, color: COLOR.muyTenue, origen: [0.5, 0.5] });
+      texto(this, der, 332, n ? String(n) : '0', { size: 28, color: n ? COLOR.acento : COLOR.alerta, origen: [0.5, 0.5] });
+      texto(this, der, 362, n === 1 ? tr('sitio análogo', 'analog site') : tr('sitios análogos', 'analog sites'),
+        { size: 14, color: n ? COLOR.muyTenue : COLOR.alerta, origen: [0.5, 0.5] });
+      const pista = tr(`${mundo}: ${formato(g)} m/s² solo en la misión, nunca en la prueba terrestre (Tierra ${formato(GRAVEDAD.tierra)})`,
+        `${mundo}: ${formato(g)} m/s² only in the mission, never in the Earth test (Earth ${formato(GRAVEDAD.tierra)})`);
+      const b = boton(this, cx, 410, `${tr('Elegir', 'Choose')} ${mundo}`, () => this.elegirDestino(id),
+        { size: 18, anchoCaja: 240, alSobre: (v) => planeta.rapido(v), alEnfocar: (v) => ayuda.mostrar(v ? pista : '', b) });
       const s = planeta.sprite;
       s.setInteractive({ useHandCursor: true, pixelPerfect: false });
       s.on('pointerover', () => b.obj.emit('pointerover'));
@@ -183,10 +202,7 @@ export default class Menu extends Phaser.Scene {
       return b;
     });
 
-    texto(this, 480, 474, tr(`Empiezas con ${TICKETS_POR_PARTIDA} tickets de prueba y ${PRESUPUESTO_INICIAL} créditos (valores de juego).`,
-      `You start with ${TICKETS_POR_PARTIDA} test tickets and ${PRESUPUESTO_INICIAL} credits (game values).`),
-      { size: 12, color: COLOR.tenue, origen: [0.5, 0.5] });
-    const volver = boton(this, 480, 510, tr('Volver', 'Back'), () => this.mostrar('principal'));
+    const volver = boton(this, 480, 512, tr('Volver', 'Back'), () => this.mostrar('principal'), { size: 16 });
     const preferido = botones[ids.indexOf(partida.destino)] || botones[ids.indexOf(DESTINO_POR_DEFECTO)] || botones[0];
     // Atajos: 1 = Marte, 2 = Luna (orden de ORDEN_DESTINOS); el último número vuelve al menú.
     this.teclado.numerar([...botones, volver]);

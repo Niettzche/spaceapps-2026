@@ -20,8 +20,8 @@ import { tr, trDato, enIngles } from '../i18n.js';
 // Interfaz provisional en texto; el frente de arte reemplaza los rectángulos por sprites.
 
 const C = {
-  texto: '#ffffff', suave: '#9aa4c7', claro: '#cfd6ff', acento: '#ffd166', apagado: '#6c7393',
-  error: '#ff6b6b', ok: '#6ee7a8',
+  texto: '#ffffff', suave: '#9aa4c7', claro: '#cfd6ff', acento: '#ffd166', apagado: '#a3abcc',
+  error: '#ff7a7a', ok: '#6ee7a8', // contraste ≥ 4.5:1 (DISENO.md §2): apagado antes #6c7393 (3.7:1), error #ff6b6b (4.4:1)
 };
 const ACENTO = 0xffd166;
 const BORDE = 0x4a5275;
