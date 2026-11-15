@@ -7,6 +7,7 @@
     "costo": 80,
     "masa": 6,
     "radio_m": 0.45,
+    "ancho_m": 0.2,
     "agarre": {
       "arena": 0.4,
       "roca": 0.6,
@@ -22,6 +23,7 @@
     "costo": 120,
     "masa": 8,
     "radio_m": 0.5,
+    "ancho_m": 0.4,
     "agarre": {
       "arena": 0.9,
       "roca": 0.5,
@@ -37,6 +39,7 @@
     "costo": 140,
     "masa": 9,
     "radio_m": 0.45,
+    "ancho_m": 0.25,
     "agarre": {
       "arena": 0.6,
       "roca": 0.9,
@@ -52,6 +55,7 @@
     "costo": 100,
     "masa": 5,
     "radio_m": 0.55,
+    "ancho_m": 0.3,
     "agarre": {
       "arena": 0.75,
       "roca": 0.45,
@@ -67,6 +71,7 @@
     "costo": 140,
     "masa": 7,
     "radio_m": 0.45,
+    "ancho_m": 0.25,
     "agarre": {
       "arena": 0.55,
       "roca": 0.85,

@@ -10,7 +10,11 @@ export function diagnosticar({ motivo, exito, resultado = {} }) {
       detalle: tr('La batería se agotó antes de completar el recorrido.', 'The battery ran out before completing the route.'),
       consejo: tr('Revisa la batería y el consumo del motor en el taller. Evita acelerar sin avanzar.', 'Check battery capacity and motor consumption in the workshop. Avoid accelerating without moving.'),
     };
-    case 'atascado': return {
+    case 'atascado': if (eventos.some((e) => e.tipo === 'atasco_reversa') || (resultado.distancia_m ?? Infinity) < 3) return {
+      detalle: tr('El robot no salió del inicio: quedó en reversa o contra la pared.', 'The rover never left the start: it stayed in reverse or against the wall.'),
+      consejo: tr('Acelera hacia adelante con → o D; no hace falta cambiar piezas.', 'Drive forward with → or D; no need to change parts.'),
+    };
+    return {
       detalle: patinaje
         ? tr(`Sin avance durante 15 s; se registraron ${patinaje} eventos de patinaje.`, `No progress for 15 s; ${patinaje} wheel-slip events were recorded.`)
         : fuerza

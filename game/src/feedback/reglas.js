@@ -11,6 +11,31 @@ export const INTEGRIDAD_SIN_AVISO = 0.9;
 export const PATINAJES_CAUSA_ENERGIA = 5;
 
 /**
+ * Física 2 (?fisica=2): el peor evento `hundimiento` de la partida. Detalle «4 cm · 7.9 kPa · arena · ancha 4.7 kPa»
+ * (robot.js). Devuelve { cm, kPa, superficie, kPaAncha } o null.
+ */
+export function leerHundimiento(eventos) {
+  let peor = null;
+  for (const e of eventos ?? []) {
+    if (e.tipo !== 'hundimiento') continue;
+    const m = /^(\d+) cm · ([\d.]+) kPa · (\w+)(?: · ancha ([\d.]+) kPa)?/.exec(e.detalle ?? '');
+    if (!m) continue;
+    const h = { cm: Number(m[1]), kPa: Number(m[2]), superficie: m[3], kPaAncha: m[4] ? Number(m[4]) : null };
+    if (!peor || h.cm > peor.cm) peor = h;
+  }
+  return peor;
+}
+
+/** Línea explicable del hundimiento: «Tus ruedas se hundieron 4 cm: presión 7.9 kPa; con ruedas anchas sería 4.7 kPa.» */
+export function textoHundimiento(h) {
+  if (!h) return null;
+  const ancha = h.kPaAncha != null
+    ? tr(`; con ruedas anchas sería ${h.kPaAncha.toFixed(1)} kPa`, `; with wide wheels it would be ${h.kPaAncha.toFixed(1)} kPa`) : '';
+  return tr(`Tus ruedas se hundieron ${h.cm} cm: presión ${h.kPa.toFixed(1)} kPa${ancha}.`,
+    `Your wheels sank ${h.cm} cm: ground pressure ${h.kPa.toFixed(1)} kPa${ancha}.`);
+}
+
+/**
  * @param {object} resultado  Result (eventos, diseno, integridad_carga, ...)
  * @param {string} [motivo] Condición final del registro, si está disponible.
  * @returns {Array<{ id, texto, evidencia, cambio? }>}  recomendaciones, de la más importante a la menos
@@ -20,6 +45,16 @@ export function recomendar(resultado, motivo) {
   const contar = (tipo, detalle) => ev.filter((e) => e.tipo === tipo && (detalle === undefined || e.detalle === detalle)).length;
   const d = resultado.diseno ?? [];
   const recs = [];
+  // Atasco en reversa o sin salir del inicio (recorrido.js, `atasco_reversa`): el robot no probó el terreno; no se culpa a
+  // las piezas. Se recomienda avanzar. Respaldo si falta el evento: atascado a menos de 3 m del inicio.
+  if (motivo === 'atascado' && (contar('atasco_reversa') > 0 || (resultado.distancia_m ?? Infinity) < 3)) {
+    return [{
+      id: 'avanzar',
+      texto: tr('Acelera hacia adelante (→ o D): el robot se quedó en el inicio.', 'Drive forward (→ or D): the rover stayed at the start.'),
+      evidencia: tr(`Avanzó ${Math.round(resultado.distancia_m ?? 0)} m; el atasco fue en reversa o contra la pared del inicio, no por las piezas.`,
+        `It moved ${Math.round(resultado.distancia_m ?? 0)} m; it got stuck in reverse or against the start wall, not because of its parts.`),
+    }];
+  }
 
   const patinaArena = contar('patinaje', 'arena');
   if (patinaArena > 0 && !usaPieza(d, 'rueda_ancha')) {
@@ -27,6 +62,18 @@ export function recomendar(resultado, motivo) {
       id: 'rueda_ancha',
       texto: tr('Cambia a ruedas anchas para arena.', 'Switch to wide sand wheels.'),
       evidencia: tr(`Tus ruedas patinaron ${veces(patinaArena)} en arena.`, `Your wheels slipped ${veces(patinaArena)} on sand.`),
+      cambio: { ranuras: ['rueda_del', 'rueda_tras'], pieza: 'rueda_ancha' },
+    });
+  }
+  // Física 2: el hundimiento explica el patinaje con números (presión = peso / área de contacto).
+  const hund = leerHundimiento(ev);
+  const recAncha = recs.find((r) => r.id === 'rueda_ancha');
+  if (hund && recAncha && hund.kPaAncha != null) recAncha.evidencia += ` ${textoHundimiento(hund)}`;
+  else if (hund && hund.kPaAncha != null && hund.superficie === 'arena' && !usaPieza(d, 'rueda_ancha')) {
+    recs.push({
+      id: 'rueda_ancha',
+      texto: tr('Cambia a ruedas anchas: reparten el peso y se hunden menos.', 'Switch to wide wheels: they spread the weight and sink less.'),
+      evidencia: textoHundimiento(hund),
       cambio: { ranuras: ['rueda_del', 'rueda_tras'], pieza: 'rueda_ancha' },
     });
   }
@@ -137,6 +184,17 @@ export function recomendar(resultado, motivo) {
       id: 'auto_rescate_uso',
       texto: tr('El auto-rescate te sacó de un atasco; cada rescate gasta batería.', 'Self-rescue got you unstuck; each rescue drains the battery.'),
       evidencia: tr(`Se activó ${veces(rescates)}.`, `It fired ${veces(rescates)}.`),
+    });
+  }
+  // Física 2: el suelo no dio el empuje que pedían la pendiente y la resistencia (H = A·c + W·tan φ). Solo informa.
+  const empuje = ev.filter((e) => e.tipo === 'empuje_insuficiente');
+  if (empuje.length && fallo) {
+    recs.push({
+      id: 'empuje_suelo',
+      texto: tr('El suelo no dio suficiente empuje para esa pendiente: más área de contacto (rueda ancha) o menos peso ayudan.',
+        'The ground could not give enough thrust for that slope: more contact area (wide wheel) or less weight helps.'),
+      evidencia: tr(`Empuje del suelo menor que la resistencia ${veces(empuje.length)} (${empuje[0].detalle}).`,
+        `Ground thrust below the resistance ${veces(empuje.length)} (${empuje[0].detalle}).`),
     });
   }
   // La condición que terminó el intento tiene prioridad sobre problemas secundarios.

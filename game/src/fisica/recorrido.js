@@ -22,12 +22,17 @@ import { abrirTutorial } from '../scenes/comun/tutorial_vista.js';
 import { cajaArte } from '../scenes/expediente/interfaz.js';
 import { movimientoReducido } from '../scenes/expediente/efectos.js';
 import { GRAVEDAD } from '../config/world.js';
+import { versionFisica } from './version.js';
+import { lugarDeSitio, fichaFisicaV2, paredesDeArena, PARED_ARENA } from './suelo_v2.js';
+import { SITIOS } from '../data.js';
+import { RUEDAS_POR_RANURA } from './diseno.js';
 
 const FONDO = { tierra: '#7f9fbf', marte: '#b98a6a', luna: '#05060b' }; // color si no hay fondo de arte (fisica/aspecto.js)
 const SEG_QUIETO_ENTREGA = 2; // la entrega exige 2 s detenido en la zona
 // Atasco: si el robot no gana 1.5 m de avance en 15 s, la prueba termina (evita esperar a que se agote la batería). (P)
 const SEG_ATASCO = 15;
 const M_AVANCE_ATASCO = 1.5;
+const M_INICIO_ATASCO = 3; // atasco a menos de 3 m del inicio = no avanzó (reversa contra la pared) (P)
 const SEG_SIN_ENERGIA_FIN = 5; // sin energía, la partida termina al detenerse o a los 5 s (atascado contra el borde del nivel) (P)
 const ESPERA_FIN_MS = 1400;
 
@@ -76,13 +81,21 @@ export class Recorrido {
     this._dibujarMeta(yMundo(alturaEn(o.perfil, this.meta_m)));
 
     // Robot sobre el plano de inicio.
+    // Física 2 (?fisica=2): terramecánica Bekker–Wong (suelo_v2.js). El tipo de lugar sale del `proceso` del sitio.
+    this.fisica = o.fisica ?? versionFisica();
+    const lugar = o.modo === 'prueba' ? lugarDeSitio(SITIOS.find((s) => s.id === o.sitioId)) : 'generico';
+    // Regla de paredes (P, solo física 2 y prueba en la Tierra): arena en paredes de más de 20° = roca (suelo_v2.js).
+    this.paredes = this.fisica === 2 && o.modo === 'prueba' ? paredesDeArena(o.perfil, alturaEn, superficieEn, lugar) : [];
     const x0 = xMundo(6);
     const y0 = yMundo(alturaEn(o.perfil, 6)) - m(1.6);
     this.robot = new Robot(scene, x0, y0, o.diseno, o.piezas, (tipo, detalle) => {
       this.telemetria.registrar(this.robot?.t ?? 0, tipo, detalle);
       this.efectos?.alTelemetria(tipo, detalle); // efectos en la rueda, el chasis o la carga
       this.sonido?.alTelemetria(tipo, detalle); // golpes, crujido, sin energía (fisica/sonido.js)
-    }, { mundo: o.mundo, ambiente: this.ambiente, factorAgarre: (x) => factorAgarreEn(this.obstaculos, (x - xMundo(0)) / PX_POR_M) });
+    }, {
+      mundo: o.mundo, ambiente: this.ambiente, factorAgarre: (x) => factorAgarreEn(this.obstaculos, (x - xMundo(0)) / PX_POR_M),
+      fisica: this.fisica, gravedad: o.gravedad, lugar,
+    });
     this.efectos = new Efectos(scene, { mundo: o.mundo, gravedad: o.gravedad, robot: this.robot, superficieDe: this.superficieDe });
     this.sonido = new Sonido(scene, { mundo: o.mundo }); // motor, arena, golpes y fin; M silencia
     this.g = scene.add.graphics().setDepth(10);
@@ -101,7 +114,12 @@ export class Recorrido {
     const notaDecor = this.decoracion.tipo
       ? tr('Aves, polvo distante y roca espacial: decoración recreada, sin efecto físico.', 'Birds, distant dust and space rock: recreated decoration, no physical effect.')
       : null;
-    const avisoNivel = [`${o.perfil.ilustrativo ? '⚠ ' : ''}${o.perfil.nota}${notaObs ? ` · ${notaObs}` : ''}`, notaDecor].filter(Boolean).join(' ');
+    const metrosPared = (this.paredes ?? []).reduce((acc, t) => acc + t.hasta - t.desde, 0);
+    const notaPared = metrosPared > 0
+      ? tr(`regla (P): ${Math.round(metrosPared)} m de pared marcados como arena (OpenLandMap) con más de ${PARED_ARENA.grados}° se tratan como roca`,
+        `rule (P): ${Math.round(metrosPared)} m of wall labelled sand (OpenLandMap) steeper than ${PARED_ARENA.grados}° are treated as rock`)
+      : null;
+    const avisoNivel = [`${o.perfil.ilustrativo ? '⚠ ' : ''}${o.perfil.nota}${notaObs ? ` · ${notaObs}` : ''}${notaPared ? ` · ${notaPared}` : ''}`, notaDecor].filter(Boolean).join(' ');
     const avisoSuelo = notaSuelo(o.mundo, o.perfil.superficies);
     const avisoAmbiente = notaAmbiente(this.ambiente);
     const nombreMundo = tr({ luna: 'la Luna', marte: 'Marte' }[o.mundo] ?? 'el destino', { luna: 'the Moon', marte: 'Mars' }[o.mundo] ?? 'the destination');
@@ -114,9 +132,14 @@ export class Recorrido {
     // Nota corta del HUD (DISENO.md §3): «Suelo: arena · I datos». El texto completo va en el panel de la tecla I.
     const tipos = [...new Set((o.perfil.superficies ?? []).map((x) => x.tipo))].map(nombreSuperficie).join(', ');
     const notaCorta = tipos ? `${tr('Suelo', 'Soil')}: ${tipos}` : null;
+    // Física 2: ficha con las ecuaciones y los valores usados en este nivel (panel de la tecla I).
+    const fichaV2 = this.fisica === 2 ? fichaFisicaV2({
+      masaKg: this.robot.masaTotal, g: o.gravedad, ruedas: this.robot.ruedas.length * RUEDAS_POR_RANURA, pieza: this.robot.ruedas[1].pieza,
+      mundo: o.mundo, tipos: (o.perfil.superficies ?? []).map((x) => x.tipo), lugar,
+    }) : null;
     this.hud = new Hud(scene, {
       titulo: o.titulo, subtitulo: o.subtitulo, nota: notaCorta,
-      aviso: [avisoGravedad, avisoSuelo && `${avisoSuelo}.`, `${avisoNivel.replace(/\.$/, '')}.`, avisoAmbiente].filter(Boolean).join(' '),
+      aviso: [avisoGravedad, fichaV2 ?? (avisoSuelo && `${avisoSuelo}.`), `${avisoNivel.replace(/\.$/, '')}.`, avisoAmbiente].filter(Boolean).join(' '),
     });
     this._botonAbandonar();
     // Instrucciones al empezar: título + 3 keywords con ícono (objetivo · regla clave del lugar · controles). Esc pausa.
@@ -262,7 +285,11 @@ export class Recorrido {
     this.sonido?.boton?.setPosition(944, 104 + b.alto + 22);
   }
 
-  superficieDe = (xMundo) => superficieEn(this.o.perfil, (xMundo - this.xMundo(0)) / PX_POR_M);
+  superficieDe = (xMundo) => {
+    const x = (xMundo - this.xMundo(0)) / PX_POR_M;
+    if (this.paredes?.some((t) => x >= t.desde && x < t.hasta)) return 'roca';
+    return superficieEn(this.o.perfil, x);
+  };
 
   actualizar(_time, deltaCuadro) {
     // Energía, patinaje y entrega corren con el tiempo de la física: con paso fijo (main.js), Matter avanza runner.delta
@@ -292,9 +319,16 @@ export class Recorrido {
     this.tSinEnergia = r.sinEnergia ? this.tSinEnergia + delta / 1000 : 0;
     if (r.sinEnergia && (r.quieto(0.4) || this.tSinEnergia >= SEG_SIN_ENERGIA_FIN)) return this._terminar(false, 'energia_agotada');
     // Atasco: sin avanzar a pesar de seguir en marcha (p. ej. patinando contra una duna).
-    if (x_m > this.mejorX + M_AVANCE_ATASCO) { this.mejorX = x_m; this.tMejorX = r.t; }
+    if (x_m > this.mejorX + M_AVANCE_ATASCO) { this.mejorX = x_m; this.tMejorX = r.t; this.tReversa = 0; }
+    else if (acelerador < 0) this.tReversa = (this.tReversa ?? 0) + delta / 1000; // reversa contra la pared del inicio
     else if (acelerador === 0) this.tMejorX += delta / 1000; // quieto a propósito no cuenta como atasco
-    if (!this.enZona(r, x_m) && r.t - this.tMejorX > SEG_ATASCO) return this._terminar(false, 'atascado');
+    if (!this.enZona(r, x_m) && r.t - this.tMejorX > SEG_ATASCO) {
+      // Atasco en reversa o sin salir del inicio: no es culpa de las piezas (feedback/reglas.js, diagnostico.js).
+      if ((this.tReversa ?? 0) > SEG_ATASCO / 3 || r.distancia_m < M_INICIO_ATASCO) {
+        this.telemetria.registrar(r.t, 'atasco_reversa', `${Math.round(r.distancia_m)} m`);
+      }
+      return this._terminar(false, 'atascado');
+    }
 
     if (this.o.modo === 'prueba') {
       if (x_m >= this.meta_m) this._terminar(true, 'meta');
