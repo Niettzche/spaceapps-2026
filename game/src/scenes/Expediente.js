@@ -16,7 +16,7 @@ import { prepararIngles, enIdioma } from './expediente/datos_en.js';
 import { columnasCondiciones } from './expediente/condiciones.js';
 import { palabrasClave, chipsLimites, resumenRecorrido, chipsAmbiente } from './expediente/resumen.js';
 import { P, num, txt, filaChips, barra, colorSimilitud, iconosTickets } from './expediente/componentes.js';
-import { tr, trDato } from '../i18n.js';
+import { tr, trDato, idioma, alternarIdioma } from '../i18n.js';
 import { ajustarAncho } from './comun/fuente.js';
 import { infoVariable, tecnicoConUnidad, leyendaTabla, explicaConfianza, explicaTotal, explicaSimilitud } from './expediente/glosario.js';
 import { icono, iconoVariable } from './expediente/iconos_expediente.js';
@@ -139,6 +139,51 @@ export default class Expediente extends Phaser.Scene {
     texto(this, 14, 6, tr('EXPEDIENTE', 'SITE FILE'), { size: 22, titulo: true });
     ajustarAncho(txt(this, 15, 36, `${mundo} · ${d ? trDato(d, 'nombre') : sinDato()}`, { size: 14, color: P.sec }), 274);
     cajaArte(this, 'ui/ui_panel', 10, LISTA.panelY, 282, LISTA.panelAlto);
+    this.dibujarIdioma();
+  }
+
+  /**
+   * Selector de idioma «ES · EN» (retro de Leo): a la derecha del título, donde no tapa nada; clic, toque o tecla L.
+   * El idioma actual va subrayado en amarillo. Cambiarlo redibuja el Expediente con el mismo sitio y la misma vista.
+   */
+  dibujarIdioma() {
+    const b = this.botonIdioma = boton(this, 290, 19, 'ES · EN (L)', () => this.cambiarIdioma(), { size: 14, origen: [1, 0.5], crecer: false });
+    const t = b.obj;
+    const palabra = idioma() === 'en' ? 'EN' : 'ES';
+    const i = t.text.indexOf(palabra);
+    const chars = t.getTextBounds?.().characters;
+    let x, w;
+    if (chars?.length && i >= 0) {
+      const a = chars.find((c) => c.idx === i), z = chars.find((c) => c.idx === i + 1);
+      x = t.x - t.originX * t.width + a.x; w = z.x + z.w - a.x;
+    } else {
+      const ancho = t.width / Math.max(1, t.text.length);
+      x = t.x - t.originX * t.width + i * ancho; w = 2 * ancho;
+    }
+    this.add.rectangle(x, t.y + t.height / 2 + 1, w, 2, 0xffd166).setOrigin(0, 0.5).setDepth(1);
+  }
+
+  /** Cambia español ↔ inglés y redibuja todo en su lugar: mismo sitio elegido, misma vista (Sugeridos / Descubrir). */
+  cambiarIdioma() {
+    if (this.tutorial) return;
+    alternarIdioma();
+    // En el cuadro siguiente: el botón que se pulsó es uno de los que se destruyen.
+    this.time.delayedCall(0, () => {
+      if (!this.sys.isActive()) return;
+      this.cerrarPorQue(false);
+      this.cerrarDetalle(false);
+      if (this.capaCondiciones) { this.capaCondiciones.destroy(true); this.capaCondiciones = null; this.textosCondiciones = null; }
+      this.children.list.slice().forEach((o) => o.destroy());
+      this.teclado.items = []; this.teclado.actual = null; this.teclado.atajos = [];
+      this.botonesDetalle = null; this.botonesLista = []; this.filas = null; this.filaActual = null; this.zonas = {};
+      this.foco = 'idioma';
+      this.dibujarFijo();
+      this.capaLista = this.add.container(0, 0);
+      this.capaDetalle = this.add.container(0, 0);
+      this.capaInfo = this.add.container(0, 0).setDepth(5);
+      this.dibujarLista();
+      this.dibujarDetalle();
+    });
   }
 
   /** ¿Tiene nivel jugable? La misma lista que usa «Sugeridos» (data.js). */
@@ -644,6 +689,7 @@ export default class Expediente extends Phaser.Scene {
     const alternarModo = () => this.cambiarModo(desc ? 'sugeridos' : 'descubrir');
     this.teclado.extra = {
       '?': () => this.abrirTutorial(),
+      l: () => this.cambiarIdioma(), L: () => this.cambiarIdioma(),
       m: () => this.abrirPorQue(), M: () => this.abrirPorQue(),
       d: alternarModo, D: alternarModo,
       PageDown: () => this.cambiarPagina(1), PageUp: () => this.cambiarPagina(-1),
@@ -672,13 +718,14 @@ export default class Expediente extends Phaser.Scene {
       jugables: this.filtroJugables,
       novedosos: this.filtroNovedosos,
       tipo: this.filtroTipo,
+      idioma: this.botonIdioma,
     }[this.foco] || this.botonesLista.find((b) => b.sitioId === elegidoId);
     // Atajos 1–5: eligen el sitio de esa posición en la página (igual que los números de Resultados.js).
     this.teclado.numerar(this.botonesLista);
     const filtros = desc ? [this.filtroJugables, this.filtroNovedosos, this.filtroTipo] : [];
     const porque = desc ? [] : [this.botonPorQue];
     this.teclado.poner([this.tabSugeridos, this.tabDescubrir, ...this.botonesLista, this.botonAnterior, this.botonSiguiente, ...filtros, ...porque,
-      ...this.botonesDetalle, this.botonRegresar, this.botonVolver, this.botonAyuda].filter((b) => b?.obj?.active), preferido);
+      ...this.botonesDetalle, this.botonRegresar, this.botonVolver, this.botonAyuda, this.botonIdioma].filter((b) => b?.obj?.active), preferido);
   }
 
   // ---------- Panel de detalle (tecla I, botón «Datos» o clic en una fila) ----------
