@@ -25,7 +25,7 @@ export class Hud {
     // maxLines corta en silencio a media frase: si no cabe, la tercera línea termina en "…" para que se note el recorte.
     // Nota de datos: en el HUD solo una línea (para no distraer al manejar); el texto completo se abre con la tecla I.
     if (aviso) {
-      const t = fijo(scene.add.text(16, 56, '', { ...ESTILO, fontSize: '11px', color: '#ffd166' }));
+      const t = fijo(scene.add.text(16, 56, '', { ...ESTILO, fontSize: '12px', color: '#ffd166' }));
       const pie = tr(' · [I] datos', ' · [I] data');
       let corto = aviso;
       t.setText(corto + pie);
@@ -87,7 +87,7 @@ export class Hud {
     const s = this.scene;
     const fijo = (o) => o.setScrollFactor(0).setDepth(98).setVisible(false);
     const t = fijo(s.add.text(480, 270, tr(`Datos de este nivel\n\n${aviso}\n\n[I] cerrar`, `Data for this level\n\n${aviso}\n\n[I] close`), {
-      ...ESTILO, fontSize: '13px', color: '#ffffff', align: 'left', wordWrap: { width: 760 }, lineSpacing: 4,
+      ...ESTILO, fontSize: '15px', color: '#ffffff', align: 'left', wordWrap: { width: 760 }, lineSpacing: 4,
     }).setOrigin(0.5));
     const fondo = fijo(s.add.rectangle(480, 270, 800, t.height + 32, 0x0b0d17, 0.92).setStrokeStyle(2, 0xffd166, 0.7));
     t.setDepth(99);
@@ -105,11 +105,11 @@ export class Hud {
     const s = this.scene;
     const fijo = (o) => o.setScrollFactor(0).setDepth(110);
     const fondo = fijo(s.add.rectangle(480, 270, 960, 540, 0x0b0d17, 0.7));
-    const titulo = fijo(s.add.text(480, 210, tr('Pausa', 'Paused'), { ...ESTILO, fontSize: '30px', color: '#ffffff' }).setOrigin(0.5));
-    const boton = (y, texto, color, fn) => fijo(s.add.text(480, y, texto, { ...ESTILO, fontSize: '18px', color })
+    const titulo = fijo(s.add.text(480, 205, tr('Pausa', 'Paused'), { ...ESTILO, fontSize: '38px', fontStyle: 'bold', color: '#ffffff' }).setOrigin(0.5));
+    const boton = (y, texto, color, fn) => fijo(s.add.text(480, y, texto, { ...ESTILO, fontSize: '21px', color })
       .setOrigin(0.5).setInteractive({ useHandCursor: true }).on('pointerdown', fn));
-    const seguir = boton(275, tr('[ Continuar · Esc / Enter ]', '[ Resume · Esc / Enter ]'), '#4cc38a', alContinuar);
-    const salir = boton(320, tr('[ Abandonar · X ]', '[ Quit · X ]'), '#ff9b9b', alAbandonar);
+    const seguir = boton(280, tr('[ Continuar · Esc / Enter ]', '[ Resume · Esc / Enter ]'), '#4cc38a', alContinuar);
+    const salir = boton(330, tr('[ Abandonar · X ]', '[ Quit · X ]'), '#ff9b9b', alAbandonar);
     return [fondo, titulo, seguir, salir];
   }
 
