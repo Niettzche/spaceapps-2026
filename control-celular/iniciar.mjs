@@ -28,5 +28,5 @@ process.on('SIGINT', salir);
 process.on('SIGTERM', salir);
 
 await import('./servidor.mjs');
-console.log('  Juego: abre en esta compu la URL "Local" que muestra Vite (normalmente http://localhost:5174/).');
+console.log('  Juego: abre en esta compu la URL "Local" que muestra Vite con ?mando al final (normalmente http://localhost:5174/?mando).');
 console.log('  El panel con el QR aparece solo dentro del juego.\n');

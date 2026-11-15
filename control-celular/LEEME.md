@@ -21,7 +21,7 @@ En el juego, el único cambio es un `<script>` en `game/index.html`: si la pági
 ## Cómo correrlo
 
 1. Doble clic en **`control-celular/INICIAR.cmd`** (o `cd control-celular && npm install && npm run todo`).
-2. En la compu abre **http://localhost:5174/**. Aparece un panel con el QR y el código de sala de 4 dígitos.
+2. En la compu abre **http://localhost:5174/?mando** (el `?mando` activa el puente; se recuerda en ese navegador). Toca la pastilla «Conectar celular» para ver el QR y el código de sala de 4 dígitos.
 3. Clic en **"Listo · jugar"** (también activa el sonido del juego).
 4. En el celular: escanea el QR, gira el celular y toca "Toca para empezar".
 

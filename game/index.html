@@ -24,11 +24,16 @@
   <body>
     <div id="app"></div>
     <div id="girar">⟳ Gira tu teléfono para jugar MARSCEPTION<br />Rotate your phone to play</div>
-    <!-- Control de celular (control-celular/): si el relay corre en esta compu (puerto 8787), carga su puente.
+    <!-- Control de celular (control-celular/): con ?mando en la URL y el relay corriendo en esta compu (puerto 8787), carga su puente.
          Solo en local (http); la demo pública (https) nunca lo intenta. Sin relay, el script no carga y el juego sigue igual. -->
     <script>
       (function () {
         if (location.protocol !== 'http:') return;
+        // Solo si se pide: ?mando en la URL (se recuerda) o la marca marsception.mando; así el juego local no deja un error
+        // de consola en cada carga (playtest de Leo, B7).
+        var pedir = /[?&]mando\b/.test(location.search);
+        try { if (pedir) localStorage.setItem('marsception.mando', '1'); pedir = pedir || localStorage.getItem('marsception.mando') === '1'; } catch (e) {}
+        if (!pedir) return;
         var s = document.createElement('script');
         s.src = 'http://' + location.hostname + ':8787/puente.js';
         s.async = true;
