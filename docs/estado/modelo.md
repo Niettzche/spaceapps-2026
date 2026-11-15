@@ -6,6 +6,11 @@
 **Última actualización:** 15 nov 2026, mañana (landing con divulgación científica en `informe/divulgacion/`; ANA, la tutora de análogos, ya en `main`; demo en https://v1.marsception.us/)
 
 ## Hecho (landing: «Los análogos» y «Pruébalo», 15 nov, mañana)
+- **«La física del juego» y bloque de cráteres numerado (11:40, pedido de Mario):** sección `#fisica` (después de Destinos)
+  con la guía de física del equipo hecha divulgación: gravedad, tracción (Mohr–Coulomb), hundimiento (Bekker–Wong) y viento,
+  y la tabla «De dónde salen los números». Se dejaron fuera las preguntas difíciles y frases del pitch, y 3 datos de la guía sin
+  fuente en el repo (43 % de luz en Marte, Spirit en «Troy», −0.03 %/°C de la batería). `preparar_datos.py` comprueba las
+  cifras contra `docs/METODOLOGIA.md` y `docs/taller/AMBIENTE.md`. El bloque de cráteres lleva 01–04 y un índice en Pruébalo.
 - **El árbol de decisión en «Pruébalo» (11:40, pedido de Mario):** el árbol Luna contra Marte de `ciencia_datos/06` (profundidad 3,
   78 % fuera de muestra) con la ruta del cráter resaltada y sus 3 preguntas; cada hoja dice cuántos cráteres lunares y marcianos
   le llegan. `preparar_datos.py` lo reentrena con los mismos parámetros y se detiene si sus reglas no son idénticas a las que

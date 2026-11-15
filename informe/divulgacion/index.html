@@ -26,7 +26,7 @@
       <span>Marsception</span>
     </a>
     <nav class="indice" aria-label="Secciones" data-t-aria="indiceAria">
-      <a href="#pruebalo" data-t="navPruebalo">Pruébalo</a><a href="#ciencia" data-t="navCiencia">La ciencia</a><a href="#como" data-t="navComo">Cómo se juega</a><a href="#destinos" data-t="navDestinos">Destinos</a><a href="#detalles" data-t="navDetalles">Detalles técnicos</a><a href="#business" data-t="navBiz">For Business</a><a href="#metodo" data-t="navDatos">Datos</a>
+      <a href="#pruebalo" data-t="navPruebalo">Pruébalo</a><a href="#ciencia" data-t="navCiencia">La ciencia</a><a href="#como" data-t="navComo">Cómo se juega</a><a href="#destinos" data-t="navDestinos">Destinos</a><a href="#fisica" data-t="navFisica">La física</a><a href="#detalles" data-t="navDetalles">Detalles técnicos</a><a href="#business" data-t="navBiz">For Business</a><a href="#metodo" data-t="navDatos">Datos</a>
     </nav>
     <div class="ajustes">
       <a class="boton boton-chico" href="https://v1.marsception.us/" data-t="navJugar">Jugar</a>
@@ -75,9 +75,12 @@
     <!-- ───────────── Pruébalo: el modelo de forma en el navegador (src/clasificador.js) ───────────── -->
     <section class="seccion" id="pruebalo" aria-labelledby="t-pruebalo">
       <header class="cap-cabeza">
-        <p class="cap-num revela" data-t="pruAnte">Pruébalo tú</p>
+        <p class="cap-num revela" data-t="pruAnte">01 · Pruébalo tú</p>
         <h2 id="t-pruebalo" class="revela" data-t="pruTitulo">¿Luna o Marte? Clasifica un cráter</h2>
         <p class="cap-entrada revela" data-t="pruEntrada">Es el modelo real, el mismo que usa el juego, corriendo en tu navegador. Carga un cráter de verdad o mueve sus tres medidas, y mira de qué lado cae.</p>
+        <nav class="cap-indice revela" aria-label="Los cráteres en cuatro partes" data-t-aria="indiceCrateres">
+          <a href="#pruebalo"><b>01</b> <span data-t="ic1">Pruébalo</span></a><a href="#ciencia"><b>02</b> <span data-t="ic2">Cómo los encontramos</span></a><a href="#analogos"><b>03</b> <span data-t="ic3">Qué encuentra y qué no</span></a><a href="#aportes"><b>04</b> <span data-t="ic4">Lo que aportamos</span></a>
+        </nav>
       </header>
       <div class="clasif" id="clasificador"><p class="nota" data-t="pruCargando">Cargando el modelo…</p></div>
     </section>
@@ -86,6 +89,7 @@
     <section class="museo-sec" data-grupo="ciencia" id="ciencia" aria-labelledby="t-ciencia">
       <article class="museo revela" id="museo">
         <header class="museo-cabeza">
+          <p class="cap-num" data-t="museoAnte">02 · Cómo los encontramos</p>
           <h2 id="t-ciencia" data-t="museoTitulo">¿Cómo encontramos lugares en la Tierra que se parecen a la Luna y a Marte?</h2>
         </header>
 
@@ -140,7 +144,7 @@
     <!-- ───────────── Los análogos: qué encuentra el método, qué no y por qué (cifras: preparar_datos.py) ───────────── -->
     <section class="seccion" id="analogos" data-grupo="ciencia" aria-labelledby="t-analogos">
       <header class="cap-cabeza">
-        <p class="cap-num revela" data-t="anaAnte">Los análogos</p>
+        <p class="cap-num revela" data-t="anaAnte">03 · Los análogos</p>
         <h2 id="t-analogos" class="revela" data-t="anaTitulo">Qué encuentra el método, qué no y por qué</h2>
         <p class="cap-entrada revela" data-t="anaEntrada">Para saber si el método sirve, lo probamos con lugares que ya se conocen. Encuentra muchos, se le escapan otros, y eso también dice algo.</p>
       </header>
@@ -209,6 +213,7 @@
     <section class="museo-sec" data-grupo="ciencia" id="aportes" aria-labelledby="t-aportes">
       <article class="museo museo-aportes keynote revela">
         <header class="museo-cabeza">
+          <p class="cap-num" data-t="apAnte">04 · Lo que aportamos</p>
           <h2 id="t-aportes" data-t="apTitulo">Lo que encontramos y lo que aportamos</h2>
         </header>
         <div class="kn-filas">
@@ -288,6 +293,59 @@
             <dl><div><dt>3.71</dt><dd>m/s²</dd></div><div><dt>55 K</dt><dd data-t="destOsc2">oscilación térmica diaria del aire</dd></div></dl>
           </div>
         </article>
+      </div>
+    </section>
+
+    <!-- ───────────── La física del juego (guía de física del equipo; cifras: docs/METODOLOGIA.md y docs/taller/) ───────────── -->
+    <section class="seccion" id="fisica" aria-labelledby="t-fisica">
+      <header class="cap-cabeza">
+        <p class="cap-num revela" data-t="fisAnte">La física del juego</p>
+        <h2 id="t-fisica" class="revela" data-t="fisTitulo">Por qué cambiar la rueda o el planeta cambia lo que pasa</h2>
+        <p class="cap-entrada revela" data-t="fisEntrada">Las ruedas avanzan porque empujan el suelo, y cuánto pueden empujar depende del suelo, del peso y del tamaño de la rueda. El juego lo calcula con las fórmulas que se usan para diseñar rovers.</p>
+      </header>
+      <div class="fis-tarjetas">
+        <article class="fis-tarjeta revela">
+          <p class="fis-num">1</p>
+          <h3 data-t="fis1T">Gravedad: lo único que la Tierra no puede imitar</h3>
+          <p class="fis-dato" data-t="fis1Dato">Tierra 9.81 · Marte 3.71 · Luna 1.62 m/s²</p>
+          <p data-t="fis1">Con menos gravedad el robot pesa menos: salta y rebota más, tarda más en caer y empuja con menos fuerza, porque el agarre depende en parte del peso. En la Luna hay que frenar antes.</p>
+        </article>
+        <article class="fis-tarjeta revela">
+          <p class="fis-num">2</p>
+          <h3 data-t="fis2T">Tracción: Mohr–Coulomb</h3>
+          <p class="fis-formula"><code>H = A·c + W·tan φ</code></p>
+          <p data-t="fis2"><b>H</b> es lo más que la rueda puede empujar sin patinar; <b>W</b>, el peso sobre la rueda; <b>φ</b>, qué tanto se traba el suelo; <b>c</b>, qué tanto se pegan los granos, y <b>A</b>, el área de contacto. W·tan φ depende de la gravedad, pero A·c no: en la Luna, donde W es chico, la cohesión del regolito pesa mucho más en el agarre.</p>
+        </article>
+        <article class="fis-tarjeta revela">
+          <p class="fis-num">3</p>
+          <h3 data-t="fis3T">Hundimiento: Bekker–Wong</h3>
+          <p class="fis-formula"><code>p = (k<sub>c</sub>/b + k<sub>φ</sub>)·z<sup>n</sup></code></p>
+          <p data-t="fis3"><b>p</b> es la presión de la rueda sobre el suelo, <b>b</b> su ancho y <b>z</b> cuánto se hunde. Por eso gana la rueda ancha: con el mismo peso en más área hace menos presión, se hunde menos y gasta menos en abrir el surco. Los surcos que deja el robot salen de ese hundimiento calculado (dibujados exagerados para que se noten).</p>
+        </article>
+        <article class="fis-tarjeta revela">
+          <p class="fis-num">4</p>
+          <h3 data-t="fis4T">Viento: casi no empuja en Marte</h3>
+          <p class="fis-formula"><code>F = ½·ρ·v²·C<sub>d</sub>·A</code></p>
+          <p data-t="fis4">La fuerza crece con la densidad del aire <b>ρ</b>. En Jezero es de 0.017 kg/m³; en los sitios de la Tierra, cerca de 1 kg/m³. Por eso en Marte el viento levanta polvo pero casi no mueve al robot; en la Tierra sí lo empuja un poco.</p>
+        </article>
+      </div>
+      <div class="fis-fuentes revela">
+        <h3 data-t="fisFuentesT">De dónde salen los números</h3>
+        <div class="tabla-envoltura">
+          <table class="tabla">
+            <thead><tr><th scope="col" data-t="fisQue">Qué</th><th scope="col" data-t="fisValor">Valor</th><th scope="col" data-t="fisFuente">Fuente</th></tr></thead>
+            <tbody>
+              <tr><th scope="row" data-t="fisF1">Regolito lunar</th><td>c 0.52 kPa · φ 42°</td><td data-t="fisF1d">Lunar Sourcebook (Carrier et al. 1991), tabla 9.12</td></tr>
+              <tr><th scope="row" data-t="fisF2">Hundimiento en la Luna</th><td>n 1 · k<sub>c</sub> 1.4 · k<sub>φ</sub> 820</td><td data-t="fisF2d">Costes et al. 1972: valores de diseño de la era Apolo, no medidos</td></tr>
+              <tr><th scope="row" data-t="fisF3">Arena suelta de Marte</th><td>c 1.6 kPa · φ 18°</td><td data-t="fisF3d">Viking (Moore 1991)</td></tr>
+              <tr><th scope="row" data-t="fisF4">Hundimiento en Marte</th><td data-t="fisF4v">simulante M90</td><td data-t="fisF4d">Oravec et al. (NASA GRC): no hay datos de Bekker del suelo real de Marte</td></tr>
+              <tr><th scope="row" data-t="fisF5">Arena de la Tierra</th><td data-t="fisF5v">arena seca genérica</td><td data-t="fisF5d">Wong (NASA/TM-20250006958), no medida en los sitios</td></tr>
+              <tr><th scope="row" data-t="fisF6">Aire de Jezero</th><td>0.017 kg/m³</td><td data-t="fisF6d">Derivada de 718 Pa y −55 °C medidos en Marte</td></tr>
+              <tr><th scope="row" data-t="fisF7">Relieve de cada nivel</th><td data-t="fisF7v">tramos reales, nunca estirados</td><td data-t="fisF7d">Copernicus DEM (Tierra), HRSC+MOLA (Marte), LOLA (Luna)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="nota" data-t="fisNota"><b>Regla de oro:</b> todo valor con fuente la lleva; los inventados para jugar (fuerza del motor, tamaño de las ruedas, precios) están marcados como valores de juego. El juego no certifica un rover: enseña por qué una decisión de diseño importa.</p>
       </div>
     </section>
 
