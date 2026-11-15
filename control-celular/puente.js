@@ -8,8 +8,22 @@
   if (window.__controlCelular) return;
   window.__controlCelular = { version: 1 };
 
-  const ORIGEN = new URL(document.currentScript?.src ?? 'http://localhost:8787/puente.js').origin;
-  const WS_URL = ORIGEN.replace(/^http/, 'ws') + '/ws?rol=pantalla';
+  // Carpeta del relay: 'http://<compu>:8787/' en local; 'https://<mismo dominio>/mando/' en la demo pública.
+  const RELAY = new URL('.', document.currentScript?.src ?? 'http://localhost:8787/puente.js').href;
+  // Modo público: el relay vive en el mismo origen que el juego (detrás de nginx). Allí hay varias salas: el relay le da
+  // una a esta pantalla ({t:'sala'}) y el QR apunta a la página del control en este mismo dominio, por internet.
+  const PUBLICO = new URL(RELAY).origin === location.origin;
+  const CLAVE_SALA = 'marsception.mando.sala';
+  let salaPublica = null; // { sala, token }
+  try { salaPublica = JSON.parse(sessionStorage.getItem(CLAVE_SALA) ?? 'null'); } catch { /* sin almacenamiento */ }
+  function urlWs() {
+    let u = RELAY.replace(/^http/, 'ws') + 'ws?rol=pantalla';
+    // Al recargar la página se recupera la misma sala (el celular sigue conectado) con su token.
+    if (PUBLICO && salaPublica?.sala && salaPublica?.token) {
+      u += `&sala=${encodeURIComponent(salaPublica.sala)}&token=${encodeURIComponent(salaPublica.token)}`;
+    }
+    return u;
+  }
 
   // ------------------------------------------------------------ idioma (playtest de Leo, B1: siempre salía en español)
   // Igual que game/src/i18n.js: el juego pone <html lang> al cargar y al cambiar de idioma; si aún no lo puso,
@@ -104,13 +118,20 @@
   // ------------------------------------------------------------ conexión
   let ws = null;
   let espera = 500;
+  // Latido: un proxy (nginx, Cloudflare) cierra un WebSocket sin datos; la pantalla casi no manda nada por sí sola.
+  setInterval(() => { if (PUBLICO && ws?.readyState === 1) ws.send('{"t":"p"}'); }, 25000);
   let pads = 0;
   function conectar() {
-    ws = new WebSocket(WS_URL);
+    ws = new WebSocket(urlWs());
     ws.onopen = () => { espera = 500; ultima = ''; ui.estado(true); };
     ws.onmessage = (e) => {
       let m; try { m = JSON.parse(e.data); } catch { return; }
       if (m.t === 'k') tecla(m.k, m.d, m.r);
+      else if (m.t === 'sala' && /^\d{4,6}$/.test(String(m.sala))) {
+        salaPublica = { sala: String(m.sala), token: String(m.token ?? '') };
+        try { sessionStorage.setItem(CLAVE_SALA, JSON.stringify(salaPublica)); } catch { /* sin almacenamiento */ }
+        ui.repintar();
+      }
       else if (m.t === 'pads') {
         if (m.n > pads) { ui.aviso(tr('📱 Control conectado', '📱 Phone controller connected')); ui.cerrar(); }
         else if (m.n < pads) ui.aviso(tr('📱 Control desconectado', '📱 Phone controller disconnected'));
@@ -186,8 +207,11 @@
       pastilla.title = tr('Control de celular', 'Phone controller');
       $('.qr img').alt = tr('QR para conectar el celular', 'QR code to connect your phone');
       $('h2').textContent = tr('📱 Usa tu celular como control', '📱 Use your phone as a controller');
-      $('.paso1').innerHTML = tr('1. Celular y compu en la <b>misma red</b> (Wi-Fi o hotspot del celular).',
-        '1. Phone and computer on the <b>same network</b> (Wi-Fi or the phone\'s hotspot).');
+      $('.paso1').innerHTML = PUBLICO
+        ? tr('1. Tu celular solo necesita <b>internet</b> (no hace falta estar en la misma red).',
+          '1. Your phone just needs <b>internet</b> (no need to be on the same network).')
+        : tr('1. Celular y compu en la <b>misma red</b> (Wi-Fi o hotspot del celular).',
+          '1. Phone and computer on the <b>same network</b> (Wi-Fi or the phone\'s hotspot).');
       $('.paso2').textContent = tr('2. Escanea el QR con la cámara y gira el celular.', '2. Scan the QR code with the camera and turn the phone sideways.');
       $('.etSala').textContent = tr('Código de sala:', 'Room code:');
       $('.cerrar').textContent = tr('Listo · jugar (Enter / Esc)', 'Done · play (Enter / Esc)');
@@ -200,10 +224,25 @@
     new MutationObserver(textos).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
 
     async function cargarInfo() {
-      try { info = await (await fetch(ORIGEN + '/info', { cache: 'no-store' })).json(); } catch { info = null; }
+      if (PUBLICO) return pintar();
+      try { info = await (await fetch(RELAY + 'info', { cache: 'no-store' })).json(); } catch { info = null; }
       pintar();
     }
+    function pintarPublico() {
+      $('.redes').innerHTML = '';
+      if (!salaPublica?.sala || ws?.readyState !== 1) {
+        $('.sala').textContent = '······';
+        $('.qr img').removeAttribute('src');
+        $('.url').textContent = tr('Conectando con el servidor del control…', 'Connecting to the controller server…');
+        return;
+      }
+      const url = `${RELAY}?s=${salaPublica.sala}&lang=${idioma()}`;
+      $('.sala').textContent = salaPublica.sala;
+      $('.qr img').src = `${RELAY}qr.svg?u=${encodeURIComponent(url)}`;
+      $('.url').textContent = url;
+    }
     function pintar() {
+      if (PUBLICO) return pintarPublico();
       if (!info) { $('.url').textContent = tr('No se pudo leer la red del relay.', 'Could not read the relay\'s network.'); return; }
       $('.sala').textContent = info.sala;
       const dirs = info.direcciones;
@@ -216,7 +255,7 @@
       }
       elegida = Math.min(elegida, dirs.length - 1);
       const d = dirs[elegida];
-      $('.qr img').src = `${ORIGEN}/qr.svg?u=${encodeURIComponent(d.url)}`;
+      $('.qr img').src = `${RELAY}qr.svg?u=${encodeURIComponent(d.url)}`;
       $('.url').textContent = d.url;
       $('.redes').innerHTML = '';
       if (dirs.length > 1) {
@@ -248,13 +287,14 @@
       if (cerradoCon && e.key === cerradoCon) { e.stopImmediatePropagation(); cerradoCon = null; }
     }, true);
     // Si la red cambia con el panel abierto, el QR se actualiza.
-    setInterval(() => { if (velo.classList.contains('abierto')) cargarInfo(); }, 4000);
+    setInterval(() => { if (velo.classList.contains('abierto') && !PUBLICO) cargarInfo(); }, 4000);
 
     let tAviso;
     return {
       montar() { document.body.append(host); }, // el panel del QR se abre al tocar la pastilla (abrirlo solo tapaba el título; playtest de Leo)
       cerrar,
-      estado(ok) { $('.pastilla .p').classList.toggle('ok', ok); if (!ok) this.pads(0); },
+      repintar() { if (velo.classList.contains('abierto')) pintar(); },
+      estado(ok) { $('.pastilla .p').classList.toggle('ok', ok); if (!ok) this.pads(0); this.repintar(); },
       pads(n) {
         nPads = n;
         textos();
