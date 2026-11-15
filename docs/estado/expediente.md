@@ -159,6 +159,22 @@ Pedido de Edmundo: que la solución también abarque *encontrar* terrenos análo
 existe en model/features.py; falta exponerlo y que el juego lo use) → propuesto a Mario. `novedoso` es null en muchos
 candidatos (se muestra «sin verificar»). El umbral del juego para proponer (0.6) no coincide con el de la API (0.4).
 
+### Expediente simple para todo público (`feat/expediente-simple`, 15 nov; pedido de Edmundo)
+- [x] **Vista simple por defecto** (`expediente/vista_simple.js` + `Expediente.dibujarSimple`): la lista igual; a la derecha
+  la postal del sitio y la del destino (×2) con «Se parece a Marte / a la Luna X %» grande y su barra entre las dos; una
+  frase («Entrena: …» de los niveles destacados o proceso → uso); 3 íconos grandes con una palabra (suelo, pendiente y
+  temperatura del recorrido real y del clima NASA POWER del sitio; sin clima propio entra la subida, no se inventa);
+  «La Tierra no puede:» en chips rojos; «Ver detalles (V)», «A · Tutora», «D · Descubrir» y el botón grande
+  «Gastar 1 ticket y probar» (mismo texto: la e2e lo busca).
+- [x] **Vista completa** = la de antes (tabla, fuentes, condiciones, ¿por qué aquí?, ANA, Descubrir), con «Vista simple (V)»
+  a la derecha de la fila de límites. La elección se guarda en `localStorage` (`marsception.expediente.vista`, try/catch).
+- [x] **Tutoriales:** la vista simple tiene 4 pasos (qué tan parecido · qué entrena · probar · «¿Quieres los datos? Ver
+  detalles»), clave nueva `marsception.tutorial_expediente_simple.visto` (añadida a `CLAVES_TUTORIAL` y a la e2e). El de
+  7 pasos sale la primera vez que se abre la vista completa; «?» repite el de la vista actual.
+- [x] Pruebas: `pruebas/vista_simple.test.js` (4). Revisión en es/en (simple Marte g00266/samalayuca y Luna g00263/pinacate,
+  completa, tutorial simple, tutorial completo, Descubrir): 0 textos < 14 px, fuera de pantalla, encimados ni zonas < 64×44.
+  Humo con clics reales: Expediente simple → Samalayuca → «Gastar 1 ticket y probar» → Taller (tickets 3 → 2).
+
 ## Prueba del camino completo en Luna y Marte
 Recorrido con clics y teclas reales (`npm run dev`, Chrome sin ventana): Menú → Nueva partida → destino → Expediente →
 ticket → Taller → Prueba → Resultados → Misión → Resultados → Menú → recarga → Continuar.

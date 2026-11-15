@@ -12,6 +12,8 @@ import { tr } from '../../i18n.js';
 export const CLAVES_TUTORIAL = {
   resumen: 'marsception.tutorial_resumen.visto',
   expediente: 'marsception.tutorial_expediente.visto',
+  // Vista simple del Expediente (por defecto): 4 pasos cortos; el de 7 pasos sale al abrir la vista completa.
+  expediente_simple: 'marsception.tutorial_expediente_simple.visto',
   taller: 'marsception.tutorial_taller.visto',
   prueba: 'marsception.tutorial_prueba.visto',
   mision: 'marsception.tutorial_mision.visto',

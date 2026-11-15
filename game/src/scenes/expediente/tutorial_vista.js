@@ -7,8 +7,9 @@ import { CLAVE_TUTORIAL } from './tutorial_expediente.js';
 
 /**
  * Abre el tutorial encima de todo. `pasos`: de pasosTutorial(); `zonas(nombre)` → { x, y, w, h } o null;
+ * `marca`: la del tutorial completo por defecto; la vista simple pasa la suya (vista_simple.js).
  * `alCerrar()` se llama al terminar o saltar (queda marcado como visto en ambos casos). Devuelve { cerrar, capa, paso() }.
  */
-export function abrirTutorial(scene, { pasos, zonas, alCerrar, inicio = 0 }) {
-  return abrirComun(scene, { pasos, zonas, inicio, marca: marcaTutorial(CLAVE_TUTORIAL), alCerrar: () => alCerrar?.() });
+export function abrirTutorial(scene, { pasos, zonas, alCerrar, inicio = 0, marca = marcaTutorial(CLAVE_TUTORIAL) }) {
+  return abrirComun(scene, { pasos, zonas, inicio, marca, alCerrar: () => alCerrar?.() });
 }
