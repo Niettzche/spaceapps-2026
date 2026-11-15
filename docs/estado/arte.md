@@ -1,9 +1,9 @@
 # Estado — Arte
 
-> Lo actualiza SOLO este frente. Ramas: `feat/arte` (#26) y `feat/arte-b` (#37), ambas mergeadas; `feat/arte-c` (ronda de revisión).
+> Lo actualiza SOLO este frente. Ramas: `feat/arte` (#26) y `feat/arte-b` (#37), `feat/arte-c` (#49), mergeadas; `feat/arte-d` (niveles parecidos al lugar real).
 
 **Responsable:** Mauricio  ·  **Agente:** Claude Code / Codex
-**Última actualización:** 14 nov 2026, 19:00
+**Última actualización:** 14 nov 2026, 22:30
 
 ## Hecho
 - **Prioridad A y B completas** (#26 y #37, en `main`):
@@ -39,17 +39,37 @@
      - Fondo del menú: `titulo_fondo.png`.
      - Estrellas: `ui_estrella_*` × 3.
      - Marco 9-slice: `ui_panel` con cortes de 5 px. El borde mide 3 px, así que no se deforma.
-- `node assets/fuente/fx/exportar.mjs` regenera con pixelfx las 21 hojas de efectos.
+- **Video de 25 s** (#54, en `main`): 5 tramos de 5 s (entrada, tres diapositivas y cierre); quedan 5 s para el clip del juego.
+- **Niveles parecidos al lugar real (`feat/arte-d`):**
+  1. **`fondo_mina_1/2/3`:** Real de Ángeles, Zacatecas.
+     - Cielo de altiplano.
+     - Tajo a cielo abierto con 10 bancos escalonados (pared y piso de cada banco), tramos de roca oxidada y una rampa de acarreo.
+     - Terreros de cima plana, sierra lejana y llano semidesértico.
+     - En la capa cercana: escalones de roca cortada, nopales y gobernadora.
+  2. **`fondo_maar_1/2/3`:** Al Wahbah, Arabia Saudita.
+     - Cielo pálido de calor.
+     - Cráter hundido bajo el llano: borde de basalto oscuro, paredes de toba en capas con coladas intercaladas y surcos de erosión, y fondo de costra blanca de sal.
+     - En la capa cercana: harrat con piedras y bloques de basalto.
+  3. **Obstáculos** en `assets/obstaculos/` (recreación de juego):
+     - `obstaculo_roca_<1|2|3>` (Tierra), `obstaculo_roca_marte_<n>` y `obstaculo_roca_luna_<n>`, de 3, 4 y 5 px de alto con contorno (0.4–0.6 m). La fila de abajo toca el suelo.
+     - `obstaculo_arena_blanda` (tile de 16 × 4 que se repite a lo ancho), más `_marte` y `_luna` por si sirven.
+  4. **`fx_sobrecalentamiento`:** bucle de 1.2 s centrado en el motor: brillo rojo que late, cintas de reverbero que suben ondulando y bocanadas de vapor tramado.
+  5. **`ui_icono_temperatura`** (8 × 8): termómetro con columna roja, del mismo estilo que los otros íconos de la HUD.
+  - `assets/paletas.json` regenerado desde `paletas.mjs` (le faltaban las paletas del desierto, la lava y el título).
+- `node assets/fuente/fx/exportar.mjs` regenera con pixelfx las 22 hojas de efectos.
 
 ## En curso
 - Nada.
 
 ## Siguiente
+- [ ] Meter el clip de 5 s del juego en inglés en el video cuando Alan lo grabe (6 × 5 s = 30 s).
+- [ ] Ajustar nombres de obstáculos si juego los cambia al integrarlos (solo renombrar).
 - [ ] Ver el arte con el juego corriendo (todavía no lo he revisado en pantalla): ruedas en el taller y en la prueba, calcomanías, posición de efectos y polvo.
 
 ## Bloqueos / necesito de otro frente
+- **Juego:** `FONDO_POR_SITIO` en `game/src/fisica/aspecto.js` (en `main`) solo tiene `samalayuca → dunas` y `pinacate → lava`. Si el mapeo de `mina` y `maar` todavía no está ahí, falta agregarlo.
 - **Integración (Alan):**
-  - Cambiar la entrada y el cierre del video por `docs/media/video_entrada_1280x720.png` y `docs/media/video_cierre_1280x720.png`.
+  - Clip de 5 s del juego en inglés para el video.
   - Agregar el crédito de pixelfx a `docs/ENTREGA_EN.md`. Texto sugerido:
     "Pixel art effects built with pixelfx (MIT License, © 2026 Patch and Hugo Duprez)."
 
