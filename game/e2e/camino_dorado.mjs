@@ -89,7 +89,7 @@ async function ubicar(k, texto) {
     const todos = [];
     const recorrer = (lista) => { for (const o of lista) { todos.push(o); if (o.list) recorrer(o.list); } };
     recorrer(s.children.list);
-    const o = todos.find((x) => x.type === 'Text' && x.text.includes(texto) && x.visible && x.active);
+    const o = todos.find((x) => (x.type === 'Text' || x.type === 'BitmapText') && x.text.includes(texto) && x.visible && x.active);
     if (!o) return null;
     const b = o.getBounds();
     const r = g.canvas.getBoundingClientRect();

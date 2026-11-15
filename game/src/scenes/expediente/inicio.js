@@ -1,9 +1,11 @@
 // Dueño: frente juego (pantalla de inicio). Piezas en Phaser de la pantalla de inicio y del menú de opciones (Menu.js):
-// - Pantalla de inicio basada en el GIF de título de Mauricio: Marte grande que gira (marte_grande.js), logo con brillo
-//   (assets/menu/logo_brillo.png), lema con colores y «PRESIONA ENTER» en la fuente pixel (assets/fuentes/pixel.*).
-// - Fondo del menú de opciones: la nave (assets/pantallas/menu_nave.png si existe; si no, nave_pixeles.js) y el zoom de la
-//   cámara hacia su escotilla al elegir una opción.
-// Todo es ILUSTRACIÓN (arte del juego). Con prefers-reduced-motion: nada gira ni parpadea y el zoom es un fundido.
+// - Pantalla de inicio = el GIF de título de Mauricio (docs/media/marsception_1600x900.mp4, en 960 × 540): se reproduce como
+//   video (game/public/video/inicio.webm, respaldo .mp4) sobre un cuadro fijo sacado del mismo video (inicio_cuadro.webp).
+//   Con prefers-reduced-motion, o si el video no carga, queda el cuadro fijo: misma apariencia.
+// - Transición al menú: salto (warp) hacia Marte con estrellas que se estiran en líneas y un destello (Estela, warp()).
+// - Respaldo sin el cuadro: Marte grande que gira (marte_grande.js), logo con brillo y lema en la fuente pixel.
+// - Fondo del menú de opciones y zoom a la escotilla: menu_nave.js (este archivo conserva el respaldo en código).
+// Todo es ILUSTRACIÓN (arte del juego). Con prefers-reduced-motion: nada gira ni parpadea y las transiciones son fundidos.
 import Phaser from 'phaser';
 import pixelXml from '../../../../assets/fuentes/pixel.xml?raw';
 import pixelTituloXml from '../../../../assets/fuentes/pixel_titulo.xml?raw';
@@ -14,6 +16,140 @@ import { texto } from './interfaz.js';
 import { MARTE_TITULO } from './fondo_menu.js';
 
 const ESCALA = 3; // un pixel de arte = 3 px del juego (fondos de 320 × 180)
+
+// ---------- video de la pantalla de inicio (game/public/video/) ----------
+const BASE = (import.meta.env?.BASE_URL ?? '/').replace(/\/?$/, '/');
+export const VIDEO_INICIO = {
+  urls: [`${BASE}video/inicio.webm`, `${BASE}video/inicio.mp4`],
+  cuadro: `${BASE}video/inicio_cuadro.webp`,
+  clave: 'inicio_cuadro',
+};
+
+/** Para Menu.preload(): el cuadro fijo del video (≈ 100 kB) se carga antes de crear la vista; el video, después. */
+export function precargarInicio(scene) {
+  if (!scene.textures.exists(VIDEO_INICIO.clave)) scene.load.image(VIDEO_INICIO.clave, VIDEO_INICIO.cuadro);
+}
+
+/**
+ * Fondo de la pantalla de inicio: el cuadro fijo del GIF de Mauricio y, encima, el video en bucle (mudo, en línea) que
+ * aparece cuando ya tiene su primer cuadro. Devuelve { cuadro, video, objetos } o null si no hay cuadro (usar respaldo).
+ */
+export function videoInicio(scene) {
+  if (!scene.textures.exists(VIDEO_INICIO.clave)) return null;
+  const cuadro = scene.add.image(480, 270, VIDEO_INICIO.clave).setDepth(-10);
+  cuadro.setScale(960 / cuadro.width, 540 / cuadro.height);
+  const r = { cuadro, video: null, objetos: [cuadro] };
+  if (movimientoReducido() || typeof document === 'undefined') return r;
+  try {
+    const v = scene.add.video(480, 270).setDepth(-9.9).setAlpha(0);
+    const quitar = () => { if (v.active) v.destroy(); r.video = null; r.objetos = [cuadro]; };
+    v.once('created', (_v, w, h) => { if (!v.active) return; v.setScale(960 / w, 540 / h).setAlpha(1); });
+    v.once('error', quitar);
+    v.once('unsupported', quitar);
+    v.loadURL(VIDEO_INICIO.urls, true);
+    v.play(true);
+    r.video = v;
+    r.objetos = [cuadro, v];
+  } catch (e) {
+    console.warn('[inicio] sin video, queda el cuadro fijo', e);
+  }
+  return r;
+}
+
+/** Texto en la fuente pixel (BMFont de Mauricio) con un color; respaldo: texto normal. Escala 2 = mayúscula de 14 px. */
+export function textoPx(scene, x, y, s, { escala = 2, color = '#ffffff', origen = [0, 0.5], profundidad = 2 } = {}) {
+  const f = fuentePixel(scene);
+  const o = f ? scene.add.bitmapText(x, y, f, s).setScale(escala).setTint(Phaser.Display.Color.HexStringToColor(color).color)
+    : texto(scene, x, y, s, { size: 7 * escala, color });
+  return o.setOrigin(origen[0], origen[1]).setDepth(profundidad);
+}
+/** Cambia el color de un texto hecho con textoPx (BitmapText o Text). */
+export function colorPx(o, color) {
+  if (o.type === 'BitmapText') o.setTint(Phaser.Display.Color.HexStringToColor(color).color);
+  else o.setColor(color);
+  return o;
+}
+
+// ---------- salto (warp): estrellas que se estiran en líneas ----------
+const COLORES_ESTELA = [0xffffff, 0xffffff, 0xcfc4ff, 0xc9a7ff, 0x80e0dc, 0xffd166];
+
+/**
+ * Estelas del salto: líneas que salen del centro y se alargan con la velocidad. `paso(dt, v, largo, alfa)` las mueve y
+ * las dibuja; es un solo Graphics (barato) a ~30 fps. Profundidad alta y sin desplazamiento de cámara.
+ */
+export class Estela {
+  constructor(scene, { x = 480, y = 270, n = 110, semilla = 11, profundidad = 60 } = {}) {
+    this.scene = scene; this.c = { x, y };
+    let s = semilla >>> 0;
+    const r = () => { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 4294967296; };
+    this.r = r;
+    this.ps = Array.from({ length: n }, () => this.nueva(true));
+    this.g = scene.add.graphics().setDepth(profundidad).setScrollFactor(0);
+  }
+  nueva(inicio) {
+    const r = this.r;
+    return { a: r() * Math.PI * 2, d: inicio ? 20 + r() * 520 : 10 + r() * 60, k: 0.6 + r() * 0.8,
+      c: COLORES_ESTELA[(r() * COLORES_ESTELA.length) | 0], w: r() < 0.25 ? 4 : 2 };
+  }
+  paso(dt, v, largo, alfa = 1) {
+    const g = this.g; if (!g.active) return;
+    g.clear();
+    for (const p of this.ps) {
+      p.d += v * p.k * dt;
+      if (p.d > 640) Object.assign(p, this.nueva(false));
+      const L = Math.max(2, largo * p.k * (p.d / 300));
+      const cx = Math.cos(p.a), cy = Math.sin(p.a);
+      const x1 = this.c.x + cx * p.d, y1 = this.c.y + cy * p.d;
+      const x0 = this.c.x + cx * Math.max(0, p.d - L), y0 = this.c.y + cy * Math.max(0, p.d - L);
+      g.lineStyle(p.w, p.c, alfa * Math.min(1, p.d / 120)).lineBetween(Math.round(x0), Math.round(y0), Math.round(x1), Math.round(y1));
+    }
+  }
+  destruir() { if (this.g.active) this.g.destroy(); }
+}
+
+/**
+ * Salto de la pantalla de inicio al menú (≈ 1.1 s): el GIF se acerca a Marte acelerando, las estrellas se estiran en
+ * líneas y un destello blanco cubre la pantalla; entonces `alDestello()` (con la pantalla en blanco). La interfaz
+ * (profundidad ≥ 0) se desvanece primero. Devuelve la Estela (para que la vista nueva la deje frenar si quiere).
+ */
+export function warp(scene, objetivos, alDestello, { centro = { x: 480, y: 290 }, duracion = 1100 } = {}) {
+  const ui = scene.children.list.filter((o) => o.depth >= 0 && o.alpha > 0);
+  scene.tweens.add({ targets: ui, alpha: 0, duration: 160 });
+  // Acercamiento a Marte (escala de las imágenes alrededor de su centro, sin tocar la cámara: así las estelas no se escalan).
+  for (const o of objetivos) {
+    const sx = o.scaleX, sy = o.scaleY;
+    scene.tweens.addCounter({
+      from: 0, to: 1, duration: duracion, ease: 'Cubic.easeIn',
+      onUpdate: (tw) => {
+        if (!o.active) return;
+        const z = 1 + 2.4 * tw.getValue();
+        o.setScale(sx * z, sy * z).setPosition(480 + (480 - centro.x) * (z - 1), 270 + (270 - centro.y) * (z - 1));
+      },
+    });
+  }
+  // Velo morado que crece para que las estelas se lean sobre el rojo de Marte.
+  const velo = scene.add.rectangle(480, 270, 960, 540, 0x0d0a24, 0).setDepth(55);
+  scene.tweens.add({ targets: velo, fillAlpha: 0.55, duration: duracion, ease: 'Quad.easeIn' });
+  const estela = new Estela(scene, { x: centro.x, y: centro.y });
+  let t = 0;
+  const reloj = scene.time.addEvent({
+    delay: 33, loop: true, callback: () => {
+      t += 33;
+      const k = Math.min(1, t / duracion);
+      estela.paso(0.033, 120 + 1500 * k * k, 6 + 260 * k * k, Math.min(1, 0.3 + k));
+    },
+  });
+  const blanco = scene.add.rectangle(480, 270, 960, 540, 0xffffff, 0).setDepth(70);
+  scene.tweens.add({ targets: blanco, fillAlpha: 1, delay: duracion - 160, duration: 160, ease: 'Quad.easeIn',
+    onComplete: () => { reloj.remove(); estela.destruir(); alDestello(); } });
+}
+
+/** Destello blanco que se desvanece (al llegar a la vista nueva tras el salto). */
+export function destelloSalida(scene, duracion = 380) {
+  const b = scene.add.rectangle(480, 270, 960, 540, 0xffffff, 1).setDepth(70).setScrollFactor(0);
+  scene.tweens.add({ targets: b, fillAlpha: 0, duration: duracion, ease: 'Quad.easeOut', onComplete: () => b.destroy() });
+  return b;
+}
 
 // ---------- fuente pixel (BMFont de Mauricio) ----------
 const FUENTES = { pixel: ['fuentes/pixel', pixelXml], pixel_titulo: ['fuentes/pixel_titulo', pixelTituloXml] };
