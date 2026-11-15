@@ -3,7 +3,28 @@
 > Lo actualiza SOLO este frente. Rama: `feat/modelo`.
 
 **Responsable:** Mario  ·  **Agente:** Claude Code / Codex
-**Última actualización:** 14 nov 2026, noche (borde levantado, sobre el PR de la auditoría del modelo)
+**Última actualización:** 15 nov 2026, madrugada (demo publicada en https://v1.marsception.us/)
+
+## Hecho (publicación de la demo, 15 nov, madrugada)
+- **Demo pública: https://v1.marsception.us/**, en inglés con https://v1.marsception.us/?lang=en. Este frente es el
+  **único que publica** (pedido del integrador, para que dos sesiones no se pisen).
+- **Disposición final (decisión de Mario): solo el juego MARSCEPTION, en la raíz.** La web Cráter Gemelo ya no se publica.
+  `/game/` y `/game/?lang=en` redirigen a `/` y conservan los parámetros, así que los enlaces viejos siguen funcionando.
+  **Pendiente para Alan:** el README, `web/DEPLOY.md` y `docs/ENTREGA_EN.md` todavía dicen "web en `/` y juego en `/game/`"
+  y "pending VPS publication". Hay que cambiarlos al enlace de arriba.
+- Versión publicada: el juego de `main` 9649ca8, ya bilingüe. Build: `cd game && npm ci && VITE_API_URL=/api npx vite build --base /`.
+  No hay API publicada: `/api` da 404 y el juego usa los JSON que trae (regla 7).
+- **Servidor:** nginx sirve una carpeta por versión (`releases/game-<commit>`) y un enlace `current` apunta a la activa. Publicar o
+  volver atrás es cambiar ese enlace. El dominio entra por un túnel de Cloudflare.
+  Ajustes en nginx: `.mjs` y `.vtt` con su tipo MIME (sin eso, el mapa de MapLibre de la web no cargaba su worker) y redirecciones
+  relativas (`absolute_redirect off`), porque detrás del túnel nginx no sabe que la conexión es https.
+- **Comprobado:** en Chromium sin ventana, en escritorio y con un teléfono emulado en vertical y horizontal, carga sin errores
+  de consola ni peticiones fallidas; con `?lang=en` sale en inglés. **Falta:** probarlo en un teléfono físico y jugar el
+  camino dorado completo en producción (`game/e2e/camino_dorado.mjs` solo corre contra el servidor de desarrollo).
+- El video de 25 s (`web/public/media/`) ya no está publicado, porque venía con la web. Si la entrega lo necesita en línea, hay
+  que subirlo aparte o publicarlo junto al juego.
+- **Cómo volver a publicar:** compilar `origin/main` en un worktree aparte (nunca la rama local), subir a `releases/game-<commit>`,
+  cambiar el enlace `current` y probar `/` y `/?lang=en`.
 
 ## Hecho (borde levantado, 14 nov, noche)
 - **`model/borde.py`: evidencia medida de que una depresión es un cráter.** `h/D` = altura máxima del perfil radial promedio a

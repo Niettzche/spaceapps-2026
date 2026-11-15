@@ -77,7 +77,8 @@ Cifras del 14 de noviembre de 2026. Cada paso dice de dónde sale el número.
 Lo que pide el envío (según la guía 2025; confirmar si cambió en 2026):
 - [ ] Título y resumen del proyecto.
 - [ ] Demo: video de 30 s como máximo **o** hasta 7 diapositivas (con portada), en un enlace **público** (YouTube, Drive, GitHub). No se sube al sitio de Space Apps.
-- [ ] Enlace final al proyecto, **público**. El repo hoy es privado: hacerlo público o publicar una copia y desplegar la página web.
+- [ ] Enlace final al proyecto, **público**. El repo hoy es privado: hacerlo público o publicar una copia.
+  - [x] Demo desplegada (15 nov): **https://v1.marsception.us/** (solo el juego, en la raíz; en inglés con `?lang=en`). La web Cráter Gemelo ya no se publica. Detalle en `docs/estado/modelo.md`.
 - [ ] Descripción: qué hace, cómo funciona, beneficios, qué datos de la NASA y de otras agencias usa (LOLA, HRSC+MOLA, Copernicus GLO-30 de la ESA, MODIS, OpenStreetMap, GVP), referencias.
 - [ ] Declarar el uso de IA (Claude en análisis, código y redacción).
 - Criterios de evaluación: impacto, creatividad, validez, relevancia y presentación.
