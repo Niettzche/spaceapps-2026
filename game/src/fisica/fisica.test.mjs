@@ -5,7 +5,7 @@ import { resolverDiseno, DISENO_POR_DEFECTO, RANURAS, RANURAS_OBLIGATORIAS, RUED
 import * as taller from '../scenes/Taller/diseno.js';
 import {
   SUPERFICIES, generarPerfil, perfilDesdeElevaciones, perfilDeSitio, perfilDeDestino, ventanaCritica, transectoEnSentido, metricasVentana, VENTANAS_JUEGO,
-  superficieEn, alturaEn, pendienteMaxima,
+  superficieEn, alturaEn, pendienteMaxima, PLANO_FINAL_M,
 } from './perfil.js';
 import { danioCarga, danioChasis } from './danio.js';
 import { gastoPorSegundo } from './energia.js';
@@ -117,7 +117,7 @@ caso('perfil con ventana fija en sentido inverso: sube, se declara y no recrea d
   const sup = [{ desde: 0, hasta: crater.total, tipo: 'arena' }];
   const p = perfilDesdeElevaciones(crater.elev, { paso_m: 30, superficies: sup, ventana: { desde_m: 270, hasta_m: 510, sentido: 'vuelta' }, dunasRecreadas: true, descripcion: ['salida del cráter', 'out of the crater'] });
   assert.equal(p.ventana.sentido, 'vuelta');
-  assert.equal(p.largo_m, 18 + 240 + 30);
+  assert.equal(p.largo_m, 18 + 240 + PLANO_FINAL_M);
   assert.ok(p.y_m.at(-1) - p.y_m[0] > 80, 'el tramo sube');
   assert.match(p.nota, /del m 510 al m 270, sentido inverso del transecto\) de un transecto de 1\.2 km, sube 87 m, pendiente máx\. 20° de subida: salida del cráter/);
   assert.ok(pendienteMaxima(p) < 21, `sin caras de duna sobre la pared de 20°: ${pendienteMaxima(p)}`);
@@ -279,11 +279,12 @@ caso('ambiente: datos con fuente de los 4 sitios jugables y los 2 destinos', () 
   assert.equal(ambienteDe({ modo: 'prueba', mundo: 'tierra', sitioId: 'pinacate' }).id, 'pinacate');
   assert.equal(ambienteDe({ modo: 'mision', mundo: 'marte', destinoId: 'jezero' }).id, 'jezero');
 });
-caso('ambiente: batería fría (−0.2 %/°C bajo 0 °C, piso 85 %)', () => {
+caso('ambiente: batería fría (−0.03 %/°C bajo 0 °C, piso 97 %)', () => {
   assert.equal(factorFrio(15), 1);
   assert.equal(factorFrio(0), 1);
-  assert.ok(Math.abs(factorFrio(-53) - 0.894) < 1e-9); // Luna, borde iluminado
-  assert.equal(factorFrio(-83), REGLAS.frio.piso); // Marte: 16.6 % → piso 85 %
+  assert.ok(Math.abs(factorFrio(-53) - 0.9841) < 1e-9); // Luna, borde iluminado
+  assert.ok(Math.abs(factorFrio(-83) - 0.9751) < 1e-9); // Marte (dos soles de MEDA)
+  assert.equal(factorFrio(-200), REGLAS.frio.piso); // muy frío → piso 97 %
   assert.equal(factorFrio(null), 1);
   for (const id of ['samalayuca', 'pinacate', 'mx0207', 'g00281']) assert.equal(factorFrio(ambienteDeSitio(id).temperatura_min_C), 1, id);
 });

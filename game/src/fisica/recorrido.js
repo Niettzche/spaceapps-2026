@@ -65,7 +65,7 @@ export class Recorrido {
     this.meta_m = o.modo === 'prueba' ? inicioFinal + 4 : inicioFinal + 6;
     // La zona llega hasta la pared del final: antes terminaba 4 m antes y un robot que se pasaba quedaba contra la pared,
     // fuera de la zona y sin atasco (se apagaba al alcanzar la zona): la misión se quedaba colgada.
-    this.zona = o.modo === 'mision' ? { desde: inicioFinal + 4, hasta: o.perfil.largo_m } : null;
+    this.zona = o.modo === 'mision' ? { desde: inicioFinal, hasta: o.perfil.largo_m } : null;
     this._dibujarMeta(yMundo(alturaEn(o.perfil, this.meta_m)));
 
     // Robot sobre el plano de inicio.

@@ -116,9 +116,11 @@ export function ambienteDe({ modo, mundo, sitioId, destinoId }) {
 
 // ─── Reglas de juego (P) ─────────────────────────────────────────────────────────────────────────────────────────────
 export const REGLAS = {
-  // a) Frío → batería. Por debajo de 0 °C la capacidad útil baja 0.2 % por °C, con piso de 85 %. (P)
-  // Se usa la temperatura MÍNIMA del nivel. Calefactor de batería: no implementado.
-  frio: { desde_C: 0, perdida_por_C: 0.002, piso: 0.85 },
+  // a) Frío → batería. Por debajo de 0 °C la capacidad útil baja 0.03 % por °C, con piso de 97 %. (P)
+  // Pérdida chica a propósito: los rovers reales calientan sus baterías (el calor del MMRTG mantiene la electrónica
+  // entre −40 y +50 °C, ver PIEZAS.md §5), así que el frío cuesta poco. Antes 0.2 %/°C y piso 85 %: dejaba las misiones
+  // del camino dorado sin energía a 12 m de la meta. Se usa la temperatura MÍNIMA del nivel.
+  frio: { desde_C: 0, perdida_por_C: 0.0003, piso: 0.97 },
   // b) Motor. dT/dt = CALOR × |acelerador| × consumo − k × (T − T_ambiente), k = RADIACION + AIRE × ρ / ρ_Tierra. (P)
   // Con el motor eficiente a fondo, la Tierra lo deja ~25–30 °C sobre el ambiente; sin aire, el equilibrio pasa de 500 °C.
   motor: { calor: 4, radiacion: 0.004, aire: 0.1, limite_C: 100, histeresis_C: 5, potencia_minima: 0.2, aviso_C: 10 },

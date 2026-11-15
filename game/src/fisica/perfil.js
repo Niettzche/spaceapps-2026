@@ -12,7 +12,7 @@ export const SUPERFICIES = ['arena', 'roca', 'compacto'];
 
 // Zonas planas para arrancar y para la meta o la entrega (recreación de juego). (P)
 export const PLANO_INICIO_M = 18;
-export const PLANO_FINAL_M = 30;
+export const PLANO_FINAL_M = 36; // retro: "un poco más de camino al final" (antes 30)
 
 // Separación entre puntos de un perfil real si el sitio no la declara. (P) Pendiente: campo nivel.paso_m en el esquema.
 export const PASO_REAL_DEFECTO_M = 5;
