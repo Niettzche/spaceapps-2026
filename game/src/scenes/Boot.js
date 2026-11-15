@@ -44,6 +44,18 @@ export default class Boot extends Phaser.Scene {
       texto(this, 480, 350, 'Faltan datos en data/sites o data/targets: el Expediente mostrará "sin dato".',
         { size: 12, color: COLOR.alerta, origen: [0.5, 0.5] });
     }
-    this.time.delayedCall(this.errores.length ? 1800 : 450, () => irA(this, 'Menu'));
+    const ir = () => { if (this.saliendo) return; this.saliendo = true; irA(this, 'Menu'); };
+    // Portada de arte (assets/titulo/titulo.png, 320 × 180 × 3): 3.5 s o hasta que el jugador toque o presione una tecla.
+    if (this.textures.exists('titulo/titulo') && !this.errores.length) {
+      this.children.list.slice().forEach((o) => o.destroy());
+      this.add.image(480, 270, 'titulo/titulo').setScale(3);
+      const aviso = texto(this, 480, 515, 'Presiona una tecla o toca para empezar', { size: 14, origen: [0.5, 0.5] });
+      this.tweens.add({ targets: aviso, alpha: 0.35, duration: 700, yoyo: true, repeat: -1 });
+      this.input.keyboard.once('keydown', ir);
+      this.input.once('pointerdown', ir);
+      this.time.delayedCall(3500, ir);
+    } else {
+      this.time.delayedCall(this.errores.length ? 1800 : 450, ir);
+    }
   }
 }

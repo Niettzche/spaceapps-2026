@@ -24,6 +24,11 @@ export default class Menu extends Phaser.Scene {
 
   mostrar(vista) {
     limpiar(this);
+    // Fondo de arte (assets/titulo/titulo_fondo.png, sin texto) oscurecido para que se lean los botones.
+    if (this.textures.exists('titulo/titulo_fondo')) {
+      this.add.image(480, 270, 'titulo/titulo_fondo').setScale(3).setDepth(-10);
+      this.add.rectangle(480, 270, 960, 540, 0x0b0d17, 0.6).setDepth(-9);
+    }
     this.teclado.extra = {};
     this.teclado.alEscape = vista === 'principal' ? null : () => this.mostrar('principal');
     if (vista === 'destino') this.vistaDestino();
