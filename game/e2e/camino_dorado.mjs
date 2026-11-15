@@ -114,10 +114,16 @@ async function clic(k, texto, listo, { emitirSiFalla = true, espera = 2500 } = {
   throw new Error(`"${texto}" no tuvo efecto ni con clic ni con emit`);
 }
 
-/** Clic real en una coordenada lógica (960 × 540) de la escena, p. ej. una figura sin texto. */
-async function clicEn(x, y) {
+/** Arrastre real con el ratón entre dos puntos lógicos (960 × 540): bajar, mover en pasos y soltar. */
+async function arrastrar(desde, hasta, pasos = 12) {
   const r = await page.evaluate(() => { const g = window.__mc.Prueba.game; const b = g.canvas.getBoundingClientRect(); return { l: b.left, t: b.top, fx: b.width / g.scale.width, fy: b.height / g.scale.height }; });
-  await page.mouse.click(r.l + x * r.fx, r.t + y * r.fy);
+  const px = (p) => ({ x: r.l + p.x * r.fx, y: r.t + p.y * r.fy });
+  const a = px(desde);
+  const b = px(hasta);
+  await page.mouse.move(a.x, a.y);
+  await page.mouse.down();
+  for (let k = 1; k <= pasos; k++) await page.mouse.move(a.x + (b.x - a.x) * k / pasos, a.y + (b.y - a.y) * k / pasos);
+  await page.mouse.up();
 }
 
 async function esperar(fn, ms) {
@@ -289,12 +295,16 @@ async function corrida(c) {
     await escenaLista('Taller');
     const yaAnchas = await page.evaluate(() => { const m = window.__mc.Prueba.game.scene.getScene('Taller').mapa; return m.rueda_del === 'rueda_ancha' && m.rueda_tras === 'rueda_ancha'; });
     if (aplica && !yaAnchas) return 'FALLA: "Aplicar y al taller" no dejó las ruedas anchas puestas';
-    for (const [ranura, x] of yaAnchas ? [] : [['rueda_del', 365], ['rueda_tras', 115]]) {
-      const taller = () => page.evaluate(() => { const s = window.__mc.Prueba.game.scene.getScene('Taller'); return { sel: s.sel, mapa: s.mapa }; });
-      await clicEn(x, 392);
-      const indice = ranura === 'rueda_del' ? 1 : 2;
-      if (!(await esperar(async () => (await taller()).sel === indice, 1500))) return `FALLA: el clic en la rueda (${ranura}) no la seleccionó`;
-      await clic('Taller', '○ Rueda ancha para arena', async () => (await taller()).mapa[ranura] === 'rueda_ancha');
+    // Sin "Aplicar": arrastre REAL con el ratón de la tarjeta «Ancha» (pestaña Movilidad) al socket de cada eje.
+    if (!yaAnchas) {
+      const mapa = () => page.evaluate(() => window.__mc.Prueba.game.scene.getScene('Taller').mapa);
+      await clic('Taller', 'Movilidad', async () => (await page.evaluate(() => window.__mc.Prueba.game.scene.getScene('Taller').pestana)) === 'movilidad');
+      for (const ranura of ['rueda_del', 'rueda_tras']) {
+        const p = await page.evaluate((r) => { const s = window.__mc.Prueba.game.scene.getScene('Taller'); return { c: s.cartaDe('rueda_ancha'), d: s.socketDe(r) }; }, ranura);
+        if (!p.c) return 'FALLA: no hay tarjeta de rueda ancha en la bandeja del Taller';
+        await arrastrar(p.c, p.d);
+        if (!(await esperar(async () => (await mapa())[ranura] === 'rueda_ancha', 1500))) return `FALLA: el arrastre al socket ${ranura} no puso la rueda ancha`;
+      }
     }
     await captura('taller_ancha');
     const txt = (await textosDe('Taller')).find((t) => t.startsWith('✓') || t.startsWith('✗') || t.startsWith('✕'));

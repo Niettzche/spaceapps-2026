@@ -1,64 +1,72 @@
 import Phaser from 'phaser';
 import { irA } from './ui.js';
-import * as K from './comun/pixel.js'; // botones, chips, barras e íconos de arte (DISENO.md §2)
+import * as K from './comun/pixel.js'; // botones, chips, barras, paneles e íconos de arte (DISENO.md §2)
 import { PIEZAS, DESTINOS } from '../data.js';
 import { PRESUPUESTO_INICIAL } from '../config/world.js';
 import { partida } from '../main.js';
-import {
-  RANURAS, DISENO_POR_DEFECTO, piezasPara, costoEnRanura, comoMapa, comoDiseno, resumen, validar,
-} from './Taller/diseno.js';
+import { RANURAS, DISENO_POR_DEFECTO, comoMapa, comoDiseno, resumen, validar, efectosEn } from './Taller/diseno.js';
 import { historialAlEntrar, diferencias } from './Taller/historial.js';
-import { efectosEn } from './Taller/diseno.js';
+import {
+  PESTANAS, tarjetasDe, pestanaDeRanura, socketsPara, socketPreferido, poner, quitar as quitarDe, mover, ambosEjes, nombreCorto,
+} from './Taller/arrastre.js';
+import { RAZONES } from './Taller/bloqueadas.js';
 import {
   PINTURAS, pinturaPorId, siguientePintura, normalizarNombre, personalizacionDe, fijar as fijarPersonalizacion, LARGO_NOMBRE,
 } from './Taller/personalizacion.js';
 import { MASA_CARGA_KG } from '../fisica/diseno.js'; // la carga que se entrega (frente juego)
 import { ambienteDeDestino } from '../fisica/ambiente.js';
+import { cargarArte, arteDePieza, hayArte, cuadros } from '../fisica/aspecto.js';
+import { sonarBoton } from '../fisica/sonido.js';
 import { tr, trDato, enIngles } from '../i18n.js';
 
-// Dueño: frente taller. Armado con ranuras fijas, presupuesto visible, validación del diseño.
+// Dueño: frente taller. Armado por ARRASTRE en pixel art: el robot grande al centro con sus ranuras como sockets, la bandeja
+// de piezas abajo por sistema, y el costo, la masa, la autonomía y el agarre en tiempo real a la derecha.
 // Contrato con el frente juego: partida.diseno = [{ ranura, pieza }] (docs/juego/ESPECIFICACION.md §3).
-// Interfaz provisional en texto; el frente de arte reemplaza los rectángulos por sprites.
+// Tres formas de armar (AGENTS.md §12, accesible): arrastrar con ratón o dedo · tocar pieza y luego socket · teclado
+// (←/→ socket, ↑/↓ pieza, Enter pone, Supr quita, Tab pestaña, A ambos ejes, Ctrl+Z/Y). Reglas puras en Taller/arrastre.js.
 
 const C = {
   texto: '#ffffff', suave: '#9aa4c7', claro: '#cfd6ff', acento: '#ffd166', apagado: '#a3abcc',
-  error: '#ff7a7a', ok: '#6ee7a8', // contraste ≥ 4.5:1 (DISENO.md §2): apagado antes #6c7393 (3.7:1), error #ff6b6b (4.4:1)
+  error: '#ff7a7a', ok: '#6ee7a8', // contraste ≥ 4.5:1 sobre el fondo oscuro (DISENO.md §2)
 };
 const ACENTO = 0xffd166;
-const BORDE = 0x4a5275;
-const RELLENO = 0x141830;
-const FUENTE = 'monospace';
+const BIEN = 0x6ee7a8;
+const ROJO = 0xff7a7a;
+const BORDE = 0x4a5490;
 
-// Tamaño de letra (px del juego). En un teléfono en horizontal el lienzo de 960 × 540 se reduce a ~0.72:
-// 16 px del juego ≈ 11.5 px reales, el mínimo legible. Nada del Taller usa menos de TXT.
-const TXT = 16;       // texto general, esquema, catálogo, validación y ayuda
-const TXT_MEDIO = 17; // nombres de pieza, encabezado del catálogo y presupuesto
+// Texto del Taller: un solo punto de entrada para cambiarlo a la fuente bitmap cuando comun/pixel.js tenga `textoPixel`
+// (hoy no existe en esta base). Mantiene la letra ≥ 14 px (DISENO.md §2.1).
+const texto = (scene, x, y, s, o = {}) => K.txt(scene, x, y, s, o);
 
-// Posición de cada ranura en el esquema lateral (el robot avanza hacia la derecha). Columna izquierda: x 25–465;
-// termina antes de la fila de Regresar / Deshacer / Rehacer (y = BOTONES_Y).
-const ESQUEMA = {
-  // 3 renglones: "Módulo" + "Panel solar grande" en 2. Más ancha hacia la izquierda (x 292–465): a 140 px el nombre
-  // con ícono ocupaba 3 renglones y la caja se salía hacia la fila del presupuesto.
-  modulo: { x: 378, y: 142, w: 174, h: 56 },
-  // Fila de arriba alta (86) para que quepan ícono + etiqueta + nombre de la pieza en 2–3 líneas a 16 px.
-  motor: { x: 95, y: 216, w: 140, h: 86 },
-  bateria: { x: 245, y: 216, w: 140, h: 86 },
-  carga: { x: 395, y: 216, w: 140, h: 86, etiqueta: 'Carga', etiqueta_en: 'Cargo' }, // "Soporte de carga" + nombre de la pieza no cabe con ícono
-  chasis: { x: 245, y: 292, w: 440, h: 46 },
-  rueda_tras: { x: 110, y: 359, rueda: true },
-  rueda_del: { x: 380, y: 359, rueda: true },
+// ---- Disposición (960 × 540) ----
+const S = 8; // escala del robot: 1 px de arte = 8 px de pantalla (el chasis de 24 px mide 192)
+const ROBOT = { x: 308, y: 222 }; // centro del chasis
+const ESCENARIO = { x: 14, y: 82, w: 588, h: 252 };
+const LADO = { x: 612, y: 82, w: 334, h: 252 };
+const SOCKET_W = 150;
+const SOCKET_H = 46;
+// Caja de cada socket (centro) y su punto de anclaje en el robot (px de arte desde el centro del chasis, como fisica/aspecto.js).
+const SOCKETS = {
+  modulo: { x: 98, y: 108, ancla: [5, -4.5] },
+  carga: { x: 308, y: 108, ancla: [0, -5.5] },
+  chasis: { x: 518, y: 108, ancla: [10, 0.5] },
+  motor: { x: 92, y: 222, ancla: [-8, 0] },
+  bateria: { x: 524, y: 222, ancla: [4.5, 0] },
+  rueda_tras: { x: 108, y: 306, ancla: [-8.64, 3.2] },
+  rueda_del: { x: 508, y: 306, ancla: [8.64, 3.2] },
 };
-// Columna derecha (catálogo y validación): x 490–945.
-const CAT_X = 490;
-const CAT_Y = 128;    // encabezado del catálogo
-const FILA_Y = 152;   // primera pieza
-const FILA_PASO = 68; // alto de cada pieza (3 renglones de 16–17 px)
-const FILAS_VISIBLES = 3; // ranuras con más piezas (ejes y módulo: 4) se recorren con ▲ / ▼, ↑/↓ o la rueda del ratón
-// Personalización (cosmética), en la franja libre arriba a la izquierda: x 25–320 (a la derecha está la caja del módulo,
-// x ≥ 325) e y 114–172 (abajo empieza la fila del motor, y 173).
-const PERS_X = 25;
-const PERS_Y1 = 128;
-const PERS_Y2 = 158;
+const DECO = { motor: [-8, 0], bateria: [6, 0], modulo: [5, -4] }; // calcomanías sobre el chasis (fisica/aspecto.js POS_DECO)
+const PESTANA_Y = 340;
+const PESTANA_H = 30;
+const CARTA_Y = 378;
+const CARTA_W = 136;
+const CARTA_H = 90;
+const CARTA_X0 = 52;
+const CARTA_PASO = CARTA_W + 8;
+const POR_PAGINA = 6;
+const BOTONES_Y = 494;
+const AYUDA_Y = 530;
+const UMBRAL_ARRASTRE = 6; // px que hay que mover para que un toque se vuelva arrastre
 
 const piezaPorId = Object.fromEntries(PIEZAS.map((p) => [p.id, p]));
 const ORDEN_RANURAS = RANURAS.map((r) => r.id);
@@ -69,96 +77,106 @@ const CLAVE_PINTURA = 'pintura';
 const CLAVE_NOMBRE = 'nombre';
 const nombreRanura = (id) => (ranuraPorId[id] ? trDato(ranuraPorId[id], 'nombre')
   : id === CLAVE_PINTURA ? tr('pintura', 'paint') : id === CLAVE_NOMBRE ? tr('nombre', 'name') : id);
+const ETIQUETA_SOCKET = { carga: ['Carga', 'Cargo'], rueda_del: ['Eje del. ×2', 'Front ×2'], rueda_tras: ['Eje tras. ×2', 'Rear ×2'] };
+const etiquetaSocket = (id) => (ETIQUETA_SOCKET[id] ? tr(...ETIQUETA_SOCKET[id]) : nombreRanura(id));
 
-// Diseño con el que se cerró el Taller la última vez (Probar o Regresar), por partida (`clave` = partida.resultados, que
-// cambia de identidad en cada partida nueva o restaurada). Si al volver partida.diseno es otro (p. ej. "Aplicar y al taller"
-// en Resultados), ese cambio queda como primer paso del historial y Deshacer lo revierte.
+// Diseño con el que se cerró el Taller la última vez (Probar o Regresar), por partida (`clave` = partida.resultados).
+// Si al volver partida.diseno es otro ("Aplicar y al taller" en Resultados), ese cambio queda como primer paso del historial.
 let memoria = null;
 
-// Íconos 16 × 16 de las piezas (frente arte): assets/iconos/<id_de_pieza>.png.
-// Clave de textura = ruta sin extensión ("iconos/rueda_ancha"), la misma que usa el Boot al precargar /assets.
-// Si un ícono no existe, la pieza se muestra solo con texto.
+// Íconos 16 × 16 de las piezas (frente arte): assets/iconos/<id>.png, clave "iconos/<id>". Sin ícono propio: RESPALDO_ICONO.
 const ICONOS = import.meta.glob('../../../assets/iconos/*.png', { eager: true, query: '?url', import: 'default' });
 const URL_ICONO = Object.fromEntries(Object.entries(ICONOS).map(([ruta, url]) => [ruta.split('/').pop().replace(/\.png$/, ''), url]));
-const claveIcono = (id) => `iconos/${id}`;
+const RESPALDO_ICONO = {
+  chasis_titanio: ['chasis_ligero', 0xb4c0d4], chasis_carbono: ['chasis_ligero', 0x5c6274],
+  rueda_nitinol: ['rueda_malla', 0xc8dcff], auto_rescate: ['ico_subida', null],
+};
 
-// Columna derecha bajo el catálogo (DISENO.md §3 Taller): fila de validación con keywords, agarre como 3 barras y
-// 3 números grandes (autonomía, masa, efecto del módulo en el destino). El detalle completo va al panel de ayuda (H / «?»).
-const VALIDACION_Y = FILA_Y + 3 * FILA_PASO + 2; // 358
-const AGARRE_Y = VALIDACION_Y + 30;               // 388
-const CIFRAS_Y = AGARRE_Y + 32;                   // 420
-// Fila de botones de abajo (cajas de arte de 42 px: y 469–511) y una sola línea de ayuda debajo (y ≈ 529).
-const BOTONES_Y = 490;
-const AYUDA_Y = 529;
-
-// Nombre de superficie para mostrar (los datos usan arena/roca/compacto).
 const SUPERFICIE_EN = { arena: 'sand', roca: 'rock', compacto: 'compact' };
 const sup = (s) => tr(s, SUPERFICIE_EN[s] ?? s);
-
-function datoClave(p) {
-  if (p.agarre) {
-    return tr(
-      `agarre: arena ${f2(p.agarre.arena)} · roca ${f2(p.agarre.roca)} · comp. ${f2(p.agarre.compacto)}`,
-      `grip: sand ${f2(p.agarre.arena)} · rock ${f2(p.agarre.roca)} · compact ${f2(p.agarre.compacto)}`,
-    );
-  }
-  if (p.sistema === 'estructura') return tr(`resistencia ${p.resistencia}`, `durability ${p.resistencia}`);
-  if (p.sistema === 'potencia') return tr(`fuerza ${p.fuerza} · consumo ${p.consumo}/s`, `force ${p.fuerza} · drain ${p.consumo}/s`);
-  if (p.sistema === 'energia') return tr(`capacidad ${p.capacidad}`, `capacity ${p.capacidad}`);
-  if (p.sistema === 'carga') return tr(`protección ${Math.round(p.proteccion * 100)} %`, `protection ${Math.round(p.proteccion * 100)} %`);
-  // Módulo: una línea (≤ 44 caracteres a 16 px) para que la fila no crezca.
-  if (p.capacidad) return tr(`recarga con luz · capacidad ${p.capacidad}`, `recharges in sunlight · capacity ${p.capacidad}`);
-  if (p.aislamiento_termico) {
-    const pct = Math.round(p.aislamiento_termico * 100);
-    return tr(`evita ${pct} % de la pérdida por frío`, `prevents ${pct} % of the cold loss`);
-  }
-  if (p.radiador) return tr('enfría el motor sin aire (radiación)', 'cools the motor without air (radiation)');
-  return '';
-}
-const conModificador = (ev) => Boolean(ev && (ev.ctrlKey || ev.metaKey || ev.altKey));
-function f2(v) { return typeof v === 'number' ? v.toFixed(2) : '—'; }
+const f2 = (v) => (typeof v === 'number' ? v.toFixed(2) : '—');
 const pct = (v) => `${Math.round(v * 100)} %`;
 const MUNDO = () => ({ marte: tr('Marte', 'Mars'), luna: tr('Luna', 'Moon'), tierra: tr('Tierra', 'Earth') });
+const conModificador = (ev) => Boolean(ev && (ev.ctrlKey || ev.metaKey || ev.altKey));
+const corto = (p) => nombreCorto(p, enIngles());
 
-// Zonas de toque: lo dibujado no cambia, pero el área que responde al dedo es más grande.
-// En un teléfono en horizontal el lienzo de 960 × 540 se reduce a ~0.7 y un botón de texto de 18 px queda de ~13 px de alto;
-// el mínimo recomendado para un dedo es ~44 px. Las coordenadas son locales al objeto (0,0 = esquina superior izquierda).
-// Ninguna zona se traslapa con la de otro control (Phaser solo atiende al de arriba, así que un traslape sería un toque equivocado).
-function zonaToque(obj, x, y, w, h) {
-  const zona = new Phaser.Geom.Rectangle(x, y, w, h);
-  if (obj.input) { // ya era interactivo (p. ej. los botones de ui.js): Phaser ignora una zona nueva en setInteractive, hay que asignarla
-    obj.input.hitArea = zona;
-    obj.input.hitAreaCallback = Phaser.Geom.Rectangle.Contains;
-    obj.input.customHitArea = true; // si no, Phaser vuelve la zona al tamaño del texto cada vez que cambia el texto o el color
-    return obj;
+/** Hasta 2 cifras de una pieza para su tarjeta: { k, v (0–1) } como barra, o { k } solo texto. Valores de juego (P). */
+function cifrasDe(p) {
+  const masa = (max) => ({ k: tr('masa', 'mass'), v: p.masa / max });
+  switch (p.sistema) {
+    case 'movilidad': return [{ k: sup('arena'), v: p.agarre?.arena }, { k: sup('roca'), v: p.agarre?.roca }];
+    case 'estructura': return [{ k: tr('resist.', 'durab.'), v: p.resistencia / 120 }, masa(35)];
+    case 'potencia': return [{ k: tr('fuerza', 'force'), v: p.fuerza / 90 }, { k: tr('gasto', 'drain'), v: p.consumo / 1.2 }];
+    case 'energia': return [{ k: tr('carga', 'charge'), v: p.capacidad / 220 }, masa(11)];
+    case 'carga': return [{ k: tr('protec.', 'prot.'), v: p.proteccion }, masa(6)];
+    default: {
+      let k = '';
+      if (p.capacidad) k = tr(`recarga ${p.capacidad}`, `charge ${p.capacidad}`);
+      else if (p.aislamiento_termico) k = tr('evita frío', 'stops cold');
+      else if (p.radiador) k = tr('enfría motor', 'cools motor');
+      else if (p.auto_rescate) k = tr('zafa atascos', 'gets unstuck');
+      return [{ k }, masa(7)];
+    }
   }
-  return obj.setInteractive({ hitArea: zona, hitAreaCallback: Phaser.Geom.Rectangle.Contains, useHandCursor: true });
+}
+
+/** Una línea con todo lo de una pieza (abajo, al elegirla): nombre, costo en su ranura, masa y su dato clave. */
+function detalleDe(p) {
+  if (p.bloqueada) return `${tr('Bloqueada', 'Locked')} · ${trDato(p, 'nombre')} (${p.excel}, ${p.estado}): ${trDato(p, 'detalle')}`;
+  const eje = p.sistema === 'movilidad';
+  const costo = eje ? tr(`2 × ${p.costo} cr por eje`, `2 × ${p.costo} cr per axle`) : `${p.costo} cr`;
+  const masa = `${p.masa * (eje ? 2 : 1)} kg`;
+  let dato = '';
+  if (p.agarre) dato = tr(`agarre arena ${f2(p.agarre.arena)} · roca ${f2(p.agarre.roca)} · comp. ${f2(p.agarre.compacto)}`,
+    `grip sand ${f2(p.agarre.arena)} · rock ${f2(p.agarre.roca)} · compact ${f2(p.agarre.compacto)}`);
+  if (p.amortiguacion) dato += tr(` · absorbe ${pct(p.amortiguacion)} de sacudidas`, ` · absorbs ${pct(p.amortiguacion)} of jolts`);
+  else if (p.sistema === 'estructura') dato = tr(`resistencia ${p.resistencia}`, `durability ${p.resistencia}`);
+  else if (p.sistema === 'potencia') dato = tr(`fuerza ${p.fuerza} · consumo ${p.consumo}/s`, `force ${p.fuerza} · drain ${p.consumo}/s`);
+  else if (p.sistema === 'energia') dato = tr(`capacidad ${p.capacidad}`, `capacity ${p.capacidad}`);
+  else if (p.sistema === 'carga') dato = tr(`protección ${pct(p.proteccion)}`, `protection ${pct(p.proteccion)}`);
+  else if (p.capacidad) dato = tr(`recarga con la luz del lugar · capacidad ${p.capacidad}`, `recharges in local sunlight · capacity ${p.capacidad}`);
+  else if (p.aislamiento_termico) dato = tr(`evita ${pct(p.aislamiento_termico)} de la pérdida por frío`, `prevents ${pct(p.aislamiento_termico)} of the cold loss`);
+  else if (p.radiador) dato = tr('enfría el motor sin aire (radiación)', 'cools the motor without air (radiation)');
+  else if (p.auto_rescate) {
+    const a = p.auto_rescate;
+    dato = tr(`atascado ${a.atasco_s} s → +${pct(a.agarre - 1)} agarre ${a.duracion_s} s, gasta ${a.energia}`,
+      `stuck ${a.atasco_s} s → +${pct(a.agarre - 1)} grip for ${a.duracion_s} s, costs ${a.energia}`);
+  }
+  return `${trDato(p, 'nombre')} · ${costo} · ${masa} · ${dato} (P)`;
+}
+
+/** Zona de toque rectangular (coordenadas locales del objeto). */
+function zonaToque(obj, x, y, w, h) {
+  return obj.setInteractive({ hitArea: new Phaser.Geom.Rectangle(x, y, w, h), hitAreaCallback: Phaser.Geom.Rectangle.Contains, useHandCursor: true });
 }
 
 export default class Taller extends Phaser.Scene {
   constructor() { super('Taller'); }
 
   preload() {
-    // Normalmente el Boot ya los precargó; aquí solo se cargan los que falten (p. ej. si hay assets/manifest.json).
+    // Normalmente el Boot ya los precargó; aquí solo se cargan los que falten.
     for (const p of PIEZAS) {
       const url = URL_ICONO[p.id];
-      if (url && !this.textures.exists(claveIcono(p.id))) this.load.image(claveIcono(p.id), url);
+      if (url && !this.textures.exists(`iconos/${p.id}`)) this.load.image(`iconos/${p.id}`, url);
     }
+    cargarArte(this); // sprites del robot (fisica/aspecto.js): los mismos de la prueba
   }
 
-  icono(id) {
-    return this.textures.exists(claveIcono(id)) ? claveIcono(id) : null;
+  /** Ícono de una pieza (o del bloqueado): { clave, tinte } o null. */
+  icono(p) {
+    if (p.bloqueada) return this.textures.exists(p.icono) ? { clave: p.icono, tinte: null } : null;
+    if (this.textures.exists(`iconos/${p.id}`)) return { clave: `iconos/${p.id}`, tinte: null };
+    const r = RESPALDO_ICONO[p.id];
+    return r && this.textures.exists(`iconos/${r[0]}`) ? { clave: `iconos/${r[0]}`, tinte: r[1] } : null;
   }
 
   create() {
-    // Fondo de arte del taller (Mauricio, #77), oscurecido para que el texto se lea encima.
     if (this.textures.exists('pantallas/taller_fondo')) {
       this.add.image(480, 270, 'pantallas/taller_fondo').setScale(3).setDepth(-10);
-      this.add.rectangle(480, 270, 960, 540, 0x0b0d17, 0.62).setDepth(-9);
+      this.add.rectangle(480, 270, 960, 540, 0x0b0d17, 0.55).setDepth(-9);
     }
+    this.input.mouse?.disableContextMenu(); // clic derecho en un socket = quitar
     this.presupuesto = partida.presupuesto ?? PRESUPUESTO_INICIAL;
-    // Al volver de una prueba se conserva el diseño; la primera vez arranca con el robot mínimo (ruedas estándar).
-    // La pintura y el nombre (cosméticos) viajan en el mismo mapa para que Deshacer/Rehacer también los cubran.
     const cosmetica = personalizacionDe(partida);
     const conCosmetica = (m) => ({ ...m, [CLAVE_PINTURA]: cosmetica.pintura, ...(cosmetica.nombre ? { [CLAVE_NOMBRE]: cosmetica.nombre } : {}) });
     const entrada = comoMapa(partida.diseno);
@@ -170,75 +188,471 @@ export default class Taller extends Phaser.Scene {
         return { ranura: ranuras[0] ?? null, texto: tr(`recomendación aplicada (${lista})`, `applied recommendation (${lista})`) };
       });
     this.mapa = this.hist.actual;
-    this.sel = 0;      // índice de la ranura seleccionada en RANURAS
-    this.cursor = 0;   // índice de la pieza resaltada en el catálogo
-    this.desde = 0;    // primera pieza visible del catálogo (ranuras con más de FILAS_VISIBLES piezas)
+    this.sel = 0;        // socket elegido (índice en RANURAS)
+    this.pestana = 'movilidad';
+    this.cursor = 0;     // tarjeta resaltada en la pestaña
+    this.pagina = 0;
+    this.mano = false;   // la tarjeta del cursor está "tomada" (toque): el siguiente toque en un socket la pone
     this.aviso = '';
+    this.arrastre = null;
+    this.costoMostrado = null;
 
+    this.crearEncabezado();
+    this.crearEscenario();
+    this.crearLado();
+    this.crearBandeja();
+    this.crearBotones();
+    this.crearEntrada();
+
+    const aplicado = this.hist.puedeDeshacer ? this.hist.presente.cambio : null;
+    this.elegirSocket(aplicado && aplicado.ranura && ORDEN_RANURAS.includes(aplicado.ranura) ? ORDEN_RANURAS.indexOf(aplicado.ranura) : 1);
+    if (aplicado) {
+      const t = aplicado.texto.charAt(0).toUpperCase() + aplicado.texto.slice(1);
+      this.aviso = tr(`${t}: Deshacer la revierte.`, `${t}: Undo reverts it.`);
+    }
+    this.refrescar();
+    this.animarArmado();
+  }
+
+  // ───────────────────────── encabezado y presupuesto ─────────────────────────
+  crearEncabezado() {
+    const titulo = texto(this, 24, 24, tr('Taller', 'Workshop'), { size: 26, origen: [0, 0.5] });
     const destino = DESTINOS[partida.destino];
     const sitio = partida.sitio;
-    const tipos = sitio && sitio.nivel && Array.isArray(sitio.nivel.superficies)
+    const tipos = sitio?.nivel && Array.isArray(sitio.nivel.superficies)
       ? [...new Set(sitio.nivel.superficies.map((s) => s.tipo))].map(sup).join(', ') : null;
     const sub = [
-      tr('Destino: ', 'Destination: ') + (destino ? trDato(destino, 'nombre') : partida.destino),
-      sitio ? tr('Prueba en: ', 'Test at: ') + trDato(sitio, 'nombre') : null,
-      tipos ? tr(`superficies: ${tipos}`, `surfaces: ${tipos}`)
-        : (sitio && sitio.prueba_util ? tr('prueba útil: ', 'tests: ') + trDato(sitio, 'prueba_util') : null),
+      destino ? trDato(destino, 'nombre') : partida.destino,
+      sitio ? tr('prueba: ', 'test: ') + trDato(sitio, 'nombre') : null,
+      tipos,
     ].filter(Boolean).join(' · ');
-    // Encabezado propio (no ui.titulo): título, subtítulo de hasta 2 líneas (los sitios de nombre largo ya no se achican)
-    // y presupuesto, todo a >= 16 px.
-    this.add.text(480, 22, tr('Taller', 'Workshop'), { fontFamily: FUENTE, fontSize: '28px', color: C.texto }).setOrigin(0.5);
-    this.add.text(480, 42, sub, {
-      fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.suave, align: 'center', wordWrap: { width: 930 },
-    }).setOrigin(0.5, 0);
-    this.crearPresupuesto();
+    const xs = Math.round(titulo.x + titulo.width + 20);
+    texto(this, xs, 24, sub, { size: 15, color: C.suave, origen: [0, 0.5], ancho: 815 - xs });
+    this.btnAyuda = K.boton(this, 945, 24, tr('? Ayuda', '? Help'), () => this.alternarAyuda(), { size: 15, alto: 36, origen: [1, 0.5], color: K.P.dato });
 
-    this.crearPersonalizacion();
-    this.crearEsquema();
-    this.add.text(245, ESQUEMA.rueda_tras.y, tr('avance →', 'forward →'), { fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.apagado }).setOrigin(0.5);
+    const y = 62;
+    const etiqueta = texto(this, 24, y, tr('Presupuesto', 'Budget'), { size: 15, color: C.claro, origen: [0, 0.5] });
+    this.barraX = etiqueta.x + etiqueta.width + 12;
+    this.barraW = 250;
+    this.barraPresupuesto = K.barra(this, this.barraX, y - 10, this.barraW, 20, 0, K.P.accion);
+    this.txtCosto = texto(this, this.barraX + this.barraW + 12, y, '', { size: 18, origen: [0, 0.5] });
+    this.txtRestante = texto(this, LADO.x + 4, y, '', { size: 15, color: C.apagado, origen: [0, 0.5] });
+    // «Valores de juego»: precios, masas y agarres no son datos de ingeniería (AGENTS.md §3.4).
+    texto(this, 945, y, tr('(P) valores de juego', '(P) game values'), { size: 14, color: C.apagado, origen: [1, 0.5] });
+  }
 
-    this.txtCatalogo = this.add.text(CAT_X, CAT_Y, '', { fontFamily: FUENTE, fontSize: `${TXT_MEDIO}px`, color: C.texto }).setOrigin(0, 0.5);
-    this.lista = this.add.container(0, 0);
-    // Paginador del catálogo (solo si la ranura tiene más de FILAS_VISIBLES piezas): ▲ n–m/N ▼ junto al encabezado.
-    this.pagArriba = this.add.text(0, CAT_Y, '▲', { fontFamily: FUENTE, fontSize: `${TXT_MEDIO}px`, color: C.acento }).setOrigin(0, 0.5)
-      .on('pointerdown', () => this.desplazar(-1));
-    this.pagTexto = this.add.text(0, CAT_Y, '', { fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.claro }).setOrigin(0, 0.5);
-    this.pagAbajo = this.add.text(0, CAT_Y, '▼', { fontFamily: FUENTE, fontSize: `${TXT_MEDIO}px`, color: C.acento }).setOrigin(0, 0.5)
-      .on('pointerdown', () => this.desplazar(1));
-    // Zonas de 34 × 32 alrededor de cada flecha (y 112–144: no tocan la primera fila, que empieza en y 150).
-    for (const f of [this.pagArriba, this.pagAbajo]) zonaToque(f, (f.width - 34) / 2, (f.height - 32) / 2, 34, 32);
-    // Rueda del ratón sobre el catálogo.
-    this.input.on('wheel', (puntero, _objs, _dx, dy) => {
-      if (puntero.x >= CAT_X && puntero.y >= FILA_Y && puntero.y <= FILA_Y + FILAS_VISIBLES * FILA_PASO) this.desplazar(Math.sign(dy));
+  /** Barra y número del presupuesto, animados del costo anterior al nuevo; un «+N»/«−N» flota desde la barra. */
+  mostrarCosto(costo, animar) {
+    const pintar = (c) => {
+      const pasado = c > this.presupuesto;
+      this.barraPresupuesto.fijar(c / this.presupuesto, pasado ? K.P.riesgo : K.P.accion);
+      this.txtCosto.setText(`${Math.round(c)} / ${this.presupuesto} cr`).setColor(pasado ? C.error : C.texto);
+    };
+    const antes = this.costoMostrado;
+    this.costoMostrado = costo;
+    const restante = this.presupuesto - costo;
+    this.txtRestante.setText(restante < 0 ? tr(`✕ excede ${-restante} cr`, `✕ over by ${-restante} cr`) : tr(`quedan ${restante} cr`, `${restante} cr left`))
+      .setColor(restante < 0 ? C.error : C.ok);
+    if (!animar || antes == null || antes === costo) { pintar(costo); return; }
+    this.tweenCosto?.stop();
+    this.tweenCosto = this.tweens.addCounter({ from: antes, to: costo, duration: 260, ease: 'Quad.Out', onUpdate: (tw) => pintar(tw.getValue()), onComplete: () => pintar(costo) });
+    const d = costo - antes;
+    const x = this.barraX + Math.min(1, costo / this.presupuesto) * this.barraW;
+    const f = texto(this, x, 50, `${d > 0 ? '+' : '−'}${Math.abs(d)} cr`, { size: 16, color: d > 0 ? C.acento : C.ok, origen: [0.5, 1], borde: true }).setDepth(30);
+    this.tweens.add({ targets: f, y: 30, alpha: 0, duration: 900, ease: 'Quad.Out', onComplete: () => f.destroy() });
+  }
+
+  // ───────────────────────── escenario: robot y sockets ─────────────────────────
+  crearEscenario() {
+    K.panel(this, ESCENARIO.x, ESCENARIO.y, ESCENARIO.w, ESCENARIO.h, { alfa: 0.85 });
+    this.lineas = this.add.graphics().setDepth(2);
+    this.capaRobot = this.add.container(0, 0).setDepth(5);
+    this.sockets = {};
+    for (const r of RANURAS) {
+      const s = SOCKETS[r.id];
+      const x0 = s.x - SOCKET_W / 2;
+      const y0 = s.y - SOCKET_H / 2;
+      const caja = this.add.rectangle(x0, y0, SOCKET_W, SOCKET_H, 0x0b0d17, 0.88).setOrigin(0, 0).setStrokeStyle(2, BORDE).setDepth(3);
+      zonaToque(caja, -3, -3, SOCKET_W + 6, SOCKET_H + 6);
+      caja.on('pointerdown', (p) => this.alTocarSocket(r.id, p));
+      caja.on('pointerover', () => { this.sobreSocket = r.id; this.pintarSockets(); });
+      caja.on('pointerout', () => { if (this.sobreSocket === r.id) this.sobreSocket = null; this.pintarSockets(); });
+      const img = this.add.image(x0 + 22, s.y, '__DEFAULT').setScale(2).setDepth(4).setVisible(false);
+      const l1 = texto(this, x0 + 42, y0 + 5, '', { size: 14, color: C.claro }).setDepth(4);
+      const l2 = texto(this, x0 + 42, y0 + 24, '', { size: 15 }).setDepth(4);
+      this.sockets[r.id] = { caja, img, l1, l2, x0, y0 };
+    }
+    // Botón «igual en ambos ejes», entre las cajas de los ejes.
+    this.btnEjes = K.boton(this, ROBOT.x, 306, tr('⇄ Igual en ambos ejes', '⇄ Same on both axles'), () => this.igualarEjes(), { size: 15, alto: 36 });
+    for (const o of [this.btnEjes.obj, this.btnEjes.caja]) o.setDepth(6);
+  }
+
+  /** Punto de anclaje de un socket en el robot (px de pantalla). */
+  ancla(id) {
+    const [ax, ay] = SOCKETS[id].ancla;
+    return { x: ROBOT.x + ax * S, y: ROBOT.y + ay * S };
+  }
+
+  /** Socket bajo un punto: cajas, anclas del robot, ruedas y cuerpo del chasis. */
+  socketEn(x, y) {
+    for (const r of RANURAS) {
+      const s = this.sockets[r.id];
+      if (x >= s.x0 - 6 && x <= s.x0 + SOCKET_W + 6 && y >= s.y0 - 6 && y <= s.y0 + SOCKET_H + 6) return r.id;
+    }
+    let mejor = null;
+    let dMin = Infinity;
+    for (const r of RANURAS) {
+      const a = this.ancla(r.id);
+      const radio = r.id.startsWith('rueda') ? 36 : r.id === 'chasis' ? 0 : 26;
+      const d = Math.hypot(x - a.x, y - a.y);
+      if (d <= radio && d < dMin) { mejor = r.id; dMin = d; }
+    }
+    if (mejor) return mejor;
+    const cuerpo = this.cuerpoChasis;
+    if (cuerpo && x >= cuerpo.x0 && x <= cuerpo.x1 && y >= cuerpo.y0 && y <= cuerpo.y1) return 'chasis';
+    return null;
+  }
+
+  /** Dibuja el robot con los sprites de la prueba (×S) según el mapa; las ranuras vacías se ven como silueta. */
+  dibujarRobot() {
+    this.capaRobot.removeAll(true);
+    this.partes = {};
+    this.cajaCarga = null;
+    const p = (id) => piezaPorId[this.mapa[id]] ?? null;
+    const add = (o) => { this.capaRobot.add(o); return o; };
+    const sprite = (nombre, x, y, tinte) => {
+      const s = this.add.image(x, y, `arte:${nombre}`, cuadros(this, nombre)[0]).setScale(S);
+      if (tinte != null) s.setTint(tinte);
+      return add(s);
+    };
+    const g = add(this.add.graphics());
+    const fantasma = (x, y, w, h, falta) => {
+      g.lineStyle(2, falta ? ROJO : BORDE, 0.9);
+      for (let i = 0; i < w; i += 10) { g.lineBetween(x + i, y, x + Math.min(w, i + 5), y); g.lineBetween(x + i, y + h, x + Math.min(w, i + 5), y + h); }
+      for (let j = 0; j < h; j += 10) { g.lineBetween(x, y + j, x, y + Math.min(h, j + 5)); g.lineBetween(x + w, y + j, x + w, y + Math.min(h, j + 5)); }
+    };
+    // Chasis
+    const chasis = p('chasis');
+    const pintura = pinturaPorId(this.mapa[CLAVE_PINTURA]);
+    let altoChasis = 6;
+    if (chasis) {
+      const arte = arteDePieza(this, chasis.id);
+      const variante = `${chasis.id}_${pintura.id}`;
+      const nombre = hayArte(this, variante) ? variante : arte?.nombre;
+      if (nombre) {
+        const tinte = nombre === variante ? null : (pintura.tinte !== 0xffffff ? pintura.tinte : arte.tinte);
+        this.partes.chasis = sprite(nombre, ROBOT.x, ROBOT.y, tinte);
+        altoChasis = this.partes.chasis.frame.height;
+      } else {
+        this.partes.chasis = add(this.add.rectangle(ROBOT.x, ROBOT.y, 24 * S, 6 * S, pintura.figura ?? 0xdfe3ee));
+      }
+    } else fantasma(ROBOT.x - 12 * S, ROBOT.y - 3 * S, 24 * S, 6 * S, true);
+    const arriba = ROBOT.y - (altoChasis * S) / 2;
+    this.cuerpoChasis = { x0: ROBOT.x - 12 * S, x1: ROBOT.x + 12 * S, y0: arriba, y1: ROBOT.y + (altoChasis * S) / 2 };
+    // Calcomanías de motor, batería y módulo (si no hay calcomanía, su ícono pequeño encima del chasis)
+    for (const [id, [dx, dy]] of Object.entries(DECO)) {
+      const pz = p(id);
+      const x = ROBOT.x + dx * S;
+      const y = ROBOT.y + dy * S;
+      if (!pz) { if (chasis) fantasma(x - 2.5 * S, y - 2 * S, 5 * S, 4 * S, ranuraPorId[id].obligatoria); continue; }
+      if (hayArte(this, `deco_${pz.id}`)) this.partes[id] = sprite(`deco_${pz.id}`, x, y);
+      else {
+        const ic = this.icono(pz);
+        this.partes[id] = ic ? add(this.add.image(x, y, ic.clave).setScale(2)) : add(this.add.rectangle(x, y, 5 * S, 4 * S, 0x80e0dc));
+        if (ic?.tinte != null) this.partes[id].setTint(ic.tinte);
+      }
+    }
+    // Soporte de carga y la carga encima
+    const soporte = p('carga');
+    if (soporte) {
+      if (hayArte(this, soporte.id)) {
+        const h = this.textures.getFrame(`arte:${soporte.id}`, cuadros(this, soporte.id)[0]).height;
+        this.partes.carga = sprite(soporte.id, ROBOT.x, arriba - (h * S) / 2);
+      } else this.partes.carga = add(this.add.rectangle(ROBOT.x, arriba - S, 10 * S, 2 * S, 0x9aa4c7));
+      if (hayArte(this, 'carga')) this.cajaCarga = sprite('carga', ROBOT.x, arriba - 2.5 * S);
+      else this.cajaCarga = add(this.add.rectangle(ROBOT.x, arriba - 2.5 * S, 7 * S, 5 * S, 0xffd166));
+    } else fantasma(ROBOT.x - 5 * S, arriba - 3 * S, 10 * S, 3 * S, true);
+    // Ruedas (encima del chasis, como en la prueba)
+    for (const id of ['rueda_tras', 'rueda_del']) {
+      const pz = p(id);
+      const a = this.ancla(id);
+      if (!pz) { fantasma(a.x - 3.5 * S, a.y - 3.5 * S, 7 * S, 7 * S, true); continue; }
+      const arte = arteDePieza(this, pz.id);
+      if (arte) this.partes[id] = sprite(arte.nombre, a.x, a.y, arte.tinte);
+      else {
+        const r = (pz.radio_m ?? 0.45) * 8 * S;
+        const c = add(this.add.graphics({ x: a.x, y: a.y }));
+        c.fillStyle(0x2b2d3a, 1).fillCircle(0, 0, r).lineStyle(3, 0x9aa4c7, 1).strokeCircle(0, 0, r);
+        this.partes[id] = c;
+      }
+    }
+    // Línea de suelo bajo las ruedas; las siluetas de lo que falta quedan encima de los sprites
+    g.lineStyle(2, 0x5a6390, 1).lineBetween(ROBOT.x - 15 * S, ROBOT.y + 7 * S, ROBOT.x + 15 * S, ROBOT.y + 7 * S);
+    this.capaRobot.bringToTop(g);
+  }
+
+  /** Cajas de los sockets: ícono, etiqueta y pieza; borde según estado (elegido, válido al arrastrar, falta). Líneas al robot. */
+  pintarSockets() {
+    const enMano = this.piezaEnMano();
+    const validos = new Set(enMano ? socketsPara(enMano) : []);
+    const t = this.time.now / 1000;
+    this.lineas.clear();
+    RANURAS.forEach((r, i) => {
+      const s = this.sockets[r.id];
+      const pz = piezaPorId[this.mapa[r.id]];
+      const falta = !pz && r.obligatoria;
+      const valido = validos.has(r.id);
+      const elegido = i === this.sel;
+      const sobre = this.sobreSocket === r.id || this.arrastre?.sobre === r.id;
+      let color = falta ? ROJO : BORDE;
+      let grosor = 2;
+      if (elegido) { color = ACENTO; grosor = 3; }
+      if (valido) { color = BIEN; grosor = sobre ? 4 : 3; }
+      s.caja.setStrokeStyle(grosor, color).setFillStyle(valido ? 0x10301f : 0x0b0d17, valido && sobre ? 1 : 0.88);
+      if (valido) s.caja.setAlpha(0.8 + 0.2 * Math.sin(t * 8)); else s.caja.setAlpha(1);
+      const ic = pz ? this.icono(pz) : null;
+      s.img.setVisible(Boolean(ic));
+      if (ic) { s.img.setTexture(ic.clave); if (ic.tinte != null) s.img.setTint(ic.tinte); else s.img.clearTint(); }
+      s.l1.setText(etiquetaSocket(r.id)).setColor(elegido ? C.acento : C.claro);
+      s.l2.setText(pz ? corto(pz) : (r.obligatoria ? tr('(vacío)', '(empty)') : tr('(opcional)', '(optional)')))
+        .setColor(falta ? C.error : pz ? C.texto : C.apagado);
+      // Línea punteada de la caja al punto del robot
+      const a = this.ancla(r.id);
+      const bx = Phaser.Math.Clamp(a.x, s.x0, s.x0 + SOCKET_W);
+      const by = Phaser.Math.Clamp(a.y, s.y0, s.y0 + SOCKET_H);
+      const largo = Math.hypot(a.x - bx, a.y - by);
+      this.lineas.lineStyle(2, valido ? BIEN : elegido ? ACENTO : 0x5a6390, valido || elegido ? 1 : 0.7);
+      for (let d = 0; d < largo; d += 8) {
+        const u0 = d / largo;
+        const u1 = Math.min(1, (d + 4) / largo);
+        this.lineas.lineBetween(bx + (a.x - bx) * u0, by + (a.y - by) * u0, bx + (a.x - bx) * u1, by + (a.y - by) * u1);
+      }
+      this.lineas.fillStyle(valido ? BIEN : elegido ? ACENTO : 0x5a6390, 1).fillRect(a.x - 3, a.y - 3, 6, 6);
     });
-    this.btnQuitar = this.add.text(937, CAT_Y, tr('Quitar', 'Remove'), { fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.acento })
-      .setOrigin(1, 0.5).on('pointerdown', () => this.quitar());
-    this.cajaQuitar = this.cajaTexto(this.btnQuitar);
-    // Crece hacia arriba y a la izquierda; abajo empieza la primera fila del catálogo (y >= 150).
-    zonaToque(this.btnQuitar, this.btnQuitar.width - 130, -14, 135, this.btnQuitar.height + 18);
-    this.crearResumen();
+  }
 
-    // Abajo a la izquierda (y BOTONES_Y, bajo el esquema): Regresar, Deshacer y Rehacer con caja de arte (DISENO.md §2.6).
-    // Zona táctil = la caja (≥ 64 × 44) + 6 px arriba y abajo; no se tocan entre sí ni con Restablecer.
-    const opc = { size: TXT, alto: 42, origen: [0, 0.5], zonaExtra: [0, 4] };
-    this.btnRegresar = K.boton(this, 18, BOTONES_Y, tr('← Regresar', '← Back'), () => this.regresar(), opc);
-    this.btnDeshacer = K.boton(this, 0, BOTONES_Y, tr('Deshacer', 'Undo'), () => this.deshacer(), opc);
-    this.btnRehacer = K.boton(this, 0, BOTONES_Y, tr('Rehacer', 'Redo'), () => this.rehacer(), opc);
-    this.btnDeshacer.mover(18 + this.btnRegresar.ancho + 12);
-    this.btnRehacer.mover(this.btnDeshacer.caja.x + this.btnDeshacer.ancho + 12);
+  update() {
+    if (this.arrastre?.activo || this.mano) this.pintarSockets(); // pulso de los sockets válidos
+  }
 
-    // Restablecer y Probar (el botón principal, más ancho), a la derecha bajo la columna del catálogo.
-    this.btnRestablecer = K.boton(this, 590, BOTONES_Y, tr('Restablecer', 'Reset'), () => this.restablecer(), { size: TXT, alto: 42, zonaExtra: [0, 4] });
+  // ───────────────────────── panel de cifras (derecha) ─────────────────────────
+  crearLado() {
+    K.panel(this, LADO.x, LADO.y, LADO.w, LADO.h, { alfa: 0.85 });
+    this.grupoLado = this.add.container(0, 0).setDepth(3);
+    this.crearPersonalizacion();
+  }
+
+  refrescarLado(res, errores) {
+    const g = this.grupoLado;
+    g.removeAll(true);
+    const x0 = LADO.x + 12;
+    // 1) Validación en una fila de chips
+    const chips = [];
+    if (!errores.length) {
+      chips.push({ texto: res.ejes_distintos ? tr('✓ Listo', '✓ Ready') : tr('✓ Listo para probar', '✓ Ready to test'), color: K.P.bien, size: 15 });
+    }
+    else {
+      for (const r of RANURAS.filter((x) => x.obligatoria && !this.mapa[x.id])) {
+        chips.push({ texto: tr(`✕ Falta ${String(r.nombre).toLowerCase()}`, `✕ Missing ${String(trDato(r, 'nombre')).toLowerCase()}`), tipo: 'rojo', size: 15 });
+      }
+      if (res.costo > this.presupuesto) chips.push({ texto: tr(`✕ Excede ${res.costo - this.presupuesto} cr`, `✕ Over by ${res.costo - this.presupuesto} cr`), tipo: 'rojo', size: 15 });
+      if (!chips.length) chips.push({ texto: `✕ ${errores[0]}`, tipo: 'rojo', size: 15 });
+    }
+    if (res.ejes_distintos) chips.push({ texto: tr('⚠ Ejes distintos', '⚠ Mixed axles'), color: K.P.accion, size: 15 });
+    g.add(K.filaChips(this, x0, LADO.y + 10, chips, LADO.x + LADO.w - 10).objs);
+
+    // 2) Tres cifras: masa, autonomía y efecto del destino
+    const destino = DESTINOS[partida.destino];
+    const amb = destino ? ambienteDeDestino(destino.id, destino.mundo) : null;
+    const e = efectosEn(res, amb);
+    const mundo = destino ? (MUNDO()[destino.mundo] ?? destino.mundo) : '';
+    let efecto = { n: '—', k: tr('destino', 'destination'), ico: 'iconos/ico_temperatura' };
+    if (e) {
+      if (res.radiador) efecto = { n: pct(e.potencia_caliente), k: tr('motor caliente', 'hot motor'), ico: 'iconos/ico_temperatura' };
+      else if (e.recarga_s) efecto = { n: `+${e.recarga_s.toFixed(2)}/s`, k: tr('panel solar', 'solar panel'), ico: 'iconos/ico_luz' };
+      else efecto = { n: pct(e.bateria), k: tr(`batería ${mundo}`, `battery ${mundo}`), ico: 'iconos/ico_temperatura' };
+    }
+    const cifras = [
+      { n: `${res.masa} kg`, k: tr(`+${MASA_CARGA_KG} kg carga`, `+${MASA_CARGA_KG} kg cargo`), ico: 'iconos/ico_gravedad', esc: 1, resp: '↓' },
+      { n: res.autonomia_s != null ? `${Math.round(res.autonomia_s)} s` : '—', k: tr('autonomía', 'run time'), ico: 'ui/ui_icono_energia', esc: 2, resp: '⚡' },
+      { ...efecto, esc: 1, resp: '°' },
+    ];
+    cifras.forEach((c, i) => {
+      const x = x0 + i * 108;
+      g.add(K.icono(this, x + 8, LADO.y + 54, c.ico, { escala: c.esc, respaldo: c.resp }));
+      g.add(texto(this, x + 20, LADO.y + 44, c.n, { size: 18 }));
+      g.add(texto(this, x, LADO.y + 66, c.k, { size: 14, color: C.apagado }));
+    });
+
+    // 3) Agarre de las ruedas (promedio de los ejes): 3 barras con su número
+    ['arena', 'roca', 'compacto'].forEach((s, i) => {
+      const x = x0 + i * 106;
+      const v = res.agarre[s];
+      const color = v == null ? K.P.sec : v >= 0.7 ? K.P.bien : v >= 0.5 ? K.P.accion : K.P.riesgo;
+      g.add(texto(this, x, LADO.y + 90, `${s === 'compacto' ? 'comp.' : sup(s)} ${f2(v)}`, { size: 15 }));
+      g.add(K.barra(this, x, LADO.y + 110, 98, 12, v, color).objs);
+    });
+
+    // 4) Protección y resistencia, y la línea de lo especial del diseño (módulo, llanta o el destino)
+    const prot = res.proteccion != null ? pct(res.proteccion) : '—';
+    g.add(texto(this, x0, LADO.y + 130, tr(`Protección ${prot} · resistencia ${res.resistencia ?? '—'}`, `Protection ${prot} · durability ${res.resistencia ?? '—'}`), { size: 15 }));
+    g.add(texto(this, x0, LADO.y + 152, this.lineaEspecial(res, e), { size: 14, color: C.ok, ancho: LADO.w - 24 }));
+  }
+
+  /** Lo que hace diferente a este diseño: auto-rescate, Nitinol o el efecto del destino (con y sin el módulo). */
+  lineaEspecial(res, e) {
+    if (res.auto_rescate) {
+      const a = res.auto_rescate;
+      return tr(`Auto-rescate: atascado ${a.atasco_s} s → +${pct(a.agarre - 1)} agarre`, `Self-rescue: stuck ${a.atasco_s} s → +${pct(a.agarre - 1)} grip`);
+    }
+    if (res.amortiguacion) return tr(`Llanta de Nitinol: absorbe ${pct(res.amortiguacion)} de sacudidas`, `Nitinol tire: absorbs ${pct(res.amortiguacion)} of jolts`);
+    return this.lineasDestino(res, e)[0] ?? '';
+  }
+
+  // ───────────────────────── bandeja de piezas ─────────────────────────
+  crearBandeja() {
+    this.pestanasUI = PESTANAS.map((t, i) => {
+      const w = 148;
+      const x = 16 + i * (w + 6);
+      const caja = this.add.rectangle(x, PESTANA_Y, w, PESTANA_H, 0x141830, 0.95).setOrigin(0, 0).setStrokeStyle(2, BORDE);
+      zonaToque(caja, 0, -4, w, PESTANA_H + 6);
+      caja.on('pointerdown', () => this.elegirPestana(t.id));
+      const etq = texto(this, x + w / 2 + (t.bloqueadas ? 10 : 0), PESTANA_Y + PESTANA_H / 2, trDato(t, 'nombre'), { size: 15, origen: [0.5, 0.5] });
+      const candado = t.bloqueadas ? this.candado(x + w / 2 - etq.width / 2 - 4, PESTANA_Y + PESTANA_H / 2, 2) : null;
+      return { t, caja, etq, candado };
+    });
+    this.lista = this.add.container(0, 0).setDepth(3);
+    this.flechaIzq = texto(this, 28, CARTA_Y + CARTA_H / 2, '‹', { size: 28, color: C.acento, origen: [0.5, 0.5] });
+    this.flechaDer = texto(this, 932, CARTA_Y + CARTA_H / 2, '›', { size: 28, color: C.acento, origen: [0.5, 0.5] });
+    zonaToque(this.flechaIzq, (this.flechaIzq.width - 40) / 2, (this.flechaIzq.height - 70) / 2, 40, 70).on('pointerdown', () => this.paginar(-1));
+    zonaToque(this.flechaDer, (this.flechaDer.width - 40) / 2, (this.flechaDer.height - 70) / 2, 40, 70).on('pointerdown', () => this.paginar(1));
+    this.input.on('wheel', (pt, _o, _dx, dy) => { if (pt.y >= CARTA_Y && pt.y <= CARTA_Y + CARTA_H) this.paginar(Math.sign(dy)); });
+  }
+
+  /** Candado en pixel art (gráficos) centrado en (x, y); escala `e` = px de pantalla por px de arte. */
+  candado(x, y, e = 2, contenedor = null) {
+    const g = this.add.graphics({ x: x - 3 * e, y: y - 4 * e });
+    g.fillStyle(0xa3abcc, 1);
+    g.fillRect(1 * e, 0, 4 * e, e); g.fillRect(0, e, e, 3 * e); g.fillRect(5 * e, e, e, 3 * e); // arco
+    g.fillStyle(0xffd166, 1).fillRect(0, 3 * e, 6 * e, 5 * e); // cuerpo
+    g.fillStyle(0x0b0d17, 1).fillRect(2.5 * e, 5 * e, e, 2 * e); // cerradura
+    if (contenedor) contenedor.add(g);
+    return g;
+  }
+
+  tarjetas() { return tarjetasDe(this.pestana, PIEZAS); }
+
+  elegirPestana(id, { cursorEn = null } = {}) {
+    this.pestana = id;
+    const lista = this.tarjetas();
+    const i = cursorEn ? lista.findIndex((p) => p.id === cursorEn) : -1;
+    this.cursor = Math.max(0, i);
+    this.pagina = Math.floor(this.cursor / POR_PAGINA);
+    this.mano = false;
+    this.refrescarBandeja();
+    this.pintarSockets();
+  }
+
+  paginar(d) {
+    const n = Math.ceil(this.tarjetas().length / POR_PAGINA);
+    const p = Phaser.Math.Clamp(this.pagina + d, 0, n - 1);
+    if (p === this.pagina) return;
+    this.pagina = p;
+    this.cursor = p * POR_PAGINA;
+    this.mano = false;
+    this.refrescarBandeja();
+  }
+
+  /** Tarjetas de la página: ícono, nombre corto, costo en su ranura y 2 cifras en barras. */
+  refrescarBandeja() {
+    for (const { t, caja, etq } of this.pestanasUI) {
+      const activa = t.id === this.pestana;
+      caja.setFillStyle(activa ? 0x2b3470 : 0x141830, 0.95).setStrokeStyle(activa ? 3 : 2, activa ? ACENTO : BORDE);
+      etq.setColor(activa ? C.acento : C.claro);
+    }
+    this.lista.removeAll(true);
+    this.cartasUI = [];
+    const lista = this.tarjetas();
+    const paginas = Math.ceil(lista.length / POR_PAGINA);
+    this.flechaIzq.setVisible(paginas > 1).setAlpha(this.pagina > 0 ? 1 : 0.35);
+    this.flechaDer.setVisible(paginas > 1).setAlpha(this.pagina < paginas - 1 ? 1 : 0.35);
+    const puestas = new Set(Object.values(this.mapa));
+    lista.slice(this.pagina * POR_PAGINA, (this.pagina + 1) * POR_PAGINA).forEach((p, j) => {
+      const i = this.pagina * POR_PAGINA + j;
+      const x = CARTA_X0 + j * CARTA_PASO;
+      const tomada = this.mano && i === this.cursor;
+      const y = CARTA_Y - (tomada ? 4 : 0);
+      const resaltada = i === this.cursor;
+      const puesta = !p.bloqueada && puestas.has(p.id);
+      const fondo = K.nueve(this, 'ui/ui_tarjeta', x, y, CARTA_W, CARTA_H, 3, 2)
+        ?? this.add.rectangle(x, y, CARTA_W, CARTA_H, 0x141830).setOrigin(0, 0);
+      const marco = this.add.rectangle(x, y, CARTA_W, CARTA_H).setOrigin(0, 0)
+        .setStrokeStyle(resaltada ? 3 : 2, resaltada ? ACENTO : puesta ? BIEN : BORDE, resaltada || puesta ? 1 : 0.6);
+      zonaToque(marco, 0, 0, CARTA_W, CARTA_H);
+      marco.on('pointerdown', (pt) => this.alTocarCarta(i, pt));
+      const objs = [fondo, marco];
+      const ic = this.icono(p);
+      if (ic) {
+        const img = this.add.image(x + 22, y + 22, ic.clave).setScale(2);
+        if (ic.tinte != null) img.setTint(ic.tinte);
+        if (p.bloqueada) img.setAlpha(0.45);
+        objs.push(img);
+      }
+      if (p.bloqueada) {
+        objs.push(texto(this, x + CARTA_W - 6, y + 3, p.excel.split(' · ')[0], { size: 14, color: C.claro, origen: [1, 0] }));
+        objs.push(texto(this, x + CARTA_W - 6, y + 21, p.estado, { size: 14, color: C.apagado, origen: [1, 0] }));
+        objs.push(texto(this, x + 6, y + 38, corto(p), { size: 15, color: C.apagado }));
+        objs.push(texto(this, x + 6, y + 56, RAZONES[p.razon][enIngles() ? 'corto_en' : 'corto'], { size: 14, color: C.error }));
+        objs.push(texto(this, x + 26, y + 73, tr('bloqueada', 'locked'), { size: 14, color: C.apagado }));
+      } else {
+        const eje = p.sistema === 'movilidad';
+        objs.push(texto(this, x + CARTA_W - 6, y + 3, `${p.costo * (eje ? 2 : 1)} cr`, { size: 15, color: C.acento, origen: [1, 0] }));
+        const ranura = eje ? tr('eje ×2', 'axle ×2') : etiquetaSocket(socketsPara(p)[0]);
+        objs.push(texto(this, x + CARTA_W - 6, y + 21, ranura, { size: 14, color: C.apagado, origen: [1, 0] }));
+        objs.push(texto(this, x + 6, y + 38, `${puesta ? '✓ ' : ''}${corto(p)}`, { size: 15, color: puesta ? C.ok : C.texto }));
+        cifrasDe(p).forEach((c, k) => {
+          const cy = y + 56 + k * 17;
+          objs.push(texto(this, x + 6, cy, c.k, { size: 14, color: C.claro }));
+          if (c.v != null) objs.push(...K.barra(this, x + 72, cy + 3, 58, 10, c.v, K.P.dato).objs);
+        });
+      }
+      this.lista.add(objs);
+      if (p.bloqueada) {
+        // El candado va dentro del contenedor (se destruye con la página).
+        this.candado(x + 14, y + 81, 1.6, this.lista);
+      }
+      this.cartasUI[i] = { x, y, p, marco };
+    });
+  }
+
+  // ───────────────────────── botones de abajo ─────────────────────────
+  crearBotones() {
+    const opc = { size: 15, alto: 42, origen: [0, 0.5], zonaExtra: [0, 2] };
+    let x = 16;
+    const sig = (b) => { x = b.caja.x + b.ancho + 10; return b; };
+    this.btnRegresar = sig(K.boton(this, x, BOTONES_Y, tr('← Regresar', '← Back'), () => this.regresar(), opc));
+    this.btnDeshacer = sig(K.boton(this, x, BOTONES_Y, tr('Deshacer', 'Undo'), () => this.deshacer(), opc));
+    this.btnRehacer = sig(K.boton(this, x, BOTONES_Y, tr('Rehacer', 'Redo'), () => this.rehacer(), opc));
+    this.btnQuitar = sig(K.boton(this, x, BOTONES_Y, tr('Quitar', 'Remove'), () => this.quitarSocket(ORDEN_RANURAS[this.sel]), opc));
+    this.btnRestablecer = sig(K.boton(this, x, BOTONES_Y, tr('Restablecer', 'Reset'), () => this.restablecer(), opc));
     this.btnContinuar = K.boton(this, 945, BOTONES_Y, tr('Probar el robot', 'Test the robot'), () => this.continuar(),
-      { size: 18, alto: 42, origen: [1, 0.5], anchoMin: 240, zonaExtra: [0, 4] });
-    // Ayuda de teclado en 1 línea; el resto (y el detalle de los números) en el panel «?» / H (DISENO.md §3 Taller).
-    // La misma línea muestra los avisos (recomendación aplicada, deshacer, ejes distintos) mientras haya uno.
-    this.txtAyuda = this.add.text(480, AYUDA_Y, '', { fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.apagado, align: 'center' }).setOrigin(0.5);
-    this.btnAyuda = K.boton(this, 945, 22, tr('? Ayuda', '? Help'), () => this.alternarAyuda(), { size: TXT, alto: 39, origen: [1, 0.5], color: K.P.dato });
+      { size: 18, alto: 42, origen: [1, 0.5], anchoMin: 230, zonaExtra: [0, 2] });
+    this.txtAyuda = texto(this, 480, AYUDA_Y, '', { size: 14, color: C.apagado, origen: [0.5, 0.5] });
+  }
 
+  // ───────────────────────── entrada: puntero y teclado ─────────────────────────
+  crearEntrada() {
+    this.input.on('pointermove', (pt) => this.alMover(pt));
+    this.input.on('pointerup', (pt) => this.alSoltar(pt));
+    this.input.on('pointerupoutside', (pt) => this.alSoltar(pt));
+    // Arrastrar desde el robot: tocar un sprite del robot es tocar su socket.
+    this.input.on('pointerdown', (pt, objs) => {
+      if (objs.length || this.ayuda) return;
+      const id = this.socketEn(pt.x, pt.y);
+      if (id) this.alTocarSocket(id, pt);
+    });
     const k = this.input.keyboard;
-    // A veces Phaser entrega el mismo keydown nativo dos veces (dos updates del plugin antes de vaciar la cola): con P eso
-    // saltaba una pintura y con Ctrl+Z deshacía dos pasos. Cada manejador atiende cada evento nativo una sola vez.
+    // A veces Phaser entrega el mismo keydown nativo dos veces: cada manejador atiende cada evento nativo una sola vez.
     const on = (nombre, fn) => {
       const vistos = new WeakSet();
       k.on(nombre, (ev) => {
@@ -246,23 +660,28 @@ export default class Taller extends Phaser.Scene {
         fn(ev);
       });
     };
-    on('keydown-LEFT', () => this.elegirRanura(this.sel - 1));
-    on('keydown-RIGHT', () => this.elegirRanura(this.sel + 1));
+    on('keydown-LEFT', () => this.elegirSocket(this.sel - 1));
+    on('keydown-RIGHT', () => this.elegirSocket(this.sel + 1));
     on('keydown-UP', () => this.moverCursor(-1));
     on('keydown-DOWN', () => this.moverCursor(1));
-    on('keydown-ENTER', () => this.equipar(this.cursor));
-    on('keydown-SPACE', () => this.equipar(this.cursor));
-    on('keydown-DELETE', () => this.quitar());
-    on('keydown-BACKSPACE', () => this.quitar());
+    on('keydown-ENTER', () => this.ponerCursor());
+    on('keydown-SPACE', () => this.ponerCursor());
+    on('keydown-DELETE', () => this.quitarSocket(ORDEN_RANURAS[this.sel]));
+    on('keydown-BACKSPACE', () => this.quitarSocket(ORDEN_RANURAS[this.sel]));
+    on('keydown-TAB', (ev) => {
+      ev?.preventDefault?.();
+      const i = PESTANAS.findIndex((t) => t.id === this.pestana);
+      this.elegirPestana(PESTANAS[(i + (ev?.shiftKey ? -1 : 1) + PESTANAS.length) % PESTANAS.length].id);
+      this.refrescar();
+    });
+    on('keydown-A', (ev) => { if (!conModificador(ev)) this.igualarEjes(); });
     on('keydown-R', (ev) => { if (!conModificador(ev)) this.restablecer(); });
     on('keydown-C', (ev) => { if (!conModificador(ev)) this.continuar(); });
     on('keydown-P', (ev) => { if (!conModificador(ev)) this.pintar(siguientePintura(this.mapa[CLAVE_PINTURA], ev.shiftKey ? -1 : 1)); });
-    // preventDefault: si no, la propia "n" se escribe en el campo de texto que se enfoca durante este mismo keydown.
     on('keydown-N', (ev) => { if (!conModificador(ev)) { ev.preventDefault(); this.abrirNombre(); } });
     this.events.once('shutdown', () => this.cerrarNombre());
-    on('keydown-ESC', () => (this.ayuda ? this.alternarAyuda() : this.regresar()));
+    on('keydown-ESC', () => (this.ayuda ? this.alternarAyuda() : this.mano ? this.soltarMano() : this.regresar()));
     on('keydown-H', (ev) => { if (!conModificador(ev)) this.alternarAyuda(); });
-    // Ctrl+Z deshacer · Ctrl+Y o Ctrl+Shift+Z rehacer (Cmd en Mac).
     on('keydown', (ev) => {
       if (!(ev.ctrlKey || ev.metaKey) || ev.altKey) return;
       const tecla = ev.key.toLowerCase();
@@ -271,326 +690,352 @@ export default class Taller extends Phaser.Scene {
       else return;
       ev.preventDefault();
     });
+  }
 
-    // Si se llegó con un cambio hecho afuera ("Aplicar y al taller"), se elige la ranura que cambió y se avisa que se puede deshacer.
-    const aplicado = this.hist.puedeDeshacer ? this.hist.presente.cambio : null;
-    this.elegirRanura(aplicado && aplicado.ranura ? ORDEN_RANURAS.indexOf(aplicado.ranura) : 0);
-    if (aplicado) {
-      const texto = aplicado.texto.charAt(0).toUpperCase() + aplicado.texto.slice(1);
-      this.aviso = tr(`${texto}: Deshacer la revierte.`, `${texto}: Undo reverts it.`);
-      this.refrescar();
+  /** Pieza que se está arrastrando o que está "tomada" (toque o cursor con mano). */
+  piezaEnMano() {
+    if (this.arrastre?.activo) return this.arrastre.pieza;
+    if (this.mano) return this.tarjetas()[this.cursor] ?? null;
+    return null;
+  }
+
+  alTocarCarta(i, pt) {
+    if (pt?.rightButtonDown?.()) return;
+    const pieza = this.tarjetas()[i];
+    this.arrastre = { origen: 'carta', indice: i, pieza, x0: pt.x, y0: pt.y, activo: false, sobre: null };
+  }
+
+  alTocarSocket(id, pt) {
+    if (this.ayuda) return;
+    if (pt?.rightButtonDown?.()) { this.quitarSocket(id); return; } // clic derecho = quitar
+    const pieza = piezaPorId[this.mapa[id]] ?? null;
+    this.arrastre = { origen: 'socket', ranura: id, pieza, x0: pt.x, y0: pt.y, activo: false, sobre: null };
+  }
+
+  alMover(pt) {
+    const a = this.arrastre;
+    if (!a || !pt.isDown) return;
+    if (!a.activo) {
+      if (!a.pieza || Math.hypot(pt.x - a.x0, pt.y - a.y0) < UMBRAL_ARRASTRE) return;
+      if (a.pieza.bloqueada) { this.avisoBloqueada(a.pieza); this.arrastre = null; return; }
+      a.activo = true;
+      this.mano = false;
+      if (a.origen === 'carta') { this.cursor = a.indice; this.refrescarBandeja(); }
+      a.fantasma = this.crearFantasma(a.pieza);
+      if (a.origen === 'socket') this.partes?.[a.ranura]?.setAlpha(0.3);
     }
+    a.fantasma.setPosition(pt.x, pt.y);
+    const s = this.socketEn(pt.x, pt.y);
+    a.sobre = s && socketsPara(a.pieza).includes(s) ? s : null;
+    this.pintarSockets();
   }
 
+  /** Lo que sigue al puntero mientras se arrastra: el ícono grande y el nombre corto. */
+  crearFantasma(p) {
+    const c = this.add.container(0, 0).setDepth(50);
+    const ic = this.icono(p);
+    if (ic) {
+      const img = this.add.image(0, 0, ic.clave).setScale(3);
+      if (ic.tinte != null) img.setTint(ic.tinte);
+      c.add(img);
+    } else c.add(this.add.rectangle(0, 0, 40, 40, 0x80e0dc));
+    c.add(texto(this, 0, 28, corto(p), { size: 14, origen: [0.5, 0], borde: true }));
+    c.setScale(1.1);
+    this.tweens.add({ targets: c, scale: 1, duration: 120 });
+    return c;
+  }
 
-  // ---------- esquema del robot ----------
-  crearEsquema() {
-    this.ranurasUI = {};
-    const g = this.add.graphics();
-    // Suspensión: ejes unidos al chasis (solo decorativo).
-    g.lineStyle(3, BORDE, 1);
-    const bajoChasis = ESQUEMA.chasis.y + ESQUEMA.chasis.h / 2;
-    g.lineBetween(ESQUEMA.rueda_tras.x, bajoChasis, ESQUEMA.rueda_tras.x, ESQUEMA.rueda_tras.y);
-    g.lineBetween(ESQUEMA.rueda_del.x, bajoChasis, ESQUEMA.rueda_del.x, ESQUEMA.rueda_del.y);
-    for (const r of RANURAS) {
-      const e = ESQUEMA[r.id];
-      let forma;
-      if (e.rueda) {
-        forma = this.add.circle(e.x, e.y, 32, RELLENO).setStrokeStyle(2, BORDE);
-      } else {
-        forma = this.add.rectangle(e.x, e.y, e.w, e.h, RELLENO).setStrokeStyle(2, BORDE);
-      }
-      // Zona de toque un poco más grande que la caja, sin tocar a la vecina: ruedas +6 px por lado; motor, batería y carga
-      // +2 px a los lados; módulo +3 arriba y abajo; chasis +8 arriba y abajo (hay hueco entre filas).
-      const mas = e.rueda ? [6, 6] : r.id === 'chasis' ? [0, 8] : r.id === 'modulo' ? [2, 3] : [2, 0];
-      zonaToque(forma, -mas[0], -mas[1], (e.rueda ? 64 : e.w) + 2 * mas[0], (e.rueda ? 64 : e.h) + 2 * mas[1]);
-      forma.on('pointerdown', () => this.elegirRanura(RANURAS.indexOf(r)));
-      // Ícono: × 2 dentro de la rueda; × 1 a la izquierda en las ranuras rectangulares.
-      const img = e.rueda
-        ? this.add.image(e.x, e.y, '__DEFAULT').setScale(2)
-        : this.add.image(e.x - e.w / 2 + 14, e.y, '__DEFAULT');
-      img.setVisible(false);
-      const ty = e.rueda ? e.y + 34 : e.y;
-      const txt = this.add.text(e.x, ty, '', {
-        fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.texto, align: 'center', lineSpacing: -1,
-        wordWrap: { width: e.rueda ? 170 : e.w - 8 },
-      }).setOrigin(0.5, e.rueda ? 0 : 0.5);
-      this.ranurasUI[r.id] = { forma, txt, img, e };
+  alSoltar(pt) {
+    const a = this.arrastre;
+    this.arrastre = null;
+    if (!a) return;
+    if (!a.activo) { this.alTocar(a); return; }
+    const destino = this.socketEn(pt.x, pt.y);
+    const valido = destino && socketsPara(a.pieza).includes(destino);
+    if (a.origen === 'carta') {
+      if (valido) { a.fantasma.destroy(); this.ponerEn(a.pieza, destino); return; }
+      // Inválido: la pieza vuelve a su tarjeta.
+      const carta = this.cartasUI?.[a.indice];
+      const vx = carta ? carta.x + 22 : a.x0;
+      const vy = carta ? carta.y + 22 : a.y0;
+      this.tweens.add({ targets: a.fantasma, x: vx, y: vy, alpha: 0, scale: 0.6, duration: 220, ease: 'Quad.In', onComplete: () => a.fantasma.destroy() });
+      if (destino) this.avisar(tr(`${corto(a.pieza)} no va en ${etiquetaSocket(destino)}.`, `${corto(a.pieza)} does not fit in ${etiquetaSocket(destino)}.`));
+      this.pintarSockets();
+      return;
     }
+    // Desde el robot: a otro socket válido = mover; fuera de cualquier socket = quitar; a uno inválido = vuelve.
+    this.partes?.[a.ranura]?.setAlpha(1);
+    if (valido && destino !== a.ranura) {
+      a.fantasma.destroy();
+      const r = mover(this.mapa, a.ranura, destino, PIEZAS);
+      if (r.ok) this.aplicarCambio(r.mapa, { ranura: destino, texto: tr(`mover ${corto(a.pieza)} a ${etiquetaSocket(destino)}`, `move ${corto(a.pieza)} to ${etiquetaSocket(destino)}`) }, { encaja: destino, suelta: a.ranura });
+      return;
+    }
+    if (!destino) { a.fantasma.destroy(); this.quitarSocket(a.ranura); return; }
+    const o = this.ancla(a.ranura);
+    this.tweens.add({ targets: a.fantasma, x: o.x, y: o.y, alpha: 0, duration: 200, onComplete: () => a.fantasma.destroy() });
+    this.pintarSockets();
   }
 
-  refrescarEsquema() {
-    RANURAS.forEach((r, i) => {
-      const { forma, txt, img, e } = this.ranurasUI[r.id];
-      const p = piezaPorId[this.mapa[r.id]];
-      const elegida = i === this.sel;
-      const falta = !p && r.obligatoria;
-      forma.setStrokeStyle(elegida ? 3 : 2, elegida ? ACENTO : (falta ? 0xff6b6b : BORDE));
-      if (e.rueda) forma.setRadius(p && p.radio_m ? Math.round(p.radio_m * 64) : 28);
-      const clave = p ? this.icono(p.id) : null;
-      if (clave) img.setTexture(clave);
-      img.setVisible(Boolean(clave));
-      if (!e.rueda) {
-        // Con ícono, el texto se recorre a la derecha para no taparlo.
-        txt.setX(clave ? e.x + 12 : e.x);
-        txt.setWordWrapWidth(clave ? e.w - 32 : e.w - 8); // misma letra (TXT) con o sin ícono
-      }
-      const nombreRanura = e.etiqueta ? trDato(e, 'etiqueta') : trDato(r, 'nombre');
-      const etiqueta = r.multiplicador > 1 ? `${nombreRanura} ×${r.multiplicador}` : nombreRanura;
-      const vacio = r.obligatoria ? tr('(vacía)', '(empty)') : tr('(opcional)', '(optional)');
-      txt.setText(`${etiqueta}\n${p ? trDato(p, 'nombre') : vacio}`);
-      txt.setColor(falta ? C.error : (elegida ? C.acento : C.texto));
-    });
+  /** Toque sin arrastre: tomar/poner una tarjeta, o elegir un socket (o poner en él la tarjeta tomada). */
+  alTocar(a) {
+    if (a.origen === 'carta') {
+      const p = a.pieza;
+      if (this.mano && this.cursor === a.indice) { this.ponerCursor(); return; } // segundo toque = ponerla
+      this.cursor = a.indice;
+      if (p.bloqueada) { this.mano = false; this.avisoBloqueada(p); this.refrescarBandeja(); this.pintarSockets(); return; }
+      this.mano = true;
+      this.aviso = '';
+      this.detalle = detalleDe(p);
+      this.refrescarBandeja();
+      this.pintarSockets();
+      this.refrescarAyuda(tr('Toca un socket verde (o la tarjeta otra vez) para ponerla.', 'Tap a green socket (or the card again) to fit it.'));
+      return;
+    }
+    const id = a.ranura;
+    if (this.mano) {
+      const p = this.tarjetas()[this.cursor];
+      if (p && socketsPara(p).includes(id)) { this.ponerEn(p, id); return; }
+      this.avisar(tr(`${corto(p)} no va en ${etiquetaSocket(id)}.`, `${corto(p)} does not fit in ${etiquetaSocket(id)}.`));
+      return;
+    }
+    this.elegirSocket(ORDEN_RANURAS.indexOf(id));
   }
 
-  // ---------- catálogo de la ranura elegida ----------
-  opciones() { return piezasPara(RANURAS[this.sel].id, PIEZAS); }
+  soltarMano() { this.mano = false; this.refrescarBandeja(); this.pintarSockets(); this.refrescarAyuda(); }
 
-  elegirRanura(i) {
+  avisoBloqueada(p) {
+    this.detalle = detalleDe(p);
+    this.avisar(tr(`${trDato(p, 'nombre')}: bloqueada (${RAZONES[p.razon].es}).`, `${trDato(p, 'nombre')}: locked (${RAZONES[p.razon].en}).`));
+  }
+
+  avisar(t) {
+    this.aviso = t;
+    this.cameras.main.shake(90, 0.003);
+    this.refrescarAyuda();
+  }
+
+  // ───────────────────────── acciones del armado ─────────────────────────
+  elegirSocket(i) {
     this.sel = (i + RANURAS.length) % RANURAS.length;
-    const actual = this.mapa[RANURAS[this.sel].id];
-    this.cursor = Math.max(0, this.opciones().findIndex((p) => p.id === actual));
-    this.desde = 0;
+    const id = ORDEN_RANURAS[this.sel];
+    this.mano = false;
     this.aviso = '';
-    this.refrescar();
+    this.detalle = null;
+    this.elegirPestana(pestanaDeRanura(id), { cursorEn: this.mapa[id] ?? null });
+    if (!this.mapa[id]) {
+      const lista = this.tarjetas();
+      this.cursor = Math.max(0, lista.findIndex((p) => socketsPara(p).includes(id)));
+      this.pagina = Math.floor(this.cursor / POR_PAGINA);
+      this.refrescarBandeja();
+    }
+    this.pintarSockets();
+    this.refrescarAyuda();
+    this.refrescarBotones();
   }
 
   moverCursor(d) {
-    const n = this.opciones().length;
+    const n = this.tarjetas().length;
     if (!n) return;
     this.cursor = (this.cursor + d + n) % n;
-    this.refrescar();
+    this.pagina = Math.floor(this.cursor / POR_PAGINA);
+    this.mano = false;
+    this.detalle = detalleDe(this.tarjetas()[this.cursor]);
+    this.aviso = '';
+    this.refrescarBandeja();
+    this.pintarSockets();
+    this.refrescarAyuda();
   }
 
-  /** Recorre el catálogo una pieza (▲ / ▼ o rueda del ratón); el cursor se queda dentro de lo visible. */
-  desplazar(d) {
-    const n = this.opciones().length;
-    const desde = Math.max(0, Math.min(n - FILAS_VISIBLES, this.desde + d));
-    if (desde === this.desde) return;
-    this.desde = desde;
-    this.cursor = Math.max(desde, Math.min(desde + FILAS_VISIBLES - 1, this.cursor));
-    this.refrescarCatalogo();
-  }
-
-  equipar(i) {
-    const p = this.opciones()[i];
+  /** Pone la tarjeta del cursor en el socket preferido (el elegido si la acepta). */
+  ponerCursor() {
+    const p = this.tarjetas()[this.cursor];
     if (!p) return;
-    const r = RANURAS[this.sel];
-    this.mapa[r.id] = p.id;
-    this.hist.registrar(this.mapa, { ranura: r.id, texto: `${trDato(r, 'nombre')} → ${trDato(p, 'nombre')}` });
-    this.cursor = i;
-    this.aviso = '';
-    this.refrescar();
+    if (p.bloqueada) { this.avisoBloqueada(p); return; }
+    const id = socketPreferido(p, ORDEN_RANURAS[this.sel], this.mapa);
+    this.ponerEn(p, id);
   }
 
-  quitar() {
-    const r = RANURAS[this.sel];
-    delete this.mapa[r.id];
-    this.hist.registrar(this.mapa, { ranura: r.id, texto: tr(`quitar ${trDato(r, 'nombre')}`, `remove ${trDato(r, 'nombre')}`) });
-    this.aviso = '';
-    this.refrescar();
+  ponerEn(p, id) {
+    this.mano = false;
+    const r = poner(this.mapa, p, id);
+    if (!r.ok) {
+      if (r.motivo === 'igual') { this.aviso = tr(`${corto(p)} ya está en ${etiquetaSocket(id)}.`, `${corto(p)} is already in ${etiquetaSocket(id)}.`); this.refrescar(); }
+      else if (r.motivo === 'bloqueada') this.avisoBloqueada(p);
+      return;
+    }
+    this.sel = ORDEN_RANURAS.indexOf(id);
+    this.aplicarCambio(r.mapa, { ranura: id, texto: `${nombreRanura(id)} → ${trDato(p, 'nombre')}` }, { encaja: id });
+    if (id.startsWith('rueda') && r.mapa.rueda_del !== r.mapa.rueda_tras && r.mapa.rueda_del && r.mapa.rueda_tras) {
+      this.aviso = tr('Rueda puesta en un eje: «⇄ Igual en ambos ejes» (A) copia la misma al otro.', 'Wheel fitted on one axle: «⇄ Same on both axles» (A) copies it to the other.');
+      this.refrescarAyuda();
+    }
+  }
+
+  quitarSocket(id) {
+    const r = quitarDe(this.mapa, id);
+    if (!r.ok) return;
+    this.sel = ORDEN_RANURAS.indexOf(id);
+    this.aplicarCambio(r.mapa, { ranura: id, texto: tr(`quitar ${nombreRanura(id)}`, `remove ${nombreRanura(id)}`) }, { suelta: id });
+    // La bandeja salta a las piezas de ese socket para poner otra.
+    this.elegirPestana(pestanaDeRanura(id), { cursorEn: r.antes });
+    this.aviso = tr(`${nombreRanura(id)} quitada: arrastra otra pieza al socket.`, `${nombreRanura(id)} removed: drag another part onto the socket.`);
+    this.refrescarAyuda();
+  }
+
+  igualarEjes() {
+    const sel = ORDEN_RANURAS[this.sel];
+    const r = ambosEjes(this.mapa, sel);
+    if (!r.ok) { this.aviso = tr('Los dos ejes ya llevan la misma rueda.', 'Both axles already have the same wheel.'); this.refrescarAyuda(); return; }
+    this.sel = ORDEN_RANURAS.indexOf(r.otro);
+    this.aplicarCambio(r.mapa, { ranura: r.otro, texto: tr('ambos ejes → ', 'both axles → ') + trDato(piezaPorId[r.mapa[r.otro]], 'nombre') }, { encaja: r.otro });
   }
 
   restablecer() {
     // Vuelve a las piezas del robot mínimo; la pintura y el nombre (cosméticos) se quedan.
     const cosmetica = Object.fromEntries([CLAVE_PINTURA, CLAVE_NOMBRE].filter((c) => this.mapa[c]).map((c) => [c, this.mapa[c]]));
-    this.mapa = { ...comoMapa(DISENO_POR_DEFECTO), ...cosmetica };
-    this.hist.registrar(this.mapa, { ranura: null, texto: tr('restablecer', 'reset') });
-    this.cursorEnPuesta();
+    this.aplicarCambio({ ...comoMapa(DISENO_POR_DEFECTO), ...cosmetica }, { ranura: null, texto: tr('restablecer', 'reset') }, {});
     this.aviso = tr('Diseño restablecido al robot mínimo (ruedas estándar).', 'Design reset to the minimal robot (standard wheels).');
-    this.refrescar();
+    this.refrescarAyuda();
+    this.animarArmado();
   }
 
-  /** Cursor del catálogo sobre la pieza puesta en la ranura elegida. */
-  cursorEnPuesta() {
-    const actual = this.mapa[RANURAS[this.sel].id];
-    this.cursor = Math.max(0, this.opciones().findIndex((p) => p.id === actual));
+  /** Registra un cambio en el historial y refresca todo con animación: `encaja` = socket que recibe, `suelta` = que suelta. */
+  aplicarCambio(mapa, cambio, { encaja = null, suelta = null } = {}) {
+    const viejo = suelta ? this.copiaParte(suelta) : null;
+    this.mapa = mapa;
+    this.hist.registrar(this.mapa, cambio);
+    this.aviso = '';
+    this.detalle = null;
+    this.refrescar(true);
+    if (viejo) this.animarSoltar(viejo, suelta);
+    if (encaja) this.animarEncaje(encaja);
   }
 
-  // ---------- historial (Deshacer / Rehacer) ----------
-  // Vuelve a un estado guardado y refresca todo (costo, masa, validación, esquema, catálogo) como un cambio a mano;
-  // se elige la ranura que cambió para que se vea qué pasó.
+  // ───────────────────────── animaciones ─────────────────────────
+  /** Copia del sprite de una parte (para verla caer al quitarla). */
+  copiaParte(id) {
+    const o = this.partes?.[id];
+    if (!o || !o.texture) return null;
+    const c = this.add.image(o.x, o.y, o.texture.key, o.frame.name).setScale(o.scaleX).setDepth(20);
+    if (o.isTinted) c.setTint(o.tintTopLeft);
+    return c;
+  }
+
+  animarEncaje(id) {
+    const o = this.partes?.[id];
+    const a = id === 'chasis' ? { x: ROBOT.x, y: ROBOT.y } : (o ? { x: o.x, y: o.y } : this.ancla(id));
+    sonarBoton();
+    if (o) {
+      const sx = o.scaleX;
+      const sy = o.scaleY;
+      o.setScale(sx * 1.35, sy * 1.35);
+      if (o.setTintFill) {
+        const tinte = o.isTinted ? o.tintTopLeft : null; // destello blanco y vuelve a su tinte (pintura o respaldo)
+        o.setTintFill(0xffffff);
+        this.time.delayedCall(70, () => { if (o.active) { o.clearTint(); if (tinte != null) o.setTint(tinte); } });
+      }
+      this.tweens.add({ targets: o, scaleX: sx, scaleY: sy, duration: 240, ease: 'Back.Out' });
+    }
+    this.polvo(a.x, a.y, [0xffd166, 0xffffff, 0x80e0dc]);
+    const s = this.sockets[id];
+    if (s) this.tweens.add({ targets: s.caja, scaleX: 1.04, scaleY: 1.08, duration: 90, yoyo: true });
+  }
+
+  animarSoltar(copia, id) {
+    const lado = id.endsWith('del') || id === 'bateria' || id === 'chasis' ? 1 : -1;
+    this.tweens.add({ targets: copia, y: copia.y + 60, x: copia.x + lado * 24, angle: lado * 35, alpha: 0, duration: 420, ease: 'Quad.In', onComplete: () => copia.destroy() });
+    this.polvo(copia.x, copia.y + 10, [0x9aa4c7, 0x6b5a48]);
+  }
+
+  /** Polvo / chispas en pixel art: cuadritos que salen del punto y se desvanecen. */
+  polvo(x, y, colores) {
+    for (let i = 0; i < 10; i++) {
+      const ang = (i / 10) * Math.PI * 2 + Math.random() * 0.4;
+      const d = 18 + Math.random() * 22;
+      const q = this.add.rectangle(x, y, 4, 4, colores[i % colores.length]).setDepth(25);
+      this.tweens.add({ targets: q, x: x + Math.cos(ang) * d, y: y + Math.sin(ang) * d, alpha: 0, duration: 320 + Math.random() * 120, ease: 'Quad.Out', onComplete: () => q.destroy() });
+    }
+  }
+
+  /** Al entrar (o restablecer) el robot se arma pieza por pieza: ruedas, chasis, motor, batería, carga y módulo. */
+  animarArmado() {
+    const orden = ['rueda_tras', 'rueda_del', 'chasis', 'motor', 'bateria', 'carga', 'modulo'];
+    let k = 0;
+    for (const id of orden) {
+      const o = this.partes?.[id];
+      if (!o) continue;
+      const y = o.y;
+      o.setAlpha(0).setY(y - 24);
+      this.tweens.add({ targets: o, alpha: 1, y, delay: 60 + k * 70, duration: 180, ease: 'Back.Out' });
+      if (id === 'carga' && this.cajaCarga) {
+        const yc = this.cajaCarga.y;
+        this.cajaCarga.setAlpha(0).setY(yc - 24);
+        this.tweens.add({ targets: this.cajaCarga, alpha: 1, y: yc, delay: 60 + k * 70, duration: 180, ease: 'Back.Out' });
+      }
+      k += 1;
+    }
+  }
+
+  // ───────────────────────── historial ─────────────────────────
   aplicarPaso(paso, es, en) {
     if (!paso) return;
     this.mapa = paso.estado;
     const r = paso.cambio && paso.cambio.ranura;
-    if (r && ORDEN_RANURAS.includes(r)) this.sel = ORDEN_RANURAS.indexOf(r);
-    this.cursorEnPuesta();
+    if (r && ORDEN_RANURAS.includes(r)) this.elegirSocket(ORDEN_RANURAS.indexOf(r));
     this.aviso = paso.cambio && paso.cambio.texto ? tr(`${es}: ${paso.cambio.texto}`, `${en}: ${paso.cambio.texto}`) : '';
-    this.refrescar();
+    this.refrescar(true);
+    if (r && this.mapa[r]) this.animarEncaje(r);
   }
 
   deshacer() { this.aplicarPaso(this.hist.deshacer(), 'Deshecho', 'Undone'); }
 
   rehacer() { this.aplicarPaso(this.hist.rehacer(), 'Rehecho', 'Redone'); }
 
-  refrescarHistorial() {
-    this.btnDeshacer.setHabilitado(this.hist.puedeDeshacer);
-    this.btnRehacer.setHabilitado(this.hist.puedeRehacer);
-  }
-
-  refrescarCatalogo() {
-    const r = RANURAS[this.sel];
-    this.txtCatalogo.setText(r.obligatoria
-      ? tr(`${r.nombre} — elige pieza`, `${trDato(r, 'nombre')} — pick a part`)
-      : tr(`${r.nombre} (opcional) — elige pieza`, `${trDato(r, 'nombre')} (optional) — pick a part`));
-    this.lista.removeAll(true);
-    // Ventana de FILAS_VISIBLES piezas que sigue al cursor (teclado) o a ▲ / ▼ (ratón y toque).
-    const opciones = this.opciones();
-    const n = opciones.length;
-    if (this.cursor < this.desde) this.desde = this.cursor;
-    if (this.cursor >= this.desde + FILAS_VISIBLES) this.desde = this.cursor - FILAS_VISIBLES + 1;
-    this.desde = Math.max(0, Math.min(Math.max(0, n - FILAS_VISIBLES), this.desde));
-    const pagina = n > FILAS_VISIBLES;
-    if (pagina) {
-      // Con paginador, el encabezado pierde "— elige pieza" para que quepan las flechas antes de [ Quitar ].
-      this.txtCatalogo.setText(r.obligatoria ? trDato(r, 'nombre') : tr(`${r.nombre} (opcional)`, `${trDato(r, 'nombre')} (optional)`));
-      let x = CAT_X + this.txtCatalogo.width + 18;
-      this.pagArriba.setX(x).setAlpha(this.desde > 0 ? 1 : 0.35);
-      x += this.pagArriba.width + 8;
-      this.pagTexto.setX(x).setText(`${this.desde + 1}–${Math.min(n, this.desde + FILAS_VISIBLES)}/${n}`);
-      x += this.pagTexto.width + 8;
-      this.pagAbajo.setX(x).setAlpha(this.desde + FILAS_VISIBLES < n ? 1 : 0.35);
-    }
-    for (const o of [this.pagArriba, this.pagTexto, this.pagAbajo]) o.setVisible(pagina);
-    // Si alguna pieza de la lista tiene ícono (32 px a × 2), el nombre y el precio se recorren para quedar alineados.
-    const dx = opciones.some((p) => this.icono(p.id)) ? 40 : 0;
-    opciones.slice(this.desde, this.desde + FILAS_VISIBLES).forEach((p, j) => {
-      const i = this.desde + j;
-      // Tres renglones por pieza: nombre · precio y masa · dato clave (todo a >= 16 px).
-      const y = FILA_Y + j * FILA_PASO;
-      const puesta = this.mapa[r.id] === p.id;
-      const resaltada = i === this.cursor;
-      const costo = costoEnRanura(r.id, p);
-      const xN = r.multiplicador > 1 ? ` (${p.costo} × ${r.multiplicador})` : '';
-      const clave = this.icono(p.id);
-      const l1 = this.add.text(CAT_X + 6 + dx, y + 2, `${puesta ? '●' : '○'} ${trDato(p, 'nombre')}`, {
-        fontFamily: FUENTE, fontSize: `${TXT_MEDIO}px`, color: puesta ? C.acento : C.texto,
-      });
-      const l2 = this.add.text(CAT_X + 6 + dx, y + 22, `${costo} cr${xN} · ${p.masa * r.multiplicador} kg`, {
-        fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.claro,
-      });
-      const l3 = this.add.text(CAT_X + 6, y + 42, datoClave(p), {
-        fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.suave, wordWrap: { width: 440 },
-      });
-      // Si el dato clave ocupa 2 líneas (p. ej. el panel solar, que es la única pieza de su ranura) la fila crece.
-      const alto = Math.max(FILA_PASO - 4, l3.y + l3.height - y + 4);
-      const fondo = this.add.rectangle(CAT_X + 227, y - 2 + alto / 2, 455, alto, resaltada ? 0x222844 : RELLENO)
-        .setStrokeStyle(1, puesta ? ACENTO : BORDE)
-        .on('pointerdown', () => this.equipar(i));
-      zonaToque(fondo, 0, 0, 455, alto + 4); // toda la fila: sin huecos entre una pieza y la siguiente
-      this.lista.add([fondo, l1, l2, l3]);
-      if (clave) this.lista.add(this.add.image(CAT_X + 22, y + 20, clave).setScale(2));
-    });
-    this.btnQuitar.setVisible(Boolean(this.mapa[r.id]));
-  }
-
-  // ---------- presupuesto y validación ----------
-  refrescar() {
+  // ───────────────────────── refresco general ─────────────────────────
+  refrescar(animar = false) {
     const diseno = comoDiseno(this.mapa);
     const res = resumen(diseno, PIEZAS, { masaCarga: MASA_CARGA_KG });
     const errores = validar(diseno, PIEZAS, this.presupuesto, { en: enIngles() });
     this.res = res;
     this.errores = errores;
-    const restante = this.presupuesto - res.costo;
-    // Presupuesto: barra + número (DISENO.md §2.4); en rojo si se pasa.
-    const pasado = restante < 0;
-    this.barraPresupuesto.fijar(res.costo / this.presupuesto, pasado ? K.P.riesgo : K.P.accion);
-    this.txtCosto.setText(`${res.costo} / ${this.presupuesto} cr`).setColor(pasado ? C.error : C.texto);
-    this.txtRestante.setText(pasado ? tr(`excede ${-restante}`, `over by ${-restante}`) : tr(`quedan ${restante}`, `${restante} left`))
-      .setX(this.txtCosto.x + this.txtCosto.width + 12).setColor(pasado ? C.error : C.apagado);
-
-    // Ejes distintos: chip en la validación y la frase completa en la línea de abajo (y en el panel H).
     this.lineaEjes = res.ejes_distintos
-      ? ([this.mapa.rueda_del, this.mapa.rueda_tras].includes('rueda_ancha')
-        ? tr('Ejes distintos: con las dos anchas es más seguro.', 'Mixed axles: two wide axles are safer.')
-        : tr('Ejes distintos: con las dos ruedas iguales es más seguro.', 'Mixed axles: matching wheels on both are safer.'))
-      : null;
-    this.refrescarResumen(res, errores);
-    this.btnContinuar.setColor(errores.length ? C.apagado : C.acento);
-    this.refrescarHistorial();
+      ? tr('Ejes distintos: con la misma rueda en los dos es más seguro.', 'Mixed axles: the same wheel on both is safer.') : null;
+    this.mostrarCosto(res.costo, animar);
+    this.refrescarLado(res, errores);
     this.refrescarPersonalizacion();
-
-    this.refrescarEsquema();
-    this.refrescarCatalogo();
-    this.cajaQuitar.ajustar();
-    // Una línea abajo: el aviso del momento (recomendación aplicada, deshacer, corregir) o, si no hay, la ayuda corta.
-    const aviso = this.aviso || this.lineaEjes;
-    this.txtAyuda.setText(aviso || tr('←/→ ranura · ↑/↓ pieza · Enter equipar · C probar · H ayuda',
-      '←/→ slot · ↑/↓ part · Enter equip · C test · H help')).setColor(aviso ? C.acento : C.apagado);
+    this.dibujarRobot();
+    this.pintarSockets();
+    this.refrescarBandeja();
+    this.refrescarBotones();
+    this.refrescarAyuda();
     if (this.ayuda) this.dibujarAyuda();
   }
 
-  // ---------- presupuesto, validación y cifras (vista principal) ----------
-  crearPresupuesto() {
-    const y = 98;
-    const etiqueta = this.add.text(25, y, tr('Presupuesto', 'Budget'), { fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.claro }).setOrigin(0, 0.5);
-    const x = etiqueta.x + etiqueta.width + 12;
-    this.barraPresupuesto = K.barra(this, x, y - 9, 252, 18, 0, K.P.accion);
-    this.txtCosto = this.add.text(x + 264, y, '', { fontFamily: FUENTE, fontSize: '20px', color: C.texto }).setOrigin(0, 0.5);
-    this.txtRestante = this.add.text(0, y, '', { fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.apagado }).setOrigin(0, 0.5);
-    // «Valores de juego»: los precios, masas y agarres no son datos de ingeniería (AGENTS.md §3.4).
-    this.add.text(945, y, tr('(P) valores de juego', '(P) game values'), { fontFamily: FUENTE, fontSize: '14px', color: C.apagado }).setOrigin(1, 0.5);
+  refrescarBotones() {
+    if (!this.btnContinuar) return;
+    // No se puede probar si falta una pieza o se pasa del presupuesto (AGENTS.md §12).
+    this.btnContinuar.setHabilitado(!(this.errores?.length));
+    this.btnDeshacer.setHabilitado(this.hist.puedeDeshacer);
+    this.btnRehacer.setHabilitado(this.hist.puedeRehacer);
+    this.btnQuitar.setHabilitado(Boolean(this.mapa[ORDEN_RANURAS[this.sel]]));
+    const ejes = this.mapa.rueda_del && this.mapa.rueda_tras && this.mapa.rueda_del === this.mapa.rueda_tras;
+    this.btnEjes.setHabilitado(!ejes && Boolean(this.mapa.rueda_del || this.mapa.rueda_tras));
   }
 
-  crearResumen() {
-    this.grupoResumen = this.add.container(0, 0);
+  /** Una línea abajo: aviso del momento, o el detalle de la pieza elegida, o la ayuda corta del armado. */
+  refrescarAyuda(extra = null) {
+    if (!this.txtAyuda) return;
+    const aviso = this.aviso || extra || this.lineaEjes;
+    const linea = aviso || this.detalle
+      || tr('Arrastra una pieza a su socket · ←/→ socket · ↑/↓ pieza · Enter poner · Supr quitar · H ayuda',
+        'Drag a part onto its socket · ←/→ socket · ↑/↓ part · Enter fit · Del remove · H help');
+    this.txtAyuda.setText(linea).setColor(aviso ? C.acento : this.detalle ? C.claro : C.apagado);
+    // Si no cabe en una línea (detalle largo), se achica hasta 14 px y se recorta con «…».
+    while (this.txtAyuda.width > 930 && this.txtAyuda.text.length > 10) this.txtAyuda.setText(`${this.txtAyuda.text.slice(0, -2)}…`);
   }
 
-  /** Keywords de validación, agarre como 3 barras y 3 números grandes con ícono. */
-  refrescarResumen(res, errores) {
-    const g = this.grupoResumen;
-    g.removeAll(true);
-    // 1) Validación en keywords: «✓ Listo» o «✕ Falta batería» (la lista completa de errores está en el panel H).
-    const chips = [];
-    if (!errores.length) chips.push({ texto: tr('✓ Listo para probar', '✓ Ready to test'), color: K.P.bien, size: TXT });
-    else {
-      const faltan = RANURAS.filter((r) => r.obligatoria && !this.mapa[r.id]);
-      for (const r of faltan) chips.push({ texto: tr(`✕ Falta ${r.nombre.toLowerCase()}`, `✕ Missing ${String(trDato(r, 'nombre')).toLowerCase()}`), tipo: 'rojo', size: TXT });
-      if (res.costo > this.presupuesto) chips.push({ texto: tr(`✕ Excede ${res.costo - this.presupuesto} cr`, `✕ Over by ${res.costo - this.presupuesto} cr`), tipo: 'rojo', size: TXT });
-      if (!chips.length) chips.push({ texto: `✕ ${errores[0]}`, tipo: 'rojo', size: TXT });
-    }
-    if (res.ejes_distintos) chips.push({ texto: tr('⚠ Ejes distintos', '⚠ Mixed axles'), color: K.P.accion, size: TXT });
-    g.add(K.filaChips(this, CAT_X, VALIDACION_Y, chips, 945).objs);
-
-    // 2) Agarre de las ruedas (promedio de los ejes): 3 barras con su número; color = bien/regular/riesgo y siempre el número.
-    const a = res.agarre;
-    g.add(this.add.text(CAT_X, AGARRE_Y + 15, tr('Agarre', 'Grip'), { fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.claro }).setOrigin(0, 0.5));
-    ['arena', 'roca', 'compacto'].forEach((s, i) => {
-      const x0 = CAT_X + 72 + i * 128;
-      const v = a[s];
-      const color = v == null ? K.P.sec : v >= 0.7 ? K.P.bien : v >= 0.5 ? K.P.accion : K.P.riesgo;
-      const nombre = s === 'compacto' ? 'comp.' : sup(s);
-      g.add(this.add.text(x0, AGARRE_Y - 1, `${nombre} ${f2(v)}`, { fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.texto }));
-      g.add(K.barra(this, x0, AGARRE_Y + 19, 116, 12, v, color).objs);
-    });
-
-    // 3) Tres cifras grandes con ícono: autonomía, masa y lo que el destino le hace a este diseño (efecto del módulo).
-    const destino = DESTINOS[partida.destino];
-    const amb = destino ? ambienteDeDestino(destino.id, destino.mundo) : null;
-    const e = efectosEn(res, amb);
-    const mundo = destino ? (MUNDO()[destino.mundo] ?? destino.mundo) : '';
-    let efecto = null;
-    if (e) {
-      if (res.radiador) efecto = { n: pct(e.potencia_caliente), k: tr('motor caliente', 'hot motor'), ico: 'iconos/ico_temperatura' };
-      else if (res.aislamiento) efecto = { n: pct(e.bateria), k: tr(`batería · ${mundo}`, `battery · ${mundo}`), ico: 'iconos/ico_temperatura' };
-      else if (e.recarga_s) efecto = { n: `+${e.recarga_s.toFixed(2)}/s`, k: tr('panel solar', 'solar panel'), ico: 'iconos/ico_luz' };
-      else efecto = { n: pct(e.bateria), k: tr(`batería · ${mundo}`, `battery · ${mundo}`), ico: 'iconos/ico_temperatura' };
-    }
-    const cifras = [
-      { n: res.autonomia_s != null ? `${Math.round(res.autonomia_s)} s` : '—', k: tr('autonomía (P)', 'run time (P)'), ico: 'ui/ui_icono_energia', esc: 2, resp: '⚡' },
-      { n: `${res.masa} kg`, k: tr(`+${MASA_CARGA_KG} kg de carga`, `+${MASA_CARGA_KG} kg payload`), ico: 'iconos/ico_gravedad', esc: 1, resp: '↓' },
-      ...(efecto ? [{ ...efecto, esc: 1, resp: '°' }] : []),
-    ];
-    cifras.forEach((c, i) => {
-      const x0 = CAT_X + i * 154;
-      g.add(K.icono(this, x0 + 9, CIFRAS_Y + 13, c.ico, { escala: c.esc, respaldo: c.resp }));
-      g.add(this.add.text(x0 + 22, CIFRAS_Y, c.n, { fontFamily: FUENTE, fontSize: '22px', color: C.texto }));
-      g.add(this.add.text(x0, CIFRAS_Y + 27, c.k, { fontFamily: FUENTE, fontSize: '14px', color: C.apagado }));
-    });
-  }
-
-  /** Líneas del detalle (panel H): todo lo que antes estaba escrito en la columna, con unidades y (P). */
+  // ───────────────────────── panel de ayuda (H) ─────────────────────────
   lineasDetalle() {
     const res = this.res;
     const a = res.agarre;
@@ -598,17 +1043,15 @@ export default class Taller extends Phaser.Scene {
     return [
       tr(`Costo ${res.costo} / ${this.presupuesto} cr · Restante ${this.presupuesto - res.costo} · Masa ${res.masa} kg + carga ${MASA_CARGA_KG} kg`,
         `Cost ${res.costo} / ${this.presupuesto} cr · Left ${this.presupuesto - res.costo} · Mass ${res.masa} kg + cargo ${MASA_CARGA_KG} kg`),
-      tr(`Agarre ejes: arena ${f2(a.arena)} · roca ${f2(a.roca)} · comp. ${f2(a.compacto)} (promedio de los dos ejes)`,
-        `Axle grip: sand ${f2(a.arena)} · rock ${f2(a.roca)} · compact ${f2(a.compacto)} (average of both axles)`),
-      tr(`  delantero ${f2(ej.del.arena)} / ${f2(ej.del.roca)} / ${f2(ej.del.compacto)} · trasero ${f2(ej.tras.arena)} / ${f2(ej.tras.roca)} / ${f2(ej.tras.compacto)}`,
-        `  front ${f2(ej.del.arena)} / ${f2(ej.del.roca)} / ${f2(ej.del.compacto)} · rear ${f2(ej.tras.arena)} / ${f2(ej.tras.roca)} / ${f2(ej.tras.compacto)}`),
+      tr(`Agarre: arena ${f2(a.arena)} · roca ${f2(a.roca)} · comp. ${f2(a.compacto)} (del. ${f2(ej.del.arena)}/${f2(ej.del.roca)}/${f2(ej.del.compacto)} · tras. ${f2(ej.tras.arena)}/${f2(ej.tras.roca)}/${f2(ej.tras.compacto)})`,
+        `Grip: sand ${f2(a.arena)} · rock ${f2(a.roca)} · compact ${f2(a.compacto)} (front ${f2(ej.del.arena)}/${f2(ej.del.roca)}/${f2(ej.del.compacto)} · rear ${f2(ej.tras.arena)}/${f2(ej.tras.roca)}/${f2(ej.tras.compacto)})`),
       ...this.lineasDestino(res),
-      tr(`Autonomía ≈ ${res.autonomia_s != null ? Math.round(res.autonomia_s) + ' s a fondo' : '—'}, con carga (P)`,
-        `Battery ≈ ${res.autonomia_s != null ? Math.round(res.autonomia_s) + ' s at full power' : '—'}, loaded (P)`),
-      tr(`Protección de carga ${res.proteccion != null ? Math.round(res.proteccion * 100) + ' %' : '—'} · Resistencia ${res.resistencia ?? '—'} · Fuerza/masa ${res.fuerza_por_masa != null ? res.fuerza_por_masa.toFixed(2) : '—'}`,
-        `Cargo protection ${res.proteccion != null ? Math.round(res.proteccion * 100) + ' %' : '—'} · Durability ${res.resistencia ?? '—'} · Force/mass ${res.fuerza_por_masa != null ? res.fuerza_por_masa.toFixed(2) : '—'}`),
-      tr('En la prueba: agarre² × agarre del suelo (P) · Cada eje lleva 2 ruedas (2 × costo y masa)',
-        'In the test: grip² × soil grip (P) · Each axle takes 2 wheels (2 × cost and mass)'),
+      tr(`Autonomía ≈ ${res.autonomia_s != null ? `${Math.round(res.autonomia_s)} s a fondo` : '—'}, con carga · Fuerza/masa ${res.fuerza_por_masa != null ? res.fuerza_por_masa.toFixed(2) : '—'}`,
+        `Run time ≈ ${res.autonomia_s != null ? `${Math.round(res.autonomia_s)} s at full power` : '—'}, loaded · Force/mass ${res.fuerza_por_masa != null ? res.fuerza_por_masa.toFixed(2) : '—'}`),
+      tr('En la prueba: agarre² × agarre del suelo · cada eje lleva 2 ruedas (2 × costo y masa)',
+        'In the test: grip² × soil grip · each axle takes 2 wheels (2 × cost and mass)'),
+      tr('Bloqueadas: filas del libro de datos sin mecánica en el juego o sin referencia espacial (no se inventa su física).',
+        'Locked: workbook rows with no in-game mechanic or no space reference (their physics is not made up).'),
       ...(this.lineaEjes ? [this.lineaEjes] : []),
       this.errores.length ? `✕ ${this.errores.join(' · ')}` : tr('✓ Diseño válido', '✓ Valid design'),
     ];
@@ -619,131 +1062,103 @@ export default class Taller extends Phaser.Scene {
     this.dibujarAyuda();
   }
 
-  /** Panel de ayuda (tecla H o «? Ayuda»): teclado completo + detalle de los números del diseño. */
   dibujarAyuda() {
     this.ayuda?.forEach((o) => o.destroy());
-    const capa = this.add.rectangle(480, 270, 960, 540, 0x05060c, 0.72).setDepth(40).setInteractive();
+    const capa = this.add.rectangle(480, 270, 960, 540, 0x05060c, 0.75).setDepth(60).setInteractive();
     capa.on('pointerdown', () => this.alternarAyuda());
-    const texto = [
-      tr('Teclado', 'Keyboard'),
-      tr('←/→ ranura · ↑/↓ pieza · Enter equipar · Supr quitar · R restablecer',
-        '←/→ slot · ↑/↓ part · Enter equip · Del remove · R reset'),
-      tr('C probar · P pintura · N nombre · Ctrl+Z deshacer · Ctrl+Y rehacer · Esc regresar',
-        'C test · P paint · N name · Ctrl+Z undo · Ctrl+Y redo · Esc back'),
+    const t = [
+      tr('Cómo armar', 'How to build'),
+      tr('Ratón o dedo: arrastra una tarjeta a un socket verde. Arrastra una pieza del robot afuera para quitarla (o clic derecho).',
+        'Mouse or finger: drag a card onto a green socket. Drag a part off the robot to remove it (or right-click).'),
+      tr('Toque: toca una tarjeta y luego el socket. Dos toques en la tarjeta la ponen en su lugar.',
+        'Tap: tap a card, then the socket. Tapping the card twice fits it in place.'),
+      tr('Teclado: ←/→ socket · ↑/↓ pieza · Enter poner · Supr quitar · Tab pestaña · A ambos ejes',
+        'Keyboard: ←/→ socket · ↑/↓ part · Enter fit · Del remove · Tab tab · A both axles'),
+      tr('C probar · R restablecer · P pintura · N nombre · Ctrl+Z deshacer · Ctrl+Y rehacer · Esc regresar',
+        'C test · R reset · P paint · N name · Ctrl+Z undo · Ctrl+Y redo · Esc back'),
       '',
       tr('Detalle del diseño (valores de juego, P)', 'Design detail (game values, P)'),
       ...this.lineasDetalle(),
       '',
       tr('H / Esc / clic: cerrar', 'H / Esc / click: close'),
     ].join('\n');
-    const t = this.add.text(96, 0, texto, {
-      fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.texto, lineSpacing: 5, wordWrap: { width: 768, useAdvancedWrap: true },
-    }).setDepth(42);
-    const alto = t.height + 48;
-    const y0 = Math.max(12, Math.round(270 - alto / 2));
-    t.setY(y0 + 24);
-    const marco = K.panel(this, 72, y0, 816, alto).setDepth(41);
-    this.ayuda = [capa, marco, t];
+    const txt = texto(this, 92, 0, t, { size: 15, ancho: 776, interlineado: 4 }).setDepth(62);
+    const alto = txt.height + 44;
+    const y0 = Math.max(10, Math.round(270 - alto / 2));
+    txt.setY(y0 + 22);
+    const marco = K.panel(this, 70, y0, 820, alto).setDepth(61);
+    this.ayuda = [capa, marco, txt];
   }
 
-  /** Caja de arte detrás de un botón de texto pequeño (Quitar, Nombre); sigue su posición y visibilidad. */
-  cajaTexto(t) {
-    const caja = { obj: null };
-    caja.ajustar = () => {
-      caja.obj?.destroy();
-      const b = t.getBounds();
-      caja.obj = K.nueve(this, 'ui/ui_boton', Math.round(b.x - 9), Math.round(b.centerY - 15), b.width + 18, 30, 4, 3)
-        ?? this.add.rectangle(b.x - 9, b.centerY - 15, b.width + 18, 30, 0x262d4a).setOrigin(0, 0).setStrokeStyle(1, ACENTO);
-      caja.obj.setVisible(t.visible);
-      this.children.moveBelow(caja.obj, t);
-    };
-    caja.ajustar();
-    return caja;
-  }
-
-  /**
-   * Qué le hace el destino a ESTE diseño (mismas reglas que la física, fisica/ambiente.js): batería útil por el frío,
-   * potencia del motor al llegar al límite de temperatura y recarga del panel. Así el módulo elegido se nota aquí.
-   */
-  lineasDestino(res) {
+  /** Qué le hace el destino a ESTE diseño (mismas reglas que la física, fisica/ambiente.js). Una línea. */
+  lineasDestino(res, e0 = undefined) {
     const destino = DESTINOS[partida.destino];
     const amb = destino ? ambienteDeDestino(destino.id, destino.mundo) : null;
-    const e = efectosEn(res, amb);
+    const e = e0 === undefined ? efectosEn(res, amb) : e0;
     if (!e) return [];
-    // Un solo renglón (≤ 47 caracteres a 16 px). Con módulo, solo su efecto contra "sin él"; sin módulo, batería y motor.
-    // "motor caliente" = potencia que conserva el motor al llegar a 100 °C (fisica/ambiente.js, regla b).
     const sinEl = (v) => tr(` (sin él ${pct(v)})`, ` (without it ${pct(v)})`);
     const bat = tr(`batería ${pct(e.bateria)}`, `battery ${pct(e.bateria)}`);
     const mot = tr(`motor caliente ${pct(e.potencia_caliente)}`, `hot motor ${pct(e.potencia_caliente)}`);
-    let texto;
-    if (res.radiador) texto = mot + sinEl(e.potencia_caliente_sin_modulo);
-    else if (res.aislamiento) texto = bat + sinEl(e.bateria_sin_modulo);
-    else if (e.recarga_s) texto = `panel +${e.recarga_s.toFixed(2)}/s · ${bat}`;
-    else texto = `${bat} · ${mot}`;
-    return [`${MUNDO()[destino.mundo] ?? destino.mundo} (P): ${texto}`];
+    let t;
+    if (res.radiador) t = mot + sinEl(e.potencia_caliente_sin_modulo);
+    else if (res.aislamiento) t = bat + sinEl(e.bateria_sin_modulo);
+    else if (e.recarga_s) t = `panel +${e.recarga_s.toFixed(2)}/s · ${bat}`;
+    else t = `${bat} · ${mot}`;
+    return [`${MUNDO()[destino.mundo] ?? destino.mundo}: ${t}`];
   }
 
-  // ---------- personalización (cosmética: no cambia la física) ----------
+  // ───────────────────────── personalización (cosmética) ─────────────────────────
   crearPersonalizacion() {
-    const etiqueta = this.add.text(PERS_X, PERS_Y1, tr('Pintura', 'Paint'), { fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.claro }).setOrigin(0, 0.5);
-    const x0 = PERS_X + etiqueta.width + 22;
+    const y1 = LADO.y + 204;
+    const y2 = LADO.y + 232;
+    const etq = texto(this, LADO.x + 12, y1, tr('Pintura', 'Paint'), { size: 15, color: C.claro, origen: [0, 0.5] }).setDepth(4);
+    const x0 = etq.x + etq.width + 18;
     this.muestras = PINTURAS.map((pint, i) => {
-      const cuadro = this.add.rectangle(x0 + i * 30, PERS_Y1, 22, 22, pint.muestra).setStrokeStyle(2, BORDE);
-      // Zona de 30 × 30 (sin huecos entre muestras; no toca la fila del nombre, que empieza en y 143).
-      zonaToque(cuadro, -4, -4, 30, 30);
+      const cuadro = this.add.rectangle(x0 + i * 28, y1, 20, 20, pint.muestra).setStrokeStyle(2, BORDE).setDepth(4);
+      zonaToque(cuadro, -4, -4, 28, 28);
       cuadro.on('pointerdown', () => this.pintar(pint.id));
       return { pint, cuadro };
     });
-    this.txtNombre = this.add.text(PERS_X, PERS_Y2, '', { fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.texto }).setOrigin(0, 0.5);
-    this.btnNombre = this.add.text(0, PERS_Y2, tr('Nombre', 'Name'), { fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.acento })
-      .setOrigin(0, 0.5).on('pointerdown', () => this.abrirNombre());
-    // Zona y 144–172: no toca las muestras (hasta y 143) ni la fila del motor (desde y 173).
-    zonaToque(this.btnNombre, -8, (this.btnNombre.height - 28) / 2, this.btnNombre.width + 16, 28);
-    this.cajaNombre = this.cajaTexto(this.btnNombre);
+    this.btnNombre = K.boton(this, LADO.x + LADO.w - 10, y2, tr('Nombre', 'Name'), () => this.abrirNombre(), { size: 14, alto: 30, origen: [1, 0.5], anchoMin: 64 });
+    for (const o of [this.btnNombre.obj, this.btnNombre.caja]) o.setDepth(4);
+    this.txtNombre = texto(this, LADO.x + 12, y2, '', { size: 15, origen: [0, 0.5] }).setDepth(4);
+    this.xNombreMax = this.btnNombre.caja.x - 8;
   }
 
   refrescarPersonalizacion() {
     const pintura = pinturaPorId(this.mapa[CLAVE_PINTURA]);
     const nombre = this.mapa[CLAVE_NOMBRE] || null;
-    // Copia en la partida y en el navegador (la usan la prueba y la misión: fisica/aspecto.js).
-    fijarPersonalizacion(partida, { pintura: pintura.id, nombre });
+    fijarPersonalizacion(partida, { pintura: pintura.id, nombre }); // la usan la prueba y la misión (fisica/aspecto.js)
     for (const { pint, cuadro } of this.muestras) {
       const elegida = pint.id === pintura.id;
       cuadro.setStrokeStyle(elegida ? 3 : 2, elegida ? ACENTO : BORDE).setScale(elegida ? 1.15 : 1);
     }
     this.txtNombre.setText(nombre ? `«${nombre}»` : tr('(sin nombre)', '(no name)')).setColor(nombre ? C.texto : C.apagado);
-    this.btnNombre.setX(PERS_X + this.txtNombre.width + 18);
-    this.cajaNombre?.ajustar();
-    // Vista previa en el esquema: el chasis toma la pintura (solo color, como en la prueba).
-    const base = pintura.id === PINTURAS[0].id;
-    this.ranurasUI?.chasis?.forma.setFillStyle(base ? RELLENO : pintura.figura, base ? 1 : 0.35);
+    while (this.txtNombre.width > 0 && this.txtNombre.x + this.txtNombre.width > this.xNombreMax && this.txtNombre.text.length > 3) {
+      this.txtNombre.setText(`${this.txtNombre.text.slice(0, -2)}…`);
+    }
   }
 
   pintar(id) {
     if (!id || this.mapa[CLAVE_PINTURA] === id) return;
-    this.mapa[CLAVE_PINTURA] = id;
     const p = pinturaPorId(id);
-    this.hist.registrar(this.mapa, { ranura: CLAVE_PINTURA, texto: tr(`pintura → ${p.nombre}`, `paint → ${p.nombre_en}`) });
-    this.aviso = '';
-    this.refrescar();
+    this.aplicarCambio({ ...this.mapa, [CLAVE_PINTURA]: id }, { ranura: CLAVE_PINTURA, texto: tr(`pintura → ${p.nombre}`, `paint → ${p.nombre_en}`) }, { encaja: 'chasis' });
   }
 
-  renombrar(texto) {
-    const nombre = normalizarNombre(texto);
+  renombrar(t) {
+    const nombre = normalizarNombre(t);
     if ((this.mapa[CLAVE_NOMBRE] || null) === nombre) return;
-    if (nombre) this.mapa[CLAVE_NOMBRE] = nombre;
-    else delete this.mapa[CLAVE_NOMBRE];
-    this.hist.registrar(this.mapa, { ranura: CLAVE_NOMBRE, texto: nombre ? tr(`nombre → ${nombre}`, `name → ${nombre}`) : tr('sin nombre', 'no name') });
-    this.aviso = '';
-    this.refrescar();
+    const m = { ...this.mapa };
+    if (nombre) m[CLAVE_NOMBRE] = nombre; else delete m[CLAVE_NOMBRE];
+    this.aplicarCambio(m, { ranura: CLAVE_NOMBRE, texto: nombre ? tr(`nombre → ${nombre}`, `name → ${nombre}`) : tr('sin nombre', 'no name') });
   }
 
   /** Diálogo HTML para escribir el nombre (Phaser no tiene campo de texto). Enter guarda, Esc cancela; funciona al tacto. */
   abrirNombre() {
     if (this.dialogo || typeof document === 'undefined') return;
     const kb = this.input.keyboard;
-    kb.enabled = false; // las teclas del taller (R, C, P, N…) no deben dispararse mientras se escribe
-    kb.disableGlobalCapture(); // otras escenas capturan teclas (espacio, flechas): aquí deben llegar al campo de texto
+    kb.enabled = false;
+    kb.disableGlobalCapture();
     const capa = document.createElement('div');
     capa.setAttribute('role', 'dialog');
     capa.setAttribute('aria-modal', 'true');
@@ -765,10 +1180,10 @@ export default class Taller extends Phaser.Scene {
     campo.style.cssText = 'font:inherit;font-size:18px;padding:8px;background:#0b0d17;color:#fff;border:1px solid #4a5275;';
     const fila = document.createElement('div');
     fila.style.cssText = 'display:flex;gap:10px;justify-content:flex-end;';
-    const btn = (texto, tipo, fondo) => {
+    const btn = (t, tipo, fondo) => {
       const b = document.createElement('button');
       b.type = tipo;
-      b.textContent = texto;
+      b.textContent = t;
       b.style.cssText = `font:inherit;font-size:16px;padding:8px 14px;cursor:pointer;border:1px solid #ffd166;background:${fondo};color:#ffd166;`;
       return b;
     };
@@ -795,27 +1210,34 @@ export default class Taller extends Phaser.Scene {
     if (kb) { kb.enabled = true; kb.enableGlobalCapture(); }
   }
 
+  // ───────────────────────── salir ─────────────────────────
   continuar() {
     const diseno = comoDiseno(this.mapa);
     const errores = validar(diseno, PIEZAS, this.presupuesto, { en: enIngles() });
     if (errores.length) {
-      this.aviso = tr('Corrige el diseño antes de probarlo.', 'Fix the design before testing it.');
-      this.refrescar();
-      this.cameras.main.shake(120, 0.004);
+      this.avisar(tr('Corrige el diseño antes de probarlo.', 'Fix the design before testing it.'));
       return;
     }
     this.salir(diseno, 'Prueba');
   }
 
-  /** Vuelve al expediente del sitio sin probar; el diseño (aunque aún no sea válido) se conserva en partida.diseno. */
-  regresar() {
-    this.salir(comoDiseno(this.mapa), 'Expediente');
-  }
+  /** Vuelve al expediente sin probar; el diseño (aunque aún no sea válido) se conserva en partida.diseno. */
+  regresar() { this.salir(comoDiseno(this.mapa), 'Expediente'); }
 
   salir(diseno, destino) {
-    if (this.cameras.main.fadeEffect.isRunning) return; // ya está saliendo (irA ignora la segunda transición)
+    if (this.cameras.main.fadeEffect.isRunning) return;
     partida.diseno = diseno;
-    memoria = { clave: partida.resultados, mapa: { ...this.mapa } }; // con la pintura y el nombre (ver create)
+    memoria = { clave: partida.resultados, mapa: { ...this.mapa } };
     irA(this, destino);
   }
+
+  // ───────────────────────── ayudas para pruebas (e2e) ─────────────────────────
+  /** Centro (coordenadas lógicas 960 × 540) de la tarjeta de una pieza en la página visible, o null. */
+  cartaDe(id) {
+    const c = this.cartasUI?.find((x) => x && x.p.id === id);
+    return c ? { x: c.x + CARTA_W / 2, y: c.y + CARTA_H / 2 } : null;
+  }
+
+  /** Centro de la caja de un socket (coordenadas lógicas). */
+  socketDe(id) { const s = SOCKETS[id]; return s ? { x: s.x, y: s.y } : null; }
 }
