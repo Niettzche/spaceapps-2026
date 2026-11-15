@@ -99,7 +99,8 @@ export class Recorrido {
     this._botonAbandonar();
     // Instrucciones al empezar: objetivo + controles (teclado y táctil). Esc abandona.
     const controles = tr('→ / D acelerar   ← / A frenar   (táctil: ▶ ◀)   Esc pausa', '→ / D accelerate   ← / A brake   (touch: ▶ ◀)   Esc pause');
-    const ambiente = [resumenAmbiente(this.ambiente), efectosAmbiente(this.ambiente)].filter(Boolean);
+    const efectos = efectosAmbiente(this.ambiente);
+    const ambiente = [resumenAmbiente(this.ambiente), efectos && `(P) ${efectos}`].filter(Boolean);
     if (o.modo === 'prueba') this.hud.instrucciones(tr('Prueba en la Tierra: llega a la META con la carga', 'Earth test: reach the FINISH with the payload'), [...ambiente, controles]);
     else {
       // Llegada al destino: fundido desde negro y el cambio de mundo explicado con el dato de gravedad.
