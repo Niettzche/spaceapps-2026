@@ -1,9 +1,9 @@
 # Estado — Arte
 
-> Lo actualiza SOLO este frente. Ramas: `feat/arte` (#26) y `feat/arte-b` (#37), `feat/arte-c` (#49), mergeadas; `feat/arte-d` (niveles parecidos al lugar real).
+> Lo actualiza SOLO este frente. Ramas: `feat/arte` (#26) y `feat/arte-b` (#37), `feat/arte-c` (#49), `feat/arte-d` (#58), mergeadas; `feat/arte-e` (tutorial y portada de la web).
 
 **Responsable:** Mauricio  ·  **Agente:** Claude Code / Codex
-**Última actualización:** 14 nov 2026, 22:30
+**Última actualización:** 15 nov 2026, 00:30
 
 ## Hecho
 - **Prioridad A y B completas** (#26 y #37, en `main`):
@@ -56,6 +56,14 @@
   4. **`fx_sobrecalentamiento`:** bucle de 1.2 s centrado en el motor: brillo rojo que late, cintas de reverbero que suben ondulando y bocanadas de vapor tramado.
   5. **`ui_icono_temperatura`** (8 × 8): termómetro con columna roja, del mismo estilo que los otros íconos de la HUD.
   - `assets/paletas.json` regenerado desde `paletas.mjs` (le faltaban las paletas del desierto, la lava y el título).
+- **Tutorial y web (`feat/arte-e`):**
+  - `assets/tutorial/tutorial_1..4.png` (96 × 64, con marco, sin texto) para la pantalla "Cómo jugar" de Diego:
+    1. Elige un análogo.
+    2. Arma tu robot.
+    3. Pruébalo en la Tierra.
+    4. Misión.
+  - `docs/media/web_portada_960x960.png`: imagen principal de la web. El robot llega con la carga a la base en Marte, con el astronauta y la zona de entrega (escena de 120 × 120 × 8). La coloca Alan en `web/`.
+  - Las dos cosas salen de `assets/fuente/escenas.mjs`, que compone sprites, fondos, tiles y efectos ya generados (`node assets/fuente/generar.mjs escenas`).
 - `node assets/fuente/fx/exportar.mjs` regenera con pixelfx las 22 hojas de efectos.
 
 ## En curso
@@ -69,6 +77,7 @@
 ## Bloqueos / necesito de otro frente
 - **Juego:** `FONDO_POR_SITIO` en `game/src/fisica/aspecto.js` (en `main`) solo tiene `samalayuca → dunas` y `pinacate → lava`. Si el mapeo de `mina` y `maar` todavía no está ahí, falta agregarlo.
 - **Integración (Alan):**
+  - Poner `docs/media/web_portada_960x960.png` como imagen principal de la web: copiarla a `web/src/assets/` o `web/public/`, agregar `image-rendering: pixelated` a `.hero-visual img` y cambiar el pie de foto, que hoy describe el relieve de Rincón de Parangueo.
   - Clip de 5 s del juego en inglés para el video.
   - Agregar el crédito de pixelfx a `docs/ENTREGA_EN.md`. Texto sugerido:
     "Pixel art effects built with pixelfx (MIT License, © 2026 Patch and Hugo Duprez)."
