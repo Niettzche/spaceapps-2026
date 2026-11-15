@@ -57,6 +57,27 @@ function datoClave(p) {
 }
 function f2(v) { return typeof v === 'number' ? v.toFixed(2) : '—'; }
 
+// Zonas de toque: lo dibujado no cambia, pero el área que responde al dedo es más grande.
+// En un teléfono en horizontal el lienzo de 960 × 540 se reduce a ~0.7 y un botón de texto de 18 px queda de ~13 px de alto;
+// el mínimo recomendado para un dedo es ~44 px. Las coordenadas son locales al objeto (0,0 = esquina superior izquierda).
+// Ninguna zona se traslapa con la de otro control (Phaser solo atiende al de arriba, así que un traslape sería un toque equivocado).
+function zonaToque(obj, x, y, w, h) {
+  const zona = new Phaser.Geom.Rectangle(x, y, w, h);
+  if (obj.input) { // ya era interactivo (p. ej. los botones de ui.js): Phaser ignora una zona nueva en setInteractive, hay que asignarla
+    obj.input.hitArea = zona;
+    obj.input.hitAreaCallback = Phaser.Geom.Rectangle.Contains;
+    obj.input.customHitArea = true; // si no, Phaser vuelve la zona al tamaño del texto cada vez que cambia el texto o el color
+    return obj;
+  }
+  return obj.setInteractive({ hitArea: zona, hitAreaCallback: Phaser.Geom.Rectangle.Contains, useHandCursor: true });
+}
+/** Zona centrada en el objeto, de al menos `ancho` × `alto`. */
+function zonaCentrada(obj, ancho, alto) {
+  const w = Math.max(obj.width, ancho);
+  const h = Math.max(obj.height, alto);
+  return zonaToque(obj, (obj.width - w) / 2, (obj.height - h) / 2, w, h);
+}
+
 export default class Taller extends Phaser.Scene {
   constructor() { super('Taller'); }
 
@@ -99,7 +120,9 @@ export default class Taller extends Phaser.Scene {
     this.txtCatalogo = this.add.text(480, 165, '', { fontFamily: FUENTE, fontSize: '14px', color: C.texto });
     this.lista = this.add.container(0, 0);
     this.btnQuitar = this.add.text(925, 167, '[ Quitar ]', { fontFamily: FUENTE, fontSize: '13px', color: C.acento })
-      .setOrigin(1, 0).setInteractive({ useHandCursor: true }).on('pointerdown', () => this.quitar());
+      .setOrigin(1, 0).on('pointerdown', () => this.quitar());
+    // Crece hacia arriba (y 124–187) y a la izquierda; abajo empieza la primera fila del catálogo (y 188).
+    zonaToque(this.btnQuitar, this.btnQuitar.width - 130, -43, 135, 63);
     this.txtEstado = this.add.text(480, VALIDACION_Y, '', {
       fontFamily: FUENTE, fontSize: '12px', color: C.ok, wordWrap: { width: 445 }, lineSpacing: 2,
     });
@@ -107,8 +130,11 @@ export default class Taller extends Phaser.Scene {
       fontFamily: FUENTE, fontSize: '12px', color: C.claro, wordWrap: { width: 445 }, lineSpacing: 2,
     });
 
-    boton(this, 560, 485, 'Restablecer', () => this.restablecer());
+    // Botones de abajo (y 485): zona de 62 px de alto (y 454–516) y 12 px de más a cada lado; no toca la columna del catálogo.
+    const btnRestablecer = boton(this, 560, 485, 'Restablecer', () => this.restablecer());
+    zonaCentrada(btnRestablecer, btnRestablecer.width + 24, 62);
     this.btnContinuar = boton(this, 790, 485, 'Probar el robot', () => this.continuar());
+    zonaCentrada(this.btnContinuar, this.btnContinuar.width + 24, 62);
     nota(this,'Teclado: ←/→ ranura · ↑/↓ pieza · Enter equipar · Supr quitar · R restablecer · C continuar. '
       + 'Ruedas: cada eje lleva 2 (cobra 2 × costo y masa). Precios y estadísticas = valores de juego.');
 
@@ -144,7 +170,11 @@ export default class Taller extends Phaser.Scene {
       } else {
         forma = this.add.rectangle(e.x, e.y, e.w, e.h, RELLENO).setStrokeStyle(2, BORDE);
       }
-      forma.setInteractive({ useHandCursor: true }).on('pointerdown', () => this.elegirRanura(RANURAS.indexOf(r)));
+      // Zona de toque un poco más grande que la caja, sin tocar a la vecina: ruedas +6 px por lado; motor, batería y carga
+      // +2 px a los lados; módulo +3 arriba y abajo; chasis +8 arriba y abajo (hay hueco entre filas).
+      const mas = e.rueda ? [6, 6] : r.id === 'chasis' ? [0, 8] : r.id === 'modulo' ? [2, 3] : [2, 0];
+      zonaToque(forma, -mas[0], -mas[1], (e.rueda ? 64 : e.w) + 2 * mas[0], (e.rueda ? 64 : e.h) + 2 * mas[1]);
+      forma.on('pointerdown', () => this.elegirRanura(RANURAS.indexOf(r)));
       // Ícono: × 2 dentro de la rueda; × 1 a la izquierda en las ranuras rectangulares.
       const img = e.rueda
         ? this.add.image(e.x, e.y, '__DEFAULT').setScale(2)
@@ -240,8 +270,8 @@ export default class Taller extends Phaser.Scene {
       const clave = this.icono(p.id);
       const fondo = this.add.rectangle(700, y + 16, 450, 46, resaltada ? 0x222844 : RELLENO)
         .setStrokeStyle(1, puesta ? ACENTO : BORDE)
-        .setInteractive({ useHandCursor: true })
         .on('pointerdown', () => this.equipar(i));
+      zonaToque(fondo, 0, -3, 450, 52); // toda la fila (52 px de paso): sin huecos entre una pieza y la siguiente
       const l1 = this.add.text(485 + dx, y, `${puesta ? '●' : '○'} ${p.nombre}`, {
         fontFamily: FUENTE, fontSize: '13px', color: puesta ? C.acento : C.texto,
       });
