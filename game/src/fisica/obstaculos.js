@@ -27,16 +27,16 @@ export const REGLAS_OBSTACULOS = {
   // se ven a esta escala y las mayores se esquivan al planear la ruta. Separación mínima de 5 m (P) para el paso seguro.
   golombek: { k: 0.08, D: [0.25, 0.8], asoma: 0.8, separacionMin_m: 5 },
   // Luna: cráteres pequeños en el regolito con la profundidad/diámetro típica que mide nuestro detector en el polo sur con
-  // LOLA (d/D = 0.060, PROYECTO.md). Es la forma de cráteres de km aplicada a cráteres de 3–7 m (P); separación (P).
+  // LOLA (d/D = 0.060, PROYECTO.md). Es la forma de cráteres de km aplicada a cráteres de 3–5 m (P; con 3–7 m la energía de la misión lunar bajaba a 5 %); separación (P).
   // Forma de cuenco coseno (pendiente máxima ≈ π·d/D ≈ 11°), sin borde levantado (a 200 m el borde lunar medido sale negativo).
-  crater: { cada: [22, 34], D: [3, 7], dD: 0.06, pendienteMax: 8 },
+  crater: { cada: [22, 34], D: [3, 5], dD: 0.06, pendienteMax: 8 },
   arenaBlanda: { cada: [35, 55], largo: [5, 8], pendienteMax: 10, agarre: 0.75 },
   margenInicio: 4, // m después del plano de inicio
   margenFinal: 2, // m antes del plano final
 };
 
 // Extras de los caminos dorados (recreación, P). Solo decoración sin colisión salvo los bloques de toba de Al Hutaymah, que
-// son rocas bajas probadas con el simulador (camino dorado 5/5, docs/juego/FISICA_V2.md §5.4).
+// son rocas bajas probadas con el simulador (camino dorado 5/5, docs/juego/FISICA_V2.md §5.3).
 //   samalayuca: rizaduras de viento (ripples) en la arena y matorral seco (sin colisión): dunas activas de cuarzo (S141).
 //   g00263: bloques de toba y escoria del maar (anillo de toba de un campo basáltico; tamaño y separación P).
 export const EXTRAS_SITIO = {

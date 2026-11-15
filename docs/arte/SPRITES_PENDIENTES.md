@@ -109,3 +109,16 @@ El juego elige el fondo en `game/src/content/niveles_destacados.js` (`fondo: 'ma
   una sonrisa clara, menos sombra dura en la cara y el visor más despejado para que se lea la expresión a 2× y 3×.
 - **No cambiar:** el tamaño del archivo ni el número y orden de cuadros (el código lo corta igual); solo el dibujo.
 - **Dueño:** arte (Mauricio). Juego no la toca.
+
+## 10. Obstáculos v2 (15 nov, frente juego; para Mauricio)
+
+Sin arte el juego ya funciona (respaldo dibujado). Nombres exactos (carpeta `assets/obstaculos/`):
+
+| Archivo | Medida | Respaldo de hoy | Descripción |
+|---|---|---|---|
+| `obstaculo_matorral_1.png`, `_2`, `_3` | ~5 × 6 | tallos dibujados en pardo y oliva | Matorral seco del desierto (Samalayuca, Al Hutaymah). Sin colisión, detrás del robot |
+| `obstaculo_rizadura.png` | 16 × 2 (tile) | rayitas claras y oscuras | Rizaduras de viento (ripples) sobre la arena |
+| `obstaculo_toba_bloque_1.png`, `_2` | 6 × 4, 8 × 5 | `obstaculo_roca_*` aclarado | Bloques de toba del maar (claros, porosos) |
+| `obstaculo_crater_luna.png` | 48 × 6 (se estira al diámetro) | borde claro y fondo en sombra dibujados | Cráter lunar pequeño (3–5 m): solo borde y sombra; el hueco ya está en el terreno |
+| `obstaculo_roca_marte_*`, `obstaculo_roca_luna_*` (versión clara) | igual que hoy | el mismo arte con un velo claro y borde de luz | El arte actual tiene casi el color del suelo y no se distingue; una versión con más contraste (más clara arriba) |
+

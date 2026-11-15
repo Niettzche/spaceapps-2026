@@ -49,6 +49,12 @@
 - Pendiente del modelo: `data/sites/g00266.json` aún dice «Cono de toba» (el juego lo corrige al mostrarlo) y `mx0023.json` `proceso`
   dice «Probable tajo… por verificar» (el tajo está verificado: Buenavista del Cobre, S137).
 
+## Obstáculos v2 (15 nov, mañana) — hecho
+- Jezero: 17 rocas con la distribución de Golombek (k = 8 %, P); Luna: 2 cráteres pequeños (d/D 0.060 del detector) + 3 rocas;
+  Samalayuca: 3 parches de arena blanda en los valles + rizaduras y matorral (dibujo); Al Hutaymah: 5 bloques de toba bajos.
+- Rocas, bloques y parches visibles (mínimo 3 px de arte, contorno, borde de luz); avisos la primera vez de cada tipo (`fisica/avisos.js`).
+- Camino dorado 5/5 en el simulador por pasos (FISICA_V2.md §5.3). Detalle: NIVELES_DESTACADOS.md «Obstáculos v2».
+
 ## En curso
 - Niveles críticos: el tramo más exigente que siga siendo superable, en la dirección correcta (subir la pared del maar, bancos de la mina,
   Jezero con relieve).

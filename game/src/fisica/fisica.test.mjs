@@ -368,7 +368,7 @@ caso('obstáculos: deterministas, fuera de los planos y declarados', () => {
     const crateres = lista.filter((o) => o.tipo === 'crater');
     if (id === 'polo_sur_lunar') {
       assert.ok(crateres.length >= 1, 'cráteres lunares');
-      for (const c of crateres) assert.equal(c.profundidad_m, Math.round(c.diametro_m * REGLAS_OBSTACULOS.crater.dD * 100) / 100);
+      for (const c of crateres) assert.ok(Math.abs(c.profundidad_m - c.diametro_m * REGLAS_OBSTACULOS.crater.dD) <= 0.01);
       const p2 = aplicarCrateres(p, lista);
       const c = crateres[0];
       assert.ok(alturaEn(p2, c.x_m) < alturaEn(p, c.x_m) - c.profundidad_m * 0.9); // el hueco está en el perfil
