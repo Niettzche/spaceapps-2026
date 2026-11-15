@@ -41,6 +41,11 @@ sepultado) más los 3 cráteres que quedan fuera por lluvia. Luego «Ya se conoc
 `preparar_datos.py` comprueba la lista de los que pasan contra la tabla, que los 3 «de lluvia» tengan más de 1 mm/día y más que
 todos los que pasan, las frases del Apolo 14 en `data/sites/pinacate.json` y que ningún sitio esté marcado como novedoso.
 
+**Tráiler** (`#trailer`, después de la portada): `public/video/trailer.webm` (AV1/Opus, 3.9 MB) y `trailer.mp4` (H.264/AAC,
+5.1 MB, faststart) del video original de 30 s (1080p, 14.4 MB), con póster WebP; `preload="none"`. Para regenerarlos:
+`ffmpeg -i original.mp4 -c:v libsvtav1 -preset 6 -crf 46 -g 150 -c:a libopus -b:a 80k trailer.webm` y
+`ffmpeg -i original.mp4 -c:v libx264 -preset slow -tune animation -crf 29 -pix_fmt yuv420p -movflags +faststart -c:a aac -b:a 96k trailer.mp4`.
+
 **Bloque de cráteres numerado:** 01 Pruébalo, 02 Cómo los encontramos (`#ciencia`), 03 Los análogos, 04 Lo que aportamos,
 con un índice de enlaces en la cabecera de Pruébalo.
 
