@@ -5,6 +5,19 @@
 **Responsable:** Mario  ·  **Agente:** Claude Code / Codex
 **Última actualización:** 15 nov 2026, mañana (landing con divulgación científica en `informe/divulgacion/`; ANA, la tutora de análogos, ya en `main`; demo en https://v1.marsception.us/)
 
+## Hecho (landing con divulgación científica, 15 nov)
+- **`informe/divulgacion/`: landing del juego con la ciencia explicada** (Vite, bilingüe con `?lang=en`, tema oscuro y claro).
+  Portada inspirada en la pantalla de inicio del juego (pixel art animado, con el rover del juego), cómo se juega con capturas
+  reales, los dos destinos, la ciencia como **infografía de museo en pixel art** (medimos, comparamos, revisamos el borde, y lo que
+  la Tierra no puede imitar; imprimible como cartel), «Lo que encontramos y lo que aportamos» (cifras en dígitos de píxel sobre el
+  cielo de la portada), detalles técnicos plegables, Marsception for Business y fuentes. Scroll suave con Lenis.
+- Cifras: `informe/divulgacion/preparar_datos.py` genera `public/datos/` y comprueba cada cifra del texto contra
+  `model/VALIDATION.md`, `model/NIVEL2.md`, `docs/METODOLOGIA.md` y `data/sites/pinacate.json` (hoy coinciden todas). Incluye la
+  prueba fuera de muestra del borde (7 de 8) y el orden por borde contra forma (11 cráteres y 1 mina contra 3 y 14).
+- Probada en Firefox sin ventana (escritorio de 1280 a 1920, teléfono de 390 px, inglés): sin errores ni desbordamiento horizontal.
+- «Contactar a ventas» escribe a hola@marsception.us. Pendiente: publicarla en marsception.us cuando Mario lo decida y verificar dos
+  datos que no vienen del repo, ambos solo en los detalles técnicos: Pike (1977) y la presión de Marte (menos del 1 %).
+
 ## Hecho (`POST /nivel`, 15 nov, 10:15; pedido opcional de integración)
 - **Qué es:** `POST /nivel {lat, lon}` devuelve el `nivel` de cualquier coordenada con los mismos campos que los de `data/sites`
   (`perfil_elevacion_m`, `paso_m`, `superficies`, `superficies_nota`, `fuente`…), para que el frente expediente vuelva jugables
@@ -22,19 +35,6 @@
   un cráter medido; sin límite de consultas por persona (igual que `/score`); cada consulta nueva son 4 llamadas a Earth Engine.
 - **Falta, de otros frentes:** que el frente expediente lo llame desde «Descubrir»; que integración lo agregue a la lista de
   endpoints de `AGENTS.md` §8; y volver a publicar la API (no hay que instalar nada nuevo).
-
-## Hecho (landing con divulgación científica, 15 nov)
-- **`informe/divulgacion/`: landing del juego con la ciencia explicada** (Vite, bilingüe con `?lang=en`, tema oscuro y claro).
-  Portada inspirada en la pantalla de inicio del juego (pixel art animado, con el rover del juego), cómo se juega con capturas
-  reales, los dos destinos, la ciencia como **infografía de museo en pixel art** (medimos, comparamos, revisamos el borde, y lo que
-  la Tierra no puede imitar; imprimible como cartel), «Lo que encontramos y lo que aportamos» (cifras en dígitos de píxel sobre el
-  cielo de la portada), detalles técnicos plegables, Marsception for Business y fuentes. Scroll suave con Lenis.
-- Cifras: `informe/divulgacion/preparar_datos.py` genera `public/datos/` y comprueba cada cifra del texto contra
-  `model/VALIDATION.md`, `model/NIVEL2.md`, `docs/METODOLOGIA.md` y `data/sites/pinacate.json` (hoy coinciden todas). Incluye la
-  prueba fuera de muestra del borde (7 de 8) y el orden por borde contra forma (11 cráteres y 1 mina contra 3 y 14).
-- Probada en Firefox sin ventana (escritorio de 1280 a 1920, teléfono de 390 px, inglés): sin errores ni desbordamiento horizontal.
-- «Contactar a ventas» escribe a hola@marsception.us. Pendiente: publicarla en marsception.us cuando Mario lo decida y verificar dos
-  datos que no vienen del repo, ambos solo en los detalles técnicos: Pike (1977) y la presión de Marte (menos del 1 %).
 
 ## Hecho (ANA, la tutora de análogos, 15 nov, mañana; rama `feat/modelo-tutor`)
 - **Qué es:** una tutora en el juego (Expediente: botón «A · Tutora» o tecla A; menú principal: botón «Tutora ANA» arriba a la
