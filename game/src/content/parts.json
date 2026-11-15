@@ -57,7 +57,7 @@
       "roca": 0.45,
       "compacto": 0.75
     },
-    "nota": "valor de juego (P). Inspiración: rueda de malla de acero del Lunar Roving Vehicle, 81.8 cm de diámetro (PIEZAS.md H5, S64). Ligera y grande: buen agarre en arena y regolito, menos fuerza al suelo (radio mayor) y floja en roca"
+    "nota": "valor de juego (P). Inspiración: rueda del Lunar Roving Vehicle, tejido de hilos de acero galvanizado sobre cubo de aluminio, 81.8 cm de diámetro y 23 cm de ancho, con chevrones de titanio en el 50 % del contacto (NASA NSSDC, S64; PIEZAS.md H5 y §5). Ligera y grande: buen agarre en arena y regolito, menos fuerza al suelo (radio mayor) y floja en roca"
   },
   {
     "id": "chasis_ligero",
@@ -97,7 +97,7 @@
     "costo": 130,
     "masa": 8,
     "capacidad": 160,
-    "nota": "valor de juego (P). Inspiración: baterías de ion litio de los rovers (PIEZAS.md H6). Punto medio entre la chica y la grande"
+    "nota": "valor de juego (P). Inspiración: las dos baterías de ion litio de unos 42 Ah y 28 V de Curiosity, que cubren los picos de demanda (NASA/JPL, MSL launch press kit p. 43, S76; PIEZAS.md §5). Los Ah no son comparables con la capacidad del juego. Punto medio entre la chica y la grande"
   },
   {
     "id": "bateria_grande",
@@ -129,7 +129,7 @@
     "masa": 8,
     "fuerza": 70,
     "consumo": 0.9,
-    "nota": "valor de juego (P). Compromiso fuerza contra consumo y calor (PIEZAS.md H1). Punto medio entre el eficiente y el potente"
+    "nota": "valor de juego (P). Compromiso fuerza contra consumo y calor (PIEZAS.md H1: cada rueda de Perseverance tiene su propio motor, S14). Punto medio entre el eficiente y el potente"
   },
   {
     "id": "motor_potente",
@@ -183,14 +183,24 @@
     "nota": "valor de juego (P). Recarga la batería según la luz del sitio (fisica/ambiente.js, regla c; luz rasante en el polo sur lunar). Inspiración: Spirit y Opportunity (PIEZAS.md H7)"
   },
   {
+    "id": "panel_solar_grande",
+    "nombre": "Panel solar grande",
+    "nombre_en": "Large solar panel",
+    "sistema": "modulo",
+    "costo": 230,
+    "masa": 7,
+    "capacidad": 80,
+    "nota": "valor de juego (P): recarga el doble que el panel chico (fisica/ambiente.js, regla c). Inspiración: paneles de Spirit y Opportunity, 1.3 m² de celdas triunión, 140 W en la superficie de Marte y unos 900 Wh por sol que bajaron a unos 600 Wh por el polvo (NASA/JPL, MER launch press kit pp. 8 y 44, S77; PIEZAS.md §5)"
+  },
+  {
     "id": "aislante_bateria",
-    "nombre": "Aislante de batería (aerogel)",
-    "nombre_en": "Battery insulation (aerogel)",
+    "nombre": "Aislante de batería",
+    "nombre_en": "Battery insulation",
     "sistema": "modulo",
     "costo": 70,
     "masa": 2,
     "aislamiento_termico": 0.75,
-    "nota": "valor de juego (P): evita 75 % de la pérdida de batería por frío (fisica/ambiente.js, regla a). Inspiración: aislante de aerogel de la caja de baterías de Sojourner y MER, que las mantiene entre −40 y +40 °C contra −96 °C de noche en Marte (libro de datos, hoja Materials MT-008, S40)"
+    "nota": "valor de juego (P), SIN fuente primaria para un aislante o calentador de batería (PIEZAS.md §5: Gap): evita 75 % de la pérdida de batería por frío de la regla (P) de fisica/ambiente.js. Contexto real: calentadores de radioisótopos calentaban la caja de la electrónica de Sojourner, Spirit y Opportunity (NTRS 20150008894, S78)"
   },
   {
     "id": "radiador_motor",
@@ -200,6 +210,6 @@
     "costo": 90,
     "masa": 3,
     "radiador": 0.006,
-    "nota": "valor de juego (P): +0.006 /s de enfriamiento por radiación (fisica/ambiente.js, regla b). Sin referencia específica verificada; principio: sin aire el calor solo sale por radiación, así que el efecto es mayor en la Luna y en Marte"
+    "nota": "valor de juego (P): +0.006 /s de enfriamiento por radiación del motor (fisica/ambiente.js, regla b); para el motor no hay fuente primaria (PIEZAS.md §5: Gap). Hecho real: los radiadores externos de Curiosity disipan el calor de desecho de la electrónica hacia el ambiente marciano (NTRS 20150008894, S78; MSL press kit p. 38, S76). Sin aire el calor solo sale por radiación: se nota más en la Luna y en Marte"
   }
 ]

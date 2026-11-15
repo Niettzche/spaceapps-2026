@@ -19,7 +19,7 @@ const porId = Object.fromEntries(catalogo.map((p) => [p.id, p]));
 const PRESUPUESTO = 1000;
 const con = (cambios) => comoDiseno({ ...comoMapa(DISENO_POR_DEFECTO), ...cambios });
 const res = (cambios) => resumen(con(cambios), catalogo, { masaCarga: MASA_CARGA_KG });
-const NUEVAS = ['rueda_malla', 'bateria_mediana', 'motor_equilibrado', 'soporte_correas', 'aislante_bateria', 'radiador_motor'];
+const NUEVAS = ['rueda_malla', 'bateria_mediana', 'motor_equilibrado', 'soporte_correas', 'panel_solar_grande', 'aislante_bateria', 'radiador_motor'];
 const JEZERO = ambienteDeDestino('jezero', 'marte');
 const LUNA = ambienteDeDestino('polo_sur_lunar', 'luna');
 let n = 0;
@@ -107,6 +107,8 @@ caso('radiador: el motor caliente conserva más potencia en la Luna y en Marte; 
 caso('panel solar: recarga solo con panel y menos con luz rasante (Luna) que en Marte', () => {
   assert.equal(efectosEn(res({}), JEZERO).recarga_s, 0);
   assert.ok(efectosEn(res({ modulo: 'panel_solar' }), JEZERO).recarga_s > efectosEn(res({ modulo: 'panel_solar' }), LUNA).recarga_s);
+  const chico = efectosEn(res({ modulo: 'panel_solar' }), JEZERO).recarga_s;
+  assert.ok(Math.abs(efectosEn(res({ modulo: 'panel_solar_grande' }), JEZERO).recarga_s - 2 * chico) < 1e-12, 'el grande recarga el doble');
 });
 
 caso('feedback: frío + energía agotada → aislante (Aplicar y al taller pone el módulo)', () => {
