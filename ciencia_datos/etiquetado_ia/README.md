@@ -9,6 +9,8 @@
 - Canteras o minas de OpenStreetMap a ≤ 1 km: **22 de 26**. Las 4 fallas tienen confianza baja (0.3–0.4) y dicen "no se puede decir" o "valle".
 - Meteor Crater: **1 de 1**, como impacto.
 
+**Por qué 298 y no 310 ni 296.** 47 de México + 263 globales = 310; 12 globales repiten un cráter de Sonora a ≤ 1 km y se quitan → 298 (los que se etiquetaron). El análisis integrado (`ciencia_datos/salidas/fichas_integradas.csv`, `lista_corta.md`) usa 296: quita además G00232 y G00239, de Sonora, que repiten depresiones mexicanas que no pasaron el filtro de cráter.
+
 **Resultado en los 298:** 94 valles o cañadas, 57 no se puede decir, 53 minas, 26 cráteres volcánicos, 24 hondonadas eólicas o dunas, 22 otro, 20 presas o lagos, 1 impacto y 1 dolina. Confirma que buena parte de las detecciones del detector no son cráteres, y sirve para limpiar la lista.
 
 **Cómo presentarlo:** "etiquetado asistido por IA y verificado contra fuentes". Nunca "la IA descubrió". Es una ayuda para revisar imágenes, con su error medido.
