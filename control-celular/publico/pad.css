@@ -1,0 +1,322 @@
+/* Control de celular de MARSCEPTION. Dos pieles sobre el mismo HTML:
+   html.general → plana, alto contraste, ligera (cualquier celular).
+   html.glass   → "liquid glass" estilo Apple: vidrio esmerilado, brillo especular, rebote elástico. */
+:root {
+  --fondo: #0b0d17; --texto: #f2f4ff; --tenue: #9aa3c7; --acento: #ffd166; --ok: #06d6a0; --mal: #ef476f;
+  --radio: 18px; --hueco: 10px;
+  --sa-l: env(safe-area-inset-left, 0px); --sa-r: env(safe-area-inset-right, 0px);
+  --sa-t: env(safe-area-inset-top, 0px); --sa-b: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; overflow: hidden; overscroll-behavior: none; }
+body {
+  background: var(--fondo); color: var(--texto);
+  font: 600 15px/1.2 -apple-system, BlinkMacSystemFont, "SF Pro Rounded", "Segoe UI", Roboto, system-ui, sans-serif;
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: none;
+  display: grid; grid-template-rows: auto minmax(0, 1fr); grid-template-columns: minmax(0, 1fr); height: 100vh; height: 100dvh;
+  --alto: calc(100vh - 78px); --alto: calc(100dvh - 78px); /* alto útil bajo la barra */
+  padding: max(6px, var(--sa-t)) max(10px, var(--sa-r)) max(8px, var(--sa-b)) max(10px, var(--sa-l));
+}
+button { font: inherit; color: inherit; }
+
+/* ---------------------------------------------------------------- barra superior */
+#barra { display: flex; align-items: center; gap: 8px; min-height: 34px; font-size: 13px; position: relative; z-index: 2; }
+.punto { width: 10px; height: 10px; border-radius: 50%; background: var(--tenue); flex: none; }
+.punto.ok { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+.punto.medio { background: var(--acento); }
+.punto.mal { background: var(--mal); }
+.escena { color: var(--tenue); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.relleno { flex: 1; }
+.ping { color: var(--tenue); font-variant-numeric: tabular-nums; font-size: 12px; }
+.chip { border: 1px solid rgba(255,255,255,.22); background: rgba(255,255,255,.07); border-radius: 999px; padding: 6px 12px; font-size: 12px;
+  flex: none; white-space: nowrap; }
+#estado { white-space: nowrap; }
+.escena { min-width: 0; }
+@media (max-width: 700px) {
+  #barra { gap: 6px; font-size: 12px; }
+  .chip { padding: 5px 9px; font-size: 11px; }
+}
+
+/* ---------------------------------------------------------------- área del control */
+#pad { position: relative; z-index: 1; min-height: 0; touch-action: none; }
+.vista { display: none; height: 100%; gap: var(--hueco); padding-top: 6px; }
+#pad[data-modo="conducir"] .conducir { display: grid; grid-template-columns: 1fr minmax(150px, 24vw) 1fr; }
+#pad[data-modo="navegar"] .navegar { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; }
+
+.btn {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  border-radius: var(--radio); overflow: hidden; cursor: pointer; text-align: center;
+  transition: transform .35s cubic-bezier(.34,1.56,.64,1), background-color .15s, box-shadow .2s;
+}
+.btn.on { transform: scale(.94); transition-duration: .06s; }
+.btn * { pointer-events: none; }
+.ico { font-size: 28px; line-height: 1; }
+.txt { font-size: 13px; letter-spacing: .02em; text-transform: uppercase; }
+
+/* conducir */
+.grande .ico { font-size: clamp(40px, 12vh, 84px); }
+.grande .txt { font-size: 16px; }
+.centro { display: flex; flex-direction: column; min-height: 0; }
+.centro > div { flex: 1; display: flex; flex-direction: column; gap: var(--hueco); min-height: 0; }
+.centro .enpausa { display: none; }
+#pad[data-pausado="1"] .centro .normal { display: none; }
+#pad[data-pausado="1"] .centro .enpausa { display: flex; }
+.mediano { flex: 1.4; }
+.chico { flex: 1; }
+.chico .ico { font-size: 22px; }
+/* En pausa los pedales no hacen nada: se atenúan para que se note dónde tocar. */
+#pad[data-pausado="1"] .grande { opacity: .4; }
+.fila { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: var(--hueco); }
+
+/* navegar */
+.cruz {
+  --t: min(var(--alto), 33vw); width: var(--t); height: var(--t);
+  display: grid; grid-template: 1fr 1fr 1fr / 1fr 1fr 1fr; gap: 6px;
+}
+.flecha { border-radius: 14px; }
+.flecha .ico { font-size: clamp(22px, 7vh, 40px); }
+.arriba { grid-area: 1 / 2; } .izq { grid-area: 2 / 1; } .der { grid-area: 2 / 3; } .abajo { grid-area: 3 / 2; }
+.contexto { display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 8px; padding: 4px;
+  max-height: 100%; overflow: hidden; }
+.atajo { min-width: 52px; min-height: 44px; padding: 6px 12px; border-radius: 14px; }
+.atajo .txt { font-size: 12px; white-space: nowrap; }
+/* A (OK) abajo a la derecha y B (Atrás) arriba a la izquierda, sin que sus cajas se toquen. */
+.ab {
+  --d: min(calc(var(--alto) / 2.1), 16vw); width: calc(var(--d) * 2.15); height: calc(var(--d) * 2.1); position: relative;
+}
+.redondo { position: absolute; width: var(--d); height: var(--d); border-radius: 50%; }
+.redondo.a { right: 0; bottom: 0; width: calc(var(--d) * 1.12); height: calc(var(--d) * 1.12); }
+.redondo.a .ico { font-size: clamp(22px, 7vh, 38px); font-weight: 800; }
+.redondo.b { left: 0; top: 0; }
+
+/* ---------------------------------------------------------------- velos */
+.velo { position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center;
+  background: rgba(5,6,12,.82); padding: 20px; }
+.oculto { display: none !important; }
+.tarjeta { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; max-width: 520px; }
+.logo { font-size: 26px; font-weight: 800; letter-spacing: .18em; color: var(--acento); }
+.sub { color: var(--tenue); }
+.grandote { font-size: 22px; margin-top: 10px; padding: 14px 28px; border: 1px solid rgba(255,255,255,.3); border-radius: 999px;
+  animation: latir 1.6s ease-in-out infinite; }
+@keyframes latir { 50% { transform: scale(1.05); } }
+.consejo { font-size: 12px; color: var(--tenue); max-width: 340px; }
+#campoSala { font: 800 34px/1 ui-monospace, monospace; letter-spacing: .4em; text-align: center; width: 220px; padding: 10px;
+  border-radius: 14px; border: 2px solid var(--acento); background: #12152a; color: var(--texto); -webkit-user-select: text; user-select: text; }
+.grande-chip { font-size: 16px; padding: 10px 26px; }
+#girar { display: none; z-index: 20; }
+.ico-girar { font-size: 56px; animation: girar 2s ease-in-out infinite; }
+@keyframes girar { 50% { transform: rotate(90deg); } }
+@media (orientation: portrait) { #girar { display: flex; } }
+
+#haptico { position: fixed; left: 0; top: 0; width: 1px; height: 1px; opacity: 0; overflow: hidden; pointer-events: none; }
+
+/* atajos: texto + tecla real (las dos pieles) */
+.atajo { flex-direction: row; gap: 7px; }
+.atajo .tecla { font: 700 10px/1 ui-monospace, Menlo, Consolas, monospace; padding: 3px 5px; border-radius: 6px;
+  background: rgba(255,255,255,.12); color: rgba(255,255,255,.75); letter-spacing: 0; }
+.atajo.num { min-width: 48px; }
+.atajo.num .txt { font-size: 17px; font-weight: 800; }
+
+/* ================================================================ piel GENERAL (Android y todos): consola de juego
+   Botones con relieve que se hunden al tocarlos, onda de luz desde el dedo, cruceta de una pieza y pedales con estrías.
+   Solo gradientes y sombras: nada de blur ni WebGL, para que vaya fluido en cualquier celular. */
+html.general #fondo { display: none; }
+html.general body {
+  background:
+    radial-gradient(120% 70% at 50% 135%, rgba(255,112,60,.30) 0%, rgba(255,112,60,.08) 45%, transparent 70%),
+    radial-gradient(90% 80% at 0% 0%, rgba(76,110,245,.16), transparent 60%),
+    linear-gradient(180deg, #090b16 0%, #0f1226 100%);
+}
+/* estrellas (fijas: no gastan batería) */
+html.general body::before {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: .8;
+  background-image:
+    radial-gradient(1.3px 1.3px at 12% 18%, #fff, transparent 70%), radial-gradient(1px 1px at 63% 41%, #fff, transparent 70%),
+    radial-gradient(1.6px 1.6px at 37% 77%, #ffd6b0, transparent 70%), radial-gradient(1px 1px at 86% 83%, #cfd8ff, transparent 70%),
+    radial-gradient(1.2px 1.2px at 81% 12%, #fff, transparent 70%), radial-gradient(1px 1px at 24% 52%, #cfd8ff, transparent 70%);
+  background-size: 230px 170px;
+}
+/* horizonte de Marte */
+html.general body::after {
+  content: ""; position: fixed; left: -20vw; right: -20vw; bottom: -118vh; height: 130vh; border-radius: 50%; pointer-events: none;
+  z-index: 0; background: radial-gradient(60% 50% at 50% 0%, #5a2414, #2a1210 60%, #160b0d);
+  box-shadow: 0 -2px 0 rgba(255,140,90,.35), 0 -18px 60px rgba(255,110,60,.22);
+}
+
+html.general #barra {
+  background: rgba(18,21,42,.82); border: 1px solid rgba(255,255,255,.07); border-radius: 14px; padding: 2px 4px 2px 12px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.35);
+}
+html.general .chip { background: #232846; border-color: rgba(255,255,255,.10); box-shadow: inset 0 1px 0 rgba(255,255,255,.08); }
+html.general .chip:active { background: #2e3560; }
+html.general #bPantalla { padding: 5px 10px; }
+
+html.general .btn {
+  --c1: #2b3156; --c2: #1d2242; --labio: #0b0e20; --acc: #9fb0ff; --brillo: rgba(159,176,255,.35);
+  --x: 50%; --y: 50%;
+  color: var(--texto);
+  background: linear-gradient(180deg, var(--c1) 0%, var(--c2) 100%);
+  border: 1px solid rgba(255,255,255,.07);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.16), inset 0 -2px 0 rgba(0,0,0,.18), 0 5px 0 var(--labio), 0 10px 18px rgba(0,0,0,.45);
+  transition: transform .14s cubic-bezier(.3,1.6,.6,1), box-shadow .14s, filter .14s;
+}
+html.general .btn.on {
+  transform: translateY(4px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.10), inset 0 0 18px var(--brillo), 0 1px 0 var(--labio), 0 0 0 2px var(--acc),
+    0 0 24px var(--brillo);
+  filter: brightness(1.12);
+  transition-duration: .05s;
+}
+/* onda de luz que nace donde tocó el dedo */
+html.general .btn::after {
+  content: ""; position: absolute; left: var(--x); top: var(--y); width: 12px; height: 12px; margin: -6px 0 0 -6px;
+  border-radius: 50%; background: var(--brillo); opacity: 0; transform: scale(0); pointer-events: none;
+}
+html.general .btn.on::after { animation: onda .55s ease-out; }
+@keyframes onda { 0% { opacity: .9; transform: scale(0); } 100% { opacity: 0; transform: scale(34); } }
+html.general .ico { color: var(--acc); text-shadow: 0 0 14px var(--brillo); }
+html.general .txt { color: rgba(242,244,255,.92); }
+html.general .btn.on .ico { color: #fff; }
+
+/* conducir: pedales con estrías */
+html.general .grande { border-radius: 24px; gap: 10px; }
+html.general .grande::before {
+  content: ""; position: absolute; inset: 14% 16%; border-radius: 14px; pointer-events: none;
+  background: repeating-linear-gradient(180deg, rgba(255,255,255,.07) 0 4px, transparent 4px 15px);
+  -webkit-mask: linear-gradient(90deg, transparent, #000 25%, #000 75%, transparent);
+  mask: linear-gradient(90deg, transparent, #000 25%, #000 75%, transparent);
+}
+html.general .grande .ico, html.general .grande .txt { position: relative; }
+html.general .grande .txt { font-size: 17px; font-weight: 800; letter-spacing: .12em; }
+html.general .grande[data-k="ArrowLeft"] { --c1: #4a2433; --c2: #2c1626; --labio: #170910; --acc: #ff7a5c; --brillo: rgba(255,122,92,.38); }
+html.general .grande[data-k="ArrowRight"] { --c1: #173f4a; --c2: #10283a; --labio: #06121b; --acc: #45e3c0; --brillo: rgba(69,227,192,.36); }
+html.general .mediano { border-radius: 22px; }
+html.general .conducir .mediano[data-k="Escape"] { --acc: #ffd166; --brillo: rgba(255,209,102,.32); }
+html.general .chico .txt { font-size: 12px; }
+html.general .verde { --c1: #12524a; --c2: #0b3431; --labio: #041714; --acc: #3df0b8; --brillo: rgba(61,240,184,.38); }
+html.general .rojo { --c1: #55202f; --c2: #34121e; --labio: #18070c; --acc: #ff6b8a; --brillo: rgba(255,107,138,.36); }
+
+/* navegar: cruceta de una sola pieza */
+html.general .cruz { gap: 0; filter: drop-shadow(0 10px 14px rgba(0,0,0,.4)); }
+html.general .flecha {
+  background: #262c51; border-radius: 0; border: 0;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 5px 0 var(--labio);
+}
+html.general .flecha.arriba { border-radius: 18px 18px 0 0; box-shadow: inset 0 1px 0 rgba(255,255,255,.16); }
+html.general .flecha.abajo { border-radius: 0 0 18px 18px; }
+html.general .flecha.izq { border-radius: 18px 0 0 18px; }
+html.general .flecha.der { border-radius: 0 18px 18px 0; }
+html.general .flecha .ico { font-size: clamp(20px, 6vh, 34px); opacity: .9; }
+/* centro con hoyuelo (las 4 flechas lo rodean) */
+html.general .cruz::before {
+  content: ""; grid-area: 2 / 2; position: relative; z-index: 2; pointer-events: none;
+  background: radial-gradient(circle at 50% 48%, #151937 0 26%, #1f2447 30%, #262c51 62%);
+}
+/* la flecha presionada se inclina (como un balancín) en vez de hundirse: la cruz no se rompe */
+html.general .flecha.on { transform: none; filter: none; background: linear-gradient(180deg, #3a4378, #2a3166);
+  box-shadow: inset 0 0 22px var(--brillo), 0 5px 0 var(--labio); }
+html.general .flecha.arriba.on { box-shadow: inset 0 0 22px var(--brillo), inset 0 3px 0 var(--acc); }
+html.general .flecha.abajo.on { box-shadow: inset 0 0 22px var(--brillo), inset 0 -3px 0 var(--acc), 0 3px 0 var(--labio); }
+html.general .flecha.izq.on { box-shadow: inset 0 0 22px var(--brillo), inset 3px 0 0 var(--acc), 0 5px 0 var(--labio); }
+html.general .flecha.der.on { box-shadow: inset 0 0 22px var(--brillo), inset -3px 0 0 var(--acc), 0 5px 0 var(--labio); }
+html.general .flecha.on .ico { transform: scale(1.18); }
+html.general .flecha .ico { transition: transform .12s; }
+
+/* OK naranja Marte (botón principal) y Atrás */
+html.general .redondo.a { --c1: #ff8f56; --c2: #e2562a; --labio: #7d2a10; --acc: #ffc39e; --brillo: rgba(255,170,120,.45); }
+html.general .redondo.a .ico { color: #fff; text-shadow: 0 1px 0 rgba(120,30,0,.6), 0 0 16px rgba(255,220,190,.5); letter-spacing: .04em; }
+html.general .redondo.b { --c1: #3d2c4f; --c2: #291d39; --labio: #110a19; --acc: #ff7aa8; --brillo: rgba(255,122,168,.35); }
+html.general .redondo.b .txt { font-weight: 800; }
+html.general .atajo { --c1: #262b4c; --c2: #1c2040; border-radius: 13px; box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 4px 0 var(--labio), 0 8px 14px rgba(0,0,0,.35); }
+html.general .atajo.on { transform: translateY(3px); }
+html.general .atajo[data-k="c"] { --c1: #1d4a3f; --c2: #13332e; --labio: #061612; --acc: #3df0b8; --brillo: rgba(61,240,184,.35); }
+
+/* velos */
+html.general .velo { background: radial-gradient(120% 90% at 50% 110%, rgba(255,112,60,.22), transparent 60%), rgba(6,7,15,.92); }
+html.general .logo { background: linear-gradient(90deg, #ffd166, #ff7a45); -webkit-background-clip: text; background-clip: text; color: transparent; }
+html.general .grandote { background: linear-gradient(180deg, #ff8f56, #e2562a); border: 0; color: #fff; font-weight: 800;
+  box-shadow: 0 5px 0 #7d2a10, 0 12px 28px rgba(255,110,60,.35); text-shadow: 0 1px 0 rgba(120,30,0,.6); }
+html.general #campoSala { background: #151935; border-color: #ff8f56; }
+html.general .grande-chip { background: linear-gradient(180deg, #ff8f56, #e2562a); border: 0; color: #fff; font-weight: 800; box-shadow: 0 4px 0 #7d2a10; }
+
+/* ================================================================ piel GLASS (estilo Apple "liquid glass") */
+html.glass body { background: radial-gradient(120% 140% at 10% 0%, #1b1f4a 0%, #0b0d17 55%, #1a0d12 100%); }
+#fondo { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+#fondo i { position: absolute; border-radius: 50%; filter: blur(40px); opacity: .75; will-change: transform; }
+#fondo .m1 { width: 46vw; height: 46vw; left: -8vw; top: 20vh; background: #ff7b3a; animation: flotar1 18s ease-in-out infinite; }
+#fondo .m2 { width: 38vw; height: 38vw; right: -6vw; top: -10vh; background: #5b7cff; animation: flotar2 22s ease-in-out infinite; }
+#fondo .m3 { width: 30vw; height: 30vw; left: 38vw; bottom: -14vh; background: #c04bff; animation: flotar1 26s ease-in-out infinite reverse; }
+#fondo .m4 { width: 22vw; height: 22vw; right: 20vw; top: 40vh; background: #2fe0c0; opacity: .5; animation: flotar2 20s ease-in-out infinite reverse; }
+@keyframes flotar1 { 50% { transform: translate(12vw, -10vh) scale(1.15); } }
+@keyframes flotar2 { 50% { transform: translate(-10vw, 12vh) scale(.9); } }
+
+html.glass .btn, html.glass .chip {
+  --x: 30%; --y: 20%;
+  background: linear-gradient(160deg, rgba(255,255,255,.26) 0%, rgba(255,255,255,.08) 45%, rgba(255,255,255,.04) 100%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%); backdrop-filter: blur(22px) saturate(180%);
+  border: 1px solid rgba(255,255,255,.34);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.65),      /* filo de luz arriba */
+    inset 0 -1px 1px rgba(255,255,255,.12),   /* rebote abajo */
+    inset 0 0 0 .5px rgba(255,255,255,.08),
+    0 12px 32px rgba(0,0,0,.35);
+  color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.35);
+}
+html.glass .btn { border-radius: 26px; }
+html.glass .flecha { border-radius: 20px; }
+html.glass .redondo { border-radius: 50%; }
+/* brillo especular que sigue al dedo */
+html.glass .btn::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: radial-gradient(circle at var(--x) var(--y), rgba(255,255,255,.55), rgba(255,255,255,0) 55%);
+  opacity: .35; transition: opacity .25s;
+}
+/* reflejo curvo del borde superior (da volumen de "gota") */
+html.glass .btn::after {
+  content: ""; position: absolute; left: 8%; right: 8%; top: 3px; height: 38%; border-radius: 999px; pointer-events: none;
+  background: linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0));
+  opacity: .55;
+}
+html.glass .btn.on {
+  transform: scale(.93);
+  background: linear-gradient(160deg, rgba(255,255,255,.42) 0%, rgba(255,255,255,.18) 60%, rgba(255,255,255,.10) 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9), inset 0 0 24px rgba(255,255,255,.22), 0 4px 14px rgba(0,0,0,.3);
+}
+html.glass .btn.on::before { opacity: 1; }
+html.glass .redondo.a { background: linear-gradient(160deg, rgba(120,160,255,.45), rgba(80,110,255,.12)); }
+html.glass .redondo.b { background: linear-gradient(160deg, rgba(255,120,170,.38), rgba(255,80,130,.10)); }
+html.glass .verde { background: linear-gradient(160deg, rgba(6,214,160,.45), rgba(6,214,160,.12)); }
+html.glass .rojo { background: linear-gradient(160deg, rgba(239,71,111,.42), rgba(239,71,111,.12)); }
+html.glass .grande:first-child { background: linear-gradient(160deg, rgba(255,140,90,.32), rgba(255,255,255,.05)); }
+html.glass .grande:last-child { background: linear-gradient(160deg, rgba(110,200,255,.32), rgba(255,255,255,.05)); }
+html.glass .velo { background: rgba(5,6,12,.35); -webkit-backdrop-filter: blur(30px) saturate(160%); backdrop-filter: blur(30px) saturate(160%); }
+html.glass .grandote { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.4);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.6), 0 10px 30px rgba(0,0,0,.3); }
+html.glass .logo { color: #fff; text-shadow: 0 0 24px rgba(255,180,120,.6); }
+html.glass #campoSala { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.45); }
+
+/* Presionado también en los botones con color propio (van después en la cascada). */
+html.glass .btn.on { filter: brightness(1.35) saturate(1.2); }
+
+/* ================================================================ glass con WebGL (vidrio.js)
+   El shader dibuja fondo y vidrio en #vidrio; los botones HTML quedan transparentes encima (solo texto y toques). */
+#vidrio { display: none; }
+html.glass.gl #vidrio { display: block; position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+html.glass.gl #fondo { display: none; }
+html.glass.gl .btn, html.glass.gl .chip {
+  background: transparent !important; border-color: transparent; box-shadow: none;
+  -webkit-backdrop-filter: none; backdrop-filter: none; filter: none !important;
+}
+html.glass.gl .btn::before, html.glass.gl .btn::after { display: none; }
+/* El shader infla el vidrio; el texto acompaña con el mismo rebote. */
+html.glass.gl .btn.on { transform: none; }
+html.glass.gl .btn > * { transition: transform .45s cubic-bezier(.34,1.8,.5,1); }
+html.glass.gl .btn.on > * { transform: scale(1.06); transition-duration: .12s; }
+html.glass.gl .txt, html.glass.gl .ico { text-shadow: 0 1px 3px rgba(0,0,0,.45); }
+
+/* Quien pide menos movimiento: sin manchas animadas ni rebote. */
+@media (prefers-reduced-motion: reduce) {
+  #fondo i, .grandote, .ico-girar { animation: none; }
+  .btn { transition: background-color .1s; }
+  html.general .btn.on::after { animation: none; }
+}

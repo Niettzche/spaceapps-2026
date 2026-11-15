@@ -4,9 +4,10 @@ from __future__ import annotations
 import json, os, pathlib, sqlite3, datetime
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from model.score import comparar
 from model.features import variables_tierra
+from model import nivel_vivo
 from api.tutor import router as tutor_router
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -65,6 +66,28 @@ def submit(p: Propuesta):
                 (datetime.datetime.utcnow().isoformat(), p.nombre, p.autor, p.lat, p.lon, p.destino, json.dumps(r, ensure_ascii=False), "propuesto_usuario"))
     con.commit(); con.close()
     return {"ok": True, "estado": "propuesto_usuario", "similitud": r["similitud"]}
+
+
+class PuntoNivel(BaseModel):
+    lat: float = Field(ge=nivel_vivo.LAT_MIN, le=nivel_vivo.LAT_MAX)
+    lon: float = Field(ge=-180, le=180)
+    diam_km: float | None = Field(default=None, gt=0, le=nivel_vivo.DIAM_MAX_KM)   # si es un cráter medido: alarga el corte
+    destino: str | None = None                                                     # solo cambia la nota de la superficie
+
+
+@app.post("/nivel")
+def nivel(p: PuntoNivel):
+    """Nivel jugable de una coordenada: perfil real del DEM y superficie por tramos, con la misma regla que los de data/sites.
+    El juego no depende de esto: los sitios con `nivel` en data/sites se juegan sin API."""
+    mundo = destino(p.destino).get("mundo") if p.destino else None
+    try:
+        r = nivel_vivo.nivel_de_punto(p.lat, p.lon, p.diam_km, mundo)
+    except nivel_vivo.SinRelieve as e:
+        raise HTTPException(422, str(e))
+    except Exception:  # noqa: BLE001  (Earth Engine sin credenciales, sin red o sin respuesta)
+        raise HTTPException(502, "No se pudo calcular el nivel: el servicio de relieve no respondió.")
+    return {"punto": p.model_dump(), **r,
+            "metodo": "Copernicus DEM GLO-30 a 30 m, corte oeste-este centrado en el punto; superficie por reglas (model/nivel_vivo.py)"}
 
 
 @app.post("/feedback")

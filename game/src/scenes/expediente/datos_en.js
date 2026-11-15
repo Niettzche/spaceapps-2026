@@ -119,6 +119,11 @@ const EXACTOS = {
     'Closed crater-like depression of unconfirmed origin (raised rim: probably volcanic)',
   'Probable tajo minero a cielo abierto (cantera de OpenStreetMap a ≤ 2 km; por verificar)':
     'Probable open-pit mine (OpenStreetMap quarry within ≤ 2 km; to be verified)',
+  // Textos verificados con fuente (model/scan.py, PROCESOS_VERIFICADOS; docs/taller/FUENTES_NIVELES.md).
+  'Tajo minero a cielo abierto: mina de cobre Buenavista del Cobre, en Cananea':
+    'Open-pit mine: Buenavista del Cobre copper mine, in Cananea',
+  'Volcánico: anillo de toba de comendita (una riolita), de origen freatomagmático':
+    'Volcanic: comendite (a rhyolite) tuff ring, of phreatomagmatic origin',
   'Volcánico: maar del catálogo de cráteres conocidos de México': 'Volcanic: maar from the catalog of known Mexican craters',
   'Análogo operativo, no geológico: probar navegación y movilidad de rovers en paredes empinadas, excavación (ISRU) y operación con sombra en el fondo del tajo':
     SITIOS_EN.mx0207.uso_exploracion,

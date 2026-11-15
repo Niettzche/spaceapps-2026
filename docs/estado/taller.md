@@ -167,3 +167,11 @@ las pruebas en teléfono se hicieron con Claude Code. Cada dato se revisó contr
     `comun/tutorial.js`, cambiar las dos importaciones de `Taller/tutorial_vista.js`.
   - Pruebas: `node game/src/scenes/Taller/accesible.test.mjs` (7 casos). Revisión automática (texto ≥ 14, fuera, encimados, zonas
     < 64 × 44) en 27 estados × es/en, incluidos los 4 pasos del tutorial y el foco: 0 problemas. Humo con clics reales: OK.
+
+## 15 nov · revisión de METHODOLOGY_EN y preguntas del pitch (Leo)
+- `docs/METHODOLOGY_EN.md`: valores de física 2 confirmados contra `suelo_v2.js` y el libro de datos; agregué el Lunar Sourcebook y
+  Moore 1991 a las fuentes. Detalle: `docs/taller/REVISION_METHODOLOGY_EN.md`.
+- `docs/PITCH_QA_EN.md`: Q1 (7 m/s, 250 m) y Q8 (rueda ancha con números de física 2) al día; Q18–Q22 nuevas (presupuesto,
+  puntuación, factor de gravedad, límites del modelo, Tierra contra misión). Judges QA-010…014.
+- Libro de datos: notas de BM-008, BM-013, BM-023 y BM-024 al día con física 2 (RV-175…179).
+- Sigue: playtest de la demo publicada (es/en) cuando Mario avise.
