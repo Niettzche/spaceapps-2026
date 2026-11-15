@@ -18,6 +18,10 @@ import { palabrasClave, chipsLimites, resumenRecorrido, chipsAmbiente } from './
 import { P, num, txt, filaChips, barra, colorSimilitud, iconosTickets } from './expediente/componentes.js';
 import { tr, trDato } from '../i18n.js';
 import { ajustarAncho } from './comun/fuente.js';
+import { infoVariable, tecnicoConUnidad, leyendaTabla, explicaConfianza, explicaTotal, explicaSimilitud } from './expediente/glosario.js';
+import { icono, iconoVariable } from './expediente/iconos_expediente.js';
+import { pasosTutorial, debeMostrarTutorial } from './expediente/tutorial_expediente.js';
+import { abrirTutorial } from './expediente/tutorial_vista.js';
 
 // Dueño: frente expediente. Comparación 1 a 1: sitio terrestre vs destino, misma variable y unidad.
 // Diseño (docs/juego/DISENO.md §2–§3): se entiende en 3 segundos. Arriba el sitio y su similitud total (barra + %);
@@ -30,11 +34,12 @@ const X0 = 306; // inicio de la columna derecha
 const X1 = 945; // fin de la columna derecha
 const XM = (X0 + X1) / 2;
 // Tabla en UNA línea por fila (fuente ×2, renglón de 24 px): variable · Tierra · destino · barra + % · «›».
-const XT = 528; // columna de la Tierra
+const XT = 540; // columna de la Tierra
 const XD = 818; // borde derecho de la columna del destino
 const XB = 826; // barra de similitud de la fila (50 px) y su % a la derecha (XP)
 const XP = 930;
-const ALTO_FILA = 30;
+const ALTO_FILA = 32; // ícono ×2 (32 px) a la izquierda de cada fila
+const XL = X0 + 40; // nombre llano de la variable (después del ícono)
 // Fuente pixel ×2 (renglón de 22 px): lista de 5 sitios de 56 px, panel de 62 a 422, tickets debajo y el pie en una fila.
 const LISTA = { y0: 100, paso: 56, panelY: 62, panelAlto: 354, yPag: 392 };
 const Y_PIE = 514; // fila de botones del pie (Datos · Condiciones · Ficha … Probar); Regresar · Menú van arriba, a la izquierda
@@ -51,7 +56,7 @@ export default class Expediente extends Phaser.Scene {
     prepararIngles();
     // La instancia de la escena se reutiliza entre visitas: reinicia el estado propio.
     this.botonesDetalle = null; this.botonesLista = []; this.foco = null; this.filaActual = null; this.filas = null;
-    this.capaCondiciones = null; this.detalle = null;
+    this.capaCondiciones = null; this.detalle = null; this.tutorial = null; this.zonas = {};
     if (!DESTINOS[partida.destino]) partida.destino = DESTINOS[DESTINO_POR_DEFECTO] ? DESTINO_POR_DEFECTO : Object.keys(DESTINOS)[0];
     this.destino = DESTINOS[partida.destino] || null;
     this.sitios = sitiosParaDestino(SITIOS, partida.destino);
@@ -67,6 +72,34 @@ export default class Expediente extends Phaser.Scene {
     this.capaInfo = this.add.container(0, 0).setDepth(5); // panel de detalle (tecla I), encima de todo lo demás
     this.dibujarLista();
     this.dibujarDetalle();
+    // Tutorial rápido la primera vez (se repite con «?»). Sin sitio elegido no hay nada que señalar.
+    if (this.seleccion && this.destino && debeMostrarTutorial()) this.abrirTutorial();
+  }
+
+  // ---------- Tutorial rápido (coach marks): tutorial_expediente.js + tutorial_vista.js ----------
+
+  abrirTutorial() {
+    if (this.tutorial || !this.seleccion || !this.destino) return;
+    this.cerrarDetalle(false);
+    if (this.capaCondiciones) { this.capaCondiciones.destroy(true); this.capaCondiciones = null; this.textosCondiciones = null; }
+    const mundo = MUNDOS[this.destino.mundo] || this.destino.mundo;
+    this.tutorial = abrirTutorial(this, {
+      pasos: pasosTutorial(mundo),
+      zonas: (nombre) => this.zonaTutorial(nombre),
+      alCerrar: () => { this.tutorial = null; this.foco = 'probar'; this.registrarTeclado(); },
+    });
+  }
+
+  /** Rectángulo de cada zona del tutorial (lo guarda dibujarDetalle; los botones se miden en vivo). */
+  zonaTutorial(nombre) {
+    const deBoton = (b) => {
+      if (!b?.obj?.active) return null;
+      const m = b.medidas();
+      return { x: m.x0, y: m.y0, w: m.w, h: m.h };
+    };
+    if (nombre === 'datos') return deBoton(this.botonesDetalle?.[2]);
+    if (nombre === 'probar') return deBoton(this.botonesDetalle?.[0]);
+    return this.zonas?.[nombre] ?? null;
   }
 
   // ---------- Encabezado y lista ----------
@@ -163,10 +196,14 @@ export default class Expediente extends Phaser.Scene {
 
     const total = s.similitud?.total;
     const hayTotal = typeof total === 'number';
-    add(txt(this, 740, 10, tr('SIMILITUD', 'SIMILARITY'), { size: 14, color: P.sec }));
+    // Íconos de arte (ico_similitud, ico_confianza ×1) junto a sus etiquetas: qué es cada número sin leer la frase.
+    add(icono(this, 748, 20, ['iconos/ico_similitud'], 'confianza'));
+    add(txt(this, 760, 10, tr('SIMILITUD', 'SIMILARITY'), { size: 14, color: P.sec }));
     add(txt(this, X1, hayTotal ? 2 : 10, formatoPorcentaje(total), { size: hayTotal ? 32 : 16, color: hayTotal ? colorSimilitud(total) : P.sec, origen: [1, 0], estilo: 'bold' }));
     addTodos(barra(this, 740, 38, X1 - 740, 10, hayTotal ? total : null, colorSimilitud(total)));
-    add(txt(this, X1, 52, `${tr('confianza', 'confidence')} ${formatoPorcentaje(s.similitud?.confianza)}`, { size: 14, color: P.sec, origen: [1, 0] }));
+    const tConf = add(txt(this, X1, 52, `${tr('confianza', 'confidence')} ${formatoPorcentaje(s.similitud?.confianza)}`, { size: 14, color: P.sec, origen: [1, 0] }));
+    add(icono(this, X1 - Math.ceil(tConf.width) - 12, 62, ['iconos/ico_confianza'], 'confianza'));
+    this.zonas = { similitud: { x: 732, y: 0, w: X1 - 732 + 4, h: 76 } };
 
     const est = estadoDe(s);
     const chips = [];
@@ -182,25 +219,31 @@ export default class Expediente extends Phaser.Scene {
 
     // Tabla: variable · Tierra · destino (pedido del equipo: primero qué se compara, luego los dos lados).
     let y = 104;
-    add(txt(this, X0, y, 'VARIABLE', { size: 14, color: P.sec }));
+    add(txt(this, X0, y, tr('¿QUÉ SE MIDE?', 'WHAT IS MEASURED?'), { size: 14, color: P.sec }));
     add(txt(this, XT, y, tr('TIERRA', 'EARTH'), { size: 14, color: P.dato }));
     add(txt(this, XD, y, String(mundo).toUpperCase(), { size: 14, color: P.dato, origen: [1, 0] }));
-    add(txt(this, XP, y, '%', { size: 14, color: P.sec, origen: [1, 0] }));
+    add(txt(this, X1, y, tr('PARECIDO', 'MATCH'), { size: 14, color: P.sec, origen: [1, 0] }));
     y += 28;
+    const yTabla = y;
 
     const { filas } = filasComparacion(s, d);
     this.filas = filas;
+    const mina = esMina(s);
     filas.forEach((f, k) => {
-      const fondo = add(this.add.rectangle(X0 - 4, y - 3, X1 - X0 + 8, ALTO_FILA - 2, P.fila, 0.6).setOrigin(0, 0));
+      // Para novatos: ícono + nombre llano en la fila; la pregunta y el nombre técnico con su unidad, en la franja de
+      // ayuda de abajo al pasar el ratón (y completos en el detalle I).
+      const info = infoVariable(f.clave, { mina });
+      const fondo = add(this.add.rectangle(X0 - 4, y - 4, X1 - X0 + 8, ALTO_FILA - 2, P.fila, 0.6).setOrigin(0, 0));
       fondo.setInteractive({ useHandCursor: true })
         .on('pointerdown', () => this.abrirDetalle(this.seccionDeFila(k)))
-        .on('pointerover', () => fondo.setFillStyle(P.filaSel, 1))
-        .on('pointerout', () => fondo.setFillStyle(P.fila, 0.6));
+        .on('pointerover', () => { fondo.setFillStyle(P.filaSel, 1); this.ayudaFila(f, info); })
+        .on('pointerout', () => { fondo.setFillStyle(P.fila, 0.6); this.ayudaFila(null); });
+      add(iconoVariable(this, X0 + 16, y + 11, info, { escala: 2 }));
       const vt = formatoValor(f.tierra);
       const textoDestino = f.destino?.texto && f.destino.valor == null;
       const vd = textoDestino ? f.destino.texto : formatoValor(f.destino);
       // Nombres y valores largos se recortan con «…»: completos (con fuente, unidad y fecha) en el detalle (clic, F o I).
-      ajustarAncho(add(txt(this, X0, y, f.etiqueta, { size: 16 })), XT - X0 - 10);
+      ajustarAncho(add(txt(this, XL, y, info.llano, { size: 16 })), XT - XL - 10);
       const tT = ajustarAncho(add(txt(this, XT, y, vt, { size: 18, color: vt === sinDato() ? P.sec : P.dato })), 130);
       ajustarAncho(add(txt(this, XD, y, vd,
         { size: textoDestino ? 16 : 18, color: vd === sinDato() ? P.sec : textoDestino ? P.texto : P.dato, origen: [1, 0] })), XD - XT - Math.ceil(tT.width) - 12);
@@ -219,9 +262,31 @@ export default class Expediente extends Phaser.Scene {
       add(txt(this, XM, y + 10, tr('Sin variables comparables.', 'No comparable variables.'), { size: 16, color: P.sec, origen: [0.5, 0] }));
       y += 36;
     }
-    y = this.dibujarLimites(addTodos, add, s, d, Math.max(y + 6, 290));
-    this.dibujarRecorrido(add, s, d, Math.max(y + 10, 350));
+    this.zonas.tabla = { x: X0 - 6, y: yTabla - 30, w: X1 - X0 + 12, h: y - yTabla + 28 };
+    // Franja de ayuda: «100 % = igual a Marte · toca una fila: fuentes»; con el ratón sobre una fila, su pregunta llana y
+    // su nombre técnico con unidad.
+    const yAyuda = y;
+    const yA = yAyuda + 1;
+    this.textoAyuda = add(txt(this, X0, yA, '', { size: 14, color: P.sec }));
+    this.textoAyudaTec = add(txt(this, X1, yA, '', { size: 14, color: P.sec, origen: [1, 0] }));
+    this.leyenda = leyendaTabla(mundo);
+    this.ayudaFila(null);
+    y = this.dibujarLimites(addTodos, add, s, d, Math.max(yAyuda + 26, 300));
+    this.dibujarRecorrido(add, s, d, Math.max(y + 4, 356));
     this.dibujarAcciones(add);
+  }
+
+  /** Franja de ayuda bajo la tabla: la pregunta de la fila bajo el ratón (blanco) y su nombre técnico (gris), o la leyenda. */
+  ayudaFila(f, info) {
+    if (!this.textoAyuda?.active) return;
+    if (!f) {
+      this.textoAyuda.setText(this.leyenda).setColor(P.sec);
+      this.textoAyudaTec.setText('');
+      return;
+    }
+    this.textoAyuda.setText(info.pregunta ?? info.llano).setColor(P.texto);
+    this.textoAyudaTec.setText(tecnicoConUnidad(info, f.tierra?.unidad ?? f.destino?.unidad));
+    ajustarAncho(this.textoAyudaTec, Math.max(40, X1 - X0 - Math.ceil(this.textoAyuda.width) - 16));
   }
 
   // Lo que la Tierra no puede probar (AGENTS.md §5 y §6.3): siempre visible como chips; la frase larga, en el detalle.
@@ -237,13 +302,16 @@ export default class Expediente extends Phaser.Scene {
     const fila = filaChips(this, xc, y + 6, chips, X1 - reserva, { gap: 8 });
     addTodos(fila.objs);
     if (fila.omitidos.length) add(txt(this, X1, y + 11, `+${fila.omitidos.length} · I`, { size: 14, color: P.sec, origen: [1, 0] }));
-    return y + Math.max(etiqueta.height, 6 + fila.alto);
+    const alto = Math.max(etiqueta.height, 6 + fila.alto);
+    this.zonas.limites = { x: X0 - 4, y: y - 2, w: X1 - X0 + 8, h: alto + 4 };
+    return y + alto;
   }
 
   // Lo que va a enfrentar el robot: el MISMO tramo que arma la escena (fisica/perfil.js). Prueba en la Tierra (izq.) y
   // misión en el destino (der.), cada una con ↗ subida · ∠ pendiente máx. · suelo · ⚠ crítico y 3 condiciones del lugar.
   dibujarRecorrido(add, s, d, y) {
     const alto = 104;
+    this.zonas.recorrido = { x: X0 - 4, y, w: X1 - X0 + 8, h: alto };
     const mitad = (X1 - X0) / 2;
     add(this.add.rectangle(X0 - 4, y, X1 - X0 + 8, alto, 0x10202a).setOrigin(0, 0).setStrokeStyle(1, 0x2a5a6b));
     add(this.add.rectangle(X0 + mitad, y + 6, 1, alto - 12, 0x2a5a6b).setOrigin(0, 0));
@@ -256,23 +324,30 @@ export default class Expediente extends Phaser.Scene {
       add(this.add.image(x, y + Math.round((alto - 64) / 2), k).setOrigin(0, 0));
       return 96 + 10;
     };
-    const columna = (x, titulo, perfil, claves) => {
+    // Cada renglón empieza con su ícono de arte ×1 (ico_prueba / ico_mision, ico_subida, ico_pendiente, ico_suelo).
+    const ico = (x, yy, clave, nombreGlifo) => { add(icono(this, x + 8, yy + 11, [clave], nombreGlifo)); return x + 20; };
+    const columna = (x, titulo, perfil, claves, icoTitulo) => {
       const xt = x + postal(x, claves);
       let r = null;
       try { r = resumenRecorrido(perfil()); } catch { r = null; }
       const extra = r?.ilustrativo ? ' · ILUSTR.' : '';
-      const max = x + mitad - 12 - xt;
-      ajustarAncho(add(txt(this, xt, y + 4, `${titulo}${extra}`, { size: 14, color: r?.ilustrativo ? P.riesgo : P.sec })), max);
+      const fin = x + mitad - 12;
+      const xTit = ico(xt, y + 4, icoTitulo, 'mision');
+      ajustarAncho(add(txt(this, xTit, y + 4, `${titulo}${extra}`, { size: 14, color: r?.ilustrativo ? P.riesgo : P.sec })), fin - xTit);
       if (!r) {
         add(txt(this, xt, y + 28, sinDato(), { size: 16, color: P.sec }));
         return;
       }
-      ajustarAncho(add(txt(this, xt, y + 28, `↗ ${r.subida} · ∠ ${r.pendiente}`, { size: 16 })), max);
-      ajustarAncho(add(txt(this, xt, y + 52, r.suelo ?? sinDato(), { size: 16, color: P.dato })), max);
-      ajustarAncho(add(txt(this, xt, y + 76, `⚠ ${r.critico}`, { size: 16, color: P.riesgo })), max);
+      const xS = ico(xt, y + 28, 'iconos/ico_subida', 'pendiente');
+      const tS = add(txt(this, xS, y + 28, r.subida, { size: 16 }));
+      const xP = ico(xS + Math.ceil(tS.width) + 10, y + 28, 'iconos/ico_pendiente', 'pendiente');
+      ajustarAncho(add(txt(this, xP, y + 28, r.pendiente, { size: 16 })), fin - xP);
+      const xSu = ico(xt, y + 52, 'iconos/ico_suelo', 'dato');
+      ajustarAncho(add(txt(this, xSu, y + 52, r.suelo ?? sinDato(), { size: 16, color: P.dato })), fin - xSu);
+      ajustarAncho(add(txt(this, xt, y + 76, `⚠ ${r.critico}`, { size: 16, color: P.riesgo })), fin - xt);
     };
-    columna(X0, tr('PRUEBA · TIERRA', 'TEST · EARTH'), () => perfilDeSitio(s), [`pantallas/sitio_${s.id}`, 'pantallas/sitio_generico']);
-    columna(X0 + mitad + 8, `${tr('MISIÓN', 'MISSION')} · ${mundo}`, () => perfilDeDestino(d), [`pantallas/destino_${d.id}`]);
+    columna(X0, tr('PRUEBA · TIERRA', 'TEST · EARTH'), () => perfilDeSitio(s), [`pantallas/sitio_${s.id}`, 'pantallas/sitio_generico'], 'iconos/ico_prueba');
+    columna(X0 + mitad + 8, `${tr('MISIÓN', 'MISSION')} · ${mundo}`, () => perfilDeDestino(d), [`pantallas/destino_${d.id}`], 'iconos/ico_mision');
     // El clima de cada lugar (antes 1 línea aquí) sigue completo en «C · Condiciones» y en el detalle (I).
     return y + alto;
   }
@@ -287,11 +362,13 @@ export default class Expediente extends Phaser.Scene {
     // Cada botón deja lugar para el «▶ » del foco de teclado (la caja crece hacia la derecha sin encimarse).
     const enFila = (etiqueta, accion, extra = {}, y = Y_PIE) => {
       const b = add(boton(this, x[y], y, etiqueta, accion, { ...sec, ...extra }));
-      x[y] += Math.max(64, b.medidas().w) + 18 + 8;
+      x[y] += Math.max(64, b.medidas().w) + (y === Y_NAV ? 20 : 26);
       return b;
     };
     const regresar = enFila(tr('← Regresar', '← Back'), () => this.regresar(), {}, Y_NAV);
     const volver = enFila(tr('Menú', 'Menu'), () => irA(this, 'Menu'), {}, Y_NAV);
+    // «?»: repite el tutorial rápido (también con la tecla ?). Cabe a la izquierda del recorrido.
+    this.botonAyuda = enFila('?', () => this.abrirTutorial(), { size: 16, padX: 10, habilitado: !!this.seleccion && !!this.destino }, Y_NAV);
     // Tickets (AGENTS.md §4): 3 por partida, sin reposición; volver a probar un sitio ya pagado no cuesta.
     const n = Math.max(0, partida.tickets | 0);
     const totalT = Math.max(TICKETS_POR_PARTIDA, n);
@@ -340,8 +417,10 @@ export default class Expediente extends Phaser.Scene {
     if (!this.botonesDetalle) return;
     if (this.capaCondiciones) return; // la vista "Condiciones" maneja su propio teclado
     if (this.detalle) return; // el panel de detalle también
+    if (this.tutorial) return; // y el tutorial rápido
     this.teclado.alEscape = () => this.regresar(); // Esc = «← Regresar» (elegir destino), como en create()
     this.teclado.extra = {
+      '?': () => this.abrirTutorial(),
       f: () => this.ciclarFila(), F: () => this.ciclarFila(),
       i: () => this.alternarDetalle(), I: () => this.alternarDetalle(),
       c: () => this.abrirCondiciones(), C: () => this.abrirCondiciones(),
@@ -357,7 +436,7 @@ export default class Expediente extends Phaser.Scene {
     }[this.foco] || this.botonesLista.find((b) => b.sitioId === this.seleccion?.id);
     // Atajos 1–5: eligen el sitio de esa posición en la página (igual que los números de Resultados.js).
     this.teclado.numerar(this.botonesLista);
-    this.teclado.poner([...this.botonesLista, this.botonAnterior, this.botonSiguiente, ...this.botonesDetalle, this.botonRegresar, this.botonVolver], preferido);
+    this.teclado.poner([...this.botonesLista, this.botonAnterior, this.botonSiguiente, ...this.botonesDetalle, this.botonRegresar, this.botonVolver, this.botonAyuda], preferido);
   }
 
   // ---------- Panel de detalle (tecla I, botón «Datos» o clic en una fila) ----------
@@ -383,7 +462,9 @@ export default class Expediente extends Phaser.Scene {
       `${est.texto} · ${s.pais || tr('país: sin dato', 'country: no data')} · ${coord}${s.novedoso === true ? tr(' · NOVEDOSO', ' · NOVEL') : ''}`,
       `${tr('Similitud total', 'Total similarity')} ${formatoPorcentaje(s.similitud?.total)} · ${tr('confianza', 'confidence')} ${formatoPorcentaje(s.similitud?.confianza)}`
         + (s.prueba_util ? ` · ${tr('prueba', 'test')}: ${PRUEBAS[s.prueba_util] || s.prueba_util}` : ''),
-      `${tr('Proceso', 'Process')}: ${trDato(s, 'proceso') || sinDato()}`,
+      explicaTotal(mundo),
+      explicaConfianza(),
+      `${tr('Proceso', 'Process')}:${trDato(s, 'proceso') || sinDato()}`,
       `${tr('Uso para la exploración', 'Use for exploration')}: ${trDato(s, 'uso_exploracion') || sinDato()}`,
       ...notas.map((x) => `${tr('Límite del cálculo', 'Calculation limit')}: ${enIdioma(x)}`),
     ];
@@ -414,15 +495,20 @@ export default class Expediente extends Phaser.Scene {
         ...(nota ? [`– ${tr('nota', 'note')}: ${nota}`] : []),
       ];
     };
+    const mina = esMina(s);
     const filas = (this.filas || []).map((f) => {
       const vd = f.destino?.texto && f.destino.valor == null ? f.destino.texto : formatoValor(f.destino);
+      const info = infoVariable(f.clave, { mina });
+      // Primero en llano (la pregunta), luego el nombre técnico con su unidad y qué quiere decir el %; después las fuentes.
       const p = [
-        f.mismaUnidad ? `${tr('Similitud', 'Similarity')}: ${formatoPorcentaje(f.similitud)}` : tr('⚠ unidades distintas: no se comparan', '⚠ different units: not compared'),
+        ...(info.pregunta ? [info.pregunta] : []),
+        `${tr('Nombre técnico', 'Technical name')}: ${tecnicoConUnidad(info, f.tierra?.unidad ?? f.destino?.unidad)}`,
+        f.mismaUnidad ? `${tr('Parecido', 'Match')}: ${formatoPorcentaje(f.similitud)} (${explicaSimilitud(mundo)})` : tr('⚠ unidades distintas: no se comparan', '⚠ different units: not compared'),
         `${tr('Tierra', 'Earth')}: ${formatoValor(f.tierra)}\n${lado(f.tierra).join('\n')}`,
         `${mundo}: ${vd}\n${lado(f.destino).join('\n')}`,
       ];
       if (f.detalleForma) p.push(`${tr('Puntaje de forma', 'Shape score')}: ${formatoValor(f.detalleForma)}${trDato(f.detalleForma, 'nota') ? ` · ${trDato(f.detalleForma, 'nota')}` : ''}`);
-      return { titulo: `${f.etiqueta} · ${tr('fuentes', 'sources')}`, parrafos: p, fila: true };
+      return { titulo: `${info.llano} · ${tr('fuentes', 'sources')}`, parrafos: p, fila: true, info };
     });
     return [
       { titulo: trDato(s, 'nombre'), parrafos: sitio },
@@ -445,7 +531,7 @@ export default class Expediente extends Phaser.Scene {
       });
       for (let i = 0; i < renglones.length; i += DET.lineas) {
         const trozo = renglones.slice(i, i + DET.lineas);
-        paginas.push({ titulo: sec.titulo, texto: trozo.join('\n'), fila: !!sec.fila });
+        paginas.push({ titulo: sec.titulo, texto: trozo.join('\n'), fila: !!sec.fila, info: sec.info ?? null });
       }
     });
     medidor.destroy();
@@ -485,7 +571,10 @@ export default class Expediente extends Phaser.Scene {
     add(this.add.rectangle(DET.x0, DET.y0, DET.x1 - DET.x0, DET.y1 - DET.y0, P.panel).setOrigin(0, 0)
       .setStrokeStyle(2, num(P.dato)).setInteractive());
     add(cajaArte(this, 'ui/ui_panel', DET.x0, DET.y0, DET.x1 - DET.x0, DET.y1 - DET.y0));
-    ajustarAncho(add(txt(this, DET.x0 + 16, DET.y0 + 12, pag.titulo, { size: 18, color: P.dato })), DET.x1 - DET.x0 - 270);
+    // Secciones de una fila: el mismo ícono de la tabla (×2) antes del título.
+    const xTit = pag.info ? DET.x0 + 56 : DET.x0 + 16;
+    if (pag.info) add(iconoVariable(this, DET.x0 + 32, DET.y0 + 22, pag.info, { escala: 2 }));
+    ajustarAncho(add(txt(this, xTit, DET.y0 + 12, pag.titulo, { size: 18, color: P.dato })), DET.x1 - 270 - xTit);
     add(txt(this, DET.x1 - 16, DET.y0 + 12, tr('I sigue · Esc cierra', 'I next · Esc closes'), { size: 14, color: P.sec, origen: [1, 0] }));
     add(txt(this, DET.x0 + 16, DET.y0 + 42, pag.texto, { size: DET.letra, color: P.texto, interlineado: 2 }));
     const yb = DET.y1 - 26;

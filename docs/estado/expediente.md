@@ -111,6 +111,21 @@ Pedido: "agrega los efectos de menú dentro de Nueva partida y ¿De dónde salen
 - [x] Capturas es/en 960×540 con script: 0 textos < 14 px, 0 fuera de pantalla, 0 encimados en principal, destino,
   números 1–3 y cómo jugar 1–4.
 
+### Expediente para novatos (`feat/expediente-novatos`, 15 nov)
+- [x] **Tutorial rápido (coach marks)** la primera vez que se abre el Expediente (`marsception.tutorial_expediente.visto`,
+  con try/catch; botón «?» y tecla ? lo repiten): 6 pasos (similitud y confianza · tabla · lo que la Tierra no puede
+  probar · recorrido · I Datos · gastar ticket). Oscurece todo menos la zona, la encuadra con `ui_resalte`, la señala con
+  `ui_senalador` (quieta con reduced-motion) y explica en una burbuja con la guía `tutorial/guia`. ◀ / Saltar / Siguiente
+  con ratón y toque; Enter, ← → y Esc. La e2e lo marca como visto (como «Cómo jugar»).
+- [x] **Tabla en llano con íconos** (`glosario.js`, `iconos_expediente.js`): cada fila con ícono ×2 (`ico_forma`,
+  `ico_oscilacion`, `ico_precipitacion`, `ico_vegetacion`, `ico_pendiente`…) y nombre llano («Lluvia», «Plantas»,
+  «Cambio día-noche»); al pasar el ratón, la franja de abajo muestra la pregunta («¿Cuánto llueve?») y el nombre técnico
+  con unidad. Columna «PARECIDO» y leyenda «100 % = igual a Marte». El detalle I abre cada fila con pregunta, nombre
+  técnico, qué significa el % y luego fuentes; la sección del sitio explica similitud total y confianza (cobertura, no
+  probabilidad; METODOLOGIA). Íconos también en similitud, confianza y recorrido (prueba, misión, subida, pendiente, suelo).
+- [x] Pruebas `pruebas/tutorial.test.js` (6) y revisión es/en (Marte y Luna, 6 pasos, detalle, condiciones): 0 textos
+  < 14 px, 0 fuera, 0 encimados.
+
 ## Prueba del camino completo en Luna y Marte
 Recorrido con clics y teclas reales (`npm run dev`, Chrome sin ventana): Menú → Nueva partida → destino → Expediente →
 ticket → Taller → Prueba → Resultados → Misión → Resultados → Menú → recarga → Continuar.
