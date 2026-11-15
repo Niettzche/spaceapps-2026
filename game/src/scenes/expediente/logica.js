@@ -84,13 +84,17 @@ export function filasComparacion(sitio, destino) {
       // La forma no es una medición del destino sino un puntaje contra la nube de cráteres Luna+Marte.
       // Del lado Tierra se muestra la medición que más pesa (profundidad/diámetro) si existe.
       tierra = vt.profundidad_diametro || vt.forma || null;
+      // Un tajo minero es un análogo operativo, no un cráter: la columna del destino aclara que solo se compara su forma.
+      const mina = esMina(sitio);
       dest = vd.forma || {
         valor: null,
-        texto: 'Cráteres Luna+Marte',
+        texto: mina ? 'vs. cráteres Luna+Marte' : 'Cráteres Luna+Marte',
         unidad: '-',
         fuente: REF_FORMA[destino?.mundo] || 'Cráteres reales de la Luna y Marte',
         fecha: null,
-        nota: 'La forma se compara con un modelo explicable entrenado con cráteres de la Luna y Marte, no con un solo valor.',
+        nota: mina
+          ? 'Es un tajo minero (excavación), no un cráter natural: solo se compara su forma con la de cráteres reales de la Luna y Marte.'
+          : 'La forma se compara con un modelo explicable entrenado con cráteres de la Luna y Marte, no con un solo valor.',
       };
     }
     const mismaUnidad = !(tierra && dest && dest.valor != null && tierra.unidad !== dest.unidad);

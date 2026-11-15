@@ -1,9 +1,10 @@
 // Pruebas del frente expediente. Correr desde game/:  node --test src/scenes/expediente/pruebas/
 import { test } from 'node:test';
+import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import {
   sitiosParaDestino, filasComparacion, limitesDe, usarTicket, serializarPartida, leerGuardado,
-  validarCoordenadas, validarCoordenadasHemisferio, aHemisferio, formatoCoordenada, puedeProponer, validarNombrePropuesta, formatoValor, esDemostracion, SIN_DATO,
+  validarCoordenadas, validarCoordenadasHemisferio, esMina, aHemisferio, formatoCoordenada, puedeProponer, validarNombrePropuesta, formatoValor, esDemostracion, SIN_DATO,
 } from '../logica.js';
 
 const destino = {
@@ -152,4 +153,20 @@ test('aHemisferio y formatoCoordenada: ida y vuelta con un sitio del catálogo',
   const v = validarCoordenadasHemisferio({ lat: String(h.lat), latHem: h.latHem, lon: String(h.lon), lonHem: h.lonHem });
   assert.deepEqual(v, { ok: true, lat: -21.92, lon: -68.832 });
   assert.equal(formatoCoordenada(31.84, -113.39), '31.84° N, 113.39° O');
+});
+
+test('mina (mx0207): análogo operativo, no cráter natural', () => {
+  // Datos reales del frente modelo: no se inventan; si cambian, esta prueba avisa.
+  const leer = (id) => JSON.parse(readFileSync(new URL(`../../../../../data/sites/${id}.json`, import.meta.url), 'utf-8'));
+  const mina = leer('mx0207');
+  assert.equal(esMina(mina), true);
+  assert.equal(esMina(leer('g00281')), false); // el maar Al Wahbah sí es una depresión natural
+  const forma = filasComparacion(mina, destino).filas.find((f) => f.clave === 'forma');
+  assert.equal(forma.etiqueta, 'Forma del tajo minero');
+  assert.match(forma.destino.texto, /^vs\. /);
+  assert.match(forma.destino.nota, /no un cráter natural/);
+  // Un sitio que no es mina conserva las etiquetas de cráter
+  const crater = filasComparacion(sitio, destino).filas.find((f) => f.clave === 'forma');
+  assert.equal(crater.etiqueta, 'Forma del cráter');
+  assert.equal(crater.destino.texto, 'Cráteres Luna+Marte');
 });
