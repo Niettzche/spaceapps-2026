@@ -86,8 +86,9 @@ caso('factorFrio: sin aislante igual que antes; con aislante pierde menos', () =
 caso('aislante: en Jezero la batería arranca más llena; en la Tierra (Samalayuca) no cambia nada', () => {
   const sin = efectosEn(res({}), JEZERO);
   const conA = efectosEn(res({ modulo: 'aislante_bateria' }), JEZERO);
-  assert.equal(Math.round(sin.bateria * 100), 85);
-  assert.equal(Math.round(conA.bateria * 100), 96);
+  // Regla de frío suave (−0.03 %/°C, piso 97 %): Jezero −83 °C → 97.5 %; con el aislante, 100 %.
+  assert.ok(sin.bateria < 1 && sin.bateria >= REGLAS.frio.piso);
+  assert.equal(conA.bateria, 1);
   assert.equal(conA.bateria_sin_modulo, sin.bateria);
   const tierra = efectosEn(res({ modulo: 'aislante_bateria' }), ambienteDeSitio('samalayuca'));
   assert.equal(tierra.bateria, 1);

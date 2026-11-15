@@ -108,10 +108,10 @@ hay que elegir entre panel, aislante o radiador.
 | `motor_equilibrado` | motor | 145 | 8 | Fuerza 70, consumo 0.9 (y se calienta 1.5 × el eficiente) | H1 (S14). Números (P) |
 | `soporte_correas` | carga | 95 | 4 | Protección 0.6; paredes de 0.35 m | (P), mecánica de juego |
 | `panel_solar_grande` | módulo | 230 | 7 | Capacidad 80: recarga el doble que el chico (regla c de `fisica/ambiente.js`) | Paneles MER, S77 (§5). Números (P) |
-| `aislante_bateria` | módulo | 70 | 2 | `aislamiento_termico` 0.75: evita 75 % de la pérdida por frío (regla a). Jezero: 85 % → 96 %; Luna: 89 % → 97 % | **(P), Gap** (§5). Contexto: S78 |
+| `aislante_bateria` | módulo | 40 | 2 | `aislamiento_termico` 1: evita toda la pérdida por frío (regla a). Con la regla suave de juego (−0.03 %/°C, piso 97 %) el efecto es chico: Jezero 97.5 % → 100 %, Luna 98 % → 100 % | **(P), Gap** (§5). Contexto: S78 |
 | `radiador_motor` | módulo | 90 | 3 | `radiador` +0.006 /s de enfriamiento por radiación (regla b). Al límite de 100 °C el motor conserva 64 % de potencia en la Luna (26 % sin él) y ~74 % en Jezero (~35 %) | **(P), Gap para el motor** (§5). Radiadores de la electrónica: S78 |
 
-- Con ruedas anchas (890) todavía caben el aislante (960) o el radiador (980). El panel grande no cabe con ruedas anchas.
+- Con ruedas anchas (890) todavía caben el aislante (930) o el radiador (980). El panel grande no cabe con ruedas anchas.
 - El Taller muestra el efecto del módulo en el destino elegido: "En <destino> (P): batería N % (sin aislante M %) · motor caliente…".
 - Feedback (`feedback/reglas.js`): si la energía se acabó y hubo `bateria_fria` → aislante; si el motor se sobrecalentó sin
   radiador → radiador ("Aplicar y al taller" lo pone en el módulo).
@@ -121,5 +121,7 @@ hay que elegir entre panel, aislante o radiador.
 (hasta 14 letras). Vive en `partida.robot = { pintura, nombre }` y en `localStorage` (`marsception.robot.v1`), por eso
 sobrevive a una partida nueva. Código: `game/src/scenes/Taller/personalizacion.js`; la prueba y la misión tiñen el chasis y
 ponen el nombre sobre el robot (`fisica/aspecto.js`); Resultados lo muestra. Deshacer/Rehacer también cubren pintura y nombre.
+
+- El catálogo muestra 3 piezas a la vez (layout de Diego, filas de 68 px); los ejes y el módulo tienen 4 y se recorren con ▲ / ▼, ↑/↓ o la rueda del ratón.
 
 Pruebas: `node game/src/scenes/Taller/piezas.test.mjs` (13 casos).

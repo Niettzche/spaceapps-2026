@@ -7,7 +7,12 @@ import {
   RANURAS, DISENO_POR_DEFECTO, piezasPara, costoEnRanura, comoMapa, comoDiseno, resumen, validar,
 } from './Taller/diseno.js';
 import { historialAlEntrar, diferencias } from './Taller/historial.js';
+import { efectosEn } from './Taller/diseno.js';
+import {
+  PINTURAS, pinturaPorId, siguientePintura, normalizarNombre, personalizacionDe, fijar as fijarPersonalizacion, LARGO_NOMBRE,
+} from './Taller/personalizacion.js';
 import { MASA_CARGA_KG } from '../fisica/diseno.js'; // la carga que se entrega (frente juego)
+import { ambienteDeDestino } from '../fisica/ambiente.js';
 import { tr, trDato, enIngles } from '../i18n.js';
 
 // Dueño: frente taller. Armado con ranuras fijas, presupuesto visible, validación del diseño.
@@ -45,11 +50,22 @@ const CAT_X = 490;
 const CAT_Y = 128;    // encabezado del catálogo
 const FILA_Y = 152;   // primera pieza
 const FILA_PASO = 68; // alto de cada pieza (3 renglones de 16–17 px)
+const FILAS_VISIBLES = 3; // ranuras con más piezas (ejes y módulo: 4) se recorren con ▲ / ▼, ↑/↓ o la rueda del ratón
+// Personalización (cosmética), en la franja libre arriba a la izquierda: x 25–320 (a la derecha está la caja del módulo,
+// x ≥ 325) e y 114–172 (abajo empieza la fila del motor, y 173).
+const PERS_X = 25;
+const PERS_Y1 = 128;
+const PERS_Y2 = 158;
 
 const piezaPorId = Object.fromEntries(PIEZAS.map((p) => [p.id, p]));
 const ORDEN_RANURAS = RANURAS.map((r) => r.id);
 const ranuraPorId = Object.fromEntries(RANURAS.map((r) => [r.id, r]));
-const nombreRanura = (id) => (ranuraPorId[id] ? trDato(ranuraPorId[id], 'nombre') : id);
+// Pintura y nombre (cosméticos) viajan en el mismo mapa del historial, con claves que no son ranuras: así Deshacer/Rehacer
+// también los revierten. comoDiseno() ignora estas claves (solo toma las de RANURAS).
+const CLAVE_PINTURA = 'pintura';
+const CLAVE_NOMBRE = 'nombre';
+const nombreRanura = (id) => (ranuraPorId[id] ? trDato(ranuraPorId[id], 'nombre')
+  : id === CLAVE_PINTURA ? tr('pintura', 'paint') : id === CLAVE_NOMBRE ? tr('nombre', 'name') : id);
 
 // Diseño con el que se cerró el Taller la última vez (Probar o Regresar), por partida (`clave` = partida.resultados, que
 // cambia de identidad en cada partida nueva o restaurada). Si al volver partida.diseno es otro (p. ej. "Aplicar y al taller"
@@ -84,11 +100,19 @@ function datoClave(p) {
   if (p.sistema === 'potencia') return tr(`fuerza ${p.fuerza} · consumo ${p.consumo}/s`, `force ${p.fuerza} · drain ${p.consumo}/s`);
   if (p.sistema === 'energia') return tr(`capacidad ${p.capacidad}`, `capacity ${p.capacidad}`);
   if (p.sistema === 'carga') return tr(`protección ${Math.round(p.proteccion * 100)} %`, `protection ${Math.round(p.proteccion * 100)} %`);
-  if (p.id === 'panel_solar') return tr('recarga con la luz del sitio (rasante en el polo lunar, menor en Marte)', 'recharges with the site\'s sunlight (grazing at the lunar pole, weaker on Mars)');
+  // Módulo: una línea (≤ 44 caracteres a 16 px) para que la fila no crezca.
+  if (p.capacidad) return tr(`recarga con luz · capacidad ${p.capacidad}`, `recharges in sunlight · capacity ${p.capacidad}`);
+  if (p.aislamiento_termico) {
+    const pct = Math.round(p.aislamiento_termico * 100);
+    return tr(`evita ${pct} % de la pérdida por frío`, `prevents ${pct} % of the cold loss`);
+  }
+  if (p.radiador) return tr('enfría el motor sin aire (radiación)', 'cools the motor without air (radiation)');
   return '';
 }
 const conModificador = (ev) => Boolean(ev && (ev.ctrlKey || ev.metaKey || ev.altKey));
 function f2(v) { return typeof v === 'number' ? v.toFixed(2) : '—'; }
+const pct = (v) => `${Math.round(v * 100)} %`;
+const MUNDO = () => ({ marte: tr('Marte', 'Mars'), luna: tr('Luna', 'Moon'), tierra: tr('Tierra', 'Earth') });
 
 // Zonas de toque: lo dibujado no cambia, pero el área que responde al dedo es más grande.
 // En un teléfono en horizontal el lienzo de 960 × 540 se reduce a ~0.7 y un botón de texto de 18 px queda de ~13 px de alto;
@@ -129,9 +153,12 @@ export default class Taller extends Phaser.Scene {
   create() {
     this.presupuesto = partida.presupuesto ?? PRESUPUESTO_INICIAL;
     // Al volver de una prueba se conserva el diseño; la primera vez arranca con el robot mínimo (ruedas estándar).
+    // La pintura y el nombre (cosméticos) viajan en el mismo mapa para que Deshacer/Rehacer también los cubran.
+    const cosmetica = personalizacionDe(partida);
+    const conCosmetica = (m) => ({ ...m, [CLAVE_PINTURA]: cosmetica.pintura, ...(cosmetica.nombre ? { [CLAVE_NOMBRE]: cosmetica.nombre } : {}) });
     const entrada = comoMapa(partida.diseno);
     const vacia = !Object.keys(entrada).length;
-    this.hist = historialAlEntrar(vacia ? null : memoria, vacia ? comoMapa(DISENO_POR_DEFECTO) : entrada, partida.resultados,
+    this.hist = historialAlEntrar(vacia ? null : memoria, conCosmetica(vacia ? comoMapa(DISENO_POR_DEFECTO) : entrada), partida.resultados,
       (antes, despues) => {
         const ranuras = diferencias(antes, despues, ORDEN_RANURAS);
         const lista = ranuras.map(nombreRanura).join(', ');
@@ -140,6 +167,7 @@ export default class Taller extends Phaser.Scene {
     this.mapa = this.hist.actual;
     this.sel = 0;      // índice de la ranura seleccionada en RANURAS
     this.cursor = 0;   // índice de la pieza resaltada en el catálogo
+    this.desde = 0;    // primera pieza visible del catálogo (ranuras con más de FILAS_VISIBLES piezas)
     this.aviso = '';
 
     const destino = DESTINOS[partida.destino];
@@ -160,11 +188,24 @@ export default class Taller extends Phaser.Scene {
     }).setOrigin(0.5, 0);
     this.txtPresupuesto = this.add.text(480, 98, '', { fontFamily: FUENTE, fontSize: `${TXT_MEDIO}px`, color: C.claro }).setOrigin(0.5);
 
+    this.crearPersonalizacion();
     this.crearEsquema();
     this.add.text(245, ESQUEMA.rueda_tras.y, tr('avance →', 'forward →'), { fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.apagado }).setOrigin(0.5);
 
     this.txtCatalogo = this.add.text(CAT_X, CAT_Y, '', { fontFamily: FUENTE, fontSize: `${TXT_MEDIO}px`, color: C.texto }).setOrigin(0, 0.5);
     this.lista = this.add.container(0, 0);
+    // Paginador del catálogo (solo si la ranura tiene más de FILAS_VISIBLES piezas): ▲ n–m/N ▼ junto al encabezado.
+    this.pagArriba = this.add.text(0, CAT_Y, '▲', { fontFamily: FUENTE, fontSize: `${TXT_MEDIO}px`, color: C.acento }).setOrigin(0, 0.5)
+      .on('pointerdown', () => this.desplazar(-1));
+    this.pagTexto = this.add.text(0, CAT_Y, '', { fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.claro }).setOrigin(0, 0.5);
+    this.pagAbajo = this.add.text(0, CAT_Y, '▼', { fontFamily: FUENTE, fontSize: `${TXT_MEDIO}px`, color: C.acento }).setOrigin(0, 0.5)
+      .on('pointerdown', () => this.desplazar(1));
+    // Zonas de 34 × 32 alrededor de cada flecha (y 112–144: no tocan la primera fila, que empieza en y 150).
+    for (const f of [this.pagArriba, this.pagAbajo]) zonaToque(f, (f.width - 34) / 2, (f.height - 32) / 2, 34, 32);
+    // Rueda del ratón sobre el catálogo.
+    this.input.on('wheel', (puntero, _objs, _dx, dy) => {
+      if (puntero.x >= CAT_X && puntero.y >= FILA_Y && puntero.y <= FILA_Y + FILAS_VISIBLES * FILA_PASO) this.desplazar(Math.sign(dy));
+    });
     this.btnQuitar = this.add.text(945, CAT_Y, tr('[ Quitar ]', '[ Remove ]'), { fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.acento })
       .setOrigin(1, 0.5).on('pointerdown', () => this.quitar());
     // Crece hacia arriba y a la izquierda; abajo empieza la primera fila del catálogo (y >= 150).
@@ -199,25 +240,38 @@ export default class Taller extends Phaser.Scene {
     // presupuesto y "cada eje lleva 2 ruedas" en el precio de las ruedas ("× 2") y al final de la validación.
     this.add.text(480, 499, tr(
       '←/→ ranura · ↑/↓ pieza · Enter equipar · Supr quitar · R restablecer\n'
-        + 'C probar · Ctrl+Z deshacer · Ctrl+Y rehacer · Esc regresar',
+        + 'C probar · P pintura · N nombre · Ctrl+Z deshacer · Ctrl+Y rehacer · Esc regresar',
       '←/→ slot · ↑/↓ part · Enter equip · Del remove · R reset\n'
-        + 'C test · Ctrl+Z undo · Ctrl+Y redo · Esc back',
+        + 'C test · P paint · N name · Ctrl+Z undo · Ctrl+Y redo · Esc back',
     ), { fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.apagado, align: 'center' }).setOrigin(0.5, 0);
 
     const k = this.input.keyboard;
-    k.on('keydown-LEFT', () => this.elegirRanura(this.sel - 1));
-    k.on('keydown-RIGHT', () => this.elegirRanura(this.sel + 1));
-    k.on('keydown-UP', () => this.moverCursor(-1));
-    k.on('keydown-DOWN', () => this.moverCursor(1));
-    k.on('keydown-ENTER', () => this.equipar(this.cursor));
-    k.on('keydown-SPACE', () => this.equipar(this.cursor));
-    k.on('keydown-DELETE', () => this.quitar());
-    k.on('keydown-BACKSPACE', () => this.quitar());
-    k.on('keydown-R', (ev) => { if (!conModificador(ev)) this.restablecer(); });
-    k.on('keydown-C', (ev) => { if (!conModificador(ev)) this.continuar(); });
-    k.on('keydown-ESC', () => this.regresar());
+    // A veces Phaser entrega el mismo keydown nativo dos veces (dos updates del plugin antes de vaciar la cola): con P eso
+    // saltaba una pintura y con Ctrl+Z deshacía dos pasos. Cada manejador atiende cada evento nativo una sola vez.
+    const on = (nombre, fn) => {
+      const vistos = new WeakSet();
+      k.on(nombre, (ev) => {
+        if (ev && typeof ev === 'object') { if (vistos.has(ev)) return; vistos.add(ev); }
+        fn(ev);
+      });
+    };
+    on('keydown-LEFT', () => this.elegirRanura(this.sel - 1));
+    on('keydown-RIGHT', () => this.elegirRanura(this.sel + 1));
+    on('keydown-UP', () => this.moverCursor(-1));
+    on('keydown-DOWN', () => this.moverCursor(1));
+    on('keydown-ENTER', () => this.equipar(this.cursor));
+    on('keydown-SPACE', () => this.equipar(this.cursor));
+    on('keydown-DELETE', () => this.quitar());
+    on('keydown-BACKSPACE', () => this.quitar());
+    on('keydown-R', (ev) => { if (!conModificador(ev)) this.restablecer(); });
+    on('keydown-C', (ev) => { if (!conModificador(ev)) this.continuar(); });
+    on('keydown-P', (ev) => { if (!conModificador(ev)) this.pintar(siguientePintura(this.mapa[CLAVE_PINTURA], ev.shiftKey ? -1 : 1)); });
+    // preventDefault: si no, la propia "n" se escribe en el campo de texto que se enfoca durante este mismo keydown.
+    on('keydown-N', (ev) => { if (!conModificador(ev)) { ev.preventDefault(); this.abrirNombre(); } });
+    this.events.once('shutdown', () => this.cerrarNombre());
+    on('keydown-ESC', () => this.regresar());
     // Ctrl+Z deshacer · Ctrl+Y o Ctrl+Shift+Z rehacer (Cmd en Mac).
-    k.on('keydown', (ev) => {
+    on('keydown', (ev) => {
       if (!(ev.ctrlKey || ev.metaKey) || ev.altKey) return;
       const tecla = ev.key.toLowerCase();
       if (tecla === 'z' && !ev.shiftKey) this.deshacer();
@@ -304,6 +358,7 @@ export default class Taller extends Phaser.Scene {
     this.sel = (i + RANURAS.length) % RANURAS.length;
     const actual = this.mapa[RANURAS[this.sel].id];
     this.cursor = Math.max(0, this.opciones().findIndex((p) => p.id === actual));
+    this.desde = 0;
     this.aviso = '';
     this.refrescar();
   }
@@ -313,6 +368,16 @@ export default class Taller extends Phaser.Scene {
     if (!n) return;
     this.cursor = (this.cursor + d + n) % n;
     this.refrescar();
+  }
+
+  /** Recorre el catálogo una pieza (▲ / ▼ o rueda del ratón); el cursor se queda dentro de lo visible. */
+  desplazar(d) {
+    const n = this.opciones().length;
+    const desde = Math.max(0, Math.min(n - FILAS_VISIBLES, this.desde + d));
+    if (desde === this.desde) return;
+    this.desde = desde;
+    this.cursor = Math.max(desde, Math.min(desde + FILAS_VISIBLES - 1, this.cursor));
+    this.refrescarCatalogo();
   }
 
   equipar(i) {
@@ -335,7 +400,9 @@ export default class Taller extends Phaser.Scene {
   }
 
   restablecer() {
-    this.mapa = comoMapa(DISENO_POR_DEFECTO);
+    // Vuelve a las piezas del robot mínimo; la pintura y el nombre (cosméticos) se quedan.
+    const cosmetica = Object.fromEntries([CLAVE_PINTURA, CLAVE_NOMBRE].filter((c) => this.mapa[c]).map((c) => [c, this.mapa[c]]));
+    this.mapa = { ...comoMapa(DISENO_POR_DEFECTO), ...cosmetica };
     this.hist.registrar(this.mapa, { ranura: null, texto: tr('restablecer', 'reset') });
     this.cursorEnPuesta();
     this.aviso = tr('Diseño restablecido al robot mínimo (ruedas estándar).', 'Design reset to the minimal robot (standard wheels).');
@@ -378,11 +445,30 @@ export default class Taller extends Phaser.Scene {
       ? tr(`${r.nombre} — elige pieza`, `${trDato(r, 'nombre')} — pick a part`)
       : tr(`${r.nombre} (opcional) — elige pieza`, `${trDato(r, 'nombre')} (optional) — pick a part`));
     this.lista.removeAll(true);
+    // Ventana de FILAS_VISIBLES piezas que sigue al cursor (teclado) o a ▲ / ▼ (ratón y toque).
+    const opciones = this.opciones();
+    const n = opciones.length;
+    if (this.cursor < this.desde) this.desde = this.cursor;
+    if (this.cursor >= this.desde + FILAS_VISIBLES) this.desde = this.cursor - FILAS_VISIBLES + 1;
+    this.desde = Math.max(0, Math.min(Math.max(0, n - FILAS_VISIBLES), this.desde));
+    const pagina = n > FILAS_VISIBLES;
+    if (pagina) {
+      // Con paginador, el encabezado pierde "— elige pieza" para que quepan las flechas antes de [ Quitar ].
+      this.txtCatalogo.setText(r.obligatoria ? trDato(r, 'nombre') : tr(`${r.nombre} (opcional)`, `${trDato(r, 'nombre')} (optional)`));
+      let x = CAT_X + this.txtCatalogo.width + 18;
+      this.pagArriba.setX(x).setAlpha(this.desde > 0 ? 1 : 0.35);
+      x += this.pagArriba.width + 8;
+      this.pagTexto.setX(x).setText(`${this.desde + 1}–${Math.min(n, this.desde + FILAS_VISIBLES)}/${n}`);
+      x += this.pagTexto.width + 8;
+      this.pagAbajo.setX(x).setAlpha(this.desde + FILAS_VISIBLES < n ? 1 : 0.35);
+    }
+    for (const o of [this.pagArriba, this.pagTexto, this.pagAbajo]) o.setVisible(pagina);
     // Si alguna pieza de la lista tiene ícono (32 px a × 2), el nombre y el precio se recorren para quedar alineados.
-    const dx = this.opciones().some((p) => this.icono(p.id)) ? 40 : 0;
-    this.opciones().forEach((p, i) => {
+    const dx = opciones.some((p) => this.icono(p.id)) ? 40 : 0;
+    opciones.slice(this.desde, this.desde + FILAS_VISIBLES).forEach((p, j) => {
+      const i = this.desde + j;
       // Tres renglones por pieza: nombre · precio y masa · dato clave (todo a >= 16 px).
-      const y = FILA_Y + i * FILA_PASO;
+      const y = FILA_Y + j * FILA_PASO;
       const puesta = this.mapa[r.id] === p.id;
       const resaltada = i === this.cursor;
       const costo = costoEnRanura(r.id, p);
@@ -444,6 +530,7 @@ export default class Taller extends Phaser.Scene {
         `Agarre ejes: arena ${f2(a.arena)} · roca ${f2(a.roca)} · comp. ${f2(a.compacto)}`,
         `Axle grip: sand ${f2(a.arena)} · rock ${f2(a.roca)} · compact ${f2(a.compacto)}`,
       ),
+      ...this.lineasDestino(res), // efecto del módulo en el destino: segunda línea, para que no se pierda
       tr(
         `Autonomía ≈ ${res.autonomia_s != null ? Math.round(res.autonomia_s) + ' s a fondo' : '—'}, con carga (P)`,
         `Battery ≈ ${res.autonomia_s != null ? Math.round(res.autonomia_s) + ' s at full power' : '—'}, loaded (P)`,
@@ -467,9 +554,142 @@ export default class Taller extends Phaser.Scene {
     }
     this.btnContinuar.setColor(errores.length ? C.apagado : C.acento);
     this.refrescarHistorial();
+    this.refrescarPersonalizacion();
 
     this.refrescarEsquema();
     this.refrescarCatalogo();
+  }
+
+  /**
+   * Qué le hace el destino a ESTE diseño (mismas reglas que la física, fisica/ambiente.js): batería útil por el frío,
+   * potencia del motor al llegar al límite de temperatura y recarga del panel. Así el módulo elegido se nota aquí.
+   */
+  lineasDestino(res) {
+    const destino = DESTINOS[partida.destino];
+    const amb = destino ? ambienteDeDestino(destino.id, destino.mundo) : null;
+    const e = efectosEn(res, amb);
+    if (!e) return [];
+    // Un solo renglón (≤ 47 caracteres a 16 px). Con módulo, solo su efecto contra "sin él"; sin módulo, batería y motor.
+    // "motor caliente" = potencia que conserva el motor al llegar a 100 °C (fisica/ambiente.js, regla b).
+    const sinEl = (v) => tr(` (sin él ${pct(v)})`, ` (without it ${pct(v)})`);
+    const bat = tr(`batería ${pct(e.bateria)}`, `battery ${pct(e.bateria)}`);
+    const mot = tr(`motor caliente ${pct(e.potencia_caliente)}`, `hot motor ${pct(e.potencia_caliente)}`);
+    let texto;
+    if (res.radiador) texto = mot + sinEl(e.potencia_caliente_sin_modulo);
+    else if (res.aislamiento) texto = bat + sinEl(e.bateria_sin_modulo);
+    else if (e.recarga_s) texto = `panel +${e.recarga_s.toFixed(2)}/s · ${bat}`;
+    else texto = `${bat} · ${mot}`;
+    return [`${MUNDO()[destino.mundo] ?? destino.mundo} (P): ${texto}`];
+  }
+
+  // ---------- personalización (cosmética: no cambia la física) ----------
+  crearPersonalizacion() {
+    const etiqueta = this.add.text(PERS_X, PERS_Y1, tr('Pintura', 'Paint'), { fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.claro }).setOrigin(0, 0.5);
+    const x0 = PERS_X + etiqueta.width + 22;
+    this.muestras = PINTURAS.map((pint, i) => {
+      const cuadro = this.add.rectangle(x0 + i * 30, PERS_Y1, 22, 22, pint.figura).setStrokeStyle(2, BORDE);
+      // Zona de 30 × 30 (sin huecos entre muestras; no toca la fila del nombre, que empieza en y 143).
+      zonaToque(cuadro, -4, -4, 30, 30);
+      cuadro.on('pointerdown', () => this.pintar(pint.id));
+      return { pint, cuadro };
+    });
+    this.txtNombre = this.add.text(PERS_X, PERS_Y2, '', { fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.texto }).setOrigin(0, 0.5);
+    this.btnNombre = this.add.text(0, PERS_Y2, tr('[ Nombre ]', '[ Name ]'), { fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.acento })
+      .setOrigin(0, 0.5).on('pointerdown', () => this.abrirNombre());
+    // Zona y 144–172: no toca las muestras (hasta y 143) ni la fila del motor (desde y 173).
+    zonaToque(this.btnNombre, -8, (this.btnNombre.height - 28) / 2, this.btnNombre.width + 16, 28);
+  }
+
+  refrescarPersonalizacion() {
+    const pintura = pinturaPorId(this.mapa[CLAVE_PINTURA]);
+    const nombre = this.mapa[CLAVE_NOMBRE] || null;
+    // Copia en la partida y en el navegador (la usan la prueba y la misión: fisica/aspecto.js).
+    fijarPersonalizacion(partida, { pintura: pintura.id, nombre });
+    for (const { pint, cuadro } of this.muestras) {
+      const elegida = pint.id === pintura.id;
+      cuadro.setStrokeStyle(elegida ? 3 : 2, elegida ? ACENTO : BORDE).setScale(elegida ? 1.15 : 1);
+    }
+    this.txtNombre.setText(nombre ? `«${nombre}»` : tr('(sin nombre)', '(no name)')).setColor(nombre ? C.texto : C.apagado);
+    this.btnNombre.setX(PERS_X + this.txtNombre.width + 12);
+    // Vista previa en el esquema: el chasis toma la pintura (solo color, como en la prueba).
+    const base = pintura.id === PINTURAS[0].id;
+    this.ranurasUI?.chasis?.forma.setFillStyle(base ? RELLENO : pintura.figura, base ? 1 : 0.35);
+  }
+
+  pintar(id) {
+    if (!id || this.mapa[CLAVE_PINTURA] === id) return;
+    this.mapa[CLAVE_PINTURA] = id;
+    const p = pinturaPorId(id);
+    this.hist.registrar(this.mapa, { ranura: CLAVE_PINTURA, texto: tr(`pintura → ${p.nombre}`, `paint → ${p.nombre_en}`) });
+    this.aviso = '';
+    this.refrescar();
+  }
+
+  renombrar(texto) {
+    const nombre = normalizarNombre(texto);
+    if ((this.mapa[CLAVE_NOMBRE] || null) === nombre) return;
+    if (nombre) this.mapa[CLAVE_NOMBRE] = nombre;
+    else delete this.mapa[CLAVE_NOMBRE];
+    this.hist.registrar(this.mapa, { ranura: CLAVE_NOMBRE, texto: nombre ? tr(`nombre → ${nombre}`, `name → ${nombre}`) : tr('sin nombre', 'no name') });
+    this.aviso = '';
+    this.refrescar();
+  }
+
+  /** Diálogo HTML para escribir el nombre (Phaser no tiene campo de texto). Enter guarda, Esc cancela; funciona al tacto. */
+  abrirNombre() {
+    if (this.dialogo || typeof document === 'undefined') return;
+    const kb = this.input.keyboard;
+    kb.enabled = false; // las teclas del taller (R, C, P, N…) no deben dispararse mientras se escribe
+    kb.disableGlobalCapture(); // otras escenas capturan teclas (espacio, flechas): aquí deben llegar al campo de texto
+    const capa = document.createElement('div');
+    capa.setAttribute('role', 'dialog');
+    capa.setAttribute('aria-modal', 'true');
+    capa.style.cssText = 'position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;'
+      + 'background:rgba(5,6,12,.7);font-family:monospace;';
+    const caja = document.createElement('form');
+    caja.style.cssText = 'background:#141830;border:2px solid #ffd166;padding:18px 20px;display:flex;flex-direction:column;gap:12px;'
+      + 'width:min(380px,90vw);box-sizing:border-box;color:#fff;font-size:16px;';
+    const etiqueta = document.createElement('label');
+    etiqueta.textContent = tr(`Nombre del robot (hasta ${LARGO_NOMBRE} letras, cosmético)`, `Robot name (up to ${LARGO_NOMBRE} letters, cosmetic)`);
+    etiqueta.htmlFor = 'mc-nombre-robot';
+    const campo = document.createElement('input');
+    campo.id = 'mc-nombre-robot';
+    campo.type = 'text';
+    campo.maxLength = LARGO_NOMBRE;
+    campo.autocomplete = 'off';
+    campo.value = this.mapa[CLAVE_NOMBRE] || '';
+    campo.placeholder = tr('p. ej. Duna-1', 'e.g. Dune-1');
+    campo.style.cssText = 'font:inherit;font-size:18px;padding:8px;background:#0b0d17;color:#fff;border:1px solid #4a5275;';
+    const fila = document.createElement('div');
+    fila.style.cssText = 'display:flex;gap:10px;justify-content:flex-end;';
+    const btn = (texto, tipo, fondo) => {
+      const b = document.createElement('button');
+      b.type = tipo;
+      b.textContent = texto;
+      b.style.cssText = `font:inherit;font-size:16px;padding:8px 14px;cursor:pointer;border:1px solid #ffd166;background:${fondo};color:#ffd166;`;
+      return b;
+    };
+    const cancelar = btn(tr('Cancelar', 'Cancel'), 'button', 'transparent');
+    const guardar = btn(tr('Guardar', 'Save'), 'submit', '#222844');
+    fila.append(cancelar, guardar);
+    caja.append(etiqueta, campo, fila);
+    capa.append(caja);
+    caja.addEventListener('submit', (ev) => { ev.preventDefault(); const v = campo.value; this.cerrarNombre(); this.renombrar(v); });
+    cancelar.addEventListener('click', () => this.cerrarNombre());
+    capa.addEventListener('keydown', (ev) => { ev.stopPropagation(); if (ev.key === 'Escape') { ev.preventDefault(); this.cerrarNombre(); } });
+    capa.addEventListener('pointerdown', (ev) => { if (ev.target === capa) this.cerrarNombre(); });
+    document.body.append(capa);
+    this.dialogo = capa;
+    campo.focus();
+    campo.select();
+  }
+
+  cerrarNombre() {
+    if (!this.dialogo) return;
+    this.dialogo.remove();
+    this.dialogo = null;
+    const kb = this.input?.keyboard;
+    if (kb) { kb.enabled = true; kb.enableGlobalCapture(); }
   }
 
   continuar() {
@@ -492,7 +712,7 @@ export default class Taller extends Phaser.Scene {
   salir(diseno, destino) {
     if (this.cameras.main.fadeEffect.isRunning) return; // ya está saliendo (irA ignora la segunda transición)
     partida.diseno = diseno;
-    memoria = { clave: partida.resultados, mapa: comoMapa(diseno) };
+    memoria = { clave: partida.resultados, mapa: { ...this.mapa } }; // con la pintura y el nombre (ver create)
     irA(this, destino);
   }
 }

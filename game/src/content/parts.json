@@ -197,10 +197,10 @@
     "nombre": "Aislante de batería",
     "nombre_en": "Battery insulation",
     "sistema": "modulo",
-    "costo": 70,
+    "costo": 40,
     "masa": 2,
-    "aislamiento_termico": 0.75,
-    "nota": "valor de juego (P), SIN fuente primaria para un aislante o calentador de batería (PIEZAS.md §5: Gap): evita 75 % de la pérdida de batería por frío de la regla (P) de fisica/ambiente.js. Contexto real: calentadores de radioisótopos calentaban la caja de la electrónica de Sojourner, Spirit y Opportunity (NTRS 20150008894, S78)"
+    "aislamiento_termico": 1,
+    "nota": "valor de juego (P), SIN fuente primaria para un aislante o calentador de batería (PIEZAS.md §5: Gap): evita toda la pérdida de batería por frío de la regla (P) de fisica/ambiente.js. Contexto real: calentadores de radioisótopos calentaban la caja de la electrónica de Sojourner, Spirit y Opportunity (NTRS 20150008894, S78)"
   },
   {
     "id": "radiador_motor",
