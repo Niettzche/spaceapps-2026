@@ -45,6 +45,9 @@ RADIO_COTEJO_KM = 2.5    # mismo radio que el cotejo del catálogo en model/vali
 FUENTE = ("Copernicus DEM GLO-30 (ESA) llevado a 80 m; perfil radial promedio del cráter "
           "(analisis/18_perfiles_radiales.py, ciencia_datos/datos/perfiles_radiales.json)")
 
+FUENTE_IMPACTOS = ("Copernicus DEM GLO-30 (ESA) llevado a 80 m; perfil radial promedio del cráter "
+                   "(analisis/25_perfiles_impactos.py, ciencia_datos/datos/perfiles_impactos.json)")
+
 # Cráteres identificados por literatura, con la distancia entre la detección y la coordenada de la fuente (model/NIVEL2.md §A).
 # Los del catálogo de México y Meteor Crater no van aquí: se cotejan por coordenada en crateres_con_fuente().
 IDENTIFICADOS = {
@@ -84,10 +87,22 @@ def altura(perfil, r: np.ndarray | None = None, ventana: tuple[float, float] = V
     return float(p[(r >= ventana[0]) & (r < ventana[1])].max())
 
 
+@functools.lru_cache(maxsize=1)
+def perfiles_impactos() -> dict:
+    """{id de impactos_tierra.csv (I00…): registro con el perfil tierra} de analisis/25, con los mismos anillos que perfiles()."""
+    js = json.loads(PERFILES_IMPACTOS.read_text(encoding="utf-8"))
+    if not np.array_equal(np.array(js["r"], float), perfiles()[0]):
+        raise ValueError("perfiles_impactos.json no usa los mismos anillos que perfiles_radiales.json")
+    return {str(s["id"]).upper(): s for s in js["sitios"]}
+
+
 def medir(cid: str, cuerpo: str = "tierra", ventana: tuple[float, float] = VENTANA) -> float | None:
-    """h/D del cráter `cid` del detector (p. ej. MX0008, G00263). `cuerpo`: tierra, o el perfil de su gemelo (luna, marte)."""
+    """h/D del cráter `cid` del detector (p. ej. MX0008, G00263, o I03 de impactos_tierra.csv). `cuerpo`: tierra, o el perfil
+    de su gemelo (luna, marte; los cráteres de impacto de analisis/25 solo tienen el de la Tierra)."""
     r, sitios = perfiles()
     s = sitios.get(str(cid).upper())
+    if s is None and cuerpo == "tierra":
+        s = perfiles_impactos().get(str(cid).upper())
     return None if s is None else altura(s.get(cuerpo), r, ventana)
 
 
@@ -102,9 +117,10 @@ def variable_borde(cid: str, diam_km: float | None) -> dict:
         return {"valor": None, "unidad": "m", "fuente": FUENTE, "fecha": None,
                 "nota": "Sin perfil radial a 80 m para este cráter: el borde levantado no se midió."}
     a, b, lejos = limites_ventana()
+    fuente = FUENTE_IMPACTOS if str(cid).upper() in perfiles_impactos() else FUENTE
     lectura = ("positiva: el borde queda más alto que el terreno lejano, lo que es evidencia de cráter de impacto o de explosión"
                if levantado(h) else "no positiva: sin borde levantado en esta medida")
-    return {"valor": round(h * float(diam_km) * 1000, 1) + 0.0, "unidad": "m", "fuente": FUENTE, "fecha": None,
+    return {"valor": round(h * float(diam_km) * 1000, 1) + 0.0, "unidad": "m", "fuente": fuente, "fecha": None,
             "nota": (f"h/D = {h:+.4f}, {lectura}. Altura máxima del perfil radial promedio entre {a:.2f} y {b:.2f} radios, sobre el "
                      f"terreno lejano ({lejos:.2f} a 2 radios). No mide parecido con la Luna ni con Marte: dice si la depresión "
                      "tiene borde de cráter (model/VALIDATION.md, sección B). Ventana y umbral provisionales (P).")}
@@ -131,7 +147,9 @@ def crater_de(sitio: dict) -> str | None:
     if "forma" not in (sitio.get("variables") or {}):
         return None                         # sin cráter medido (p. ej. las dunas de Samalayuca)
     from model import curados               # import perezoso: curados importa scan, y scan importa este módulo
-    return curados.CURADOS.get(sitio["id"], {}).get("crater_cid") or sitio["id"].upper()
+    from model import niveles               # cráteres de impacto creados por model/niveles.py (id del sitio ≠ id del detector)
+    return (curados.CURADOS.get(sitio["id"], {}).get("crater_cid") or niveles.CRATER_DE_SITIO.get(sitio["id"])
+            or sitio["id"].upper())
 
 
 def _km(lat1, lon1, lat2, lon2):
