@@ -23,6 +23,7 @@ export const VARIABLES = perezoso({
   profundidad: ['Profundidad', 'Depth'],
   profundidad_diametro: ['Profundidad / diámetro', 'Depth / diameter'],
   borde: ['Altura del borde', 'Rim height'],
+  borde_levantado: ['Borde levantado', 'Raised rim'],
   ndvi_p90: ['NDVI percentil 90', 'NDVI 90th percentile'],
 });
 

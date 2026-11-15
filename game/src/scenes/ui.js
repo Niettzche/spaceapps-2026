@@ -14,9 +14,9 @@ export function nota(scene, texto) {
 }
 
 // Una sola transición a la vez; Phaser limpia el fundido al reiniciar la cámara.
-export function irA(escena, destino) {
+export function irA(escena, destino, datos) {
   const camera = escena.cameras.main;
   if (camera.fadeEffect.isRunning) return;
-  camera.once('camerafadeoutcomplete', () => escena.scene.start(destino));
+  camera.once('camerafadeoutcomplete', () => escena.scene.start(destino, datos));
   camera.fadeOut(180, 0, 0, 0);
 }

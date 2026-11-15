@@ -121,10 +121,15 @@ export class Hud {
   instrucciones(titulo, lineas) {
     const s = this.scene;
     const fijo = (o) => o.setScrollFactor(0).setDepth(96);
-    const texto = fijo(s.add.text(480, 175, [titulo, '', ...lineas].join('\n'), {
+    // Las líneas largas (reglas del ambiente en inglés) se salían por los lados: se ajustan a 880 px y el panel se
+    // coloca justo debajo de la barra del HUD (y = 88) para no encimarse al crecer.
+    const texto = fijo(s.add.text(480, 0, [titulo, '', ...lineas].join('\n'), {
       fontFamily: 'monospace', fontSize: '17px', color: '#ffffff', align: 'center', lineSpacing: 6,
+      wordWrap: { width: 880, useAdvancedWrap: true },
     }).setOrigin(0.5));
-    const fondo = fijo(s.add.rectangle(480, 175, texto.width + 48, texto.height + 32, 0x0b0d17, 0.85).setStrokeStyle(2, 0xffd166, 0.8));
+    const y = Math.max(175, 88 + 12 + 16 + texto.height / 2);
+    texto.setY(y);
+    const fondo = fijo(s.add.rectangle(480, y, texto.width + 48, texto.height + 32, 0x0b0d17, 0.85).setStrokeStyle(2, 0xffd166, 0.8));
     texto.setDepth(97);
     this.panel = [fondo, texto];
     s.time.delayedCall(6000, () => this.ocultarInstrucciones());
