@@ -69,8 +69,8 @@ export function compararAnalogia(prueba, mision, destino) {
   }
   const fD = ambD ? factorFrio(ambD.temperatura_min_C) : 1;
   if (fD < 1) {
-    lineas.push(tr(`Frío: en el destino hace ${String(ambD.temperatura_min_C).replace('-', '−')} °C y la batería arrancó al ${Math.round(fD * 100)} %; en la prueba no se notó.`,
-      `Cold: the destination reaches ${String(ambD.temperatura_min_C).replace('-', '−')} °C and the battery started at ${Math.round(fD * 100)} %; the test did not show it.`));
+    lineas.push(tr(`Frío: la mínima medida en el destino fue ${String(ambD.temperatura_min_C).replace('-', '−')} °C${ambD.etiqueta_temp ? ` (${ambD.etiqueta_temp})` : ''} y la batería arrancó al ${Math.round(fD * 100)} %; en la prueba no se notó.`,
+      `Cold: the lowest measured temperature at the destination was ${String(ambD.temperatura_min_C).replace('-', '−')} °C${ambD.etiqueta_temp_en ? ` (${ambD.etiqueta_temp_en})` : ''} and the battery started at ${Math.round(fD * 100)} %; the test did not show it.`));
   }
 
   const suelo = datosSuelo(destino?.mundo, 'arena');

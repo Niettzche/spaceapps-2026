@@ -39,7 +39,9 @@ export const PATINA_SEG = 0.35; // exportada para los efectos (efectos.js)
 const CONTACTO_RECIENTE_SEG = 0.15; // la suspensión hace rebotar la rueda: cuenta el contacto reciente
 const SIN_FUERZA_MS = 0.3;
 const SIN_FUERZA_SEG = 1.5;
-const VOLCADO_RAD = 2.0;
+// Volcado: de lado (> ~75°) y casi quieto durante 2 s. Antes pedía > 115°: un robot tumbado de lado se quedaba así para
+// siempre sin que la partida terminara. Las pendientes jugables no pasan de ~35°, así que 75° no se confunde con una subida. (P)
+const VOLCADO_RAD = 1.3;
 const VOLCADO_SEG = 2.0;
 const CARGA_LEJOS_M = 4;
 

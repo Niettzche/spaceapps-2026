@@ -34,6 +34,7 @@ const AMBIENTE_DESTINOS = {
   jezero: {
     mundo: 'marte',
     temperatura_min_C: -83, temperatura_max_C: -22, // muestra de dos soles (43–44), MEDA (S22)
+    etiqueta_temp: 'dos soles, MEDA', etiqueta_temp_en: '2 sols, MEDA',
     temperatura_media_C: -55, // MEDA, Rodríguez-Manfredi et al. 2023 (S21; S23)
     presion_kPa: 0.718, // 718 Pa, MEDA (S22)
     densidad_aire_kg_m3: 0.017, // derivada de 718 Pa y −55 °C (CO₂, gas ideal); Mars Fact Sheet: 0.016 ± 0.006
@@ -49,6 +50,7 @@ const AMBIENTE_DESTINOS = {
     // DECISIÓN (juego): la misión usa el borde iluminado (−53 °C, ~220 K casi constante), porque la región candidata de Artemis
     // es iluminada y la ruta va al sol. La sombra permanente (−248 °C) es dato de la tabla pero no está en el recorrido.
     temperatura_min_C: -53, temperatura_max_C: null, temperatura_media_C: -53,
+    etiqueta_temp: 'borde iluminado', etiqueta_temp_en: 'sunlit rim',
     temperatura_sombra_C: -248,
     presion_kPa: 3e-13, // 3×10⁻¹⁰ Pa de noche (NASA Moon Fact Sheet, S02)
     densidad_aire_kg_m3: 0, // vacío (S02)
@@ -183,13 +185,14 @@ export function recargaPanel(panel, amb, reglas = REGLAS.luz) {
 // ─── Textos (bilingües) ────────────────────────────────────────────────────────────────────────────────────────────
 const NOMBRE_MUNDO = () => ({ tierra: tr('Tierra', 'Earth'), marte: tr('Marte', 'Mars'), luna: tr('Luna', 'Moon') });
 const num = (v, d = 0) => (v == null ? '—' : String(Number(v.toFixed(d))).replace('-', '−'));
-const fmtDensidad = (rho) => (rho === 0 ? '0' : rho < 0.1 ? rho.toFixed(3) : rho.toFixed(2));
+const fmtDensidad = (rho) => (rho === 0 ? '0' : rho.toFixed(3)); // 3 decimales: 1.045, 0.017 (auditoría 2 de Leo)
 
 function textoTemperatura(amb) {
   const { temperatura_min_C: a, temperatura_max_C: b } = amb;
   if (a == null && b == null) return tr('temperatura sin dato', 'temperature: no data');
-  if (b == null || a === b) return `${num(a)} °C`;
-  return tr(`${num(a)} a ${num(b)} °C`, `${num(a)} to ${num(b)} °C`);
+  const etiqueta = amb.etiqueta_temp ? ` (${tr(amb.etiqueta_temp, amb.etiqueta_temp_en)})` : '';
+  if (b == null || a === b) return `${num(a)} °C${etiqueta}`;
+  return tr(`${num(a)} a ${num(b)} °C${etiqueta}`, `${num(a)} to ${num(b)} °C${etiqueta}`);
 }
 
 /** % de la densidad del aire de la Tierra a nivel del mar. */
@@ -207,7 +210,7 @@ function textoAire(amb) {
   return tr(`aire ${fmtDensidad(rho)} kg/m³: enfría bien el motor`, `air ${fmtDensidad(rho)} kg/m³: cools the motor well`);
 }
 
-/** Resumen de una línea para las instrucciones: "Marte: −83 a −22 °C · aire 0.016 kg/m³ (1 % de la Tierra): el motor se enfría poco". */
+/** Resumen de una línea para las instrucciones: "Marte: −83 a −22 °C (dos soles, MEDA) · aire 0.017 kg/m³ (1 % de la Tierra): el motor se enfría poco". */
 export function resumenAmbiente(amb) {
   if (!amb) return null;
   return `${NOMBRE_MUNDO()[amb.mundo] ?? amb.mundo}: ${textoTemperatura(amb)} · ${textoAire(amb)}`;

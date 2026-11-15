@@ -329,13 +329,13 @@ caso('ambiente: luz rasante reduce la recarga del panel solar', () => {
 });
 caso('ambiente: textos bilingües para el Expediente y las instrucciones', () => {
   const jez = ambienteDeDestino('jezero', 'marte');
-  assert.equal(resumenAmbiente(jez), 'Marte: −83 a −22 °C · aire 0.017 kg/m³ (1 % de la Tierra): el motor se enfría poco');
+  assert.equal(resumenAmbiente(jez), 'Marte: −83 a −22 °C (dos soles, MEDA) · aire 0.017 kg/m³ (1 % de la Tierra): el motor se enfría poco');
   const l = lineasAmbiente(ambienteDeDestino('polo_sur_lunar', 'luna'));
-  assert.ok(l[0] === 'Temperatura: −53 °C' && l.some((x) => x.startsWith('Luz: rasante')) && l.at(-1).startsWith('Fuente: docs/taller/AMBIENTE.md: LRO Diviner'));
+  assert.ok(l[0] === 'Temperatura: −53 °C (borde iluminado)' && l.some((x) => x.startsWith('Luz: rasante')) && l.at(-1).startsWith('Fuente: docs/taller/AMBIENTE.md: LRO Diviner'));
   assert.ok(lineasAmbiente(ambienteDeSitio('pinacate'))[0].includes('extremos −4.7 / 48.4 °C'));
   setIdioma('en');
   try {
-    assert.ok(resumenAmbiente(jez).startsWith('Mars: −83 to −22 °C · air 0.017 kg/m³ (1 % of Earth'));
+    assert.ok(resumenAmbiente(jez).startsWith('Mars: −83 to −22 °C (2 sols, MEDA) · air 0.017 kg/m³ (1 % of Earth'));
     assert.ok(lineasAmbiente(jez).at(-1).startsWith('Source: docs/taller/AMBIENTE.md: MEDA'));
   } finally {
     setIdioma('es');
@@ -367,7 +367,7 @@ caso('feedback: sobrecalentamiento → línea de analogía y recomendación', ()
   const mision = { resultado: { destino: 'polo_sur_lunar', eventos: ev('sobrecalentamiento', 2), distancia_m: 250, energia_restante: 0.1 } };
   const lineas = compararAnalogia(prueba, mision, { id: 'polo_sur_lunar', mundo: 'luna', gravedad_ms2: 1.62, no_reproducible_en_tierra: [] });
   assert.ok(lineas.some((l) => l.startsWith('El motor se calentó 2 veces en la misión y ninguna en la prueba: el aire de la Tierra (1.045 kg/m³) lo enfría')));
-  assert.ok(lineas.some((l) => l.startsWith('Frío: en el destino hace −53 °C')));
+  assert.ok(lineas.some((l) => l.startsWith('Frío: la mínima medida en el destino fue −53 °C (borde iluminado)')));
   const recE = recomendar({ eventos: ev('sobrecalentamiento'), diseno: [{ ranura: 'motor', pieza: 'motor_eficiente' }] });
   assert.ok(recE.some((r) => r.id === 'pausas_motor'));
   const recP = recomendar({ eventos: ev('sobrecalentamiento'), diseno: [{ ranura: 'motor', pieza: 'motor_potente' }] });
