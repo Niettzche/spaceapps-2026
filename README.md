@@ -26,6 +26,12 @@ pip install -r api/requirements.txt && uvicorn api.main:app --reload
 ## Reglas cortas
 Rama propia → PR a `main` · solo tus carpetas · no inventar datos · sin secretos · actualiza `docs/estado/<frente>.md`.
 
+## Créditos del arte
+- Arte de MARSCEPTION (sprites, fondos, terreno, UI, pantalla de título): propio, generado con código en `assets/fuente/`. Ver [assets/README.md](assets/README.md).
+- **[pixelfx](https://github.com/patch-gg/pixelfx)**: licencia MIT, Copyright (c) 2026 Patch y Copyright (c) 2026 Hugo Duprez.
+  Los efectos (`assets/fx/`) son efectos de pixelfx escritos para el juego (`assets/fuente/fx/`), y el resto del arte se dibuja con su painter y sus rampas de color.
+  Sus fuentes `mini` y `big` son MIT; su fuente "Patch Pixel" no lo es y no se usa.
+
 ---
 
 # Space Apps 2026 · Análogos terrestres de la Luna y Marte
