@@ -8,18 +8,18 @@ import CLIMA from '../content/clima_niveles.js';
 import { ambienteDeSitio, ambienteDeDestino, DENSIDAD_AIRE_TIERRA } from './ambiente.js';
 import { vientoAAltura, fuerzaArrastre, fuerzaAMatter, programaRafagas, vientoEn, datosViento, resumenViento, VIENTO, textoViento } from './viento.js';
 import { generarElementos, factorParcheEn, superficieParcheEn, danioBloque, notaElementos } from './elementos_nivel.js';
-import { programaEventos, activosEn, EVENTOS } from './eventos_fondo.js';
+import { programaEventos, activosEn, EVENTOS, crestasDe, notaEventos } from './eventos_fondo.js';
 import { perfilDeSitio } from './perfil.js';
 import { PX_POR_M, FACTOR_GRAVEDAD } from './escala.js';
 
-const IDS = ['g00266', 'tenoumer', 'mx0023', 'pinacate', 'pingualuit'];
+const IDS = ['g00266', 'tenoumer', 'mx0023', 'pinacate', 'pingualuit', 'samalayuca', 'mx0261'];
 const sitio = (id) => JSON.parse(readFileSync(new URL(`../../../data/sites/${id}.json`, import.meta.url)));
 const piezas = JSON.parse(readFileSync(new URL('../content/parts.json', import.meta.url))).map((p) => p.id);
 
-test('los 5 niveles destacados existen, son de tipos distintos y su fondo existe', () => {
+test('los 7 niveles destacados existen, son de tipos distintos y su fondo existe', () => {
   assert.deepEqual(Object.keys(NIVELES_DESTACADOS).sort(), [...IDS].sort());
   const tipos = IDS.map((id) => NIVELES_DESTACADOS[id].tipo);
-  assert.equal(new Set(tipos).size, 5);
+  assert.equal(new Set(tipos).size, IDS.length);
   for (const id of IDS) {
     const c = NIVELES_DESTACADOS[id];
     assert.ok(c.entrena.es && c.entrena.en, `${id}: falta «qué entrena»`);
@@ -32,12 +32,12 @@ test('los 5 niveles destacados existen, son de tipos distintos y su fondo existe
 
 test('configDeNivel: prueba por sitio, misión por destino, el resto null', () => {
   assert.equal(configDeNivel({ modo: 'prueba', sitioId: 'tenoumer' }), NIVELES_DESTACADOS.tenoumer);
-  assert.equal(configDeNivel({ modo: 'prueba', sitioId: 'samalayuca' }), null);
+  assert.equal(configDeNivel({ modo: 'prueba', sitioId: 'mx0207' }), null);
   assert.equal(configDeNivel({ modo: 'mision', destinoId: 'jezero' }), MISIONES_DESTACADAS.jezero);
   assert.equal(MISIONES_DESTACADAS.polo_sur_lunar.viento, null);
 });
 
-test('clima de NASA POWER: los 5 sitios, con fecha, y la densidad es la derivada de PS y T2M', () => {
+test('clima de NASA POWER: los 7 sitios, con fecha, y la densidad es la derivada de PS y T2M', () => {
   assert.match(CLIMA.fecha_consulta, /^\d{4}-\d{2}-\d{2}$/);
   for (const id of IDS) {
     const c = CLIMA.sitios[id];
@@ -60,7 +60,17 @@ test('ambiente: los sitios nuevos usan NASA POWER y los de la tabla conservan su
   const pin = ambienteDeSitio('pinacate');
   assert.equal(pin.densidad_aire_kg_m3, 1.143);
   assert.equal(pin.viento_max_ms, CLIMA.sitios.pinacate.viento_max_ms);
-  assert.equal(ambienteDeSitio('samalayuca').viento_medio_ms, null);
+  // Samalayuca ya estaba en la tabla: conserva sus temperaturas (docs/taller/AMBIENTE.md) y solo recibe el viento.
+  const sam = ambienteDeSitio('samalayuca');
+  assert.equal(sam.temperatura_min_C, 0.3);
+  assert.equal(sam.temperatura_max_C, 36.2);
+  assert.equal(sam.densidad_aire_kg_m3, 1.045);
+  assert.equal(sam.viento_medio_ms, CLIMA.sitios.samalayuca.viento_medio_ms);
+  // Con el mismo método, NASA POWER reproduce la tabla de Samalayuca.
+  assert.equal(CLIMA.sitios.samalayuca.min_tipica_C, 0.3);
+  assert.equal(CLIMA.sitios.samalayuca.max_tipica_C, 36.2);
+  assert.match(ambienteDeSitio('mx0261').fuentes[0], /NASA POWER/);
+  assert.equal(ambienteDeSitio('mx0207').viento_medio_ms, null);
   assert.equal(ambienteDeDestino('jezero').viento_max_ms, 10);
 });
 
@@ -74,7 +84,7 @@ test('viento: perfil logarítmico, arrastre ½ρv²CdA y escala de Matter igual 
   assert.ok(Math.abs(fuerzaAMatter(9.81) - (9.81 * PX_POR_M * FACTOR_GRAVEDAD) / 1e6) < 1e-15);
 });
 
-test('viento: en Marte (aire 1 %) empuja ~1 % de lo que empujaría el mismo viento en la Tierra', () => {
+test('viento: en Marte (aire ~1.4 %) empuja ~1.4 % de lo que empujaría el mismo viento en la Tierra', () => {
   const marte = resumenViento(datosViento(ambienteDeDestino('jezero')), 69, 3.71);
   const tierra = resumenViento({ medio: null, max: 10, rho: DENSIDAD_AIRE_TIERRA }, 69, 9.81);
   assert.ok(marte.F / tierra.F < 0.02);
@@ -108,6 +118,7 @@ test('elementos: deterministas, fuera de los planos, marcados como recreación y
     const perfil = perfilDeSitio(sitio(id));
     const l = generarElementos(perfil, NIVELES_DESTACADOS[id], id);
     assert.deepEqual(l, generarElementos(perfil, NIVELES_DESTACADOS[id], id));
+    if (NIVELES_DESTACADOS[id].solo_visual) { assert.deepEqual(l, [], `${id}: solo visual, sin elementos`); continue; }
     assert.ok(l.length > 0, `${id}: sin elementos`);
     assert.ok(notaElementos(l));
     for (const o of l) {
@@ -146,4 +157,47 @@ test('eventos: deterministas, del tipo pedido y el desprendimiento por avance', 
   assert.equal(d.length, EVENTOS.desprendimiento.a_m.length);
   for (const e of d) assert.equal(e.radios.length, EVENTOS.desprendimiento.piedras);
   assert.deepEqual(programaEventos(['tierra'], 'luna'), [{ tipo: 'tierra', t0: 0, t1: Infinity }]);
+});
+
+test('Samalayuca (camino dorado de Marte): solo ambiente, el viento no empuja y los eventos no tocan la física', () => {
+  const c = NIVELES_DESTACADOS.samalayuca;
+  assert.equal(c.solo_visual, true);
+  assert.equal(c.viento.empuja, false);
+  assert.deepEqual(c.parches, []);
+  assert.deepEqual(c.bloques, []);
+  const perfil = perfilDeSitio(sitio('samalayuca'));
+  const l = generarElementos(perfil, c, 'samalayuca');
+  assert.equal(factorParcheEn(l, 100), 1);
+  assert.equal(superficieParcheEn(l, 100), null);
+  // Hay crestas de duna (perfil del DEM + caras recreadas) para que la arena se vuele de ellas.
+  assert.ok(crestasDe(perfil).length >= 3, String(crestasDe(perfil).length));
+  assert.match(notaEventos(c.eventos, { soloVisual: true }), /solo visuales|visual only/);
+  assert.ok(datosViento(ambienteDeSitio('samalayuca')), 'el viento real del sitio existe (se ve)');
+});
+
+test('Rincón de Parangueo: sal y lodo solo en el piso del lago (tramo compacto del DEM), viento con física, destino del sitio', () => {
+  const c = NIVELES_DESTACADOS.mx0261;
+  assert.equal(c.destino, 'polo_sur_lunar');
+  assert.notEqual(c.viento.empuja, false);
+  const perfil = perfilDeSitio(sitio('mx0261'));
+  const piso = perfil.superficies.filter((t) => t.tipo === 'compacto');
+  assert.ok(piso.length && piso[0].hasta - piso[0].desde > 50, 'la ventana incluye el piso del lago');
+  const l = generarElementos(perfil, c, 'mx0261');
+  const clases = new Set(l.map((o) => o.clase));
+  assert.ok(clases.has('sal') && clases.has('lodo'));
+  const enPiso = (x) => piso.some((t) => x >= t.desde && x <= t.hasta);
+  for (const o of l) assert.ok(enPiso(o.desde_m) && enPiso(o.hasta_m), `${o.clase} ${o.desde_m}-${o.hasta_m} fuera del piso`);
+  assert.equal(l.find((o) => o.clase === 'lodo').superficie, 'arena'); // se hunde (Bekker de arena genérica, P)
+  assert.equal(l.find((o) => o.clase === 'sal').superficie, 'compacto');
+  for (const t of ['espejismo', 'polvo_salino']) assert.ok(programaEventos([t], 'mx0261').length > 3, t);
+});
+
+test('remolinos: ~1 % menos luz en la mayoría y 15 % en los fuertes (MR-083), sin mover el programa', async () => {
+  const { factorRemolino } = await import('./eventos_fondo.js');
+  const l = programaEventos(['remolino'], 'jezero', 2000).filter((e) => e.tipo === 'remolino');
+  const f = l.map(factorRemolino);
+  for (const x of f) assert.ok(x === EVENTOS.remolino.luz || x === EVENTOS.remolino.luz_fuerte);
+  assert.ok(EVENTOS.remolino.luz >= 0.99 && EVENTOS.remolino.luz_fuerte >= 0.85);
+  const fuertes = f.filter((x) => x < 0.99).length / f.length;
+  assert.ok(fuertes > 0.05 && fuertes < 0.4, String(fuertes));
 });

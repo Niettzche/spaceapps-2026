@@ -88,3 +88,46 @@ test('asteroides: 6 a 10 variantes, cada una con al menos 5 puntos dentro del c�
     for (const [x, y] of poligono) assert.ok(Math.hypot(x, y) <= 1.0001);
   }
 });
+
+// Retro de Leo (playtest 15 nov): nada se materializa a media pantalla. Todo nace fuera y sale fuera (o detrás de Marte).
+const MARTES = [{ x: 480, y: 324, r: 228 }, { x: 828, y: 114, r: 63 }]; // fondo de título y menú de opciones (estación)
+
+test('planetas y Sol nacen y terminan fuera de la pantalla y cruzan detrás de Marte', () => {
+  const r = p.crearRng(11);
+  for (const marte of MARTES) {
+    for (let i = 0; i < 2000; i++) {
+      const id = p.elegirEvento(r);
+      const e = p.trayectoriaEvento(r, marte, id);
+      const extra = e.radio * 2; // halo del Sol y anillo de Saturno
+      assert.ok(e.x0 + extra < 0 || e.x0 - extra > 960, `nace dentro: ${id} x0=${e.x0}`);
+      assert.ok(e.x1 + extra < 0 || e.x1 - extra > 960, `termina dentro: ${id} x1=${e.x1}`);
+      assert.ok(Math.min(e.x0, e.x1) < marte.x && Math.max(e.x0, e.x1) > marte.x, 'pasa por Marte');
+      assert.ok(e.y > marte.y - marte.r && e.y < marte.y, 'a la altura de la mitad superior de Marte');
+      assert.ok(e.dur > 15 && e.dur < 60, `duración ${e.dur}`);
+    }
+  }
+});
+
+test('la galaxia entra por un borde lateral, se queda en una esquina y sale por arriba', () => {
+  const r = p.crearRng(5);
+  for (let i = 0; i < 2000; i++) {
+    const g = p.trayectoriaGalaxia(r);
+    assert.ok(g.x0 + 46 < 0 || g.x0 - 46 > 960, `nace dentro x0=${g.x0}`);
+    const xf = g.x0 + g.vx * g.dur, yf = g.y0 + g.vy * g.dur;
+    assert.ok(yf + 46 <= 0.5, `termina dentro y=${yf}`);
+    assert.ok((xf > -80 && xf < 330) || (xf > 630 && xf < 1040), `se queda en una esquina x=${xf}`);
+    assert.ok(g.dur > 30, 'muy lenta');
+  }
+});
+
+test('cometas y asteroides nacen fuera de la pantalla', () => {
+  const r = p.crearRng(8);
+  for (let i = 0; i < 2000; i++) {
+    const c = p.trayectoriaCometa(r);
+    assert.ok(!p.enPantalla(c.x0, c.y0 + 3), `cometa nace dentro (${c.x0}, ${c.y0})`);
+    assert.ok(!p.enPantalla(c.x0 + c.vx * c.dur, c.y0 + c.vy * c.dur), 'cometa termina dentro');
+    const a = p.nacimientoAsteroide(r);
+    assert.ok(a.x + a.tam < 0 || a.x - a.tam > 960, `asteroide nace dentro x=${a.x}`);
+    assert.ok(Math.sign(a.vx) === (a.x < 0 ? 1 : -1), 'el asteroide entra hacia la pantalla');
+  }
+});

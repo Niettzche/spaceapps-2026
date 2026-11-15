@@ -91,5 +91,5 @@ export function notaSuelo(mundo, superficies) {
     if (!d) return tr(`${n}: agarre provisional (P)`, `${n}: provisional grip (P)`);
     return `${n} φ ${d.phi[0]}–${d.phi[1]}° (${d.generico ? tr('genérico, ', 'generic, ') : ''}${d.bioma})`;
   });
-  return `${tr('Suelo', 'Soil')}: ${partes.join(' · ')}`;
+  return `${tr('Suelo', 'Ground')}: ${partes.join(' · ')}`;
 }

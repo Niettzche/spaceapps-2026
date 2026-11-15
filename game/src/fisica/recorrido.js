@@ -146,7 +146,7 @@ export class Recorrido {
       : null;
     // Nota corta del HUD (DISENO.md §3): «Suelo: arena · I datos». El texto completo va en el panel de la tecla I.
     const tipos = [...new Set((o.perfil.superficies ?? []).map((x) => x.tipo))].map(nombreSuperficie).join(', ');
-    const notaCorta = tipos ? `${tr('Suelo', 'Soil')}: ${tipos}` : null;
+    const notaCorta = tipos ? `${tr('Suelo', 'Ground')}: ${tipos}` : null;
     // Física 2: ficha con las ecuaciones y los valores usados en este nivel (panel de la tecla I).
     const fichaV2 = this.fisica === 2 ? fichaFisicaV2({
       masaKg: this.robot.masaTotal, g: o.gravedad, ruedas: this.robot.ruedas.length * RUEDAS_POR_RANURA, pieza: this.robot.ruedas[1].pieza,
@@ -167,7 +167,7 @@ export class Recorrido {
       if (o.modo === 'prueba') {
         this.hud.instrucciones(tr('Prueba en la Tierra', 'Earth test'), [
           { texto: tr('Llega a la META con la carga', 'Reach the FINISH with the payload'), icono: 'ui/ui_icono_carga', escala: 3, respaldo: '⚑' },
-          { texto: `${notaCorta ?? tr('Suelo sin dato', 'Soil: no data')}${bateriaFria}`, icono: 'iconos/ico_suelo', respaldo: '≈' },
+          { texto: `${notaCorta ?? tr('Suelo: sin dato', 'Ground: no data')}${bateriaFria}`, icono: 'iconos/ico_suelo', respaldo: '≈' },
           this.destacado.filaEntrena(),
           controles,
         ].filter(Boolean), pista);

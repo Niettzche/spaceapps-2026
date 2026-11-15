@@ -229,7 +229,7 @@ caso('inglés: analogía, recomendaciones y notas de perfil y suelo', () => {
     assert.ok(p.nota.includes('recreated dune faces') && p.nota.endsWith('flat start and finish = recreation'));
     assert.match(generarPerfil({ tipo: 'dunas' }).nota, /^Illustrative generated terrain \(dunes\)/);
     const suelo = notaSuelo('tierra', [{ tipo: 'arena' }, { tipo: 'roca' }]);
-    assert.ok(suelo.startsWith('Soil: sand') && suelo.endsWith(' · rock: provisional grip (P)'));
+    assert.ok(suelo.startsWith('Ground: sand') && suelo.endsWith(' · rock: provisional grip (P)'));
   } finally {
     setIdioma('es');
   }
@@ -330,13 +330,13 @@ caso('ambiente: luz rasante reduce la recarga del panel solar', () => {
 });
 caso('ambiente: textos bilingües para el Expediente y las instrucciones', () => {
   const jez = ambienteDeDestino('jezero', 'marte');
-  assert.equal(resumenAmbiente(jez), 'Marte: −83 a −22 °C (dos soles, MEDA) · aire 0.017 kg/m³ (1 % de la Tierra): el motor se enfría poco');
+  assert.equal(resumenAmbiente(jez), 'Marte: −83 a −22 °C (dos soles, MEDA) · aire 0.017 kg/m³ (1.4 % de la Tierra): el motor se enfría poco');
   const l = lineasAmbiente(ambienteDeDestino('polo_sur_lunar', 'luna'));
   assert.ok(l[0] === 'Temperatura: −53 °C (borde iluminado)' && l.some((x) => x.startsWith('Luz: rasante')) && l.at(-1).startsWith('Fuente: docs/taller/AMBIENTE.md: LRO Diviner'));
   assert.ok(lineasAmbiente(ambienteDeSitio('pinacate'))[0].includes('extremos −4.7 / 48.4 °C'));
   setIdioma('en');
   try {
-    assert.ok(resumenAmbiente(jez).startsWith('Mars: −83 to −22 °C (2 sols, MEDA) · air 0.017 kg/m³ (1 % of Earth'));
+    assert.ok(resumenAmbiente(jez).startsWith('Mars: −83 to −22 °C (2 sols, MEDA) · air 0.017 kg/m³ (1.4 % of Earth'));
     assert.ok(lineasAmbiente(jez).at(-1).startsWith('Source: docs/taller/AMBIENTE.md: MEDA'));
   } finally {
     setIdioma('es');

@@ -318,6 +318,13 @@ export const VENTANAS_JUEGO = {
     descripcion: ['subida por la pared oeste del cráter El Elegante (el borde, a más de 50°, queda fuera)',
       'climb up the west wall of El Elegante crater (the rim, steeper than 50°, is left out)'],
   },
+  // Hoya Rincón de Parangueo (maar con lago desecado, nivel destacado 7): sale del piso del lago seco (tramo «compacto» del DEM,
+  // m 1620–2460; la playa con evaporitas, Aranda-Gómez et al. 2013) y sube la pared oeste. La ventana crítica automática
+  // (m 1170–1420) dejaba fuera el piso del lago: este tramo lo incluye (más largo que 250 m, como el ancho real del cráter).
+  mx0261: {
+    desde_m: 1170, hasta_m: 1700, sentido: 'vuelta', transecto_m: 3990, pieza_clave: null,
+    descripcion: ['del piso del lago seco (playa salina) a la pared oeste del maar', 'from the dry lake floor (salt playa) up the west wall of the maar'],
+  },
   // Polo sur lunar: pared de una depresión de ~125 m hacia su borde (sube 65 m, hasta 21°). Ventanas más críticas (78–88 m)
   // dejan al diseño dorado con < 10 % de energía o al límite (10–15 % según el orden de los pares de colisión de Matter).
   polo_sur_lunar: {

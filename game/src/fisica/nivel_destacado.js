@@ -30,9 +30,13 @@ export class NivelDestacado {
     this.robot = robot;
     this.ambiente = ambiente;
     this.vistas = crearElementos(this.scene, this.o.perfil, this.terreno, this.elementos, { mundo: this.o.mundo, sprite, hayArte, robot });
-    this.viento = new Viento(this.scene, { robot, ambiente, semilla: this.semilla, particula: this.cfg.viento?.particula ?? null, reducido: reducido() });
+    this.viento = new Viento(this.scene, {
+      robot, ambiente, semilla: this.semilla, particula: this.cfg.viento?.particula ?? null, reducido: reducido(),
+      empuja: this.cfg.viento?.empuja !== false && !this.cfg.solo_visual,
+    });
     this.eventos = new EventosFondo(this.scene, {
       tipos: this.cfg.eventos, semilla: this.semilla, robot, perfil: this.o.perfil, terreno: this.terreno, ambiente, sprite, hayArte, reducido: reducido(),
+      soloVisual: Boolean(this.cfg.solo_visual),
     });
   }
 
@@ -43,7 +47,7 @@ export class NivelDestacado {
   actualizar(dt, x_m) {
     if (!this.cfg) return;
     this.viento?.actualizar(dt);
-    this.eventos?.actualizar(dt, x_m);
+    this.eventos?.actualizar(dt, x_m, this.viento?.v10 ?? 0);
   }
 
   /** Nota para el panel de datos (tecla I): qué entrena, elementos recreados, viento y eventos. */
@@ -55,7 +59,10 @@ export class NivelDestacado {
       c.analogia ? tr(c.analogia.es, c.analogia.en) : null,
       notaElementos(this.elementos) && `${notaElementos(this.elementos)}.`,
       textoViento(this.ambiente, masaKg, this.o.gravedad),
-      notaEventos(c.eventos),
+      this.viento && !this.viento.empuja && this.viento.datos
+        ? tr('En este nivel el viento solo se ve: no empuja al robot (la prueba está calibrada sin él).',
+          'In this level the wind is only visual: it does not push the robot (the test is calibrated without it).') : null,
+      notaEventos(c.eventos, { soloVisual: Boolean(c.solo_visual) }),
     ].filter(Boolean).join(' ');
   }
 

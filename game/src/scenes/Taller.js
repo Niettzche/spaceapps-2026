@@ -8,7 +8,8 @@ import { partida } from '../main.js';
 import { RANURAS, DISENO_POR_DEFECTO, comoMapa, comoDiseno, resumen, validar, efectosEn } from './Taller/diseno.js';
 import { historialAlEntrar, diferencias } from './Taller/historial.js';
 import {
-  PESTANAS, tarjetasDe, pestanaDeRanura, socketsPara, socketPreferido, poner, quitar as quitarDe, mover, ambosEjes, nombreCorto,
+  PESTANAS, tarjetasDe, pestanaDeRanura, socketsPara, socketPreferido, quitar as quitarDe, mover, ambosEjes, nombreCorto,
+  ponerRueda,
 } from './Taller/arrastre.js';
 import { RAZONES } from './Taller/bloqueadas.js';
 import {
@@ -270,6 +271,8 @@ export default class Taller extends Phaser.Scene {
         return { ranura: ranuras[0] ?? null, texto: tr(`recomendación aplicada (${lista})`, `applied recommendation (${lista})`) };
       });
     this.mapa = this.hist.actual;
+    // Ejes unidos por defecto: una rueda va a los dos ejes. Si el diseño guardado ya trae ejes mezclados, se abre separado.
+    this.ejesSeparados = Boolean(this.mapa.rueda_del && this.mapa.rueda_tras && this.mapa.rueda_del !== this.mapa.rueda_tras);
     this.sel = 0;        // socket elegido (índice en RANURAS)
     this.pestana = 'movilidad';
     this.cursor = 0;     // tarjeta resaltada en la pestaña
@@ -424,8 +427,8 @@ export default class Taller extends Phaser.Scene {
       const l2 = texto(this, x0 + SOCKET_TEXTO, y0 + 1 + LINEA, '', { size: 15 }).setDepth(4);
       this.sockets[r.id] = { caja, img, l1, l2, x0, y0, w: SOCKET_W };
     }
-    // Botón «igual en ambos ejes», entre las cajas de los ejes.
-    this.btnEjes = K.boton(this, ROBOT.x, SOCKETS.rueda_del.y, tr('Igual en ambos ejes', 'Same on both axles'), () => this.igualarEjes(),
+    // Botón «Separar ejes» / «Unir ejes» (A), entre las cajas de los ejes: por defecto una rueda va a los dos ejes.
+    this.btnEjes = K.boton(this, ROBOT.x, SOCKETS.rueda_del.y, this.etiquetaEjes(), () => this.alternarEjes(),
       { size: 15, alto: 36, pad: 8, reservaFoco: false });
     for (const o of [this.btnEjes.obj, this.btnEjes.caja]) o.setDepth(6);
   }
@@ -878,7 +881,7 @@ export default class Taller extends Phaser.Scene {
       else if (ev.key === 'l' || ev.key === 'L') this.leer();
     });
     const libre = (ev) => !conModificador(ev) && !this.tutorial;
-    on('keydown-A', (ev) => { if (libre(ev)) this.igualarEjes(); });
+    on('keydown-A', (ev) => { if (libre(ev)) this.alternarEjes(); });
     on('keydown-R', (ev) => { if (libre(ev)) this.restablecer(); });
     on('keydown-C', (ev) => { if (libre(ev)) this.continuar(); });
     on('keydown-P', (ev) => { if (libre(ev)) this.pintar(siguientePintura(this.mapa[CLAVE_PINTURA], ev.shiftKey ? -1 : 1)); });
@@ -1057,7 +1060,8 @@ export default class Taller extends Phaser.Scene {
     const destino = this.socketEn(pt.x, pt.y);
     const valido = destino && socketsPara(a.pieza).includes(destino);
     if (a.origen === 'carta') {
-      if (valido) { a.fantasma.destroy(); this.ponerEn(a.pieza, destino); return; }
+      // Mayús al soltar una rueda = solo ese eje (opción avanzada); sin Mayús va a los dos.
+      if (valido) { a.fantasma.destroy(); this.ponerEn(a.pieza, destino, { soloEse: Boolean(pt?.event?.shiftKey) }); return; }
       // Inválido: la pieza vuelve a su tarjeta.
       const carta = this.cartasUI?.[a.indice];
       const vx = carta ? carta.x + 40 : a.x0;
@@ -1163,20 +1167,54 @@ export default class Taller extends Phaser.Scene {
     this.ponerEn(p, id);
   }
 
-  ponerEn(p, id) {
+  /**
+   * Pone una pieza en un socket. Una rueda va a LOS DOS ejes (una sola acción, con las dos encajando), salvo con los ejes
+   * separados (botón «Separar ejes» / A) o con `soloEse` (Mayús al soltar): entonces solo al eje elegido.
+   */
+  ponerEn(p, id, { soloEse = false } = {}) {
     this.mano = false;
-    const r = poner(this.mapa, p, id);
+    const separar = this.ejesSeparados || soloEse;
+    const r = ponerRueda(this.mapa, p, id, { separar });
     if (!r.ok) {
-      if (r.motivo === 'igual') { this.aviso = tr(`${corto(p)} ya está en ${etiquetaSocket(id)}.`, `${corto(p)} is already in ${etiquetaSocket(id)}.`); this.refrescar(); }
-      else if (r.motivo === 'bloqueada') this.avisoBloqueada(p);
+      if (r.motivo === 'igual') {
+        this.aviso = r.ambos ? tr(`${corto(p)} ya está en los dos ejes.`, `${corto(p)} is already on both axles.`)
+          : tr(`${corto(p)} ya está en ${etiquetaSocket(id)}.`, `${corto(p)} is already in ${etiquetaSocket(id)}.`);
+        this.refrescar();
+      } else if (r.motivo === 'bloqueada') this.avisoBloqueada(p);
       return;
     }
     this.sel = ORDEN_RANURAS.indexOf(id);
-    this.aplicarCambio(r.mapa, { ranura: id, texto: `${nombreRanura(id)} → ${trDato(p, 'nombre')}` }, { encaja: id, voz: { accion: 'poner', pieza: p, ranura: id } });
+    const texto = r.ambos ? tr('ambos ejes → ', 'both axles → ') + trDato(p, 'nombre') : `${nombreRanura(id)} → ${trDato(p, 'nombre')}`;
+    this.aplicarCambio(r.mapa, { ranura: id, texto }, { encaja: id, voz: { accion: r.ambos ? 'ejes' : 'poner', pieza: p, ranura: id } });
+    // El otro eje encaja un instante después: se ve que la rueda quedó en los dos.
+    if (r.ambos) this.time.delayedCall(this.quieto ? 0 : 140, () => { if (this.sys.isActive()) this.animarEncaje(r.otro); });
     if (id.startsWith('rueda') && r.mapa.rueda_del !== r.mapa.rueda_tras && r.mapa.rueda_del && r.mapa.rueda_tras) {
-      this.aviso = tr('Rueda en un eje: «Igual en ambos ejes» (A) la copia al otro.', 'Wheel on one axle: «Same on both axles» (A) copies it to the other.');
+      this.aviso = tr('Ejes distintos: cada eje lleva su rueda. «Unir ejes» (A) pone la misma en los dos.',
+        'Mixed axles: each axle has its own wheel. «Join axles» (A) puts the same on both.');
       this.refrescarAyuda();
     }
+  }
+
+  etiquetaEjes() {
+    return this.ejesSeparados ? tr('Unir ejes (A)', 'Join axles (A)') : tr('Separar ejes (A)', 'Split axles (A)');
+  }
+
+  /**
+   * «Separar ejes» / «Unir ejes» (A). Separar: la siguiente rueda va solo al eje donde la sueltes (opción avanzada).
+   * Unir: si los ejes llevan ruedas distintas, la del eje elegido (o la delantera) se copia al otro.
+   */
+  alternarEjes() {
+    if (this.ejesSeparados) {
+      this.ejesSeparados = false;
+      this.btnEjes.setEtiqueta(this.etiquetaEjes());
+      if (this.mapa.rueda_del && this.mapa.rueda_tras && this.mapa.rueda_del !== this.mapa.rueda_tras) { this.igualarEjes(); return; }
+      this.aviso = tr('Ejes unidos: cada rueda que sueltes va a los dos ejes.', 'Axles joined: every wheel you drop goes on both axles.');
+    } else {
+      this.ejesSeparados = true;
+      this.btnEjes.setEtiqueta(this.etiquetaEjes());
+      this.aviso = tr('Ejes separados: la rueda va solo al eje donde la sueltes.', 'Axles split: a wheel goes only on the axle you drop it on.');
+    }
+    this.refrescarAyuda();
   }
 
   quitarSocket(id) {
@@ -1335,8 +1373,10 @@ export default class Taller extends Phaser.Scene {
     this.btnDeshacer.setHabilitado(this.hist.puedeDeshacer);
     this.btnRehacer.setHabilitado(this.hist.puedeRehacer);
     this.btnQuitar.setHabilitado(Boolean(this.mapa[ORDEN_RANURAS[this.sel]]));
-    const ejes = this.mapa.rueda_del && this.mapa.rueda_tras && this.mapa.rueda_del === this.mapa.rueda_tras;
-    this.btnEjes.setHabilitado(!ejes && Boolean(this.mapa.rueda_del || this.mapa.rueda_tras));
+    // Ejes con ruedas distintas (Mayús al soltar, deshacer, diseño guardado) = modo separado: el botón ofrece «Unir ejes».
+    if (this.mapa.rueda_del && this.mapa.rueda_tras && this.mapa.rueda_del !== this.mapa.rueda_tras) this.ejesSeparados = true;
+    this.btnEjes.setHabilitado(true);
+    if (this.btnEjes.etiqueta !== this.etiquetaEjes()) this.btnEjes.setEtiqueta(this.etiquetaEjes());
   }
 
   /** Una línea abajo: aviso del momento, o el detalle de la pieza elegida, o la ayuda corta del armado. */
@@ -1391,13 +1431,17 @@ export default class Taller extends Phaser.Scene {
     capa.on('pointerdown', () => this.alternarAyuda());
     const t = [
       tr('Cómo armar', 'How to build'),
-      tr('Arrastra una tarjeta a un socket verde; saca una pieza del robot (o clic derecho) para quitarla.',
-        'Drag a card onto a green socket; drag a part off the robot (or right-click) to remove it.'),
+      tr('Para probar: chasis, ruedas en 2 ejes, motor, batería y carga; módulo opcional.',
+        'To test you need chassis, both axles, motor, battery, payload; module optional.'),
+      tr('Arrastra a un socket verde; para quitar, saca la pieza del robot o clic derecho.',
+        'Drag a card onto a green socket; drag a part off (or right-click) to remove it.'),
+      tr('Ruedas: van a los 2 ejes. Para mezclar: Mayús al soltar o «Separar ejes» (A).',
+        'Wheels go on both axles. To mix: Shift as you drop, or «Split axles» (A).'),
       tr('Toque: tarjeta y luego socket (dos toques en la tarjeta la ponen).', 'Tap: card, then socket (tap the card twice to fit it).'),
-      tr('Tab: pestañas → piezas → sockets → botones · ←→ dentro · Enter poner · Supr quitar · 1–6 pestaña',
-        'Tab: tabs → parts → sockets → buttons · ←→ inside · Enter fit · Del remove · 1–6 tab'),
-      tr('A ambos ejes · C probar · R restablecer · P pintura · N nombre · L leer · ? guía · Ctrl+Z/Y · Esc regresar',
-        'A both axles · C test · R reset · P paint · N name · L read aloud · ? guide · Ctrl+Z/Y · Esc back'),
+      tr('Tab: pestañas→piezas→sockets→botones · Enter poner · Supr quitar · 1–6 pestaña',
+        'Tab: tabs→parts→sockets→buttons · ←→ inside · Enter fit · Del remove · 1–6 tab'),
+      tr('A ejes · C probar · R restablecer · P pintura · N nombre · L leer · ? guía · Ctrl+Z/Y',
+        'A axles · C test · R reset · P paint · N name · L read · ? guide · Ctrl+Z/Y · Esc back'),
       '',
       tr('Detalle del diseño · (P) = valor de juego, no dato de ingeniería', 'Design detail · (P) = game value, not engineering data'),
       ...this.lineasDetalle(),

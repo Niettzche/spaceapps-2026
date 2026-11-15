@@ -39,12 +39,12 @@ test('tutorial: sin almacenamiento (modo privado) se recuerda durante la sesión
   _reiniciarSesionTutorial();
 });
 
-test('tutorial: 6 pasos (similitud, tabla, límites, recorrido, datos, probar) en es y en; cortos y con el destino', () => {
+test('tutorial: 7 pasos (similitud, tabla, límites, recorrido, datos, descubrir, probar) en es y en; cortos y con el destino', () => {
   for (const l of ['es', 'en']) {
     setIdioma(l);
     const mundo = l === 'es' ? 'Marte' : 'Mars';
     const p = pasosTutorial(mundo);
-    assert.deepEqual(p.map((x) => x.zona), ['similitud', 'tabla', 'limites', 'recorrido', 'datos', 'probar']);
+    assert.deepEqual(p.map((x) => x.zona), ['similitud', 'tabla', 'limites', 'recorrido', 'datos', 'descubrir', 'probar']);
     for (const x of p) {
       assert.ok(x.titulo && x.texto);
       assert.ok(x.texto.length <= 170, `${l}: paso «${x.zona}» demasiado largo (${x.texto.length})`);

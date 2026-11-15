@@ -9,6 +9,7 @@
 // (el viento máximo diario de la climatología). Horario, duración, pico y sentido salen de una semilla por nivel (P).
 // En Marte (Jezero) no hay viento medio con fuente: solo ráfagas de hasta 10 m/s (WX-017, primer reporte de MEDA, S22).
 // La fuerza se escala × FACTOR_GRAVEDAD, igual que la gravedad del juego, para conservar la proporción real viento / peso.
+// `empuja: false` (Samalayuca, camino dorado calibrado): el viento real se ve (partículas, ráfagas) pero no se aplica la fuerza.
 import { PX_POR_M, FACTOR_GRAVEDAD } from './escala.js';
 import { aleatorio, semillaDe } from './perfil.js';
 import { tr } from '../i18n.js';
@@ -99,8 +100,8 @@ export function textoViento(amb, masaKg, g) {
   const base = tr(`Viento (NASA POWER/MEDA): ráfagas de hasta ${Math.round(d.max ?? d.medio)} m/s a 10 m → ${r.v_robot.toFixed(1)} m/s a la altura del robot; F = ½·ρ·v²·Cd·A = ${r.F.toFixed(r.F < 10 ? 1 : 0)} N (${pctTxt} % del peso; Cd y A son P)`,
     `Wind (NASA POWER/MEDA): gusts up to ${Math.round(d.max ?? d.medio)} m/s at 10 m → ${r.v_robot.toFixed(1)} m/s at robot height; F = ½·ρ·v²·Cd·A = ${r.F.toFixed(r.F < 10 ? 1 : 0)} N (${pctTxt} % of the weight; Cd and A are P)`);
   if (amb.mundo === 'marte') {
-    return `${base}. ${tr('En Marte el viento levanta polvo pero casi no empuja: el aire tiene ~1 % de la densidad de la Tierra.',
-      'On Mars the wind lifts dust but barely pushes: the air has ~1 % of Earth\'s density.')}`;
+    return `${base}. ${tr('En Marte el viento levanta polvo pero casi no empuja: el aire tiene ~1.4 % de la densidad de la Tierra.',
+      'On Mars the wind lifts dust but barely pushes: the air has ~1.4 % of Earth\'s density.')}`;
   }
   return `${base}.`;
 }
@@ -110,8 +111,9 @@ export function textoViento(amb, masaKg, g) {
  * No toca robot.js: aplica la fuerza desde fuera en cada paso de física.
  */
 export class Viento {
-  constructor(scene, { robot, ambiente, semilla, particula = 'polvo', reducido = false }) {
+  constructor(scene, { robot, ambiente, semilla, particula = 'polvo', reducido = false, empuja = true }) {
     this.scene = scene;
+    this.empuja = empuja !== false;
     this.robot = robot;
     this.datos = datosViento(ambiente);
     this.programa = this.datos ? programaRafagas(semilla, this.datos) : [];
@@ -134,7 +136,7 @@ export class Viento {
     const v = Math.sign(this.v10) * vientoAAltura(Math.abs(this.v10));
     this.F = fuerzaArrastre(this.datos.rho, v);
     const c = this.robot?.chasis;
-    if (c && !this.robot.destruido && this.F !== 0) {
+    if (this.empuja && c && !this.robot.destruido && this.F !== 0) {
       const M = this.scene.matter.body;
       M.applyForce(c, c.position, { x: fuerzaAMatter(this.F), y: 0 });
     }
@@ -148,17 +150,21 @@ export class Viento {
     g.clear();
     // Las partículas se mueven con el viento a la altura del robot (px/s); un mínimo para que el aire "se vea" aun en calma.
     const v = this.v10 === 0 ? 0.6 : Math.sign(this.v10) * Math.max(0.6, vientoAAltura(Math.abs(this.v10)));
-    const color = { polvo: 0xb07a4a, ceniza: 0x6f6a66, nieve: 0xf4f8ff }[this.particula] ?? 0xb07a4a;
+    const color = { polvo: 0xb07a4a, ceniza: 0x6f6a66, nieve: 0xf4f8ff, arena: 0xd9b57a, sal: 0xf7f5ee }[this.particula] ?? 0xb07a4a;
     const intensidad = Math.min(1, Math.abs(this.v10) / 12);
     g.fillStyle(color, 0.55 + 0.4 * intensidad);
     const tam = 3;
-    for (const p of this.puntos) {
+    // Arena y sal: cuántos granos vuelan depende de la intensidad del viento real (en calma, un tercio; con ráfaga, todos).
+    const visibles = this.particula === 'arena' || this.particula === 'sal'
+      ? Math.round(this.puntos.length * (0.3 + 0.7 * intensidad)) : this.puntos.length;
+    for (const [i, p] of this.puntos.entries()) {
       if (!this.reducido) {
         p.x += v * 40 * p.k * dt;
         p.y += Math.sin((this.t + p.s * 6) * 3) * 10 * dt + (this.particula === 'nieve' ? 14 * dt : 0);
       }
       if (p.x < -10) p.x += 980; else if (p.x > 970) p.x -= 980;
       if (p.y > 440) p.y = 130; else if (p.y < 120) p.y = 430;
+      if (i >= visibles) continue;
       // Con ráfaga, estela horizontal (se ve hacia dónde sopla).
       const largo = Math.round(tam + intensidad * 8 * p.k);
       g.fillRect(Math.round(p.x / 3) * 3, Math.round(p.y / 3) * 3, largo, tam);
