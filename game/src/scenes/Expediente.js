@@ -50,7 +50,9 @@ export default class Expediente extends Phaser.Scene {
   dibujarLista() {
     this.capaLista.removeAll(true);
     const add = (o) => { this.capaLista.add(o.obj || o); return o; };
-    add(texto(this, 20, 88, `Sitios sugeridos (${this.sitios.length})`, { size: 12, color: COLOR.tenue }));
+    const enPagina = Math.min(POR_PAGINA, this.sitios.length - this.pagina * POR_PAGINA);
+    const atajo = enPagina > 0 ? ` · teclas 1–${enPagina}` : '';
+    add(texto(this, 20, 88, `Sitios sugeridos (${this.sitios.length})${atajo}`, { size: 12, color: COLOR.tenue }));
     this.botonesLista = [];
     if (!this.sitios.length) {
       add(texto(this, 20, 120, 'El modelo aún no tiene sitios para este destino. Elige otro destino desde el menú.',
@@ -60,7 +62,7 @@ export default class Expediente extends Phaser.Scene {
     this.sitios.slice(desde, desde + POR_PAGINA).forEach((s, k) => {
       const y = 112 + k * 42;
       const marca = s.id === this.seleccion?.id ? '● ' : '';
-      const b = add(boton(this, 20, y, `${marca}${recortar(s.nombre, 30)}`, () => this.seleccionar(s),
+      const b = add(boton(this, 20, y, `${marca}${recortar(s.nombre, 25)}`, () => this.seleccionar(s),
         { size: 13, origen: [0, 0], marco: false, color: s.id === this.seleccion?.id ? COLOR.texto : COLOR.acento }));
       const est = (esMina(s) && ESTADOS.mina) || ESTADOS[s.estado] || { texto: s.estado, color: COLOR.tenue };
       const total = typeof s.similitud?.total === 'number' ? formatoPorcentaje(s.similitud.total) : null;
@@ -247,6 +249,8 @@ export default class Expediente extends Phaser.Scene {
       siguiente: this.botonSiguiente.habilitado ? this.botonSiguiente : this.botonAnterior,
       lista: this.botonesLista[0],
     }[this.foco] || this.botonesLista.find((b) => b.sitioId === this.seleccion?.id);
+    // Atajos 1–8: eligen el sitio de esa posición en la página (igual que los números de Resultados.js).
+    this.teclado.numerar(this.botonesLista);
     this.teclado.poner([...this.botonesLista, this.botonAnterior, this.botonSiguiente, ...this.botonesDetalle, this.botonVolver], preferido);
   }
 

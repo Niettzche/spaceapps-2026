@@ -52,8 +52,11 @@ export default class Menu extends Phaser.Scene {
 
     texto(this, 480, 470, `Datos cargados: ${SITIOS.length} sitios terrestres · ${Object.keys(DESTINOS).length} destinos`,
       { size: 12, color: COLOR.muyTenue, origen: [0.5, 0.5] });
-    texto(this, 480, 500, 'Flechas o Tab para moverte · Enter para elegir · Esc para volver · También funciona con toque',
+    texto(this, 480, 500, 'Flechas o Tab para moverte · 1–4 o Enter para elegir · Esc para volver · También con toque',
       { size: 12, color: COLOR.muyTenue, origen: [0.5, 0.5] });
+    // Atajos 1–4 y opción sugerida (⏎), igual que Resultados.js.
+    this.teclado.numerar([nueva, continuar, explorador, numeros]);
+    (g ? continuar : nueva).setSugerido(true);
     this.teclado.poner([nueva, continuar, explorador, numeros], g ? continuar : nueva);
   }
 
@@ -98,6 +101,9 @@ export default class Menu extends Phaser.Scene {
     if (hayGuardado) texto(this, 480, 432, 'Ojo: una partida nueva reemplaza la partida guardada.', { size: 12, color: COLOR.alerta, origen: [0.5, 0.5] });
     const volver = boton(this, 480, 480, 'Volver', () => this.mostrar('principal'));
     const preferido = botones[ids.indexOf(partida.destino)] || botones[ids.indexOf(DESTINO_POR_DEFECTO)] || botones[0];
+    // Atajos: 1 = Marte, 2 = Luna (orden de ORDEN_DESTINOS); el último número vuelve al menú.
+    this.teclado.numerar([...botones, volver]);
+    preferido?.setSugerido(true);
     this.teclado.poner([...botones, volver], preferido);
   }
 
