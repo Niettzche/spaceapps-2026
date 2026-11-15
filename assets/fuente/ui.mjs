@@ -62,6 +62,7 @@ export function generar() {
   chip('ui_chip_rojo', '#ff7a93', '#3a1424');
   chip('ui_chip_cian', '#80e0dc', '#0f3236');
   kit();
+  hudPanel();
 
   // ---- botones táctiles 24 × 24 con flecha naranja; el presionado baja 2 px y pierde el canto
   const flecha = (p, dir, dy) => {
@@ -194,4 +195,25 @@ function kit() {
     if (y === 13) return T.sombra;
     return T.relleno;
   });
+}
+
+// ui_hud_panel (16 × 16, cortes: 5 a los lados, 2 arriba, 6 abajo): barra de arriba de la prueba y la misión. Fondo azul noche
+// casi opaco, borde inferior lavanda con canto de metal y remaches; arriba solo una línea, porque va pegado al borde de la pantalla.
+function hudPanel() {
+  const f = createFrame(16, 16);
+  const C = (h, a = 255) => ((a << 24) | (parseInt(h.slice(5, 7), 16) << 16) | (parseInt(h.slice(3, 5), 16) << 8) | parseInt(h.slice(1, 3), 16)) >>> 0;
+  for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
+    const ex = Math.min(x, 15 - x);
+    let c;
+    if (y === 15) c = ex === 0 ? 0 : C('#0e0c16');                         // contorno de abajo
+    else if (y === 14) c = ex === 0 ? C('#0e0c16') : C('#2e3560');          // canto de metal
+    else if (y === 13) c = ex === 0 ? C('#0e0c16') : (ex === 2 ? C('#c9a7ff') : C('#4a5490'));
+    else if (y === 12) c = ex === 0 ? C('#0e0c16') : C('#b9a6ff');          // borde lavanda
+    else if (ex === 0) c = C('#0e0c16');
+    else if (ex === 1) c = C('#2e3560');
+    else if (y === 0) c = C('#2e3560');
+    else c = C(y < 3 ? '#141830' : '#0b0d17', 235);                        // relleno casi opaco
+    if (c) f.color[y * 16 + x] = c;
+  }
+  guardar(D + 'ui_hud_panel.png', f);
 }
