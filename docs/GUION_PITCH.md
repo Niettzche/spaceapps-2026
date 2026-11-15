@@ -8,7 +8,7 @@ Abrir el mapa y una partida antes de presentar. Las cifras describen componentes
 
 ## 0:15–0:45 · La solución
 
-Construimos Cráter Gemelo y Misión Cero. El explorador compara formas del terreno usando datos de NASA y ESA. Sus fichas muestran variables, fuentes y límites. México es nuestro caso validado; extendimos la búsqueda a Atacama, Arizona y Arabia: tres de diez regiones priorizadas. No afirmamos haber escaneado todo el planeta.
+Construimos MARSCEPTION: un explorador de análogos y un juego de rover. El explorador compara formas del terreno usando datos de NASA y ESA. Sus fichas muestran variables, fuentes y límites. México es nuestro caso validado; extendimos la búsqueda a Atacama, Arizona y Arabia: tres de diez regiones priorizadas. No afirmamos haber escaneado todo el planeta.
 
 ## 0:45–1:15 · Video de 30 segundos
 
@@ -16,7 +16,7 @@ Construimos Cráter Gemelo y Misión Cero. El explorador compara formas del terr
 
 ## 1:15–1:45 · Evidencia y límites
 
-El modelo de forma es explicable, no una red neuronal. Clasifica Luna y Marte con alrededor de 78 % de exactitud balanceada y separación espacial. El comparador complementario pasa tres controles negativos y nueve de veinte análogos: mostramos dónde falla. Las etiquetas de imágenes fueron asistidas por IA y contrastadas con fuentes; no son verdad geológica automática. La Tierra no reproduce vacío, radiación ni gravedad del destino.
+El modelo de forma es explicable, no una red neuronal. Clasifica Luna y Marte con alrededor de 78 % de exactitud balanceada y separación espacial. Usa 6 sitios de Marte y 573 cráteres (76 % solo con profundidad/diámetro). El método encontró por sí solo análogos ya conocidos: Colton Crater, donde entrenó la tripulación del Apolo 15, y el maar Al Wahbah, publicado como análogo de Encélado, que proponemos para la Luna. Eso respalda el método; no los presentamos como descubrimientos. El comparador complementario pasa tres controles negativos y nueve de veinte análogos: mostramos dónde falla. Las etiquetas de imágenes fueron asistidas por IA y contrastadas con fuentes; no son verdad geológica automática. La Tierra no reproduce vacío, radiación ni gravedad del destino.
 
 ## 1:45–2:00 · Cierre
 
