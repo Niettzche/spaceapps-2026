@@ -1,7 +1,7 @@
 // Dueño: frente expediente. Vista "¿De dónde salen los números?" / "Where do the numbers come from?" dentro del Menú.
 // Todo el contenido sale de AGENTS.md §5, §6 y §7 (fuentes, método, validación y límites). No agregar cifras que no
 // estén documentadas allí o en model/VALIDATION.md.
-import { COLOR, texto, boton, limpiar } from './interfaz.js';
+import { COLOR, texto, boton, panel } from './interfaz.js';
 import { idioma } from '../../i18n.js';
 
 export const PAGINAS = {
@@ -31,8 +31,8 @@ export const PAGINAS = {
           '· El mismo detector de depresiones tipo cráter corre, con el mismo código y a 200 m, sobre la Tierra,',
           '  el polo sur lunar y Marte.',
           '· Modelos explicables (árbol de decisión poco profundo y regresión logística) entrenados con cráteres',
-          '  reales de la Luna y de Marte: ~78 % de exactitud balanceada fuera de pliegue (76 % solo con profundidad/diámetro). La regla principal',
-          '  es profundidad / diámetro.',
+          '  reales de la Luna y de Marte: ~78 % de exactitud balanceada fuera de pliegue',
+          '  (76 % solo con profundidad/diámetro). La regla principal es profundidad / diámetro.',
           '# VARIABLES COMPLEMENTARIAS',
           '· s = exp(−|Tierra − destino| / escala). Si el destino está fuera del rango terrestre, se compara',
           '  contra el extremo de la Tierra y se avisa.',
@@ -59,7 +59,6 @@ export const PAGINAS = {
     ],
     pagina: 'pág.',
     volver: 'Volver',
-    idioma: 'English',
     ayuda: '◀ ▶ cambia de página · L cambia de idioma · Esc vuelve',
   },
   en: {
@@ -116,39 +115,48 @@ export const PAGINAS = {
     ],
     pagina: 'page',
     volver: 'Back',
-    idioma: 'Español',
     ayuda: '◀ ▶ change page · L switch language · Esc goes back',
   },
 };
 
 const estado = { pagina: 0 };
 
-/** `cambiarIdioma`: lo da el Menú (alterna el idioma de todo el juego y vuelve a crear esta vista). */
-export function vistaNumeros(scene, volver, cambiarIdioma) {
+/**
+ * Lo llama el Menú. `volver`: regresa al menú principal; `redibujar`: vuelve a crear la vista completa (fondo y
+ * estrellas incluidos) en la página actual; `botonIdioma`: crea el selector "Español / English" del menú principal
+ * (la tecla L la atiende el Menú).
+ */
+export function vistaNumeros(scene, { volver, redibujar, botonIdioma }) {
   const T = PAGINAS[idioma()] || PAGINAS.es;
   const total = T.paginas.length;
   estado.pagina = Math.min(estado.pagina, total - 1);
   const p = T.paginas[estado.pagina];
-  const redibujar = () => { limpiar(scene); vistaNumeros(scene, volver, cambiarIdioma); };
+  const ultima = estado.pagina === total - 1;
   const ir = (paso) => { estado.pagina = (estado.pagina + paso + total) % total; redibujar(); };
 
   texto(scene, 480, 40, T.titulo, { size: 24, origen: [0.5, 0.5] });
   texto(scene, 480, 74, p.sub, { size: 15, color: COLOR.acento, origen: [0.5, 0.5] });
+  // Panel semitransparente detrás del texto: se lee mejor sobre el Marte del fondo.
+  panel(scene, 24, 92, 912, p.lineas.length * 26 + 14).setFillStyle(COLOR.panel, 0.72);
   p.lineas.forEach((l, i) => {
     const encabezado = l.startsWith('# '); // "# " marca un encabezado de sección
     texto(scene, 40, 104 + i * 26, encabezado ? l.slice(2) : l, { size: encabezado ? 13 : 12, color: encabezado ? COLOR.foco : COLOR.texto });
   });
 
-  const anterior = boton(scene, 300, 470, '◀', () => ir(-1), { size: 16 });
-  texto(scene, 480, 470, `${T.pagina} ${estado.pagina + 1}/${total}`, { size: 13, color: COLOR.tenue, origen: [0.5, 0.5] });
-  const siguiente = boton(scene, 660, 470, '▶', () => ir(1), { size: 16 });
-  const botonIdioma = boton(scene, 860, 30, T.idioma, cambiarIdioma, { size: 13 });
-  const atras = boton(scene, 480, 510, T.volver, volver, { size: 15 });
-  texto(scene, 20, 530, T.ayuda, { size: 10, color: COLOR.muyTenue, origen: [0, 1] });
+  const anterior = boton(scene, 300, 462, '◀', () => ir(-1), { size: 16 });
+  texto(scene, 480, 462, `${T.pagina} ${estado.pagina + 1}/${total}`, { size: 13, color: COLOR.tenue, origen: [0.5, 0.5] });
+  const siguiente = boton(scene, 660, 462, '▶', () => ir(1), { size: 16 });
+  const atras = boton(scene, 480, 500, T.volver, volver, { size: 15 });
+  const idiomaBoton = botonIdioma();
+  texto(scene, 20, 536, T.ayuda, { size: 12, color: COLOR.muyTenue, origen: [0, 1] });
 
   scene.teclado.extra = {
+    ...scene.teclado.extra,
     ArrowLeft: () => ir(-1), ArrowRight: () => ir(1), PageUp: () => ir(-1), PageDown: () => ir(1),
-    l: cambiarIdioma, L: cambiarIdioma,
   };
-  scene.teclado.poner([siguiente, anterior, botonIdioma, atras], siguiente);
+  // Atajos 1–3 y opción sugerida (⏎), como en el menú principal: ▶ mientras quedan páginas; en la última, Volver.
+  scene.teclado.numerar([anterior, siguiente, atras]);
+  const sugerido = ultima ? atras : siguiente;
+  sugerido.setSugerido(true);
+  scene.teclado.poner([anterior, siguiente, atras, idiomaBoton], sugerido);
 }
