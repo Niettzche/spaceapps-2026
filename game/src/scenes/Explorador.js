@@ -65,7 +65,10 @@ export default class Explorador extends Phaser.Scene {
 
     const volver = el('button', { type: 'button', class: 'secundario' }, '← Menú');
     volver.addEventListener('click', () => this.volver());
-    this.capa.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') this.volver(); });
+    this.capa.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Escape') this.volver();
+      else if (ev.key === 'Tab') this.mantenerFoco(ev);
+    });
 
     this.capa.append(
       el('header', {}, [
@@ -78,6 +81,19 @@ export default class Explorador extends Phaser.Scene {
       form, this.estado, this.resultado,
     );
     this.lat.focus();
+  }
+
+  // El Explorador es un diálogo modal: Tab y Shift+Tab dan la vuelta dentro de él en vez de salir a la página.
+  mantenerFoco(ev) {
+    const enfocables = [...this.capa.querySelectorAll('button, input, select, textarea, a[href], [tabindex]:not([tabindex="-1"])')]
+      .filter((e) => !e.disabled && e.offsetParent !== null);
+    if (!enfocables.length) return;
+    const primero = enfocables[0];
+    const ultimo = enfocables[enfocables.length - 1];
+    const actual = document.activeElement;
+    const fuera = !this.capa.contains(actual);
+    if (ev.shiftKey && (actual === primero || fuera)) { ev.preventDefault(); ultimo.focus(); }
+    else if (!ev.shiftKey && (actual === ultimo || fuera)) { ev.preventDefault(); primero.focus(); }
   }
 
   async consultar() {
