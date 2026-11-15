@@ -553,3 +553,4 @@ function resultados() {
     for (const [x, y, n] of [[52, 24, 4], [64, 22, 5], [74, 28, 3]]) for (let i = 0; i < n; i++) f.color[(y - i) * 96 + x] = hex('#e8e8f0');
   });
 }
+export { leer as leerPNG };

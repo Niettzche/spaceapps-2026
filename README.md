@@ -74,3 +74,4 @@ Repository visibility is currently private. The repository owner must make it pu
 - **[pixelfx](https://github.com/patch-gg/pixelfx)**: MIT license, Copyright (c) 2026 Patch and Copyright (c) 2026 Hugo Duprez.
   The effects (`assets/fx/`) are pixelfx effects written for the game (`assets/fuente/fx/`); the rest of the art is drawn with its painter and color ramps.
   Its `mini` and `big` fonts are MIT; its "Patch Pixel" font is not and is not used.
+  The game's bitmap fonts (`assets/fuentes/`) take their capitals and digits from pixelfx's MIT `big` font; lowercase, accents and symbols are original.
