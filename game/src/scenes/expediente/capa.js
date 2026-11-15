@@ -31,14 +31,14 @@ export function crearCapa(id, css) {
 
 export const ESTILOS = `
 #mc-explorador { position: fixed; inset: 0; overflow: auto; padding: 16px; box-sizing: border-box;
-  background: rgba(11, 13, 23, 0.94); color: #fff; font: 14px/1.45 ui-monospace, Menlo, Consolas, monospace; z-index: 10; }
+  background: rgba(11, 13, 23, 0.94); color: #fff; font: 16px/1.45 ui-monospace, Menlo, Consolas, monospace; z-index: 10; }
 #mc-explorador *, #mc-explorador *::before, #mc-explorador *::after { box-sizing: border-box; }
 #mc-explorador > * { max-width: 880px; margin-left: auto; margin-right: auto; }
 #mc-explorador header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-#mc-explorador h1 { font-size: 22px; margin: 4px 0; font-weight: 600; }
-#mc-explorador .ayuda { color: #9aa4c7; font-size: 13px; }
+#mc-explorador h1 { font-size: 24px; margin: 4px 0; font-weight: 600; }
+#mc-explorador .ayuda { color: #9aa4c7; font-size: 15px; margin-top: 6px; margin-bottom: 6px; }
 #mc-explorador .fila { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin: 10px 0; }
-#mc-explorador label { display: flex; flex-direction: column; gap: 4px; color: #9aa4c7; font-size: 12px; }
+#mc-explorador label { display: flex; flex-direction: column; gap: 4px; color: #9aa4c7; font-size: 15px; }
 /* 16 px en campos y listas: con menos, iOS hace zoom automático al escribir. */
 #mc-explorador input, #mc-explorador select { font: inherit; font-size: 16px; color: #fff; background: #141831;
   border: 1px solid #2a3160; padding: 8px 10px; border-radius: 4px; min-width: 140px; min-height: 44px; }
@@ -57,13 +57,27 @@ export const ESTILOS = `
 #mc-explorador .ok { border: 1px solid #06d6a0; background: #0d2a22; padding: 10px 14px; border-radius: 4px; }
 #mc-explorador .total { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
 #mc-explorador .grande { font-size: 30px; color: #ffd166; font-weight: 600; }
-#mc-explorador table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 13px; }
+#mc-explorador table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 15px; }
 #mc-explorador th, #mc-explorador td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #2a3160; vertical-align: top; }
 #mc-explorador thead th { color: #9aa4c7; font-weight: 400; }
-#mc-explorador td small { display: block; color: #6c7393; font-size: 11px; }
+#mc-explorador td small { display: block; color: #8a91b4; font-size: 15px; }
 #mc-explorador td.num { text-align: right; white-space: nowrap; }
-#mc-explorador .nota { color: #9aa4c7; font-size: 12px; margin: 4px 0; }
+#mc-explorador .nota { color: #9aa4c7; font-size: 15px; margin: 4px 0; }
 #mc-explorador .propuesta { border-top: 1px solid #2a3160; margin-top: 12px; padding-top: 8px; }
+#mc-explorador .propuesta button:disabled { cursor: not-allowed; }
+/* Modo sin API: catálogo precalculado + clima de NASA POWER */
+#mc-explorador .modo { border: 1px solid #ffd166; background: #2a2410; padding: 8px 14px; border-radius: 4px; margin: 8px auto; }
+#mc-explorador .modo p { margin: 4px 0 0; font-size: 15px; }
+#mc-explorador .etiqueta { display: inline-block; color: #0b0d17; background: #9aa4c7; font-size: 15px; font-weight: 600;
+  padding: 2px 10px; border-radius: 3px; margin: 10px 0 4px; }
+#mc-explorador h2 { font-size: 22px; margin: 6px 0 2px; font-weight: 600; }
+#mc-explorador h3 { font-size: 18px; margin: 14px 0 2px; font-weight: 600; color: #ffd166; }
+#mc-explorador .fuera { border: 1px solid #2a3160; background: #141831; padding: 10px 14px; border-radius: 4px; }
+#mc-explorador .fuera p { margin: 6px 0; }
+#mc-explorador .cercanos { list-style: none; padding: 0; margin: 6px 0 0; display: flex; flex-direction: column; gap: 6px; }
+#mc-explorador .cercanos button { text-align: left; width: 100%; }
+#mc-explorador a.boton { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 14px; border-radius: 4px;
+  color: #ffd166; border: 1px solid #ffd166; text-decoration: none; }
 @media (max-width: 560px) { #mc-explorador input, #mc-explorador select { min-width: 0; width: 100%; }
   #mc-explorador label { flex: 1 1 100%; }
   #mc-explorador .par { flex: 1 1 100%; }
