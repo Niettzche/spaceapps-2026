@@ -66,6 +66,8 @@ CIFRAS = {
         "No pasan los que son análogos por otra razón que estas variables no ven: frío polar, lava en clima húmedo, química "
         "del agua (Río Tinto), microbialitos y cenotes, cuevas, o estructuras sepultadas",
     ],
+    # «El árbol de decisión» en Pruébalo: su exactitud fuera de pliegue (20 repeticiones, grupos espaciales)
+    "ciencia_datos/06_modelo_luna_marte.ipynb": ["Árbol profundidad 3      80 % (79–82)         78 % (77–79)"],
     "data/sites/pinacate.json": [
         "viajes de entrenamiento de geología de 1965–1967",
         "tripulación del Apolo 14 (Shepard y Mitchell) del 14 al 18 de febrero de 1970 (Phinney 2015, NASA SP-2015-626)",
@@ -201,8 +203,41 @@ def nube() -> dict:
         "n": {"Luna": len(puntos["Luna"]), "Marte": len(puntos["Marte"]), "Tierra": len(tierra), "impactos": len(impactos)},
         "mediana_prof_diam": {c: r4(np.median(v)) for c, v in dd.items()},
         "corte95": round(corte, 3), "plano": plano, "modelo": modelo, "ejemplos": ejemplos, "medianas": medianas,
+        "arbol": arbol_decision(X, ref.cuerpo.to_numpy(object)),
         "luna": puntos["Luna"], "marte": puntos["Marte"], "tierra": tierra, "impactos": impactos,
     }
+
+
+NB_ARBOL = RAIZ / "ciencia_datos" / "06_modelo_luna_marte.ipynb"
+NOMBRES_ARBOL = {"log_diam": "log10 diámetro (km)", "prof_diam": "profundidad / diámetro", "borde_rel": "borde / diámetro"}
+
+
+def arbol_decision(X: np.ndarray, y: np.ndarray) -> dict:
+    """El árbol Luna contra Marte de ciencia_datos/06 (mismos datos y parámetros), con los conteos reales de cada hoja.
+
+    Se detiene si sus reglas no son idénticas a las que imprimió el cuaderno (export_text con 3 decimales).
+    """
+    from sklearn.tree import DecisionTreeClassifier, export_text
+    t = DecisionTreeClassifier(max_depth=3, min_samples_leaf=3, class_weight="balanced", random_state=0).fit(X, y)
+    texto = export_text(t, feature_names=[NOMBRES_ARBOL[f] for f in forma.VARIABLES], decimals=3).strip()
+    celdas = json.loads(NB_ARBOL.read_text(encoding="utf-8"))["cells"]
+    salidas = ["".join(o.get("text", [])) for c in celdas for o in c.get("outputs", []) if "text" in o]
+    impreso = next((s for s in salidas if "|--- profundidad / diámetro" in s), "")
+    if texto != impreso[impreso.index("|---"):].strip() if "|---" in impreso else True:
+        sys.exit("El árbol reentrenado no coincide con el de ciencia_datos/06_modelo_luna_marte.ipynb")
+    hojas = t.apply(X)
+    tr = t.tree_
+
+    def nodo(i: int) -> dict:
+        if tr.children_left[i] == -1:
+            en = y[hojas == i]
+            return {"hoja": True, "clase": str(t.classes_[int(np.argmax(tr.value[i][0]))]),
+                    "luna": int((en == "Luna").sum()), "marte": int((en == "Marte").sum())}
+        return {"hoja": False, "variable": int(tr.feature[i]), "umbral": float(tr.threshold[i]),
+                "si": nodo(int(tr.children_left[i])), "no": nodo(int(tr.children_right[i]))}
+
+    return {"fuente": "ciencia_datos/06_modelo_luna_marte.ipynb (max_depth=3, min_samples_leaf=3, class_weight=balanced)",
+            "peso_marte": round(float((y == "Luna").sum() / (y == "Marte").sum()), 2), "raiz": nodo(0)}
 
 
 def evaluar(modelo: dict, X: np.ndarray) -> tuple[np.ndarray, np.ndarray]:

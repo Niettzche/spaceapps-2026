@@ -1259,3 +1259,30 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 .clasif-leyenda [data-serie="frontera"] i { width: 18px; height: 0; border-radius: 0; border-top: 2px dashed var(--tinta); }
 .clasif-figura figcaption .nota { margin: 0; }
 .clasif-limite { grid-column: 1 / -1; justify-self: center; max-width: 52rem; margin: 0; text-align: center; }
+
+/* ── Pruébalo: el árbol de decisión con la ruta del cráter ─────────────── */
+.clasif-arbol { grid-column: 1 / -1; padding: 1.2rem 1.25rem; border: 1px solid var(--linea); border-radius: 20px; background: var(--vidrio); box-shadow: var(--sombra); }
+.clasif-arbol h3 { font-size: 1.1rem; margin-bottom: 0.4rem; }
+.clasif-arbol-entrada { max-width: 52rem; font-size: 0.93rem; line-height: 1.55; color: var(--tinta-2); }
+.clasif-arbol-cuerpo { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem 1.5rem; align-items: center; }
+@media (min-width: 980px) { .clasif-arbol-cuerpo { grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); } }
+.clasif-arbol-svg { display: block; width: 100%; height: auto; }
+@media (max-width: 599px) { .clasif-arbol-svg { display: none; } }
+.arbol-arista { stroke: var(--linea-fuerte); stroke-width: 1.5; }
+.arbol-arista.ruta { stroke: var(--enfasis); stroke-width: 3; }
+.arbol-sino { font: 500 11px var(--mono); fill: var(--tinta-3); text-anchor: middle; dominant-baseline: central; }
+.arbol-nodo rect { fill: var(--superficie); stroke: var(--linea-fuerte); stroke-width: 1; }
+.arbol-nodo.ruta rect { stroke: var(--enfasis); stroke-width: 2.5; }
+.arbol-nodo text { font: 500 13px var(--mono); fill: var(--tinta-3); text-anchor: middle; dominant-baseline: central; }
+.arbol-nodo.ruta text { fill: var(--tinta); }
+.arbol-hoja text { font-weight: 600; }
+.arbol-hoja[data-clase="Luna"] text { fill: var(--luna); }
+.arbol-hoja[data-clase="Marte"] text { fill: var(--marte); }
+.arbol-hoja:not(.ruta) { opacity: 0.55; }
+.clasif-arbol-pasos { margin: 0; padding-left: 1.2rem; display: grid; gap: 0.55rem; font-size: 0.9rem; line-height: 1.5; color: var(--tinta-2); }
+.clasif-arbol-resp { font-family: var(--mono); font-size: 0.8rem; color: var(--tinta); }
+.clasif-arbol-pasos li.hoja { list-style: none; margin-left: -1.2rem; padding: 0.65rem 0.8rem; border: 1px solid var(--linea); border-radius: 12px; background: var(--superficie); }
+.clasif-arbol-pasos li.hoja b { color: var(--c); }
+.clasif-arbol-pasos li.hoja[data-clase="Luna"] { --c: var(--luna); }
+.clasif-arbol-pasos li.hoja[data-clase="Marte"] { --c: var(--marte); }
+.clasif-arbol .nota { margin: 1rem 0 0; }
