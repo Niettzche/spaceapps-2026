@@ -65,6 +65,31 @@ export function recomendar(resultado, motivo) {
       cambio: { ranuras: ['carga'], pieza: 'soporte_amortiguado' },
     });
   }
+  // Rueda de Nitinol (AB-004): con el soporte amortiguado ya puesto y la carga aún dañada, la llanta superelástica absorbe
+  // parte de las sacudidas (parts.json `amortiguacion`, P).
+  if (cargaDanada && usaPieza(d, 'soporte_amortiguado') && !usaPieza(d, 'rueda_nitinol')) {
+    recs.push({
+      id: 'rueda_nitinol',
+      texto: tr('Prueba ruedas de Nitinol: su llanta absorbe sacudidas.', 'Try Nitinol wheels: their tire absorbs jolts.'),
+      evidencia: tr(`La carga recibió ${golpesCarga} ${golpesCarga === 1 ? 'golpe' : 'golpes'} aun con el soporte amortiguado.`,
+        `The payload took ${golpesCarga} ${golpesCarga === 1 ? 'hit' : 'hits'} even with the cushioned mount.`),
+      cambio: { ranuras: ['rueda_del', 'rueda_tras'], pieza: 'rueda_nitinol' },
+    });
+  }
+  // Auto-rescate (AB-002): patinó varias veces aunque ya lleva las ruedas que recomendaríamos y la bahía del módulo está libre.
+  const patinajes = patinaArena + patinaRoca;
+  const conModulo = d.some((x) => x.ranura === 'modulo' && x.pieza);
+  // Solo si el intento falló por atasco o energía: tras una prueba superada no se agrega ruido al camino dorado.
+  const fallo = ['atascado', 'energia_agotada'].includes(motivo);
+  if (fallo && patinajes >= 3 && !conModulo && !recs.some((r) => r.id === 'rueda_ancha' || r.id === 'rueda_tacos')) {
+    recs.push({
+      id: 'auto_rescate',
+      texto: tr('Pon el auto-rescate en el módulo: zafa al robot cuando se atasca.', 'Fit the self-rescue module: it frees the robot when it gets stuck.'),
+      evidencia: tr(`Tus ruedas patinaron ${veces(patinajes)} aun siendo las adecuadas para el suelo.`,
+        `Your wheels slipped ${veces(patinajes)} even though they suit the ground.`),
+      cambio: { ranuras: ['modulo'], pieza: 'auto_rescate' },
+    });
+  }
   if (motivo === 'energia_agotada' || contar('energia_agotada') > 0) {
     // Batería fría (ambiente.js, regla a): el robot registra `bateria_fria` al arrancar si el frío le quitó carga útil.
     const fria = ev.find((e) => e.tipo === 'bateria_fria');
@@ -104,6 +129,15 @@ export function recomendar(resultado, motivo) {
   }
   if (contar('volcado') > 0) {
     recs.push({ id: 'manejo', texto: tr('Baja la velocidad antes de las bajadas y los saltos.', 'Slow down before descents and jumps.'), evidencia: tr('El robot volcó.', 'The robot flipped over.') });
+  }
+  // El auto-rescate se activó: se informa (sin cambio de pieza) que cada rescate gastó energía.
+  const rescates = contar('auto_rescate');
+  if (rescates > 0) {
+    recs.push({
+      id: 'auto_rescate_uso',
+      texto: tr('El auto-rescate te sacó de un atasco; cada rescate gasta batería.', 'Self-rescue got you unstuck; each rescue drains the battery.'),
+      evidencia: tr(`Se activó ${veces(rescates)}.`, `It fired ${veces(rescates)}.`),
+    });
   }
   // La condición que terminó el intento tiene prioridad sobre problemas secundarios.
   // Excepción: si se acabó la energía patinando mucho, la causa de fondo es el agarre (patinar gasta batería sin avanzar):

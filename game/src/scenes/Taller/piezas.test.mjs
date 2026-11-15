@@ -35,8 +35,8 @@ caso('piezas nuevas: existen, bilingües, valor de juego y caben en una ranura',
     assert.match(p.id, /^[a-z0-9_]+$/);
   }
   assert.equal(new Set(catalogo.map((p) => p.id)).size, catalogo.length, 'ids únicos');
-  // El catálogo de cada ranura cabe en las 4 filas del Taller.
-  for (const r of RANURAS) assert.ok(piezasPara(r.id, catalogo).length <= 4, r.id);
+  // Cada ranura tiene al menos una pieza (la bandeja del Taller pagina de 6 en 6: ya no hay tope por ranura).
+  for (const r of RANURAS) assert.ok(piezasPara(r.id, catalogo).length >= 1, r.id);
 });
 
 caso('las piezas del camino dorado no cambiaron (calibración de juego)', () => {
