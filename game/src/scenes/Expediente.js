@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { irA } from './ui.js';
 import { SITIOS, DESTINOS } from '../data.js';
 import { partida } from '../main.js';
-import { COLOR, texto, boton, panel, Teclado, cajaArte } from './expediente/interfaz.js';
+import { COLOR, texto, boton, panel, Teclado, cajaArte, ZONA_MIN } from './expediente/interfaz.js';
 import { GRAVEDAD, TICKETS_POR_PARTIDA } from '../config/world.js';
 import { elegirSitio, sitioPagado, tomarSitioPedido } from './expediente/guardado.js';
 import { DESTINO_POR_DEFECTO, urlFicha } from './expediente/config.js';
@@ -238,6 +238,10 @@ export default class Expediente extends Phaser.Scene {
         .on('pointerdown', () => this.abrirDetalle(this.seccionDeFila(k)))
         .on('pointerover', () => { fondo.setFillStyle(P.filaSel, 1); this.ayudaFila(f, info); })
         .on('pointerout', () => { fondo.setFillStyle(P.fila, 0.6); this.ayudaFila(null); });
+      // Zona táctil de 44 px de alto (ZONA_MIN, auditoría de Leo §4.3) sin cambiar el dibujo de 30 px: 7 px de más arriba
+      // y abajo. Las filas van cada 32 px, así que entre dos filas la franja compartida es de la de abajo (va encima).
+      const extra = (ZONA_MIN.alto - fondo.height) / 2;
+      fondo.input.hitArea.setTo(0, -extra, fondo.width, ZONA_MIN.alto);
       add(iconoVariable(this, X0 + 16, y + 11, info, { escala: 2 }));
       const vt = formatoValor(f.tierra);
       const textoDestino = f.destino?.texto && f.destino.valor == null;
