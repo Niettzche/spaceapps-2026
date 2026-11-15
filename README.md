@@ -1,62 +1,71 @@
-# Misión Cero — NASA Space Apps 2026 (sede UDEM)
+# MARSCEPTION
 
-Buscador de análogos terrestres con datos de la NASA + juego web 2D para probar robots antes de ir a Marte o la Luna.
-**Contexto completo para personas y agentes: [AGENTS.md](AGENTS.md).**
+An open-data Earth-analog explorer and 2D rover game for preparing selected Moon and Mars operations.
 
-## Arranque rápido (cada integrante)
+**Public demo:** pending VPS publication. The website will open at the deployment root, the game at `/game/`, and the captioned 29.9-second video at `/media/mision-cero-30s-en.mp4`. Add the verified public URL here after deployment; no demo URL has been assumed.
 
-```bash
-git clone <URL-del-repo> && cd <repo>
-git checkout feat/<tu-frente>        # modelo | juego | taller | expediente | arte
-```
-Abre tu agente (Claude Code o Codex) en la carpeta del repo y pégale el prompt de `docs/prompts/<tu-frente>.md`.
+NASA Space Apps 2026 · Monterrey / UDEM. Challenge: [Identify Earth Locations that Analog the Permanent Moon Base Locations and Mars](https://www.spaceappschallenge.org/2026/challenges/permanent-moon-base-locations-and-mars/).
 
-## Ejecutar
+## What to explore
 
-```bash
-# Juego
-cd game && npm install && npm run dev          # http://localhost:5173
-# Modelo y pruebas
-pip install -r model/requirements.txt
-python model/validate_data.py && python -m pytest -q model/tests
-# API (opcional; el juego funciona sin ella)
-pip install -r api/requirements.txt && uvicorn api.main:app --reload
+Inspect candidate Earth sites, their measurements, sources and limits in the web explorer. Build a rover within a 1,000-credit game budget, test it on Earth terrain and attempt a delivery on the Moon or Mars. Bundled data keep the game usable without a live API. Robot balance and added terrain features are declared game approximations, not evidence of field readiness.
+
+Mexico is the validated case study. The global search covers Atacama, Arizona and Arabia: 3 of 10 prioritized arid regions, not the entire planet. Candidate status does not establish geological origin, novelty or permission to access a site.
+
+## Run locally
+
+Clone this repository and run each command from its root. Use a supported Node.js LTS, 22.12+ (or Node 24), and Python 3.12. Run web and game in separate terminals; Vite chooses another port if 5173 is occupied. Use the URL printed by each server.
+
+```sh
+git clone https://github.com/Niettzche/spaceapps-2026.git
+cd spaceapps-2026
 ```
 
-## Reglas cortas
-Rama propia → PR a `main` · solo tus carpetas · no inventar datos · sin secretos · actualiza `docs/estado/<frente>.md`.
+| Part | Command from the repository root |
+|---|---|
+| Rover game | `cd game && npm ci && npm run dev` |
+| Web explorer | `cd web && npm ci && npm run dev` |
+| Model / data validation | `pip install -r model/requirements.txt && python model/validate_data.py` |
+| Model unit tests | `python -m pytest -q model/tests` |
+| Optional model API | `pip install -r api/requirements.txt && uvicorn api.main:app --reload` |
 
----
+For local game-to-web links, configure `VITE_WEB_URL` to the web server's printed URL before starting the game. `VITE_API_URL` is optional for the offline demo. These variables are public URLs; credentials do not belong in browser code.
 
-# Space Apps 2026 · Análogos terrestres de la Luna y Marte
+## Test the complete path
 
-Reto: *Identify Earth locations that analog the permanent Moon base locations and Mars* (NASA Space Apps Challenge 2026).
+See the header of [game/e2e/camino_dorado.mjs](game/e2e/camino_dorado.mjs) for Chromium, Playwright, development-server, screenshots and report setup. It exercises the actual scene UI for Earth testing and the lunar/Martian delivery routes. A passing build is not a substitute for this walkthrough or a physical-phone check.
 
-Barrido sistemático de México que encuentra formas tipo cráter, las mide con el mismo código que cráteres del polo sur lunar y de Marte, y dice qué tan bien funciona cada una como análogo y dónde se rompe la analogía.
+## Build for the VPS
 
-## Estructura
+After installing dependencies in both `web/` and `game/`:
 
-- `analisis/` — el cuaderno de Colab documentado (`analogos_mexico.ipynb`), su código por celda (`00` a `13`) y un README con los datos y sus fuentes.
-- `web/` — página (Vite + React + MapLibre): juego "¿Tierra, Luna o Marte?", mapa, fichas y método. Los datos van en `web/public/data/` (los genera `analisis/10_exportar_web.py`).
-
-## Datos
-
-| Uso | Dato | Fuente | Resolución |
-|---|---|---|---|
-| Vegetación | MODIS MOD13Q1 (NDVI), 2021–2025 | NASA | 250 m |
-| Cobertura de suelo | MODIS MCD12Q1 | NASA | 500 m |
-| Albedo | MODIS MCD43A3 | NASA | 500 m |
-| Relieve México | Copernicus DEM GLO-30 | ESA | 30 m → 200 m |
-| Relieve polo sur lunar | LOLA `ldem_80s_80m` (LRO) | NASA | 80 m → 200 m |
-| Relieve Marte | HRSC + MOLA blend | ESA/NASA vía USGS | 200 m |
-| Minas y canteras | OpenStreetMap (`landuse=quarry`) | OSM | — |
-
-Los tres cuerpos se comparan a la misma resolución (200 m) y con el mismo detector.
-
-## Correr la página
-
-```bash
-cd web
-npm install
-npm run dev
+```sh
+node web/scripts/build-demo.mjs
 ```
+
+Upload `web/dist/`. It contains web `/`, game `/game/` and the video. `DEMO_BASE` supports subdirectory hosting; `VITE_WEB_URL`, `VITE_API_URL` and `VITE_GAME_URL` are coordinated by the build script. See [deployment instructions](web/DEPLOY.md). Publication and the final public URL remain pending VPS access.
+
+## Data and methodology
+
+| Data | Provider and use |
+|---|---|
+| [MODIS](https://modis.gsfc.nasa.gov/data/) | NASA · vegetation, land cover, albedo |
+| [NASA POWER](https://power.larc.nasa.gov/) | NASA · climate |
+| [LRO LOLA](https://pds-geosciences.wustl.edu/missions/lro/lola.htm) | NASA · lunar elevation |
+| [HRSC + MOLA](https://astrogeology.usgs.gov/search/map/mars_mgs_mola_mex_hrsc_blend_dem_global_200m) | ESA/NASA via USGS · Martian elevation |
+| [Copernicus DEM GLO-30](https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM) | ESA · Earth elevation |
+| [NASA GIBS](https://www.earthdata.nasa.gov/eosdis/science-system-description/eosdis-standard-services/gibs) | NASA · basemap imagery |
+| [GVP](https://volcano.si.edu/) / [OpenStreetMap](https://www.openstreetmap.org/copyright) | Smithsonian / OSM contributors · external landform checks |
+
+The detector compares Earth, Moon and Mars at 200 m resolution. See [methodology](docs/METODOLOGIA.md), [model validation](model/VALIDATION.md) and the [provisional shortlist](ciencia_datos/salidas/lista_corta.md). Surface interpretations, missing values, uncertainty and scientific limits remain explicit.
+
+## AI disclosure and project files
+
+Claude Code and Codex assisted code and documentation. Mauricio created MARSCEPTION artwork with Claude. Claude also assisted image-based terrain labeling; 29/33 externally checked, non-randomly selected cases were correct. This does not estimate accuracy over all candidates. Full declaration: [USO_IA.md](docs/USO_IA.md).
+
+- `analisis/`, `ciencia_datos/`, `model/`: detection, explainable analysis and validation.
+- `data/`: versioned sites, targets and schemas; `api/`: optional model service.
+- `web/`: public explorer; `game/`: Phaser/Matter rover game; `assets/`: artwork.
+- [English submission draft](docs/ENTREGA_EN.md) · [pitch](docs/GUION_PITCH.md) · [team instructions](AGENTS.md).
+
+Repository visibility is currently private. The repository owner must make it public before judging; public demo/video links and official submission must be verified separately.
