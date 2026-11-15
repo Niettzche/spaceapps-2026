@@ -31,6 +31,7 @@ export function generar() {
     ],
   ];
   tira(D + 'chasis_ligero.png', 24, 6, 2, (p, i) => filas(p, chasis[i]));
+  pinturas('chasis_ligero', chasis, 6);
 
   // ---- rueda_estandar: 7 × 7, 4 cuadros en orden de giro horario (marca naranja que avanza 90° por cuadro).
   // Se distingue de la ancha por el tono: llanta delgada y rin plateado brillante (se lee "metálica").
@@ -148,6 +149,7 @@ export function generar() {
   generarB();
   generarDeco();
   generarObstaculos();
+  generarPiezasNuevas();
 
   tira(D + 'zona_entrega.png', 16, 4, 1, (p) => {
     const rows = [0, 1, 2].map((y) => Array.from({ length: 16 }, (_, x) => ((x + y) % 8 < 4 ? 'y' : 'k')).join(''));
@@ -180,6 +182,7 @@ export function generarB() {
     ],
   ];
   tira(D + 'chasis_reforzado.png', 24, 7, 2, (p, i) => filas(p, reforzado[i]));
+  pinturas('chasis_reforzado', reforzado, 7);
 
   // ---- rueda_tacos: 7 × 7, 4 cuadros. Tacos alternos en la llanta que avanzan 90° (3 posiciones) por cuadro, horario.
   const borde = [[2, 1], [3, 1], [4, 1], [5, 2], [5, 3], [5, 4], [4, 5], [3, 5], [2, 5], [1, 4], [1, 3], [1, 2]];
@@ -246,6 +249,11 @@ export function generarDeco() {
     deco_bateria_chica: ['....', '.he.', '.dE.', '....'],          // celda chica verde
     deco_bateria_grande: ['.....', '.hee.', '.dEE.', '.....'],     // bloque más ancho
     deco_panel_solar: ['..........', '.SsSsSsSs.', '..........'],  // panel delgado encima
+    // piezas nuevas (ids provisionales)
+    deco_bateria_mediana: ['.....', '.hhe.', '.dEE.', '.....'],    // entre la chica y la grande: carga a medias
+    deco_panel_solar_grande: ['..............', '.SsSsSsmSsSsS.', '..............'], // dos módulos, más largo
+    deco_calentador_bateria: ['.....', '.oOo.', '.OoO.', '.....'],  // resistencia naranja (calor)
+    deco_radiador: ['......', '.hdhd.', '.ldld.', '......'],         // aletas de disipación
   };
   for (const [nombre, rows] of Object.entries(decos)) tira(D + nombre + '.png', rows[0].length, rows.length, 1, (p) => filas(p, rows));
 }
@@ -287,4 +295,47 @@ export function generarObstaculos() {
     ];
     tira(`${O}obstaculo_arena_blanda${sufijo}.png`, 16, 4, 1, (p) => filas(p, rows, 0, 0, pal), { contorno: false });
   }
+}
+
+// ---------------------------------------------------------------- pintura del chasis
+// Variantes de color: la carrocería (h, l, m, d) toma una rampa de la paleta; contorno, faro, franja naranja, borde
+// turquesa y daños no cambian. chasis_<tipo>_<color>.png, mismos cuadros que el original (normal y dañado).
+export const PINTURAS = {
+  rojo: ['#ff8a7a', '#e0483a', '#a8301a', '#6a101c'],
+  azul: ['#9fd8ff', '#4c8ce8', '#2550d0', '#172a78'],
+  verde: ['#a8f0b0', '#3ec466', '#2a8a4a', '#17663e'],
+  amarillo: ['#fff08a', '#ffd23c', '#d89a1c', '#8a5a14'],
+  morado: ['#e0d4ff', '#b9a6ff', '#7a4cff', '#40188a'],
+};
+function pinturas(id, cuadros, alto) {
+  for (const [color, [h, l, m, d]] of Object.entries(PINTURAS)) {
+    const pal = { ...BASE, h, l, m, d };
+    tira(`${D}${id}_${color}.png`, 24, alto, cuadros.length, (p, i) => filas(p, cuadros[i], 0, 0, pal));
+  }
+}
+
+// ---------------------------------------------------------------- piezas nuevas del taller (ids provisionales)
+export function generarPiezasNuevas() {
+  // ---- rueda_malla: 8 × 8, 4 cuadros. Malla de acero tejida (LRV de Apolo): llanta plateada en cuadrícula abierta,
+  // chevrón de titanio oscuro que avanza 90° por cuadro (horario) y cubo de aluminio.
+  const anillo8 = [[3, 1], [4, 1], [5, 2], [6, 3], [6, 4], [5, 5], [4, 6], [3, 6], [2, 5], [1, 4], [1, 3], [2, 2]];
+  tira(D + 'rueda_malla.png', 8, 8, 4, (p, i) => {
+    const r = ['........', '........', '........', '...mm...', '...md...', '........', '........', '........'].map((x) => [...x]);
+    anillo8.forEach(([x, y], j) => { r[y][x] = (j + i) % 2 ? 'h' : 'l'; });   // tejido que brilla al girar
+    for (const [x, y] of [[2, 3], [5, 3], [2, 4], [5, 4], [3, 2], [4, 2], [3, 5], [4, 5]]) r[y][x] = 'g'; // malla abierta
+    const ch = anillo8[(i * 3) % 12];
+    r[ch[1]][ch[0]] = 'c';                                                   // chevrón de titanio, turquesa (marca de giro)
+    filas(p, r.map((a) => a.join('')));
+  });
+
+  // ---- rueda_grousers: 7 × 7, 4 cuadros. Rueda rígida de aluminio (Curiosity/Perseverance): aro metálico brillante
+  // con garras (grousers) que avanzan con el giro; rayos de titanio y cubo oscuro. Metálica, no de goma (≠ rueda_tacos).
+  const borde = [[2, 1], [3, 1], [4, 1], [5, 2], [5, 3], [5, 4], [4, 5], [3, 5], [2, 5], [1, 4], [1, 3], [1, 2]];
+  tira(D + 'rueda_grousers.png', 7, 7, 4, (p, i) => {
+    const r = ['.......', '.......', '..l.l..', '...d...', '..m.m..', '.......', '.......'].map((x) => [...x]);
+    borde.forEach(([x, y], j) => { r[y][x] = (j + i * 3) % 3 === 0 ? 'm' : j < 6 ? 'h' : 'l'; });
+    const [mx, my] = borde[(i * 3 + 1) % 12];
+    r[my][mx] = 'o';                                                         // una garra naranja: marca de giro
+    filas(p, r.map((a) => a.join('')));
+  });
 }
