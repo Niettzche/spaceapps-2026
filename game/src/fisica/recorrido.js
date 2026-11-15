@@ -16,6 +16,10 @@ import { AspectoRobot, crearFondo, claveDeFondo, sprite, tira, hayArte } from '.
 import { ambienteDe, notaAmbiente, factorFrio } from './ambiente.js';
 import * as K from '../scenes/comun/pixel.js'; // botón de arte (Abandonar)
 import { generarObstaculos, crearObstaculos, factorAgarreEn, notaObstaculos } from './obstaculos.js';
+import { versionFisica } from './version.js';
+import { lugarDeSitio, fichaFisicaV2 } from './suelo_v2.js';
+import { SITIOS } from '../data.js';
+import { RUEDAS_POR_RANURA } from './diseno.js';
 
 const FONDO = { tierra: '#7f9fbf', marte: '#b98a6a', luna: '#05060b' }; // color si no hay fondo de arte (fisica/aspecto.js)
 const SEG_QUIETO_ENTREGA = 2; // la entrega exige 2 s detenido en la zona
@@ -70,13 +74,19 @@ export class Recorrido {
     this._dibujarMeta(yMundo(alturaEn(o.perfil, this.meta_m)));
 
     // Robot sobre el plano de inicio.
+    // Física 2 (?fisica=2): terramecánica Bekker–Wong (suelo_v2.js). El tipo de lugar sale del `proceso` del sitio.
+    this.fisica = o.fisica ?? versionFisica();
+    const lugar = o.modo === 'prueba' ? lugarDeSitio(SITIOS.find((s) => s.id === o.sitioId)) : 'generico';
     const x0 = xMundo(6);
     const y0 = yMundo(alturaEn(o.perfil, 6)) - m(1.6);
     this.robot = new Robot(scene, x0, y0, o.diseno, o.piezas, (tipo, detalle) => {
       this.telemetria.registrar(this.robot?.t ?? 0, tipo, detalle);
       this.efectos?.alTelemetria(tipo, detalle); // efectos en la rueda, el chasis o la carga
       this.sonido?.alTelemetria(tipo, detalle); // golpes, crujido, sin energía (fisica/sonido.js)
-    }, { mundo: o.mundo, ambiente: this.ambiente, factorAgarre: (x) => factorAgarreEn(this.obstaculos, (x - xMundo(0)) / PX_POR_M) });
+    }, {
+      mundo: o.mundo, ambiente: this.ambiente, factorAgarre: (x) => factorAgarreEn(this.obstaculos, (x - xMundo(0)) / PX_POR_M),
+      fisica: this.fisica, gravedad: o.gravedad, lugar,
+    });
     this.efectos = new Efectos(scene, { mundo: o.mundo, gravedad: o.gravedad, robot: this.robot, superficieDe: this.superficieDe });
     this.sonido = new Sonido(scene, { mundo: o.mundo }); // motor, arena, golpes y fin; M silencia
     this.g = scene.add.graphics().setDepth(10);
@@ -108,9 +118,14 @@ export class Recorrido {
     // Nota corta del HUD (DISENO.md §3): «Suelo: arena · I datos». El texto completo va en el panel de la tecla I.
     const tipos = [...new Set((o.perfil.superficies ?? []).map((x) => x.tipo))].map(nombreSuperficie).join(', ');
     const notaCorta = tipos ? `${tr('Suelo', 'Soil')}: ${tipos}` : null;
+    // Física 2: ficha con las ecuaciones y los valores usados en este nivel (panel de la tecla I).
+    const fichaV2 = this.fisica === 2 ? fichaFisicaV2({
+      masaKg: this.robot.masaTotal, g: o.gravedad, ruedas: this.robot.ruedas.length * RUEDAS_POR_RANURA, pieza: this.robot.ruedas[1].pieza,
+      mundo: o.mundo, tipos: (o.perfil.superficies ?? []).map((x) => x.tipo), lugar,
+    }) : null;
     this.hud = new Hud(scene, {
       titulo: o.titulo, subtitulo: o.subtitulo, nota: notaCorta,
-      aviso: [avisoGravedad, avisoSuelo && `${avisoSuelo}.`, `${avisoNivel.replace(/\.$/, '')}.`, avisoAmbiente].filter(Boolean).join(' '),
+      aviso: [avisoGravedad, fichaV2 ?? (avisoSuelo && `${avisoSuelo}.`), `${avisoNivel.replace(/\.$/, '')}.`, avisoAmbiente].filter(Boolean).join(' '),
     });
     this._botonAbandonar();
     // Instrucciones al empezar: título + 3 keywords con ícono (objetivo · regla clave del lugar · controles). Esc pausa.
