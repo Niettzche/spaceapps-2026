@@ -1,11 +1,11 @@
-# Física 2: terramecánica de Bekker–Wong (bandera `?fisica=2`)
+# Física 2: terramecánica de Bekker–Wong (por defecto)
 
-Estado: **experimental, apagada por defecto** (`FISICA_POR_DEFECTO = 1` en `game/src/fisica/version.js`). Se activa con
-`?fisica=2` en la URL. Con la física 1 nada cambia. Código: `game/src/fisica/suelo_v2.js` (funciones puras, pruebas en
-`suelo_v2.test.mjs`) y la rama `this.v2` de `game/src/fisica/robot.js`. Feedback: `game/src/feedback/reglas.js` y `analogia.js`.
+Estado: **por defecto** desde el 15 nov (`FISICA_POR_DEFECTO = 2` en `game/src/fisica/version.js`, decisión de Edmundo;
+`?fisica=1` vuelve a la anterior). Código: `game/src/fisica/suelo_v2.js` (funciones puras, pruebas en `suelo_v2.test.mjs`) y la rama
+`this.v2` de `game/src/fisica/robot.js`. Feedback: `game/src/feedback/reglas.js` y `analogia.js`.
 
 Valores marcados **(P)** son valores de juego, no datos. Las fuentes `S..` y `BM-..` son filas del libro de datos del frente taller
-(`docs/taller/Space_Apps_Game_Data.xlsx`, hojas Sources y Biomes).
+(`docs/taller/Space_Apps_Game_Data.xlsx`, hojas Sources y Biomes). Veredicto de cada fuente: `docs/taller/FUENTES_FISICA.md` (Leo, 15 nov).
 
 ## 1. Qué cambia respecto a la física 1
 
@@ -42,17 +42,31 @@ Por rueda (cada eje del juego son 2 ruedas):
 
 ## 3. Suelos y parámetros
 
+Valores verificados por Leo el 15 nov (`docs/taller/FUENTES_FISICA.md` §1) aplicados en `suelo_v2.js`; cada uno lleva su fuente en
+el código (constantes `FUENTE_*`).
+
 | Suelo (mundo · superficie · lugar) | φ (°) | c (kPa) | n | k_c | k_φ | Fuente |
 |---|---|---|---|---|---|---|
 | Arena de duna, Tierra · arena (BM-004) | 28 | 1.04 | 1.1 | 0.99 | 1528.43 | Wong (2001) arena seca vía NASA/TM-20250006958 tabla 1 (S59). **Genérica, no medida en Samalayuca** |
-| Ceniza y escoria, Tierra · compacto en sitio volcánico (BM-003) | 28.5 | 0 (P) | — | — | — | φ = punto medio del ángulo de reposo 25–32° (NPS, S61), como aproximación; c y Bekker sin dato (no se hunde) |
-| Suelo compacto o talud de mina, Tierra (sin dato) | 40 (P) | 0 (P) | — | — | — | Sin fuente |
-| Roca, Tierra (sin dato) | 45 (P) | 0 (P) | — | — | — | Sin fuente |
-| Regolito lunar · arena y compacto (BM-008) | 40 | 0.17 | 1 | 1.4 | 820 | φ: Apolo 30–50° (S19, Verified). c y Bekker: valores canónicos, apuntes UMD (S62, **Draft**). S59: no existen parámetros de Bekker reales del regolito |
+| Ceniza y escoria, Tierra · compacto en sitio volcánico (BM-003) | 28.5 | 0 | — | — | — | c = 0 **verificado** (escoria seca sin cohesión, Agustian y Goto 2008, S103). φ = ángulo de reposo 25–32° (NPS, S61) ≈ φ suelto, **conservador**: el φ pico de tefra seca a 3–35 kPa es 35.8–36.5° (S104). Sin Bekker: no se hunde (P) |
+| Suelo compacto o talud de mina, Tierra (BM-023) | 38 | 0 | — | — | — | Suelos compactados de arena y grava: φ 37–38°, c 0 (NAVFAC DM-7.02, S105, tabla 1 p. 7.2-39). Antes 40 (P). Sin hundimiento (P) |
+| Roca, Tierra (BM-024) | 35 (P) | 0 (P) | — | — | — | En roca la tracción ≈ μ·W (S59 pp. 19–21); μ ≈ 0.7 = tan 35°, cota alta de roca–roca 0.55–0.70 (S105 p. 7.2-63). μ llanta–roca medido: **Gap** → (P). c 0 es simplificación. Antes 45 (P, sin fuente) |
+| Regolito lunar · arena y compacto (BM-008) | 42 | 0.52 | 1 | 1.4 | 820 | c y φ del suelo en los primeros 15 cm (*Lunar Sourcebook*, Carrier et al. 1991, S79, tabla 9.12 p. 510). Bekker: tabla 9.14 p. 529, de Costes et al. 1972 (NASA TR R-401, S80): **valores de diseño del LRV, no mediciones** (S59). Antes c 0.17, que es c_b suelo–rueda, y φ 40 |
 | Roca lunar (sin dato) | 45 (P) | 0 (P) | — | — | — | Sin fuente |
-| Drift marciano · arena (BM-013) | 18 | 1.85 | 1.3 | 572.1 | 4915.3 | φ y c: puntos medios de Viking (15.6–20.4°, 0–3.7 kPa; S20). Bekker: **simulante M90** (S63, Oravec et al. 2021), no drift real |
+| Drift marciano · arena (BM-013) | 18 | 1.6 | 1.3 | 572.1 | 4915.3 | c y φ: Viking, 1.6 ± 1.2 kPa y 18 ± 2.4° (Moore 1991, S82; Moore et al. 1987 da 1–3 kPa de diseño, S81). Antes 1.85, que no es un valor publicado. Bekker: **simulante M90** suelto (Oravec et al. 2020, S20 tabla 3), no drift real |
 | Costra marciana · compacto (BM-015) | 34.5 | 1.6 | — | — | — | Viking (S20): puntos medios de 29.8–39.2° y 0–3.2 kPa; no se hunde (P) |
 | Roca marciana · roca (BM-016) | 50 | 0 (P) | — | — | — | Viking (S20), cota superior 40–60° |
+
+**M90 completo** (constante `M90` en `suelo_v2.js`, S20 tabla 3, MR-094/095): n 1.3, k_c 572.1, k_φ 4915.3, c_b 0.27 kPa, φ_b 32°,
+K 25.4 mm. El drift usa solo su Bekker: la cohesión y la fricción son las de Viking, porque el φ de M90 (29–37°) es mayor que el del
+drift estimado (15.6–25°) y daría una tracción optimista. Ojo (Leo): la tabla 3 puede traer las unidades de k_c y k_φ invertidas.
+
+**Módulo de deformación cortante K** (Janosi–Hanamoto): ahora hay fuente (Luna 1.8 cm, S79 tabla 9.14; M90 25.4 mm, S20), pero no se
+usa: en este modelo el deslizamiento lo resuelve Matter y el empuje H es la cota de Mohr–Coulomb (§7).
+
+**Efecto medido de los valores nuevos:** la fricción del suelo en Matter es 1 y Matter usa el mínimo, así que donde μ = k·banda^1.5·H/W
+pasa de 1 (Luna y Marte con la rueda ancha) los valores nuevos no cambian la partida; sí la cambian en la Tierra (roca μ 0.7 y suelo
+compacto 38°, ver §5.2: Cananea).
 
 Unidades de Bekker: `k_c` en kN/m^(n+1), `k_φ` en kN/m^(n+2), `p` en kPa, `z` y `b` en m.
 **Nieve o hielo no se agregó:** el libro de datos no tiene c, φ ni Bekker de nieve con fuente.
@@ -144,25 +158,93 @@ el hundimiento y la cohesión de la arena reparten mejor el empuje. Con motor po
 entregan con E 42 %. Con la física 1 el robot va a 4–5 m/s en Marte y no la pierde. Antes de activarla por defecto hay que revisar
 ese golpe (velocidad en Marte o la e2e con un piloto que frene).
 
-## 6. Qué falta para activarla por defecto
+### 5.2 Robustez del camino dorado (15 nov, tarde)
 
-0. Resolver el camino dorado de g00281 (ver §5.1) y el riesgo de carga perdida en Jezero.
-1. Que Leo revise las fuentes de §3 (sobre todo S62 Draft y el uso del simulante M90 para Marte, que contradice la decisión del
-   14 nov de no simular hundimiento en Marte) y lo registre en `docs/DECISIONES.md`.
-2. Correr la e2e completa con `FISICA_POR_DEFECTO = 2` (no se corrió aquí) y revisar el feedback en pantalla de Resultados.
-3. Rebalancear Jezero: con el drift (c 1.85 kPa) la misión de Marte queda mucho más fácil (E 42 % contra 8 %).
-4. Actualizar `docs/METHODOLOGY_EN.md` (hoy dice que el hundimiento de Bekker no se modela).
-5. Que el integrador agregue `ancho_m` a `data/schema/part.schema.json` (hoy se acepta porque el esquema no cierra propiedades).
-6. Cambiar `FISICA_POR_DEFECTO` a 2 en `game/src/fisica/version.js`.
+**Problema medido:** el camino dorado salía a veces sí y a veces no (Samalayuca con ancha: la e2e se atascó 2 de 2 veces a 48.7 m;
+g00263: atascos a 47 y 74 m; Jezero: carga perdida).
+
+**Causa 1: no es la tasa de cuadros.** Con `runner.isFixed` (main.js) Phaser llama a `Engine.update(1000/60)` una vez por cuadro y
+después a `Recorrido.actualizar` con `runner.delta`: el mismo orden que el simulador por pasos (`world.step(1000/60)` y luego
+`actualizar(…, 1000/60)`). Nada de la física 2 se integra con el delta del cuadro (solo la decoración). Comprobado:
+- con el mismo piloto determinista (acelerador fijado dentro de `actualizar`), el bucle real a 25 fps y el simulador dan **la misma
+  trayectoria bit a bit** (x idéntica cada 60 pasos, mismo final: meta, E 43 %, 3,224 pasos);
+- la e2e real (teclado real, 8 fps) grabada paso a paso y **reproducida** en el simulador (los mismos 17 pasos sin acelerar y luego a
+  fondo) da la misma trayectoria (|Δx| máx. = 0 m);
+- cambiar los ids de los cuerpos de Matter o correr antes otra prueba en la misma página no cambia nada.
+Lo único que cambia entre corridas es **en qué paso empieza a acelerar el jugador**, y con eso Matter (caótico) diverge. Script de
+comparación: `scratchpad/fis/det.mjs` (modo `real` | `sim`); el simulador por pasos sí reproduce el bucle real, siempre que el
+acelerador se fije por paso y no por tiempo de pared.
+
+**Causa 2: el tramo crítico estaba en el filo.** Las caras de duna recreadas tenían 3.6–4.4 m de alto sobre 6.2 m, más la pendiente
+medida de la base: daban **28–39°** (Samalayuca 28, 38 y 33°; g00263 34, 36 y 39°), por encima del ángulo de reposo de la arena
+(30–34°; ninguna duna real tiene una cara de 38°). La rueda ancha subía 36–38° solo con suerte de arranque.
+**Arreglo (recreación, P):** la pendiente total de la cara (base + cara) se topa en **30°**, el borde inferior del ángulo de reposo
+(Pelletier et al. 2015, JGR: reposo medio 32°, crítico 34°; ya citado en PIEZAS.md y AUDITORIA_DATOS.md) — `perfil.js`, `DUNA.anguloMax`.
+La estándar sigue sin subir (se atasca en la primera cara, de 28–30°, a 18–19 m) y la ancha sube con margen.
+
+**Causa 3: Jezero perdía la carga en 12 de 20 arranques**, no 1 de 4: al subir una roca recreada de 0.23 m a ~6 m/s con 3.71 m/s², el
+chasis cabecea, las dos ruedas quedan en el aire ~0.9 s y la carga sube 0.45 m respecto del chasis, más que la pared del soporte básico
+(0.25 m); cae sobre la pared y se desliza fuera. Con un tope de velocidad en todo Marte no basta (a 4.3 m/s aún 2 de 10).
+**Arreglo (P, con base física): paso seguro sobre rocas en la misión** (`danio.js: velocidadPasoRoca`, aplicado por `recorrido.js`).
+En Marte (4–24 min de retraso de señal) y en la Luna el robot no se maneja en vivo: como la navegación autónoma de los rovers, frena
+solo al cruzar una roca recreada (desde 6 m antes de la rueda delantera hasta 1 m después de la trasera). La velocidad sale del salto:
+una rueda de radio r que sube un escalón h sale con v_y ≈ v·sen α (cos α = (r − h)/r) y sube v_y²/(2g); para que la carga no pase la
+pared H: **v ≤ k·√(2·g·H)/sen α**, con g la que simula el juego y **k = 1.5 (P)** porque la suspensión absorbe parte (k 1.5: 10/10
+entregas; k 2: 9/10). Marte con ancha y soporte básico: 2.9 m/s; la Luna: 2.6 m/s; un soporte más alto deja ir más rápido. Mientras
+frena, el motor no gasta. No cambia stats de piezas ni se aplica en las pruebas en la Tierra (se manejan en vivo).
+
+**Robustez medida** (diseño del camino dorado: chasis ligero, motor eficiente, batería chica, soporte básico).
+Simulador por pasos: 5 arranques distintos (0, 3, 7, 13 y 20 pasos sin acelerar). Tiempo real: bucle real de Phaser en Chromium sin
+GPU (~10–15 fps), teclado real, página nueva por corrida, 5 esperas distintas antes de pulsar → (0, 0.3, 0.7, 1.1 y 1.6 s).
+
+RT_TABLA
+
+Antes de estos cambios (simulador por pasos, mismo método): Samalayuca ancha 8/8 pero la e2e real 0/2; g00263 ancha 6/8 (atascos a 47 y
+74 m); Jezero 8/20 (carga perdida); Luna 8/8.
+
+**Niveles destacados con los valores nuevos** (simulador por pasos, 5 arranques):
+
+| Nivel | Diseño (pieza_clave) | Pasan | Detalle | Antes (tabla de NIVELES_DESTACADOS.md) |
+|---|---|---|---|---|
+| g00266 | ancha | 5/5 | meta, E 32–37 % | meta, E 39 % |
+| g00266 | malla | 5/5 | meta, E 43–44 % | meta, E 45 % |
+| g00266 | estándar | 0/5 | atascado a 33–40 m | atascado a 37 m |
+| tenoumer | malla | 5/5 | meta, E 36–37 %, carga 88–91 % | meta, carga 86 % |
+| tenoumer | ancha | 5/5 | meta, E 16–25 %, carga 74–77 % | meta, carga 72 % (inestable) |
+| tenoumer | estándar | 0/5 | atascado a 18–19 m | atascado a 18 m |
+| mx0023 | malla | 5/5 | meta, E 44–46 % | meta, E 47 % |
+| mx0023 | **ancha** | **2/5** | 3 atascos a 85–89 m (pared de roca de 23.6°: con roca μ 0.7 queda en el límite) | meta, E 42 % |
+| mx0023 | estándar | 0/5 | atascado a 33 m | atascado a 33 m |
+| pinacate | estándar + chasis reforzado | 5/5 | meta, E 28 % | meta |
+| pinacate | estándar (ligero) | 0/5 | chasis destruido a 160–191 m | chasis destruido a 158 m |
+| pingualuit | malla | 5/5 | meta, E 46–47 % | meta, E 47 % |
+| pingualuit | **ancha** | **4/5** | 1 atasco a 75 m (pared de roca de 30°, mismo motivo) | meta, E 42 % |
+| pingualuit | estándar | 0/5 | atascado a 29–32 m | atascado a 30 m |
+
+Cambio por la roca de la Tierra con μ ≈ 0.7 (antes tan 45° = 1, sin fuente): en las paredes de roca de Cananea (23.6°) y Pingualuit
+(30°) la rueda ancha (banda 0.5 en roca) queda en el filo; la de malla sigue pasando 5/5. Por eso en esos dos niveles la pieza clave
+recomendada pasa a ser la **malla** (`content/niveles_destacados.js`); la ancha se declara «a veces pasa», como ya pasaba en Tenoumer.
+Es coherente con las pruebas de rovers reales: Curiosity subió 22° en roca en pruebas (S100, FUENTES_FISICA.md).
+
+## 6. Pendientes
+
+1. Que el integrador agregue `ancho_m` a `data/schema/part.schema.json` (hoy se acepta porque el esquema no cierra propiedades).
+2. Margen de energía de la misión lunar: E 9–13 % con la ancha (ya era 9–15 % antes de estos cambios). Si hace falta más margen, la
+   palanca es el largo del terreno ilustrativo (`LARGO_MISION_M.luna`, P) o la fricción del suelo de Matter (hoy 1, tapa el H/W > 1
+   del regolito con c 0.52 kPa).
+3. Remolinos de Jezero: el juego quita 30 % de luz al panel (P); Leo verificó 0.1–1 % típico y > 15 % en los más fuertes (S96).
 
 ## 7. Límites (se declaran)
 
-- No hay parámetros de Bekker reales del regolito lunar (S59) ni del drift marciano: se usan valores canónicos (Draft) y un simulante.
+- No hay parámetros de Bekker medidos del regolito lunar (S59): se usan los de diseño del LRV (S79/S80). Del suelo de Marte tampoco:
+  se usa el simulante M90 (S20).
 - La arena de la Tierra es arena seca genérica (Wong 2001), no medida en Samalayuca.
-- Se omite el módulo de deformación cortante `K` (Janosi–Hanamoto, EQ-017): Gap. Sin él, el empuje no depende del deslizamiento;
-  el deslizamiento solo aumenta el hundimiento (P).
+- Se omite el módulo de deformación cortante `K` (Janosi–Hanamoto, EQ-017). Ya hay fuente (Luna 1.8 cm, S79; M90 25.4 mm, S20), pero
+  no se usa: el empuje no depende del deslizamiento; el deslizamiento solo aumenta el hundimiento (P).
 - No se modela el «bulldozing» ni la resistencia por gravedad sobre el surco, ni la carga dinámica entre ejes (peso repartido igual).
 - La fricción de Matter.js no es Coulomb exacta: `k` es una calibración del motor de física, declarada.
-- El drift marciano usa la cohesión media de Viking (1.85 kPa): con poco peso, el término `A·c` domina y Marte resulta más fácil
-  que la arena de la Tierra. Es lo que dan las ecuaciones con esos datos, pero el rango medido va de 0 a 3.7 kPa.
+- El drift marciano usa la cohesión de Viking (1.6 ± 1.2 kPa, Moore 1991): con poco peso, el término `A·c` domina y Marte resulta más
+  fácil que la arena de la Tierra. Es lo que dan las ecuaciones con esos datos; Moore advierte que la cohesión puede estar sobrestimada.
+- La fricción del suelo en Matter es 1 (y Matter usa el mínimo): un H/W mayor que 1 no da más agarre.
+- Roca de la Tierra: μ ≈ 0.7 (P); no hay μ medido llanta–roca (Gap).
 - Los parámetros de suelo de la Tierra son genéricos: la prueba no mide el suelo real del sitio.
