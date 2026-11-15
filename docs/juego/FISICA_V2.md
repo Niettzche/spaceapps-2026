@@ -197,10 +197,28 @@ frena, el motor no gasta. No cambia stats de piezas ni se aplica en las pruebas 
 Simulador por pasos: 5 arranques distintos (0, 3, 7, 13 y 20 pasos sin acelerar). Tiempo real: bucle real de Phaser en Chromium sin
 GPU (~10–15 fps), teclado real, página nueva por corrida, 5 esperas distintas antes de pulsar → (0, 0.3, 0.7, 1.1 y 1.6 s).
 
-RT_TABLA
+| Caso | Simulador por pasos (5) | Tiempo real (bucle de Phaser, teclado real) | Esperado |
+|---|---|---|---|
+| Samalayuca, ancha | **5/5** meta, E 46–47 % | **5/5** meta, E 46–47 % (+ e2e: meta, E 46 %) | pasa |
+| Samalayuca, estándar | **0/5** atascado a 18–19 m | e2e: atascado a 18.7 m | falla |
+| g00263, ancha | **5/5** meta, E 35–40 % | **5/5** meta, E 35–39 % (+ e2e: meta, E 37 %) | pasa |
+| g00263, estándar | **0/5** atascado a 18–19 m | e2e: atascado a 18.6 m | falla |
+| Misión Jezero, ancha | **5/5** entrega, E 34–35 %, carga 98–99 % (y 10/10 con otros 10 arranques) | 2/2 entrega, E 34–35 %, carga 98 % (+ e2e: entrega, E 35 %, carga 98 %) | entrega |
+| Misión Luna, ancha | **5/5** entrega, E 9–13 %, carga 98–100 % (y 10/10 con otros 10 arranques) | e2e: entrega, E 9 %, carga 100 % | entrega |
+
+Tiempo real: las corridas de la misión y de la estándar no se completaron 5 veces por tiempo (cada misión tarda ~5.5 min de pared en
+esta máquina); como el bucle real y el simulador dan la misma trayectoria con la misma entrada (arriba), la variación entre corridas
+solo viene del paso de arranque, que el simulador barre. **Herramienta:** dos corridas largas se cortaron porque el cliente de HMR de
+Vite recarga la página si pierde el websocket (máquina cargada); para corridas largas conviene servir sin ese cliente (en la e2e de esta
+medición se reemplazó `/@vite/client` por un stub con `page.route`; el juego es idéntico).
 
 Antes de estos cambios (simulador por pasos, mismo método): Samalayuca ancha 8/8 pero la e2e real 0/2; g00263 ancha 6/8 (atascos a 47 y
 74 m); Jezero 8/20 (carga perdida); Luna 8/8.
+
+**e2e completa** (`game/e2e/camino_dorado.mjs ambos`, 15 nov 8:40, tras fusionar `origin/feat/juego` d88ff18): **25/25 pasos OK**
+en 1,334 s — Marte: estándar atascada a 18.7 m → ancha meta (E 46 %) → misión entrega (E 35 %, carga 98 %); Luna: estándar atascada a
+18.6 m → ancha meta (E 37 %) → misión entrega (E 9 %, carga 100 %). En las dos misiones la flecha real no movió el robot y la e2e usó
+`controles.forzado` (respaldo ya conocido de la e2e, no de la física).
 
 **Niveles destacados con los valores nuevos** (simulador por pasos, 5 arranques):
 
