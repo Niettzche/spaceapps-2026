@@ -31,28 +31,35 @@ export function _reiniciarSesion() { vistoEnSesion = false; }
 
 const creditos = (n) => new Intl.NumberFormat(idioma() === 'en' ? 'en-US' : 'es-MX').format(n);
 
-/** Las 4 pantallas, en el idioma actual. El presupuesto llega de config/world.js (PRESUPUESTO_INICIAL), no fijo. */
+/**
+ * Las 4 pantallas, en el idioma actual. El presupuesto llega de config/world.js (PRESUPUESTO_INICIAL), no fijo.
+ * `claves`: 2–3 keywords (máx. ~6 palabras) que se ven en grande; `texto`: las mismas unidas en una línea; `imagen`: la
+ * viñeta de Mauricio (assets/tutorial/tutorial_N.png → textura 'tutorial/tutorial_N').
+ */
 export function pantallasComoJugar(presupuesto) {
-  return [
+  const p = [
     {
       titulo: tr('1 · Elige un análogo en la Tierra', '1 · Choose an Earth analog'),
-      texto: tr('Busca un sitio de la Tierra parecido a tu destino. Su ficha dice qué se puede probar ahí y qué no.',
-        'Find a place on Earth that resembles your destination. Its file says what can be tested there and what cannot.'),
+      claves: [tr('Sitio parecido a tu destino', 'A place like your destination'),
+        tr('Qué se puede probar y qué no', 'What can and cannot be tested'),
+        tr('Cada sitio nuevo: 1 ticket', 'Each new site: 1 ticket')],
     },
     {
       titulo: tr('2 · Arma tu robot', '2 · Build your robot'),
-      texto: tr(`Tienes ${creditos(presupuesto)} créditos para elegir ruedas, chasis, motor, batería y soporte de la carga.`,
-        `You have ${creditos(presupuesto)} credits to choose wheels, chassis, motor, battery and cargo mount.`),
+      claves: [tr(`${creditos(presupuesto)} créditos`, `${creditos(presupuesto)} credits`),
+        tr('Ruedas · chasis · motor · batería', 'Wheels · chassis · motor · battery'),
+        tr('Soporte de la carga', 'Cargo mount')],
     },
     {
       titulo: tr('3 · Pruébalo en la Tierra', '3 · Test it on Earth'),
-      texto: tr('Maneja en el terreno real del sitio. Si falla, el resultado te dice qué cambiar.',
-        'Drive on the real terrain of the site. If it fails, the result tells you what to change.'),
+      claves: [tr('Terreno real del sitio', 'Real terrain of the site'),
+        tr('¿Falla? El resultado dice qué cambiar', 'Failed? The result says what to change')],
     },
     {
       titulo: tr('4 · Misión a la Luna o a Marte', '4 · Mission to the Moon or Mars'),
-      texto: tr('Con su gravedad real, lleva el suministro hasta la zona de entrega.',
-        'With its real gravity, deliver the supply to the drop-off zone.'),
+      claves: [tr('Gravedad real del destino', 'Real destination gravity'),
+        tr('Lleva el suministro a la base', 'Deliver the supply to the base')],
     },
   ];
+  return p.map((x, i) => ({ ...x, texto: x.claves.join(' · '), imagen: `tutorial/tutorial_${i + 1}` }));
 }
