@@ -66,8 +66,8 @@ function chasis(p, reforzado) {
   if (!reforzado) p.px(14, 6, C.y);
 }
 
-function bateria(p, grande) {
-  const x0 = grande ? 2 : 4, x1 = grande ? 13 : 11, y0 = grande ? 3 : 5, y1 = 13;
+function bateria(p, grande, mediana = false) {
+  const x0 = grande ? 2 : mediana ? 3 : 4, x1 = grande ? 13 : mediana ? 12 : 11, y0 = grande ? 3 : mediana ? 4 : 5, y1 = 13;
   pinta(p, (x, y) => {
     if (y === y0 - 1 && x >= (x0 + x1) / 2 - 1.5 && x <= (x0 + x1) / 2 + 1.5) return 'l';            // borne
     if (x < x0 || x > x1 || y < y0 || y > y1) return null;
@@ -137,6 +137,87 @@ function panel(p) {
   });
 }
 
+/** Rueda de malla de acero tejida (LRV de Apolo): llanta ancha en cuadrícula plateada con huecos, chevrones de titanio, cubo de aluminio. */
+function ruedaMalla(p) {
+  const c = 7.5;
+  pinta(p, (x, y) => {
+    const dx = x + 0.5 - c - 0.5, dy = y + 0.5 - c - 0.5, r = Math.hypot(dx, dy), a = Math.atan2(dy, dx), luz = dx + dy < 0;
+    if (r > 6.6) return null;
+    if (r > 3.6) {
+      if (r > 5.9) return luz ? 'h' : 'l';                                  // borde de la malla
+      if (Math.cos(a * 6) > 0.86 && r > 4.2) return 'd';                    // chevrones de titanio
+      return (x + y) % 2 ? (luz ? 'h' : 'l') : 'g';                         // tejido abierto: hilo y hueco
+    }
+    if (r > 3) return 'm';
+    if (r < 1.2) return 'd';
+    return luz ? 'h' : 'l';                                                 // cubo de aluminio
+  });
+}
+
+/** Rueda rígida de aluminio con grousers (Curiosity/Perseverance): aro metálico con garras, rayos curvos de titanio. */
+function ruedaGrousers(p) {
+  const c = 7.5, R = 6.0;
+  pinta(p, (x, y) => {
+    const dx = x + 0.5 - c - 0.5, dy = y + 0.5 - c - 0.5, r = Math.hypot(dx, dy), a = Math.atan2(dy, dx), luz = dx + dy < 0;
+    if (r <= R + 1.2 && r > R) return Math.cos(a * 12) > 0.5 ? (luz ? 'l' : 'm') : null;   // garras metálicas
+    if (r > R) return null;
+    if (r > R - 1.4) return luz ? 'h' : 'l';                                                // aro de aluminio
+    if (r < 1.4) return 'd';
+    if (Math.abs(Math.sin(a * 3 + r * 0.45)) < 0.3) return luz ? 'l' : 'm';               // rayos curvos
+    return 'g';
+  });
+}
+
+/** Calentador de batería: placa con resistencia en serpentín naranja y ondas de calor arriba. */
+function calentador(p) {
+  pinta(p, (x, y) => {
+    if (x >= 2 && x <= 13 && y >= 7 && y <= 13) {
+      if (y === 7) return 'h';
+      if (y === 13) return 'd';
+      if (x === 2 || x === 13) return x === 2 ? 'l' : 'm';
+      const fila = y - 8;                                                   // serpentín: filas 8, 10 y 12, unidas en los extremos
+      if (fila % 2 === 0 && x >= 4 && x <= 11) return fila === 0 ? 'Y' : 'o';
+      if ((fila === 1 && x === 11) || (fila === 3 && x === 4)) return 'o';
+      return 'g';
+    }
+    for (const bx of [4, 8, 12]) if (y >= 1 && y <= 5 && x === bx + (y % 2 ? 0 : -1)) return y < 3 ? 'r' : 'o'; // ondas de calor
+    return null;
+  });
+}
+
+/** Radiador: bloque de aletas verticales con el tubo de refrigerante turquesa entrando por la izquierda. */
+function radiador(p) {
+  pinta(p, (x, y) => {
+    if (x >= 4 && x <= 13 && y >= 3 && y <= 12) {
+      if (y === 3) return 'h';
+      if (y === 12) return 'd';
+      return x % 2 ? (x === 13 ? 'm' : 'h') : 'd';                          // aletas
+    }
+    if (x >= 1 && x <= 3 && (y === 5 || y === 10)) return y === 5 ? 'c' : 'C'; // tubos de entrada y salida
+    if (x === 1 && y > 5 && y < 10) return 'C';
+    return null;
+  });
+}
+
+/** Panel solar grande: dos módulos lado a lado, menos inclinado y más alto que el panel normal. */
+function panelGrande(p) {
+  pinta(p, (x, y) => {
+    const top = 1 + Math.floor((x - 1) / 7), bot = top + 9;
+    if (x >= 1 && x <= 14 && y >= top && y <= bot) {
+      if (y === top) return 'h';
+      if (y === bot || x === 14) return 'm';
+      if (x === 1) return 'l';
+      if (x === 8) return 'm';                                              // unión de los dos módulos
+      const cx = (x - 2) % 3, cy = (y - top - 1) % 3;
+      if (cx === 2 || cy === 2) return 'v';
+      return cx === 0 && cy === 0 ? 'S' : 's';
+    }
+    if ((x === 5 || x === 11) && y > 11 && y <= 13) return 'm';
+    if (y === 14 && x >= 3 && x <= 13) return 'd';
+    return null;
+  });
+}
+
 export function generar() {
   const lista = {
     rueda_estandar: (p) => rueda(p, { grosor: 1.6 }),
@@ -151,6 +232,13 @@ export function generar() {
     soporte_basico: (p) => soporte(p, false),
     soporte_amortiguado: (p) => soporte(p, true),
     panel_solar: (p) => panel(p),
+    // piezas nuevas (ids provisionales)
+    rueda_malla: (p) => ruedaMalla(p),
+    rueda_grousers: (p) => ruedaGrousers(p),
+    bateria_mediana: (p) => bateria(p, false, true),
+    panel_solar_grande: (p) => panelGrande(p),
+    calentador_bateria: (p) => calentador(p),
+    radiador: (p) => radiador(p),
   };
   for (const [id, f] of Object.entries(lista)) tira(D + id + '.png', 16, 16, 1, (p) => f(p));
 }

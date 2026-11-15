@@ -1,9 +1,9 @@
 # Estado — Arte
 
-> Lo actualiza SOLO este frente. Ramas: `feat/arte` (#26) y `feat/arte-b` (#37), `feat/arte-c` (#49), `feat/arte-d` (#58), `feat/arte-e` (#64), mergeadas; `feat/arte-f` (imágenes para compartir, favicons y revisión en el juego).
+> Lo actualiza SOLO este frente. Ramas: `feat/arte` (#26) y `feat/arte-b` (#37), `feat/arte-c` (#49), `feat/arte-d` (#58), `feat/arte-e` (#64), `feat/arte-f` (#67), mergeadas; `feat/arte-g` (piezas nuevas y pintura del chasis).
 
 **Responsable:** Mauricio  ·  **Agente:** Claude Code / Codex
-**Última actualización:** 15 nov 2026, 02:00
+**Última actualización:** 15 nov 2026, 03:00
 
 ## Hecho
 - **Prioridad A y B completas** (#26 y #37, en `main`):
@@ -75,6 +75,14 @@
   - Los 4 íconos del HUD aparecen en los 4 niveles al entrar por el menú. No reproduje la corrida sin íconos.
   - Rocas chicas: es del código. `crearObstaculos` recorta el sprite a lo que asoma del suelo: `alto_m × 8` px de arte, o sea 1–2 px con los radios de `REGLAS_OBSTACULOS`. De la roca solo se ve el contorno de arriba.
   - Ver la nota del PR.
+- **Piezas nuevas del Taller (`feat/arte-g`, ids provisionales):**
+  - Íconos de 16 × 16 en `assets/iconos/`: `rueda_malla`, `rueda_grousers`, `bateria_mediana`, `panel_solar_grande`, `calentador_bateria` y `radiador`.
+  - Sprites en `assets/entidades/`:
+    - `rueda_malla` (8 × 8 × 4): malla de acero abierta tipo LRV, con un chevrón turquesa como marca de giro.
+    - `rueda_grousers` (7 × 7 × 4): aro de aluminio con garras tipo Curiosity y una garra naranja como marca.
+    - Calcomanías `deco_bateria_mediana`, `deco_panel_solar_grande`, `deco_calentador_bateria` y `deco_radiador`.
+  - Referencias de forma: `docs/taller/PIEZAS.md` (filas H5, S64, S14 y S76).
+- **Pintura del chasis:** `chasis_<ligero|reforzado>_<rojo|azul|verde|amarillo|morado>`, con 2 cuadros (normal y dañado) como el original. Solo cambia la carrocería; faro, franja, borde turquesa y daños quedan igual.
 - `node assets/fuente/fx/exportar.mjs` regenera con pixelfx las 22 hojas de efectos.
 
 ## En curso
@@ -86,6 +94,8 @@
 - [ ] Ver el arte con el juego corriendo (todavía no lo he revisado en pantalla): ruedas en el taller y en la prueba, calcomanías, posición de efectos y polvo.
 
 ## Bloqueos / necesito de otro frente
+- **Juego:** agregar a `TABLA` en `aspecto.js` `rueda_malla` (ancho 8, cuadros [1, 4]), `rueda_grousers` (ancho 7, [1, 4]) y los chasis pintados (ancho 24, [1, 2]). Si no, se dibuja la tira entera.
+- **Taller:** confirmar los ids. Si cambian, solo hay que renombrar los archivos.
 - **Juego:** rocas recortadas a 1–2 px. La nota del PR de `feat/arte-f` trae opciones.
 - **Juego:** `game/e2e/camino_dorado.mjs` no pasa del Boot con el menú actual: falla el `waitForFunction` del paso boot.
 - **Juego:** en la Misión, a la izquierda del inicio, se ve un hueco sin terreno de unos 48 px de pantalla.
