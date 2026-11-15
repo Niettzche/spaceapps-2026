@@ -10,6 +10,7 @@ import { Hud } from './hud.js';
 import { notaSuelo, nombreSuperficie } from './suelos.js';
 import { Telemetria, construirResultado } from './telemetria.js';
 import { Efectos } from './efectos.js';
+import { Huellas } from './huellas.js';
 import { Sonido } from './sonido.js';
 import { Decoracion } from './decoracion.js';
 import { tr } from '../i18n.js';
@@ -113,6 +114,8 @@ export class Recorrido {
       x_m: x.x_m, v: velocidadPasoRoca({ g: o.gravedad, radio_m: radioRueda_m, alto_m: x.alto_m ?? x.radio_m, pared_m: this.robot.paredSoporte_m }),
     })) : [];
     this.efectos = new Efectos(scene, { mundo: o.mundo, gravedad: o.gravedad, robot: this.robot, superficieDe: this.superficieDe });
+    // Surcos de las ruedas en la arena, con la profundidad del hundimiento de Bekker (solo visual).
+    this.huellas = new Huellas(scene, { mundo: o.mundo, robot: this.robot, ySuelo: (x) => yMundo(alturaEn(o.perfil, (x - xMundo(0)) / PX_POR_M)) });
     this.sonido = new Sonido(scene, { mundo: o.mundo }); // motor, arena, golpes y fin; M silencia
     this.g = scene.add.graphics().setDepth(10);
     this.aspecto = new AspectoRobot(scene, this.robot); // sprites de arte si existen; si no, figuras
@@ -330,6 +333,7 @@ export class Recorrido {
     r.actualizar(delta, acelerador, this.superficieDe);
     this.aspecto.dibujar(this.g);
     this.efectos.actualizar(delta, r); // polvo de ruedas y arena al patinar
+    this.huellas.actualizar();
     this.destacado.actualizar(delta / 1000, (r.x - this.xMundo(0)) / PX_POR_M); // viento y eventos de fondo
     if (!this.tutorial?.abierto()) {
       // Eventos dinámicos que también avisan la primera vez: piedras que ruedan (Cananea) y remolinos que sí bajan la luz.
@@ -463,6 +467,7 @@ export class Recorrido {
     this.destacado?.destruir();
     this.avisos?.destruir();
     this.decoracion?.destruir();
+    this.huellas?.destruir();
     this.efectos?.destruir();
     this.sonido?.destruir();
     this.robot.destruir();
