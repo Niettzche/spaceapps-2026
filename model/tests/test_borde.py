@@ -49,3 +49,13 @@ def test_el_elegante_y_meteor_crater_tienen_borde():
 
 def test_tajo_hercules_no_tiene_borde():
     assert borde.levantado(borde.medir("MX0085")) is False     # tajo con cantera de OpenStreetMap a 0.1 km
+
+
+def test_impactos_fuera_de_muestra_coinciden_con_la_validacion():
+    """La prueba fuera de muestra (perfiles reales de analisis/25): lo que mide el código es lo que dice model/VALIDATION.md."""
+    t = borde.tabla_impactos()
+    assert t.h.notna().all() and len(t) == 9
+    assert t.loc[t.visto, "nombre"].tolist() == ["Meteor Crater"]            # ya era un candidato: no cuenta como nuevo
+    nuevos = t[~t.visto]
+    frase = f"**De los {len(nuevos)} que la regla no había visto, {int((nuevos.h > borde.UMBRAL).sum())} tienen borde levantado.**"
+    assert frase in (borde.RAIZ / "model" / "VALIDATION.md").read_text(encoding="utf-8")

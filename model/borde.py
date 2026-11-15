@@ -16,6 +16,8 @@ Qué es y qué no es:
   no muestra borde levantado (no comprobamos por qué; quizá porque son viejos y están encimados). AGENTS.md §6.2 ya advierte
   que el borde no sirve como criterio de parecido con la Luna.
 - La ventana y el umbral son provisionales (P). La sensibilidad a los dos está en model/VALIDATION.md.
+- Prueba fuera de muestra: tabla_impactos() mide, con la ventana y el umbral ya fijados, cráteres de impacto de otros países que
+  no intervinieron al fijarlos (perfiles de analisis/25_perfiles_impactos.py).
 
 Uso:  uv run python -m model.borde     (escribe variables.borde_levantado en los JSON de data/sites que tienen un cráter medido;
                                         sin red; idempotente)
@@ -33,6 +35,7 @@ RAIZ = pathlib.Path(__file__).resolve().parents[1]
 DATOS = RAIZ / "ciencia_datos" / "datos"
 SITES = RAIZ / "data" / "sites"
 PERFILES = DATOS / "perfiles_radiales.json"
+PERFILES_IMPACTOS = DATOS / "perfiles_impactos.json"     # analisis/25_perfiles_impactos.py
 FICHAS = RAIZ / "ciencia_datos" / "salidas" / "fichas_integradas.csv"
 
 CLAVE = "borde_levantado"
@@ -166,6 +169,30 @@ def tabla_candidatos() -> pd.DataFrame:
     f["h"] = [medir(i) for i in f.id]
     f["con_fuente"] = f.id.map(crateres_con_fuente(f))
     return f
+
+
+def tabla_impactos() -> pd.DataFrame:
+    """Prueba fuera de muestra: los cráteres de impacto de impactos_tierra.csv que el detector encuentra, con su h/D.
+
+    `visto` dice si el cráter ya estaba entre los candidatos áridos con los que se fijaron la ventana y el umbral (mismo radio de
+    cotejo que crateres_con_fuente): esos no cuentan como nuevos. Centro y diámetro son los del detector, como en los candidatos.
+    """
+    js = json.loads(PERFILES_IMPACTOS.read_text(encoding="utf-8"))
+    r = np.array(js["r"], float)
+    if not np.array_equal(r, perfiles()[0]):
+        raise ValueError("perfiles_impactos.json no usa los mismos anillos que perfiles_radiales.json")
+    imp = pd.read_csv(DATOS / "impactos_tierra.csv").set_index("hid")
+    f = pd.read_csv(FICHAS)
+    filas = []
+    for s in js["sitios"]:
+        c = imp.loc[s["id"]]
+        d = _km(c.lat, c.lon, f.lat.to_numpy(), f.lon.to_numpy())
+        k = int(np.argmin(d))
+        visto = bool(d[k] <= RADIO_COTEJO_KM)
+        filas.append({"id": s["id"], "nombre": c.nombre, "lat": float(c.lat), "lon": float(c.lon), "diam_km": float(c.diam_km),
+                      "diam_esperado_km": float(c.diam_esperado_km), "h": altura(s["tierra"], r), "perfil": s["tierra"],
+                      "visto": visto, "candidato": str(f.id.iloc[k]) if visto else None})
+    return pd.DataFrame(filas)
 
 
 def perfiles_referencia(cuerpo: str) -> list[tuple]:

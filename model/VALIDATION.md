@@ -156,6 +156,24 @@ Un impacto o una explosión volcánica apila material alrededor del hoyo: el ter
 | 0.83–1.67 (la usada) | 0 | 10 de 11 | 3 de 26 | 4 de 38 | 57 de 296 |
 | 0.83–1.67 | 0.002 | 10 de 11 | 2 de 26 | 4 de 38 | 36 de 296 |
 
+**Prueba fuera de muestra: cráteres de impacto que la regla no había visto.** La ventana y el umbral se fijaron con los candidatos de México, Atacama, Arizona y Arabia. Después, sin cambiar nada, se midieron con el mismo método los 9 cráteres de impacto de `ciencia_datos/datos/impactos_tierra.csv` que el detector encuentra (`analisis/25_perfiles_impactos.py`; centro y diámetro del detector, igual que en los candidatos). Meteor Crater ya estaba entre los candidatos y no cuenta como nuevo. **De los 8 que la regla no había visto, 7 tienen borde levantado.**
+
+| cráter de impacto | diámetro del detector (km) | diámetro esperado (km) | h/D | borde (m) | levantado | ¿nuevo para la regla? |
+|---|---|---|---|---|---|---|
+| Meteor Crater | 1.06 | 1.2 | +0.0245 | 25.9 | sí | no: ya era el candidato G00195 |
+| Lonar | 1.81 | 1.8 | +0.0031 | 5.6 | sí | sí |
+| Wolfe Creek | 0.78 | 0.9 | +0.0076 | 5.9 | sí | sí |
+| Tenoumer | 1.63 | 1.9 | +0.0176 | 28.6 | sí | sí |
+| Pingualuit | 3.07 | 3.4 | +0.0075 | 23 | sí | sí |
+| Tswaing | 0.9 | 1.1 | +0.0094 | 8.5 | sí | sí |
+| Roter Kamm | 1.82 | 2.5 | +0.0101 | 18.4 | sí | sí |
+| Talemzane | 1.37 | 1.75 | +0.0019 | 2.6 | sí | sí |
+| Xiuyan | 0.81 | 1.8 | -0.0075 | -6.1 | no | sí |
+
+No lo tiene: Xiuyan (el detector le mide 0.81 km y el diámetro esperado es 1.8 km: el borde real queda probablemente fuera de la zona medida, como en Colton). Sensibilidad en los 8 nuevos: con la ventana estrecha (0.83–1.33) pasan 5; con la usada y umbral 0.002, 6. Pasan solo con la ventana ancha: Lonar, Talemzane.
+
+Qué prueba y qué no: son 8 casos y no son una muestra al azar. Son cráteres de impacto conocidos, elegidos antes como control positivo del detector (`analisis/15_referencias_extra.py`); los que el detector no encuentra (Brent, erosionado) no entran, así que no dice nada de estructuras de impacto erosionadas o sepultadas. Sí responde a la objeción de que la ventana se ajustó a la muestra: en estos cráteres no se ajustó nada.
+
 **En `data/sites`** (sitios con cráter medido; la variable es `variables.borde_levantado`, en metros):
 
 | categoría | sitios | con borde levantado | cuáles |
@@ -171,7 +189,7 @@ De los 17 tajos mineros con `novedoso: true`, 0 tienen borde levantado. Sin perf
 
 **Límites.**
 - No mide parecido con la Luna ni con Marte: con la misma medida solo tienen borde levantado 55 de 248 (22%) gemelos lunares y 9 de 59 (15%) marcianos. No comprobamos por qué; una explicación posible es que son cráteres viejos y encimados. Es evidencia de que una depresión terrestre es un cráter, y nada más.
-- Muestra chica: 11 cráteres con fuente externa, casi todos volcánicos (1 de impacto). Los otros cráteres de impacto del mundo que el detector encuentra (`ciencia_datos/datos/impactos_tierra.csv`) no tienen perfil a 80 m: es la prueba independiente que falta.
+- Muestra chica: la regla se fijó con 11 cráteres con fuente externa, casi todos volcánicos (1 de impacto), y la prueba fuera de muestra son 8 cráteres de impacto más. Siguen siendo pocos casos.
 - No lo tienen: G00176 (Colton Crater (Crater 160)). El detector mide el diámetro del área inundada, que puede ser menor que el del borde; si el borde real cae fuera de la ventana, la medida no lo ve. En Colton es la causa probable: el detector mide ~0.75 km y la fuente da ~1.1 km de borde a borde (`model/NIVEL2.md` §A).
 - Las etiquetas de presa, valle y duna vienen de la IA, que vio el mismo relieve: esa comparación no es independiente. La de cráteres con fuente frente a canteras de OpenStreetMap sí lo es.
 - Una depresión cerrada en lo alto de una loma también da positivo: es evidencia, no prueba.
