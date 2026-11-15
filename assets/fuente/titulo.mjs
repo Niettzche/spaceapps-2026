@@ -88,6 +88,25 @@ export function generar() {
   textoTitulo(entrada, 'MARSCEPTION', 160, 46, { scale: 3, rampaTexto: T.logo, contorno: '#0d051c', sombra: '#2e0d6b', sombraDy: 3 });
   guardar('../docs/media/video_entrada_1280x720.png', escalar(entrada, 4));
   guardar('../docs/media/video_cierre_1280x720.png', escalar(f, 4));
+
+  // Pantalla de carga (Boot): el fondo del título con el logo y el marco vacío de la barra de progreso.
+  // El hueco de la barra (para el relleno del juego) queda en x 64..255, y 147..150 (192 × 4 px de arte; × 3 en pantalla:
+  // x 192..767, y 441..452). Sin texto: el porcentaje y "Cargando" los pone el juego con la fuente pixel.
+  const carga = createFrame(W, H);
+  fondo(carga);
+  textoTitulo(carga, 'MARSCEPTION', 160, 46, { scale: 3, rampaTexto: T.logo, contorno: '#0d051c', sombra: '#2e0d6b', sombraDy: 3 });
+  const BARRA = { x: 61, y: 144, w: 198, h: 10 };                // marco con borde de 3 px (contorno, luz y sombra)
+  for (let y = BARRA.y; y < BARRA.y + BARRA.h; y++) for (let x = BARRA.x; x < BARRA.x + BARRA.w; x++) {
+    const ex = Math.min(x - BARRA.x, BARRA.x + BARRA.w - 1 - x), ey = Math.min(y - BARRA.y, BARRA.y + BARRA.h - 1 - y);
+    let c;
+    if (ex + ey === 0) continue;
+    if (ex === 0 || ey === 0) c = '#0d051c';
+    else if (ex === 1 || ey === 1) c = y - BARRA.y === 1 || x - BARRA.x === 1 ? '#c9a7ff' : '#7a4cff';
+    else if (ex === 2 || ey === 2) c = '#0d051c';
+    else c = '#180630';                                          // hueco vacío
+    carga.color[y * W + x] = hex(c);
+  }
+  guardar('pantallas/carga_fondo.png', carga);
 }
 
 /** Copia un cuadro escalado × k con vecino más cercano (para video o pantallas grandes). */
