@@ -1,14 +1,14 @@
 import Phaser from 'phaser';
 import { titulo, boton, nota, irA } from './ui.js';
 import { PRESUPUESTO_INICIAL } from '../config/world.js';
-import { DESTINOS } from '../data.js';
+import { DESTINOS, PIEZAS } from '../data.js';
 import { partida } from '../main.js';
 import { recomendar } from '../feedback/reglas.js';
-import { puntuar } from '../feedback/puntuacion.js';
+import { puntuar, ESTRELLAS } from '../feedback/puntuacion.js';
 import { compararAnalogia } from '../feedback/analogia.js';
 import { exponerParaPruebas } from '../fisica/depuracion.js';
 import { sonarBoton } from '../fisica/sonido.js';
-import { tr } from '../i18n.js';
+import { tr, trDato } from '../i18n.js';
 
 // Dueño: frente juego. Resultado de la prueba o la misión: puntuación visible, recomendaciones por reglas y reintentar.
 // Ver ESPECIFICACION.md §11–§12.
@@ -82,6 +82,22 @@ export default class Resultados extends Phaser.Scene {
         const estrellas = '★'.repeat(p.estrellas) + '☆'.repeat(3 - p.estrellas);
         this.add.text(890, 130, `${p.total}\n${estrellas}`, { ...ESTILO, fontSize: '28px', color: '#ffd166', align: 'right' }).setOrigin(1, 0);
       }
+      // Mejor marca por destino (guardada en el navegador) y cuánto falta para la siguiente estrella.
+      if (resultado.entrega) {
+        const marcas = leerMarcas();
+        const previa = marcas[resultado.destino];
+        let txt;
+        if (previa == null || p.total > previa) {
+          marcas[resultado.destino] = p.total;
+          guardarMarcas(marcas);
+          txt = previa == null ? tr('Primera marca en este destino', 'First record for this destination') : tr(`¡Nueva marca! (antes ${previa})`, `New record! (was ${previa})`);
+        } else {
+          txt = tr(`Tu marca: ${previa}`, `Your record: ${previa}`);
+        }
+        const meta = p.estrellas < 2 ? ESTRELLAS.dos : p.estrellas < 3 ? ESTRELLAS.tres : null;
+        if (meta) txt += tr(` · faltan ${meta - p.total} para ${'★'.repeat(p.estrellas + 1)}`, ` · ${meta - p.total} to ${'★'.repeat(p.estrellas + 1)}`);
+        this.add.text(890, 208, txt, { ...ESTILO, fontSize: '12px', color: '#4cc38a', wordWrap: { width: 260 }, align: 'right' }).setOrigin(1, 0);
+      }
       const d = p.desglose;
       if (resultado.entrega) {
         linea(tr(`Entrega ${d.entrega} + carga ${d.integridad} + energía ${d.energia} + ahorro ${d.ahorro}`,
@@ -116,20 +132,50 @@ export default class Resultados extends Phaser.Scene {
       ? [[tr('Reintentar misión', 'Retry mission'), 'Mision'], [tr('Volver al taller', 'Back to workshop'), 'Taller'], [tr('Menú', 'Menu'), 'Menu']]
       : [[tr('Volver al taller', 'Back to workshop'), 'Taller'], [tr('Probar otra vez', 'Test again'), 'Prueba'],
         [exito ? tr('Lanzar misión', 'Launch mission') : tr('Lanzar misión sin superar', 'Launch mission anyway'), 'Mision']];
-    const sugerida = esMision ? (exito ? 2 : 0) : (exito ? 2 : 0);
+    let sugerida = esMision ? (exito ? 2 : 0) : (exito ? 2 : 0);
+    // "Aplicar y al taller": la primera recomendación con cambio de pieza se aplica al diseño y se abre el taller.
+    const aplicable = recs.find((r) => r.cambio);
+    if (aplicable) {
+      const pieza = PIEZAS.find((x) => x.id === aplicable.cambio.pieza);
+      const nombre = pieza ? trDato(pieza, 'nombre') : aplicable.cambio.pieza;
+      const ejes = aplicable.cambio.ranuras.length > 1 ? tr(' (ambos ejes)', ' (both axles)') : '';
+      const i = opciones.findIndex(([, escena]) => escena === 'Taller');
+      opciones[i] = [tr('Aplicar y al taller', 'Apply & to workshop'), 'Taller', () => aplicarCambio(aplicable.cambio)];
+      if (!exito) sugerida = i;
+      this.add.text(xs0(i), yb - 26, tr(`aplica: ${nombre}${ejes}`, `applies: ${nombre}${ejes}`), { ...ESTILO, fontSize: '11px', color: '#4cc38a' }).setOrigin(0.5);
+    }
     const xs = [190, 480, 770];
-    const ir = (escena) => { sonarBoton(); irA(this, escena); };
-    opciones.forEach(([texto, escena], i) => {
-      const b = boton(this, xs[i], yb, `${i + 1} · ${texto}${i === sugerida ? ' ⏎' : ''}`, () => ir(escena));
+    const ir = (escena, antes) => { sonarBoton(); antes?.(); irA(this, escena); };
+    opciones.forEach(([texto, escena, antes], i) => {
+      const b = boton(this, xs[i], yb, `${i + 1} · ${texto}${i === sugerida ? ' ⏎' : ''}`, () => ir(escena, antes)).setFontSize(15);
       if (i === sugerida) b.setColor('#4cc38a');
     });
     this.input.keyboard.on('keydown', (ev) => {
       const n = Number(ev.key);
-      if (n >= 1 && n <= opciones.length) ir(opciones[n - 1][1]);
-      else if (ev.key === 'Enter') ir(opciones[sugerida][1]);
+      if (n >= 1 && n <= opciones.length) ir(opciones[n - 1][1], opciones[n - 1][2]);
+      else if (ev.key === 'Enter') ir(opciones[sugerida][1], opciones[sugerida][2]);
     });
     const avisos = [tr('La puntuación es de juego, no evidencia científica.', 'The score is a game value, not scientific evidence.')];
     if (ilustrativo) avisos.push(tr('Terreno ilustrativo: no es un perfil medido.', 'Illustrative terrain: not a measured profile.'));
     nota(this, avisos.join(' '));
   }
+}
+
+const xs0 = (i) => [190, 480, 770][i];
+
+/** Pone la pieza recomendada en las ranuras indicadas del diseño actual (el taller valida presupuesto al abrir). */
+function aplicarCambio(cambio) {
+  const ultimo = [...partida.resultados].reverse().find((r) => r.resultado?.diseno?.length);
+  const base = partida.diseno?.length ? partida.diseno : ultimo?.resultado.diseno ?? [];
+  const mapa = Object.fromEntries(base.map((d) => [d.ranura, d.pieza]));
+  for (const r of cambio.ranuras) mapa[r] = cambio.pieza;
+  partida.diseno = Object.entries(mapa).map(([ranura, pieza]) => ({ ranura, pieza }));
+}
+
+const CLAVE_MARCAS = 'marsception.marcas';
+function leerMarcas() {
+  try { return JSON.parse(localStorage.getItem(CLAVE_MARCAS)) || {}; } catch { return {}; }
+}
+function guardarMarcas(m) {
+  try { localStorage.setItem(CLAVE_MARCAS, JSON.stringify(m)); } catch { /* sin almacenamiento */ }
 }

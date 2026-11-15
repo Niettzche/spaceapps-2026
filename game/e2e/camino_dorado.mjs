@@ -277,9 +277,13 @@ async function corrida(c) {
   });
   const prueba1 = await probar('prueba_1', c.esperaFalla ? { exito: false, rec: 'ruedas anchas' } : {});
   await paso('taller_ancha', async () => {
-    await clic('Resultados', 'Volver al taller', activa('Taller'));
+    // Si Resultados ofrece "Aplicar y al taller", el cambio recomendado llega aplicado; si no, se cambia a mano.
+    const aplica = await ubicar('Resultados', 'Aplicar y al taller');
+    await clic('Resultados', aplica ? 'Aplicar y al taller' : 'Volver al taller', activa('Taller'));
     await escenaLista('Taller');
-    for (const [ranura, x] of [['rueda_del', 365], ['rueda_tras', 115]]) {
+    const yaAnchas = await page.evaluate(() => { const m = window.__mc.Prueba.game.scene.getScene('Taller').mapa; return m.rueda_del === 'rueda_ancha' && m.rueda_tras === 'rueda_ancha'; });
+    if (aplica && !yaAnchas) return 'FALLA: "Aplicar y al taller" no dejó las ruedas anchas puestas';
+    for (const [ranura, x] of yaAnchas ? [] : [['rueda_del', 365], ['rueda_tras', 115]]) {
       const taller = () => page.evaluate(() => { const s = window.__mc.Prueba.game.scene.getScene('Taller'); return { sel: s.sel, mapa: s.mapa }; });
       await clicEn(x, 392);
       const indice = ranura === 'rueda_del' ? 1 : 2;
