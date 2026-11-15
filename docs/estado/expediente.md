@@ -107,7 +107,25 @@ El script mantiene la flecha derecha y no cambia piezas: la prueba en Samalayuca
 energía". El camino dorado completo (ruedas anchas → pasa → entrega) no se probó con este script.
 
 ## En curso
-- (nada)
+- **Pulido visual del Menú (feat/menu-ambiente, PR "AGREGADOS A MENU")**, hecho en un worktree limpio desde origin/main:
+  - Fondo animado (`scenes/expediente/ambiente.js`, planificador puro en `ambiente_plan.js`): Vía Láctea con carriles de polvo y
+    deriva lenta, estrellas, disco de Marte copiado con máscara y halo que respira, destellos sobre el disco (plata casi siempre;
+    de vez en cuando lavanda, turquesa o ámbar), asteroides en tres capas de profundidad, un cometa con cola iónica y de polvo,
+    planetas o el Sol detrás de Marte (nunca Marte), galaxias de fondo (Enana del Can Mayor, Enana de Sagitario, Gran Nube de
+    Magallanes) y el agujero negro (≈10 s) tras volver de un nivel con resultado nuevo.
+  - Interfaz: fuente sans de sistema (`FUENTE_TEXTO`, sin CDN), filtro lineal en los textos, textos del Menú de 14 px como
+    mínimo, viñeta oscura detrás de la columna de botones (sin velo uniforme), gris secundario `#b8c1de` (≥ 4.5:1 sobre el fondo).
+  - `limpiar()` (interfaz.js) conserva lo marcado con `setData('ambiente', true)`: el fondo sobrevive a los cambios de vista.
+- **Interruptores:** `?ambiente=off` deja solo el arte y la viñeta; `?semilla=N` fija el azar del fondo;
+  `window.__mc.ambiente.disparar('agujero' | 'planeta' | 'galaxia' | 'cometa' | 'asteroide')` fuerza un evento (QA y pitch).
+- **Movimiento reducido** (`prefers-reduced-motion`): solo fondo estático y halo fijo; el agujero entra como un fundido corto.
+- **Límites conocidos:** el agujero negro no curva las estrellas cercanas (opcional, no hecho). Con `?ambiente=off` no hay
+  agujero, planetas, galaxias ni cometas. Verificado en captura de Chrome: Menú principal, agujero negro en crecimiento y
+  "Cómo jugar" con el fondo. Planetas, galaxias y asteroides: revisados por código y pruebas, no en captura. Pruebas
+  del frente con node --test: 53 en verde.
+- **Para integración:** declarar en `docs/USO_IA.md` que el arte ambiental del Menú es procedural, hecho con código y apoyo de IA.
+- **Coordinación pendiente con Diego:** `Menu.js` y `interfaz.js` son de este frente, pero el cambio de fuente y `limpiar()` afectan
+  también a las demás escenas que usan `texto()`; conviene una revisión de Expediente, Explorador y Resultados.
 
 ## Siguiente
 - [ ] **Gravedad de Marte 3.73 si el equipo la cambia** (hoy 3.71): actualizar los 2 textos de
