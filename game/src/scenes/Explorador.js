@@ -50,7 +50,8 @@ export default class Explorador extends Phaser.Scene {
   encabezado() {
     const volver = el('button', { type: 'button', class: 'secundario' }, tr('← Menú', '← Menu'));
     volver.addEventListener('click', () => this.volver());
-    return el('header', {}, [el('h1', {}, tr('Explorador libre', 'Free explorer')), volver]);
+    this.header = el('header', {}, [el('h1', {}, tr('Explorador libre', 'Free explorer')), volver]);
+    return this.header;
   }
 
   // En la demo pública la API del modelo no está publicada: se detecta enseguida (o en ≤ 4 s) en vez de dejar al
@@ -64,7 +65,7 @@ export default class Explorador extends Phaser.Scene {
     if (this.capa !== capa || r.tipo === 'cancelado') return; // la escena se cerró (o se volvió a abrir) mientras esperaba
     aviso.remove();
     this.conApi = r.ok;
-    if (!r.ok) this.capa.append(this.avisoSinApi(r));
+    if (!r.ok) { this.avisoModo = this.avisoSinApi(r); this.capa.append(this.avisoModo); }
     this.armarFormulario();
   }
 
@@ -137,8 +138,47 @@ export default class Explorador extends Phaser.Scene {
         + `Si hay un sitio del catálogo a ${RADIO_CATALOGO_KM} km o menos, verás su ficha; si no, los 3 más cercanos.`,
       'Type an Earth coordinate in decimal degrees, without a sign, and pick N/S and E/W. '
         + `If a catalog site is within ${RADIO_CATALOGO_KM} km, you will see its card; if not, the 3 nearest ones.`));
-    this.capa.append(ayuda, form, this.estado, this.resultado);
+    // Tras consultar, el formulario se colapsa en una barra corta ("Cambiar coordenada" lo vuelve a abrir) para que la
+    // ficha se vea sin desplazarse a 960 × 540 y en el teléfono.
+    this.panelFormulario = el('div', { class: 'panel-formulario' }, [ayuda, form]);
+    // La barra va en la misma línea del título (entre "Explorador libre" y "← Menú") para no gastar una línea entera.
+    this.barraConsulta = el('div', { class: 'barra-consulta', hidden: true });
+    this.header.insertBefore(this.barraConsulta, this.header.lastChild);
+    this.capa.append(this.panelFormulario, this.estado, this.resultado);
     this.lat.focus();
+  }
+
+  /** Oculta el formulario y deja una barra con el punto consultado y un botón para volver a abrirlo. */
+  colapsarFormulario(punto) {
+    if (!this.panelFormulario) return;
+    const destino = DESTINOS[punto.destino];
+    const cambiar = el('button', { type: 'button', class: 'secundario' }, tr('Cambiar coordenada', 'Change coordinate'));
+    cambiar.addEventListener('click', () => this.expandirFormulario());
+    this.barraConsulta.replaceChildren(
+      el('span', {}, [formatoCoordenada(punto.lat, punto.lon),
+        destino ? ` · ${MUNDOS[destino.mundo] || destino.mundo}` : '',
+        this.conApi ? '' : ` · ${tr('sin API', 'no API')}`]),
+      cambiar,
+    );
+    this.panelFormulario.hidden = true;
+    if (this.avisoModo) this.avisoModo.hidden = true;
+    this.barraConsulta.hidden = false;
+    this.capa.scrollTop = 0;
+  }
+
+  expandirFormulario() {
+    this.panelFormulario.hidden = false;
+    if (this.avisoModo) this.avisoModo.hidden = false;
+    this.barraConsulta.hidden = true;
+    this.lat.focus();
+  }
+
+  /** Tras mostrar un resultado, el foco va a su título (o a "Cambiar coordenada"): el botón de consultar quedó oculto. */
+  enfocarResultado() {
+    const destino = this.resultado.querySelector('h2, h3, strong') || this.barraConsulta.querySelector('button');
+    if (destino && !destino.hasAttribute('tabindex') && !/^(BUTTON|A|INPUT|SELECT)$/.test(destino.tagName)) destino.setAttribute('tabindex', '-1');
+    destino?.focus({ preventScroll: true });
+    this.capa.scrollTop = 0;
   }
 
   // El Explorador es un diálogo modal: Tab y Shift+Tab dan la vuelta dentro de él en vez de salir a la página.
@@ -213,12 +253,13 @@ export default class Explorador extends Phaser.Scene {
     let clima = null;
     if (cat.encontrado) nodos.push(this.fichaCatalogo(cat.encontrado, destinoId));
     else {
+      // Dos columnas: cercanos y propuesta a la izquierda, clima en vivo a la derecha.
       clima = el('section', { class: 'clima', 'aria-live': 'polite' });
-      nodos.push(this.fueraDelCatalogo(cat, punto), clima, this.propuestaSinApi());
+      nodos.push(el('div', { class: 'dos-col mitades' }, [el('div', {}, [this.fueraDelCatalogo(cat, punto), this.propuestaSinApi()]), clima]));
     }
     this.resultado.replaceChildren(...nodos.filter(Boolean));
-    // A 960×540 el resultado queda debajo del formulario: se lleva a la vista (el formulario sigue arriba, con scroll).
-    (aviso || etiqueta).scrollIntoView?.({ block: 'start' });
+    this.colapsarFormulario(punto);
+    this.enfocarResultado();
     if (clima) this.pedirClima(punto, destinoId, clima, this.consulta);
   }
 
@@ -244,7 +285,7 @@ export default class Explorador extends Phaser.Scene {
     const url = urlFicha(s);
     if (url) acciones.append(el('a', { class: 'boton', href: url, target: '_blank', rel: 'noopener' }, tr('Ficha completa ↗', 'Full fact sheet ↗')));
 
-    return el('article', { class: 'ficha' }, [
+    const izquierda = [
       el('h2', { tabindex: '-1' }, trDato(s, 'nombre') || s.id),
       el('p', {}, [el('span', { style: `color: ${est.color}` }, est.texto),
         ` · ${tr(`a ${formatoDistancia(km)} de tu punto`, `${formatoDistancia(km)} from your point`)} · ${formatoCoordenada(s.lat, s.lon)}`
@@ -261,29 +302,36 @@ export default class Explorador extends Phaser.Scene {
       elegido && gemelo && elegido.id !== gemelo.id
         ? el('p', { class: 'nota' }, tr(`El modelo calculó este sitio contra su gemelo (${trDato(gemelo, 'nombre')}), no contra ${trDato(elegido, 'nombre')}.`,
           `The model computed this site against its twin (${trDato(gemelo, 'nombre')}), not against ${trDato(elegido, 'nombre')}.`)) : null,
-      el('table', {}, [
-        el('thead', {}, el('tr', {}, [el('th', {}, tr('Dimensión', 'Dimension')), el('th', {}, tr('Tierra (sitio)', 'Earth (site)')),
-          el('th', {}, tr('Gemelo', 'Twin')), el('th', {}, tr('Similitud', 'Similarity'))])),
-        el('tbody', {}, filas.length ? filas.map((f) => el('tr', {}, [
-          el('th', { scope: 'row' }, f.etiqueta),
-          el('td', {}, [formatoValor(f.tierra), el('small', {}, recortar(trDato(f.tierra, 'fuente') || '', 70))]),
-          el('td', {}, [f.destino?.texto && f.destino.valor == null ? f.destino.texto : formatoValor(f.destino),
-            el('small', {}, recortar(trDato(f.destino, 'fuente') || '', 70))]),
-          el('td', { class: 'num' }, f.mismaUnidad ? formatoPorcentaje(f.similitud) : tr('⚠ unidades distintas', '⚠ different units')),
-        ])) : el('tr', {}, el('td', { colspan: 4 }, sinDato()))),
-      ]),
       el('p', {}, [el('strong', {}, tr('Lo que la Tierra no puede probar: ', 'What Earth cannot test: ')),
         noReproducible.length ? noReproducible.map((l) => l.etiqueta).join(' · ') : sinDato()]),
       ...notas.map((n) => el('p', { class: 'nota' }, `${tr('Límite del cálculo', 'Calculation limit')}: ${enIdioma(n)}`)),
       jugable ? null : el('p', { class: 'nota' }, tr('Este sitio aún no es jugable (no tiene recorrido de prueba): es parte del catálogo del modelo.',
         'This site is not playable yet (it has no test route): it is part of the model catalog.')),
-    ]);
+    ];
+    const derecha = [
+      // 3 columnas para que quepa sin desplazarse: la similitud va debajo del nombre de la dimensión.
+      el('table', { class: 'compacta' }, [
+        el('thead', {}, el('tr', {}, [el('th', {}, tr('Dimensión · similitud', 'Dimension · similarity')),
+          el('th', {}, tr('Tierra (sitio)', 'Earth (site)')), el('th', {}, tr('Gemelo', 'Twin'))])),
+        el('tbody', {}, filas.length ? filas.map((f) => el('tr', {}, [
+          el('th', { scope: 'row' }, [f.etiqueta, el('small', { class: 'sim' },
+            f.mismaUnidad ? formatoPorcentaje(f.similitud) : tr('⚠ unidades distintas', '⚠ different units'))]),
+          // Fuente corta en la celda (el texto completo queda en el title y en el Expediente del sitio).
+          el('td', {}, [formatoValor(f.tierra), el('small', { title: trDato(f.tierra, 'fuente') || '' }, recortar(trDato(f.tierra, 'fuente') || '', 30))]),
+          el('td', {}, [f.destino?.texto && f.destino.valor == null ? f.destino.texto : formatoValor(f.destino),
+            el('small', { title: trDato(f.destino, 'fuente') || '' }, recortar(trDato(f.destino, 'fuente') || '', 30))]),
+        ])) : el('tr', {}, el('td', { colspan: 3 }, sinDato()))),
+      ]),
+    ];
+    return el('article', { class: 'ficha dos-col' }, [el('div', {}, izquierda.filter(Boolean)), el('div', {}, derecha)]);
   }
 
   fueraDelCatalogo(cat, punto) {
     const lista = el('ul', { class: 'cercanos' }, cat.cercanos.map(({ sitio: s, distanciaKm: km }) => {
       const est = (esMina(s) && ESTADOS.mina) || ESTADOS[s.estado] || { texto: s.estado };
-      const b = el('button', { type: 'button', class: 'secundario' }, `${trDato(s, 'nombre') || s.id} · ${est.texto} · ${formatoDistancia(km)}`);
+      // Nombre y distancia (el estado va en el title y en la ficha al abrirlo): cabe sin desplazarse.
+      const b = el('button', { type: 'button', class: 'secundario', title: est.texto },
+        `${recortar(trDato(s, 'nombre') || s.id, 40)} · ${formatoDistancia(km)}`);
       b.addEventListener('click', () => this.consultarSitio(s));
       return el('li', {}, b);
     }));
@@ -331,15 +379,18 @@ export default class Explorador extends Phaser.Scene {
         + `s = exp(−|Tierra − destino| / escala); escalas del modelo (P): ${escalas}.`,
       `Live climate of this point (NASA POWER, annual climatology) against ${trDato(destino, 'nombre')}. `
         + `s = exp(−|Earth − destination| / scale); model scales (P): ${escalas}.`)),
-      el('table', {}, [
-        el('thead', {}, el('tr', {}, [el('th', {}, tr('Dimensión', 'Dimension')), el('th', {}, tr('Este punto', 'This point')),
-          el('th', {}, tr('Destino', 'Destination')), el('th', {}, tr('Similitud', 'Similarity'))])),
-        el('tbody', {}, filas.map((f) => el('tr', {}, [
-          el('th', { scope: 'row' }, etiquetaVariable(f.clave)),
-          el('td', {}, [formatoValor(f.tierra), el('small', {}, `${enIdioma(f.tierra?.fuente) || ''}${f.tierra?.fecha ? ` · ${f.tierra.fecha}` : ''}`)]),
-          el('td', {}, [formatoValor(f.destino), el('small', {}, recortar(trDato(f.destino, 'fuente') || '', 70))]),
-          el('td', { class: 'num' }, formatoPorcentaje(f.similitud)),
-        ]))),
+      // 3 columnas (como la ficha del catálogo): la similitud va debajo del nombre de la dimensión.
+      el('table', { class: 'compacta' }, [
+        el('thead', {}, el('tr', {}, [el('th', {}, tr('Dimensión · similitud', 'Dimension · similarity')),
+          el('th', {}, tr('Este punto', 'This point')), el('th', {}, tr('Destino', 'Destination'))])),
+        el('tbody', {}, filas.map((f) => {
+          const fuenteT = `${enIdioma(f.tierra?.fuente) || ''}${f.tierra?.fecha ? ` · ${f.tierra.fecha}` : ''}`;
+          return el('tr', {}, [
+            el('th', { scope: 'row' }, [etiquetaVariable(f.clave), el('small', { class: 'sim' }, formatoPorcentaje(f.similitud))]),
+            el('td', {}, [formatoValor(f.tierra), el('small', { title: fuenteT }, recortar(fuenteT, 30))]),
+            el('td', {}, [formatoValor(f.destino), el('small', { title: trDato(f.destino, 'fuente') || '' }, recortar(trDato(f.destino, 'fuente') || '', 30))]),
+          ]);
+        })),
       ]),
       ...recortes.map((t) => el('p', { class: 'nota' }, t)),
       el('p', { class: 'nota' }, tr('Sin la forma del cráter (la dimensión principal) no hay similitud total. Tampoco se revisan vegetación (MODIS) '
@@ -352,13 +403,12 @@ export default class Explorador extends Phaser.Scene {
   // Sin API no se puede guardar una propuesta: el botón se ve, deshabilitado, con la razón.
   propuestaSinApi() {
     const boton = el('button', { type: 'button', class: 'primario', disabled: true, 'aria-describedby': 'mc-propuesta-nota' }, tr('Proponer sitio', 'Propose site'));
-    return el('div', { class: 'propuesta' }, [
-      el('strong', {}, tr('Proponer este sitio', 'Propose this site')),
+    // Una sola fila (botón deshabilitado + motivo) para que quepa junto a los sitios cercanos sin desplazarse.
+    return el('div', { class: 'propuesta compacta' }, [
       el('div', { class: 'fila' }, [boton,
-        el('p', { id: 'mc-propuesta-nota', class: 'nota' }, tr('Necesita la API del servidor, que calcula la similitud total (con la forma del cráter) '
-          + 'y guarda la propuesta. En esta demo no está publicada.',
-        'It needs the server API, which computes the total similarity (with crater shape) and stores the proposal. '
-          + 'It is not published in this demo.'))]),
+        el('p', { id: 'mc-propuesta-nota', class: 'nota' }, tr('Necesita la API del modelo (similitud total con la forma del cráter), '
+          + 'que no está publicada en esta demo.',
+        'It needs the model API (total similarity with crater shape), which is not published in this demo.'))]),
     ]);
   }
 
@@ -383,7 +433,7 @@ export default class Explorador extends Phaser.Scene {
     const total = sim.total;
 
     this.ultimo = { datos: d, punto };
-    this.resultado.replaceChildren(
+    const izquierda = el('div', {}, [
       el('div', { class: 'total' }, [
         el('span', { class: 'grande' }, formatoPorcentaje(total)),
         el('span', {}, tr(` similitud total con ${destino ? trDato(destino, 'nombre') : punto.destino} · confianza ${formatoPorcentaje(sim.confianza)}`,
@@ -394,15 +444,18 @@ export default class Explorador extends Phaser.Scene {
         + 'La forma de cráter solo existe para depresiones medidas por el detector; en un punto cualquiera falta y baja la confianza.',
       `Point ${formatoCoordenada(punto.lat, punto.lon)} · method: ${d?.metodo || sinDato()}. `
         + 'Crater shape only exists for depressions measured by the detector; at an arbitrary point it is missing and confidence drops.')),
-      el('table', {}, [
-        el('thead', {}, el('tr', {}, [el('th', {}, tr('Dimensión', 'Dimension')), el('th', {}, tr('Tierra (este punto)', 'Earth (this point)')),
-          el('th', {}, tr('Destino', 'Destination')), el('th', {}, tr('Similitud', 'Similarity'))])),
-        el('tbody', {}, filas.length ? filas : el('tr', {}, el('td', { colspan: 4 }, tr('La API no devolvió dimensiones.', 'The API returned no dimensions.')))),
-      ]),
       el('p', {}, [el('strong', {}, tr('Lo que la Tierra no puede probar: ', 'What Earth cannot test: ')), limites.length ? limites.join(' · ') : sinDato()]),
       ...notas.map((n) => el('p', { class: 'nota' }, n)),
       this.bloquePropuesta(d, punto),
-    );
+    ]);
+    const derecha = el('div', {}, el('table', { class: 'compacta' }, [
+      el('thead', {}, el('tr', {}, [el('th', {}, tr('Dimensión', 'Dimension')), el('th', {}, tr('Tierra (este punto)', 'Earth (this point)')),
+        el('th', {}, tr('Destino', 'Destination')), el('th', {}, tr('Similitud', 'Similarity'))])),
+      el('tbody', {}, filas.length ? filas : el('tr', {}, el('td', { colspan: 4 }, tr('La API no devolvió dimensiones.', 'The API returned no dimensions.')))),
+    ]));
+    this.resultado.replaceChildren(el('article', { class: 'dos-col' }, [izquierda, derecha]));
+    this.colapsarFormulario(punto);
+    this.enfocarResultado();
   }
 
   // "Proponer sitio" solo aparece si la API lo permite Y la similitud total alcanza el umbral (P: 0.6).
