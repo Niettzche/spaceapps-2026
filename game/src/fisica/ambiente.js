@@ -234,7 +234,7 @@ export function efectosAmbiente(amb) {
   const f = factorFrio(amb.temperatura_min_C);
   const partes = [];
   partes.push(f < 1
-    ? tr(`batería fría: arranca al ${Math.round(f * 100)} % sin calentador`, `cold battery: starts at ${Math.round(f * 100)} % without heater`)
+    ? tr(`batería fría: arranca al ${Math.round(f * 100)} %`, `cold battery: starts at ${Math.round(f * 100)} %`)
     : tr('batería sin pérdida por frío', 'no cold loss in the battery'));
   partes.push(tr(`motor: límite ${REGLAS.motor.limite_C} °C`, `motor: limit ${REGLAS.motor.limite_C} °C`));
   if (amb.luz === 'rasante') partes.push(tr('luz rasante: el panel solar recarga 20 %', 'grazing light: the solar panel recharges 20 %'));
