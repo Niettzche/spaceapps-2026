@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node servidor.mjs",
+    "publico": "MODO=publico BASE=/mando node servidor.mjs",
     "todo": "node iniciar.mjs",
     "prueba": "node prueba_e2e.mjs",
     "prueba:flechas": "node prueba_flechas.mjs",

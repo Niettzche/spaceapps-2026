@@ -15,8 +15,15 @@ control-celular/
 └── prueba_*.mjs       pruebas automáticas (e2e, cruceta, visual)
 ```
 
-En el juego, el único cambio es un `<script>` en `game/index.html`: si la página corre en local (`http:`), intenta cargar
-`http://<host>:8787/puente.js`. En la demo pública (`https:`) no hace nada.
+En el juego, el único cambio es un `<script>` en `game/index.html`, y solo actúa si la URL trae `?mando`: en local (`http:`)
+carga `http://<host>:8787/puente.js`; en la demo pública (`https:`) carga `/mando/puente.js` del mismo dominio.
+
+## Demo pública (por internet)
+
+Con el relay en «modo público» detrás de nginx (`MODO=publico BASE=/mando node servidor.mjs`), cualquiera abre
+`https://v1.marsception.us/?mando`, toca «Conectar celular» y escanea el QR: el celular entra por internet (wss por el
+puerto 443, sin estar en la misma red). Cada pestaña del juego tiene su propia sala de 6 dígitos. Pasos de despliegue,
+bloque de nginx y pruebas con curl/wscat: **[DESPLIEGUE.md](DESPLIEGUE.md)**.
 
 ## Cómo correrlo
 

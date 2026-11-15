@@ -212,7 +212,9 @@
   });
 
   // ------------------------------------------------------------ conexión
-  let sala = params.get('s') ?? leer('mc.sala') ?? '';
+  // Código de sala: 4 dígitos en local (relay en la compu), 6 en la demo pública (?s= o ?sala=).
+  let sala = params.get('s') ?? params.get('sala') ?? leer('mc.sala') ?? '';
+  const SALA_OK = /^\d{4,6}$/;
   let ws = null;
   let espera = 400;
   let pantallaLista = false;
@@ -238,11 +240,13 @@
 
   function conectar() {
     clearTimeout(tRecon);
-    if (!/^\d{4}$/.test(sala)) { pedirSala(); return; }
+    if (!SALA_OK.test(sala)) { pedirSala(); return; }
     if (ws && ws.readyState <= 1) { ws.onclose = null; ws.close(); }
     estado('', t('conectando'));
     const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-    const este = new WebSocket(`${proto}://${location.host}/ws?rol=pad&sala=${sala}`);
+    // Misma carpeta que la página: /ws en local, /mando/ws en la demo pública (detrás de nginx).
+    const carpeta = location.pathname.replace(/[^/]*$/, '');
+    const este = new WebSocket(`${proto}://${location.host}${carpeta}ws?rol=pad&sala=${sala}`);
     ws = este;
     este.onopen = () => {
       espera = 400;
@@ -287,7 +291,7 @@
   $('#formSala').addEventListener('submit', (e) => {
     e.preventDefault();
     const v = $('#campoSala').value.trim();
-    if (!/^\d{4}$/.test(v)) return;
+    if (!SALA_OK.test(v)) return;
     sala = v;
     params.set('s', v); // conserva ?piel= y ?lang=
     history.replaceState(null, '', `?${params}`);
