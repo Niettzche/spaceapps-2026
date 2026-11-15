@@ -7,6 +7,7 @@ y los cuadernos que vuelven a calcular sus cifras, por si alguien pide verlas.
 |---|---|
 | `guia_exposicion_modelo.pdf` | **Documento de estudio.** Qué decir en 30 segundos, lo que nos distingue (la figura «¿cráter o mina?»), el borde en todos los grupos, 17 preguntas de jueces con respuesta y respaldo, y lo que no hay que decir. |
 | `figura_crater_o_mina_es.png` / `_en.png` | **La figura para diapositivas o para la página del proyecto**, en español y en inglés (también en `.svg`). Corte de un cráter y de un tajo minero. |
+| `preguntas_modelo.pdf` | **Banco de preguntas.** 48 preguntas que pueden hacer sobre el modelo, por tema, cada una con qué decir, qué añadir si insisten y dónde está el respaldo. La guía trae solo las más probables; aquí están todas. |
 | `01_borde_levantado.ipynb` | Respalda las dos primeras páginas de la guía: cómo se mide el borde levantado y por qué separa un cráter de un valle o una mina. |
 | `02_cifras_de_la_guia.ipynb` | Respalda las preguntas: vuelve a calcular cada cifra que se puede calcular con los datos del repo. |
 | `guia_exposicion_modelo.html` | La misma guía, antes de pasarla a PDF. |
@@ -32,7 +33,7 @@ y los cuadernos que vuelven a calcular sus cifras, por si alguien pide verlas.
 | 29 de 33 etiquetas contrastadas | `02_cifras_de_la_guia.ipynb`, sección 5 |
 | 176 K y 55 K; lo que la Tierra no reproduce | `02_cifras_de_la_guia.ipynb`, sección 6 |
 | 3 de 3 controles negativos y 9 de 21 análogos conocidos | `model/VALIDATION.md`, sección A (necesita Earth Engine; el cuaderno 02 solo lo cita) |
-| Qué significa el porcentaje (8 de cada 10 sitios áridos entre 0.32 y 0.51) | `model/VALIDATION.md`, sección A, «Tasa del prefiltro en los sitios del detector» |
+| Qué significa el porcentaje (8 de cada 10 sitios áridos entre 0.32 y 0.52) | `model/VALIDATION.md`, sección A, «Tasa del prefiltro en los sitios del detector» |
 | 9 de 11 cráteres mexicanos conocidos | `informe/validacion_detector.pdf` |
 | La Luna emborronada (0.058 → 0.043) | `model/NIVEL2.md`, sección B |
 | El modelo Luna contra Marte paso a paso | `ciencia_datos/06_modelo_luna_marte.ipynb` |
@@ -60,6 +61,9 @@ uv run --with scikit-learn==1.5.2 --with pandas==2.2.3 --with numpy==2.1.3 pytho
 google-chrome-stable --headless --no-pdf-header-footer \
   --print-to-pdf=informe/exposicion_modelo/guia_exposicion_modelo.pdf informe/exposicion_modelo/guia_exposicion_modelo.html
 ```
+
+El banco de preguntas se regenera igual, con `informe/generar_preguntas_modelo.py` (solo necesita pandas y numpy) y el mismo
+paso de Chrome sobre `preguntas_modelo.html`. Se detiene si una frase citada ya no está en su documento.
 
 El generador se detiene si alguna cifra copiada ya no aparece en `model/VALIDATION.md`, o si los dos ejemplos de la figura dejan
 de mostrar lo que dice el texto. También escribe la figura suelta (`figura_crater_o_mina_es.svg` y `_en.svg`) y, si está

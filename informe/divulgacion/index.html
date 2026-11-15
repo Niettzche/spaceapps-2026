@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Marsception · Entrena en la Tierra, aterriza en la Luna o en Marte</title>
+  <meta name="description" content="Un juego en el navegador para probar un rover en lugares reales de la Tierra parecidos a la Luna y a Marte, elegidos con datos abiertos de la NASA. Y la ciencia detrás, explicada en 3D.">
+  <meta name="color-scheme" content="dark light">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%23F08A4B' stroke-width='3'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23F08A4B'/%3E%3C/svg%3E">
+  <script>
+    // Tema e idioma antes de pintar, para que no parpadee
+    try {
+      const t = localStorage.getItem('mc-tema'); if (t) document.documentElement.dataset.theme = t;
+    } catch (e) {}
+    const lang = new URLSearchParams(location.search).get('lang');
+    if (lang === 'en' || lang === 'es') document.documentElement.lang = lang;
+  </script>
+</head>
+<body>
+  <canvas id="estrellas" aria-hidden="true"></canvas>
+  <a class="saltar" href="#contenido" data-t="saltar">Ir al contenido</a>
+
+  <header class="barra" id="barra">
+    <a class="marca" href="#inicio" aria-label="MARSCEPTION, inicio">
+      <svg viewBox="0 0 32 32" width="20" height="20" aria-hidden="true"><circle cx="16" cy="16" r="12.5" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="16" cy="16" r="4.5" fill="currentColor"/></svg>
+      <span>Marsception</span>
+    </a>
+    <nav class="indice" aria-label="Secciones" data-t-aria="indiceAria">
+      <a href="#como" data-t="navComo">Cómo se juega</a><a href="#destinos" data-t="navDestinos">Destinos</a><a href="#ciencia" data-t="navCiencia">La ciencia</a><a href="#detalles" data-t="navDetalles">Detalles técnicos</a><a href="#business" data-t="navBiz">For Business</a><a href="#metodo" data-t="navDatos">Datos</a>
+    </nav>
+    <div class="ajustes">
+      <a class="boton boton-chico" href="https://v1.marsception.us/" data-t="navJugar">Jugar</a>
+      <div class="segmento segmento-chico" role="group" aria-label="Idioma" data-t-aria="idiomaAria">
+        <button type="button" data-lang="es" aria-pressed="true">ES</button>
+        <button type="button" data-lang="en" aria-pressed="false">EN</button>
+        <span class="segmento-indicador" aria-hidden="true"></span>
+      </div>
+      <button type="button" class="boton-icono" id="tema" aria-label="Cambiar tema claro u oscuro" data-t-aria="temaAria">
+        <svg class="icono-sol" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <svg class="icono-luna" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M20 14.6A8.2 8.2 0 0 1 9.4 4a8.2 8.2 0 1 0 10.6 10.6Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main id="contenido">
+    <!-- ───────────── Portada: inspirada en la pantalla de inicio del juego, con lo de la landing ───────────── -->
+    <section class="inicio-juego" id="inicio" aria-labelledby="t-inicio">
+      <div class="inicio-arte" aria-hidden="true">
+        <img class="inicio-fondo" src="./arte/titulo_fondo.png" width="320" height="180" alt="">
+        <canvas class="inicio-estrellas"></canvas>
+        <div class="inicio-velo"></div>
+        <div class="inicio-suelo">
+          <div class="inicio-rover"><span class="rover-polvo"></span><span class="rover-cuerpo"></span></div>
+        </div>
+      </div>
+      <div class="inicio-contenido">
+        <p class="antetitulo inicio-entra" style="--orden:0" data-t="antetitulo">NASA Space Apps Challenge 2026 · Sede UDEM</p>
+        <h1 id="t-inicio" class="inicio-logo"><img src="./arte/logo.png" width="191" height="25" alt="Marsception"></h1>
+        <p class="inicio-lema" data-t="inicioLema">Entrena en la <b class="c-tierra">Tierra</b>. Aterriza en la <b class="c-luna">Luna</b> / <b class="c-marte">Marte</b>.</p>
+        <p class="inicio-sub inicio-entra" style="--orden:3" data-t="inicioSub">Usamos datos de la NASA para encontrar los lugares de la Tierra que se parecen a la Luna y a Marte. Ahí pruebas tu rover, y luego lo lanzas con la gravedad real.</p>
+        <div class="acciones inicio-entra" style="--orden:4">
+          <a class="boton boton-grande boton-jugar" href="https://v1.marsception.us/"><span class="parpadeo" aria-hidden="true">▶</span><span data-t="jugarAhora">Jugar ahora</span></a>
+          <a class="boton-fantasma" href="#ciencia"><span data-t="verCiencia">Ver la ciencia</span> <span aria-hidden="true">↓</span></a>
+        </div>
+        <ol class="pasos inicio-pasos" aria-label="Cómo se juega, en cuatro pasos" data-t-aria="pasosAria">
+          <li class="inicio-entra" style="--orden:5" data-t="paso1c">Encuentra el análogo</li>
+          <li class="inicio-entra" style="--orden:5.5" data-t="paso2c">Arma el rover</li>
+          <li class="inicio-entra" style="--orden:6" data-t="paso3c">Pruébalo en la Tierra</li>
+          <li class="inicio-entra" style="--orden:6.5" data-t="paso4c">Lánzalo</li>
+        </ol>
+        <a class="inicio-detalles inicio-entra" style="--orden:7" href="#detalles"><span data-t="verDetalles">Detalles técnicos: cifras, fuentes y validación</span> <span aria-hidden="true">→</span></a>
+      </div>
+    </section>
+
+    <!-- ───────────── Cómo se juega ───────────── -->
+    <section class="seccion" id="como" aria-labelledby="t-como">
+      <header class="cap-cabeza">
+        <p class="cap-num revela" data-t="comoAnte">Cómo se juega</p>
+        <h2 id="t-como" class="revela" data-t="comoTitulo">Prueba antes de lanzar</h2>
+        <p class="cap-entrada revela" data-t="comoEntrada">Llevar un rover a la Luna o a Marte cuesta demasiado como para equivocarse allá. Por eso primero se prueba aquí, en lugares de la Tierra que se parecen al destino.</p>
+      </header>
+      <ol class="pasos-juego">
+        <li class="paso revela">
+          <img class="captura" src="./arte/juego-expediente.webp" width="960" height="540" alt="" loading="lazy">
+          <div><span class="paso-n">01</span><h3 data-t="paso1t">Elige destino y un análogo</h3><p data-t="paso1">La Luna (polo sur) o Marte (cráter Jezero). Abre el expediente de un sitio de la Tierra: a la izquierda la Tierra, a la derecha el destino, la misma variable con la misma unidad, y lo que ahí no se puede probar.</p></div>
+        </li>
+        <li class="paso revela">
+          <img class="captura" src="./arte/juego-taller.webp" width="960" height="540" alt="" loading="lazy">
+          <div><span class="paso-n">02</span><h3 data-t="paso2t">Arma el rover</h3><p data-t="paso2">En el taller eliges ruedas, motor, chasis, soporte de la carga, batería y panel solar con un presupuesto de 1,000 créditos. Cambiar una pieza o su lugar cambia cómo se comporta el rover.</p></div>
+        </li>
+        <li class="paso revela">
+          <img class="captura" src="./arte/juego-prueba.webp" width="960" height="540" alt="" loading="lazy">
+          <div><span class="paso-n">03</span><h3 data-t="paso3t">Pruébalo en la Tierra</h3><p data-t="paso3">Manejas sobre el relieve real del sitio, medido por satélite. Si patina o pierde la carga, el juego te dice qué pasó y qué cambiar. Tienes tres boletos de prueba.</p></div>
+        </li>
+        <li class="paso revela">
+          <img class="captura" src="./arte/juego-mision.webp" width="960" height="540" alt="" loading="lazy">
+          <div><span class="paso-n">04</span><h3 data-t="paso4t">Lánzalo con la gravedad real</h3><p data-t="paso4">En la misión manda la gravedad del destino. Llega a la base, entrega el suministro con al menos el 60 % de la carga en buen estado y gana hasta tres estrellas.</p></div>
+        </li>
+      </ol>
+      <p class="nota centrada revela" data-t="comoNota">Precios, piezas y puntos son valores de juego: sirven para jugar, no son evidencia científica.</p>
+    </section>
+
+    <!-- ───────────── Destinos ───────────── -->
+    <section class="seccion" id="destinos" aria-labelledby="t-destinos">
+      <header class="cap-cabeza">
+        <p class="cap-num revela" data-t="destAnte">Dos destinos</p>
+        <h2 id="t-destinos" class="revela" data-t="destTitulo">La Luna o Marte: tú eliges</h2>
+      </header>
+      <div class="destinos">
+        <article class="destino revela" data-cuerpo="luna">
+          <img class="pixel" src="./arte/fondo_luna.png" width="320" height="180" alt="" loading="lazy">
+          <div class="destino-texto">
+            <p class="destino-ante"><i></i><span data-t="destLunaAnte">Luna · polo sur</span></p>
+            <h3 data-t="destLunaT">Donde quiere aterrizar Artemis</h3>
+            <p data-t="destLuna">Luz rasante, sombras largas y cráteres hondos. Un buen análogo de forma es El Elegante, un cráter volcánico del Pinacate (Sonora): se parece mucho a los cráteres del polo sur.</p>
+            <dl><div><dt>1.62</dt><dd>m/s²</dd></div><div><dt>176 K</dt><dd data-t="destOsc">oscilación térmica diaria del suelo</dd></div></dl>
+          </div>
+        </article>
+        <article class="destino revela" data-cuerpo="marte">
+          <img class="pixel" src="./arte/fondo_marte.png" width="320" height="180" alt="" loading="lazy">
+          <div class="destino-texto">
+            <p class="destino-ante"><i></i><span data-t="destMarteAnte">Marte · cráter Jezero</span></p>
+            <h3 data-t="destMarteT">Donde explora Perseverance</h3>
+            <p data-t="destMarte">Polvo, dunas y cráteres rellenos por el viento. Las dunas de Samalayuca (Chihuahua) sirven para probar el agarre de las ruedas en arena suelta.</p>
+            <dl><div><dt>3.71</dt><dd>m/s²</dd></div><div><dt>55 K</dt><dd data-t="destOsc2">oscilación térmica diaria del aire</dd></div></dl>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ═════════════ La ciencia, como infografía de museo (pixel art del juego, se anima al aparecer) ═════════════ -->
+    <section class="museo-sec" data-grupo="ciencia" id="ciencia" aria-labelledby="t-ciencia">
+      <article class="museo revela" id="museo">
+        <header class="museo-cabeza">
+          <h2 id="t-ciencia" data-t="museoTitulo">¿Cómo encontramos lugares en la Tierra que se parecen a la Luna y a Marte?</h2>
+        </header>
+
+        <ol class="museo-pasos">
+          <li class="museo-paso">
+            <p class="museo-num" aria-hidden="true">1</p>
+            <h3 data-t="museo1t">Medimos</h3>
+            <canvas class="museo-arte" data-arte="medimos" width="128" height="72" role="img" aria-label="Un satélite pasa sobre el cráter El Elegante y marca su forma." data-t-aria="museo1a"></canvas>
+            <p class="museo-dato"><b>5,208</b><span aria-hidden="true">→</span><b class="c-tierra">47</b></p>
+            <p class="museo-dato-pie" data-t="museo1d">hoyos medidos en México → con forma de cráter, en desiertos</p>
+            <p data-t="museo1p">Medimos cada hoyo con datos de satélite, igual que en la Luna y en Marte (200 m por píxel). Solo en desiertos: con plantas, cualquier hoyo parece cráter.</p>
+          </li>
+          <li class="museo-paso">
+            <p class="museo-num" aria-hidden="true">2</p>
+            <h3 data-t="museo2t">Comparamos</h3>
+            <canvas class="museo-arte" data-arte="comparamos" width="128" height="72" role="img" aria-label="Un cráter de la Luna, hondo, junto a uno de Marte que se rellena de arena." data-t-aria="museo2a"></canvas>
+            <p class="museo-dato"><b class="c-luna">0.060</b><span aria-hidden="true">·</span><b class="c-marte">0.027</b></p>
+            <p class="museo-dato-pie" data-t="museo2d">profundidad entre diámetro: Luna · Marte</p>
+            <p data-t="museo2p">En la Luna los cráteres son hondos; en Marte, el viento, el agua y el hielo los rellenaron. Con 4,288 cráteres lunares y 573 marcianos, el modelo los distingue: acierta 78 %.</p>
+          </li>
+          <li class="museo-paso">
+            <p class="museo-num" aria-hidden="true">3</p>
+            <h3 data-t="museo3t">Revisamos el borde</h3>
+            <canvas class="museo-arte" data-arte="borde" width="128" height="72" role="img" aria-label="Corte del cráter El Elegante, con borde levantado, y de la mina Peñasquito, sin borde." data-t-aria="museo3a"></canvas>
+            <p class="museo-dato"><b class="c-acento">7 / 8</b></p>
+            <p class="museo-dato-pie" data-t="museo3d">cráteres de impacto que la regla nunca había visto tienen borde</p>
+            <p data-t="museo3p">Una mina también es un hoyo hondo, pero sin orilla levantada. Entre los 25 primeros por forma hay 14 minas; por borde, solo 1.</p>
+          </li>
+        </ol>
+
+        <section class="museo-limites" aria-labelledby="t-museo-lim">
+          <h3 id="t-museo-lim" data-t="museoLimT">Lo que la Tierra no puede imitar</h3>
+          <ul>
+            <li><canvas class="museo-arte" data-arte="gravedad" width="72" height="36" role="img" aria-label="La carga del juego cae 2 metros en la Tierra, en Marte y en la Luna." data-t-aria="museoGa"></canvas><b data-t="museoG">Gravedad</b><span data-t="museoGd">Tierra 9.81 · Marte 3.71 · Luna 1.62 m/s².</span></li>
+            <li><canvas class="museo-arte" data-arte="termica" width="72" height="40" role="img" aria-label="Barras de oscilación térmica diaria: 40, 55 y 176 kelvin." data-t-aria="museoTa"></canvas><b data-t="museoT">Temperatura</b><span data-t="museoTd">Por día: Luna 176 K, Jezero 55 K. En la Tierra, el modelo usa 40 K como máximo.</span></li>
+            <li><canvas class="museo-arte" data-arte="vacio" width="64" height="32" role="img" aria-label="La Tierra con atmósfera y la Luna sin ella." data-t-aria="museoAa"></canvas><b data-t="museoA">Aire</b><span data-t="museoAd">La Luna no tiene atmósfera; la de Marte es muy delgada.</span></li>
+            <li><canvas class="museo-arte" data-arte="radiacion" width="64" height="32" role="img" aria-label="La radiación del Sol desviada por el campo magnético de la Tierra." data-t-aria="museoRa"></canvas><b data-t="museoR">Radiación</b><span data-t="museoRd">Sin campo magnético global ni atmósfera gruesa que los proteja.</span></li>
+          </ul>
+        </section>
+
+        <footer class="museo-pie">
+          <p class="museo-resultado" data-t="museoResultado"><b>El resultado:</b> los lugares que pruebas en el juego.</p>
+          <div class="museo-acciones">
+            <a class="boton" href="https://v1.marsception.us/"><span data-t="jugarAhora">Jugar ahora</span> <span aria-hidden="true">→</span></a>
+            <button type="button" class="boton-fantasma" id="imprimir-cartel" data-t="museoImprimir">Imprimir cartel</button>
+          </div>
+          <p class="museo-fuentes" data-t="museoFuentes">Datos: LRO LOLA, MOLA+HRSC, MODIS y NASA POWER (NASA); Copernicus DEM (ESA). Los cortes de El Elegante y Peñasquito son sus perfiles reales (exageración vertical ×2 y ×6). Los cráteres de la Luna y de Marte están dibujados a la escala de su profundidad entre diámetro mediana (×5). Cifras completas en los detalles técnicos.</p>
+        </footer>
+      </article>
+    </section>
+
+    <!-- ───────────── Lo que encontramos y lo que aportamos ───────────── -->
+    <section class="museo-sec" data-grupo="ciencia" id="aportes" aria-labelledby="t-aportes">
+      <article class="museo museo-aportes keynote revela">
+        <header class="museo-cabeza">
+          <h2 id="t-aportes" data-t="apTitulo">Lo que encontramos y lo que aportamos</h2>
+        </header>
+        <div class="kn-filas">
+          <section class="kn-fila" aria-labelledby="t-encontramos">
+            <h3 class="kn-rotulo" id="t-encontramos" data-t="apEncT">Lo que encontramos</h3>
+            <ul class="kn-cifras">
+            <li><b class="kn-num c-marte"><span class="kn-valor" data-hasta="14" data-dec="0">14</span><span class="kn-unidad">/25</span></b><span class="kn-pie" data-t="knE1">de los hoyos más parecidos por forma son minas a cielo abierto</span></li>
+            <li><b class="kn-num c-acento"><span class="kn-valor" data-hasta="7" data-dec="0">7</span><span class="kn-unidad">/8</span></b><span class="kn-pie" data-t="knE2">cráteres de impacto que la regla nunca había visto tienen borde</span></li>
+            <li><b class="kn-num c-luna"><span class="kn-unidad">≥</span><span class="kn-valor" data-hasta="2" data-dec="0">2</span><span class="kn-unidad">km</span></b><span class="kn-pie" data-t="knE3">en esos cráteres, Marte es más plano de verdad: no es el instrumento</span></li>
+            <li><b class="kn-num c-tierra"><span class="kn-valor" data-hasta="0.97" data-dec="2">0.97</span></b><span class="kn-pie" data-t="knE4">de parecido en forma entre El Pinacate y el polo sur lunar</span></li>
+            </ul>
+          </section>
+          <section class="kn-fila" aria-labelledby="t-aportamos">
+            <h3 class="kn-rotulo" id="t-aportamos" data-t="apAporT">Lo que aportamos</h3>
+            <ul class="kn-cifras">
+            <li><b class="kn-num c-tierra"><span class="kn-valor" data-hasta="200" data-dec="0">200</span><span class="kn-unidad">m</span></b><span class="kn-pie" data-t="knA1">una sola regla para medir la Tierra, la Luna y Marte</span></li>
+            <li><b class="kn-num c-luna"><span class="kn-valor" data-hasta="78" data-dec="0">78</span><span class="kn-unidad">%</span></b><span class="kn-pie" data-t="knA2">de acierto, con un modelo que se lee: tres medidas y una ecuación</span></li>
+            <li><b class="kn-num c-acento"><span class="kn-valor" data-hasta="62" data-dec="0">62</span></b><span class="kn-pie" data-t="knA3">sitios abiertos, cada dato con su fuente, unidad y fecha</span></li>
+            <li><b class="kn-num c-marte"><span class="kn-valor" data-hasta="2" data-dec="0">2</span></b><span class="kn-pie" data-t="knA4">destinos en un juego donde cualquiera puede proponer sitios</span></li>
+            </ul>
+          </section>
+        </div>
+        <p class="museo-fuentes aportes-nota" data-t="apNota">Son candidatos para revisar, no sitios certificados. Cifras, fuentes y límites en los detalles técnicos.</p>
+      </article>
+    </section>
+
+    <!-- ───────────── Detalles técnicos (para quien quiera revisar las cifras) ───────────── -->
+    <section class="detalles" id="detalles" data-grupo="ciencia" aria-labelledby="t-detalles">
+      <h2 id="t-detalles" class="revela" data-t="detTitulo">Detalles técnicos</h2>
+      <p class="cap-entrada revela" data-t="detEntrada">Lo mismo que cuenta el cartel, con sus cifras, fuentes y límites.</p>
+
+      <details class="detalle revela">
+        <summary data-t="det1">Los tres cráteres y la misma regla</summary>
+        <div class="detalle-cuerpo">
+          <p data-t="reglaEntrada">Para comparar un cráter de Sonora con uno del polo sur lunar o de Marte, hay que medirlos igual. El mismo código busca depresiones en los tres relieves y las mide a la misma resolución. Cambia solo la fuente: Copernicus DEM GLO-30 en la Tierra, LOLA en la Luna y el mosaico HRSC+MOLA en Marte.</p>
+          <div class="fichas-mundos" id="regla-fichas"></div>
+          <p class="nota" data-t="reglaPie2">Los gemelos son el cráter lunar (LOLA, 80 m) y el marciano (HRSC+MOLA, 200 m) cuyo perfil y forma más se parecen a El Elegante. Las medidas del modelo se toman a 200 m en los tres.</p>
+          <p data-t="resEntrada">Una regla común tiene que ser la del instrumento más grueso. El mosaico de Marte tiene 200 m por píxel, así que la Tierra (30 m) y la Luna (80 m) se llevan a 200 m. Nunca al revés: inventar detalle donde el instrumento no lo midió sería comparar la regla, no el terreno.</p>
+          <h3 data-t="resObjTitulo">La objeción del instrumento</h3>
+          <p data-t="resObjP1">Si MOLA ve borroso, ¿Marte sale plano solo por eso? Lo probamos: suavizamos el relieve lunar como si lo midiera MOLA y corrimos el mismo detector.</p>
+          <table class="tabla">
+            <caption data-t="resTablaCap">d/D mediano, polo sur lunar (85–90° S)</caption>
+            <thead><tr><th scope="col"></th><th scope="col" data-t="todos">Todos</th><th scope="col">D ≥ 2 km</th></tr></thead>
+            <tbody>
+              <tr><th scope="row" data-t="lunaLola">Luna, LOLA</th><td>0.058</td><td>0.059</td></tr>
+              <tr><th scope="row" data-t="lunaMola">Luna, vista «como MOLA»</th><td>0.043</td><td>0.051</td></tr>
+              <tr><th scope="row" data-t="marteTabla">Marte, HRSC+MOLA (3 sitios)</th><td>0.027</td><td>0.019</td></tr>
+            </tbody>
+          </table>
+          <p class="nota" data-t="resObjP2">En los cráteres chicos, una parte de la diferencia sí es del instrumento. En los de 2 km o más, la Luna «borrosa» sigue teniendo más del doble de d/D que Marte: ahí la diferencia no la pone el instrumento. Fuente: <code>model/NIVEL2.md</code>, sección B.</p>
+        </div>
+      </details>
+
+      <details class="detalle revela">
+        <summary data-t="det2">Profundidad entre diámetro</summary>
+        <div class="detalle-cuerpo">
+          <p data-t="ddEntrada">La regla principal del modelo es una división. En el polo sur lunar, la mediana de profundidad entre diámetro (d/D) es 0.060; en Marte, 0.027. En proporción, los cráteres marcianos tienen menos de la mitad de hondura.</p>
+          <div class="histograma" id="dd-histo"></div>
+          <p class="nota" data-t="ddPie2">d/D de los 4,288 cráteres lunares (arriba del eje) y de los 573 marcianos (abajo), en porcentaje de cada mundo.</p>
+          <p data-t="ddP2">Un cráter simple recién formado llega a d/D ≈ 0.2 (Pike, 1977). Casi todos los que medimos son más viejos, y a 200 m el fondo se ve más somero, por eso las medianas son menores.</p>
+          <p class="nota" data-t="ddNota">Nuestros datos miden la diferencia. La explicación de por qué ocurre viene de la literatura y no la comprobamos aquí.</p>
+        </div>
+      </details>
+
+      <details class="detalle revela">
+        <summary data-t="det3">El modelo y cuánto acierta</summary>
+        <div class="detalle-cuerpo">
+          <p data-t="planoEntrada">Cada cráter es un punto con tres medidas: diámetro, d/D y borde entre diámetro. Los de la Luna y los de Marte forman dos nubes que se enciman, pero no del todo. Una regresión logística (un método estadístico sencillo) busca el plano que mejor las separa: de un lado es más probable la Luna; del otro, Marte.</p>
+          <p class="ecuacion" id="plano-ecuacion"></p>
+          <p data-t="planoP2">El coeficiente de d/D es el que más pesa: más hondo, más lunar.</p>
+          <p data-t="planoP3">Fuera de pliegue y con grupos espaciales, acierta el <strong>78 %</strong> (exactitud balanceada). En un sitio de Marte que nunca vio, entre 70 % (Gale) y 92 % (Meridiani).</p>
+          <p data-t="planoP4">Los 8 cráteres de impacto terrestres que detecta caen dentro de la nube. Es una condición necesaria, no una prueba: el 84 % de las 5,208 depresiones de México también cae dentro.</p>
+          <p class="nota" data-t="planoPie2">Variables del modelo: log₁₀ del diámetro, profundidad entre diámetro y borde entre diámetro, medidas a 200 m.</p>
+        </div>
+      </details>
+
+      <details class="detalle revela">
+        <summary data-t="det4">El borde: cráter o mina</summary>
+        <div class="detalle-cuerpo">
+          <p data-t="bordeEntrada">La forma sola no distingue un cráter de un tajo minero. Para el modelo, Peñasquito (una mina a cielo abierto en Zacatecas) es más lunar que El Elegante, un cráter volcánico: P(Luna) 0.997 contra 0.972. Los dos son hondos. Lo que los separa está alrededor.</p>
+          <p data-t="bordeP1">Una explosión volcánica o un impacto apilan material en la orilla: el terreno pegado al cráter queda más alto que el lejano. Un tajo, un valle o una presa no tienen ese borde. La medida es <strong>h/D</strong>: la altura máxima del perfil en la ventana, sobre el terreno lejano, entre el diámetro. El Elegante da +0.0108; Peñasquito, −0.0038.</p>
+          <dl class="tarjetas">
+            <div><dt>10 <span data-t="de">de</span> 11</dt><dd data-t="borde1">cráteres con fuente externa tienen borde levantado</dd></div>
+            <div><dt>3 <span data-t="de">de</span> 26</dt><dd data-t="borde2">presas, valles o dunas lo tienen</dd></div>
+            <div><dt>4 <span data-t="de">de</span> 38</dt><dd data-t="borde3">tajos con cantera en OpenStreetMap lo tienen</dd></div>
+            <div><dt>0.91</dt><dd data-t="borde4">qué tan bien separa el borde los cráteres de los tajos (1 es perfecto; 0.5, al azar). La forma sola da 0.36</dd></div>
+            <div><dt>7 <span data-t="de">de</span> 8</dt><dd data-t="borde5">cráteres de impacto de otros países, que la regla nunca había visto, tienen borde levantado</dd></div>
+          </dl>
+          <p data-t="bordeFuera"><strong>Prueba fuera de muestra.</strong> La zona del borde y el umbral se fijaron con candidatos de México, Atacama, Arizona y Arabia. Después, sin cambiar nada, se midieron cráteres de impacto de otros países. De los 8 que la regla no había visto, 7 tienen borde levantado: Lonar, Wolfe Creek, Tenoumer, Pingualuit, Tswaing, Roter Kamm y Talemzane. No pasa Xiuyan: el detector le mide 0.81 km y el diámetro esperado es 1.8 km, así que su borde real queda probablemente fuera de la zona medida. Con la zona estrecha pasan 5 de 8 y con umbral 0.002, 6 de 8; Lonar y Talemzane pasan solo con la zona ancha y por pocos metros. Son cráteres conocidos elegidos como control, no una muestra al azar, y no dicen nada de estructuras erosionadas o sepultadas.</p>
+          <p data-t="bordeOrden"><strong>Por qué importa.</strong> Si se ordenan los 296 candidatos áridos por su puntaje de forma (el mejor entre Luna y Marte), entre los 25 primeros hay 3 cráteres naturales y 14 minas. Si se ordenan por el borde, hay 11 cráteres naturales y 1 mina. Qué es cráter y qué es mina lo dice la etiqueta de IA, revisada en parte.</p>
+          <figure class="figura-detalle">
+            <img src="./arte/figura_crater_o_mina_es.png" data-src-en="./arte/figura_crater_o_mina_en.png" width="2160" height="880" loading="lazy" alt="Perfil de El Elegante, con borde levantado, y de un tajo minero en Arizona, sin borde." data-t-alt="bordeFigAlt">
+            <figcaption class="nota" data-t="bordeFig">El puntaje de forma pone al tajo G00219, en Arizona (puesto 3 de 296), por encima de El Elegante (puesto 10). El corte muestra cuál tiene borde. Copernicus DEM a 80 m, perfil radial promedio.</figcaption>
+          </figure>
+          <div class="perfil" id="borde-perfil"></div>
+          <p class="nota" data-t="bordePie2">Perfil radial promedio de El Elegante y Peñasquito (Copernicus DEM GLO-30 a 80 m): altura sobre el terreno lejano (de 1.67 a 2 radios) entre el diámetro. La zona del borde va de 0.83 a 1.67 radios.</p>
+          <p class="nota" data-t="bordeLim">El borde dice «esto es un cráter», no «esto se parece a la Luna»: solo el 22 % de los gemelos lunares lo muestra con esta medida. La regla se fijó con 11 cráteres con fuente y se probó en 8 cráteres de impacto más: siguen siendo pocos casos, así que es evidencia, no prueba. La ventana se eligió después de ver los datos. No entra al puntaje.</p>
+        </div>
+      </details>
+
+      <details class="detalle revela">
+        <summary data-t="det5">Por qué solo en desiertos</summary>
+        <div class="detalle-cuerpo">
+          <p data-t="aridoEntrada">A 200 m, una dolina o una cañada de una sierra húmeda tiene la misma forma que un cráter. Por eso el modelo usa la vegetación como veto: solo cuenta donde casi no hay plantas, según el índice de vegetación (NDVI) que mide el satélite MODIS de la NASA (percentil 90 menor que 0.35).</p>
+          <ol class="embudo" aria-label="Del detector a los candidatos áridos, en México" data-t-aria="embudoAria">
+            <li><span class="embudo-n">5,208</span><span data-t="embudo1">depresiones cerradas en México</span></li>
+            <li><span class="embudo-n">668</span><span data-t="embudo2">con forma de cráter</span></li>
+            <li><span class="embudo-n">47</span><span data-t="embudo3">en zonas áridas</span></li>
+          </ol>
+          <p data-t="aridoP1">De las 668 depresiones con forma de cráter, el <strong>71 %</strong> cae en sierras húmedas del sur: son dolinas y cañadas reales. No son copas de árboles: con un relieve sin árboles ni edificios (FABDEM) solo bajan un 15 %.</p>
+          <p data-t="aridoP2">El detector encuentra 9 de 11 cráteres mexicanos conocidos. Fuera de México ya cubre Atacama, Arizona y Arabia: 3 de 10 regiones áridas priorizadas, no todo el planeta.</p>
+          <p data-t="aridoP3">El Amazonas, la cuenca del Congo y el delta del Mekong dan similitud 0 (3 de 3 controles negativos). De 21 análogos conocidos pasan 9. Los que no pasan son análogos por razones que estas variables no ven: frío polar, química del agua, cuevas o cráteres sepultados.</p>
+        </div>
+      </details>
+
+      <details class="detalle revela">
+        <summary data-t="det6">Lo que la Tierra no puede imitar</summary>
+        <div class="detalle-cuerpo">
+          <p data-t="limEntrada">Un análogo sirve para ensayar una parte de la misión, nunca toda. La gravedad es lo más evidente: por eso en el juego la prueba en la Tierra usa 9.81 m/s² y la misión usa la gravedad del destino.</p>
+          <p class="nota" data-t="caidaPie">t = √(2h/g). Gravedad: Tierra 9.81, Marte 3.71 y Luna 1.62 m/s². El juego usa los mismos valores, escalados por un factor común que conserva las proporciones.</p>
+          <h3 data-t="termTitulo">Oscilación térmica diaria</h3>
+          <div class="barras" id="term-barras"></div>
+          <p class="nota" data-t="termNota">Jezero: aire a 1.45 m, MEDA (Perseverance), Munguira et al. 2023. Polo sur lunar: superficie, LRO Diviner, Williams et al. 2019; solo es comparable en orden de magnitud. Los dos destinos superan el máximo terrestre de 40 K, así que el modelo los recorta ahí y lo declara.</p>
+          <ul class="lista-limites">
+            <li><strong data-t="lim1">Gravedad</strong><span data-t="lim1d">La Tierra no puede bajar a 3.71 ni a 1.62 m/s².</span></li>
+            <li><strong data-t="lim2">Presión y vacío</strong><span data-t="lim2d">La Luna no tiene atmósfera; Marte tiene menos del 1 % de la presión terrestre (NASA, Mars Fact Sheet).</span></li>
+            <li><strong data-t="lim3">Radiación</strong><span data-t="lim3d">Ningún sitio terrestre la reproduce bajo la atmósfera y el campo magnético.</span></li>
+            <li><strong data-t="lim4">Temperatura</strong><span data-t="lim4d">Ningún desierto llega a la oscilación de la Luna ni a la de Jezero.</span></li>
+          </ul>
+          <p class="nota" data-t="limNota">Ningún puntaje del modelo incluye estas condiciones.</p>
+        </div>
+      </details>
+    </section>
+
+    <!-- ───────────── El juego ───────────── -->
+    <section class="juego" aria-labelledby="t-juego">
+      <a class="tarjeta-juego revela" href="https://v1.marsception.us/">
+        <img class="pixel" src="./arte/titulo.png" width="320" height="180" alt="Pantalla de título de MARSCEPTION en pixel art: Marte sobre un cielo morado." data-t-alt="juegoAlt" loading="lazy">
+        <div class="tarjeta-juego-texto">
+          <p class="antetitulo" data-t="juegoAnte">Tu turno</p>
+          <h2 id="t-juego" data-t="juegoTitulo">¿Listo para el lanzamiento?</h2>
+          <p data-t="juegoTexto">Elige destino, prueba tu rover en un análogo de la Tierra y lánzalo para entregar el suministro. Se juega en el navegador, en español o en inglés.</p>
+          <span class="boton" data-t="juegoBoton">Jugar Marsception →</span>
+        </div>
+      </a>
+    </section>
+
+    <!-- ───────────── Marsception for Business ───────────── -->
+    <section class="seccion negocio" id="business" aria-labelledby="t-business">
+      <header class="cap-cabeza">
+        <p class="cap-num revela">Marsception for Business</p>
+        <h2 id="t-business" class="revela" data-t="bizTitulo">Para salones, laboratorios y equipos de misión</h2>
+        <p class="cap-entrada revela" data-t="bizEntrada">Jugar es gratis para cualquiera. Para universidades, centros de investigación y empresas, ofrecemos licencias con el catálogo de análogos, el modelo y herramientas para enseñar y trabajar con ellos.</p>
+      </header>
+      <div class="planes">
+        <article class="plan revela">
+          <p class="plan-tipo" data-t="plan1Tipo">Jugadores · B2C</p>
+          <h3 data-t="plan1T">Gratis</h3>
+          <p class="plan-precio" data-t="plan1Precio">Con anuncios discretos. Premium opcional, sin anuncios.</p>
+          <ul>
+            <li data-t="plan1a">El juego completo en el navegador</li>
+            <li data-t="plan1b">La Luna y Marte, con sitios análogos reales</li>
+            <li data-t="plan1c">Premium: sin anuncios y con misiones extra</li>
+          </ul>
+          <a class="boton-fantasma" href="https://v1.marsception.us/" data-t="plan1Cta">Jugar gratis</a>
+        </article>
+        <article class="plan plan-destacado revela">
+          <p class="plan-tipo" data-t="plan2Tipo">Educación · B2B</p>
+          <h3 data-t="plan2T">Licencia para universidades</h3>
+          <p class="plan-precio" data-t="plan2Precio">Por institución</p>
+          <ul>
+            <li data-t="plan2a">Grupos con el avance de cada estudiante</li>
+            <li data-t="plan2b">Actividades guiadas con los sitios y sus datos</li>
+            <li data-t="plan2c">Sin anuncios para estudiantes ni docentes</li>
+          </ul>
+          <a class="boton contactar-ventas" href="#contacto-ventas" data-tipo="educacion" data-t="contactarVentas">Contactar a ventas</a>
+        </article>
+        <article class="plan revela">
+          <p class="plan-tipo" data-t="plan3Tipo">Investigación · B2B</p>
+          <h3 data-t="plan3T">Licencia de datos y modelo</h3>
+          <p class="plan-precio" data-t="plan3Precio">Por equipo o proyecto</p>
+          <ul>
+            <li data-t="plan3a">Catálogo de análogos con fuente, unidad y fecha</li>
+            <li data-t="plan3b">El modelo para calcular la similitud de cualquier coordenada</li>
+            <li data-t="plan3c">Exportación de datos y apoyo para estudios de campo</li>
+          </ul>
+          <a class="boton-fantasma contactar-ventas" href="#contacto-ventas" data-tipo="investigacion" data-t="contactarVentas">Contactar a ventas</a>
+        </article>
+      </div>
+      <div class="patrocinio revela">
+        <div>
+          <h3 data-t="bizAnunciosT">Anuncios y patrocinio</h3>
+          <p data-t="bizAnuncios">Espacios para marcas, museos y organizaciones de ciencia y tecnología que quieren llegar a estudiantes y aficionados al espacio.</p>
+        </div>
+        <a class="boton-fantasma contactar-ventas" href="#contacto-ventas" data-tipo="anuncios" data-t="bizAnunciarse">Anunciarse</a>
+      </div>
+      <div class="contacto-ventas revela" id="contacto-ventas">
+        <p class="cap-num" data-t="ventasAnte">Ventas</p>
+        <h3 data-t="ventasT">Hablemos de tu institución</h3>
+        <p data-t="ventasTexto">Cuéntanos quién eres y qué necesitas: un salón, un laboratorio o un proyecto de investigación.</p>
+        <a class="boton boton-grande" id="boton-ventas" href="mailto:hola@marsception.us" data-correo="hola@marsception.us"><span data-t="ventasBoton">Escribir a ventas</span> <span aria-hidden="true">→</span></a>
+      </div>
+      <p class="nota centrada revela" data-t="bizNota">Modelo de negocio propuesto. Las licencias, el plan premium y los anuncios todavía no están disponibles; los precios se definen con cada institución.</p>
+    </section>
+
+    <!-- ───────────── Método ───────────── -->
+    <section class="metodo" id="metodo" aria-labelledby="t-metodo">
+      <h2 id="t-metodo" class="revela" data-t="metodoTitulo">Datos, método y reproducibilidad</h2>
+      <div class="metodo-rejilla">
+        <div class="revela">
+          <h3 data-t="datosNasa">Datos de la NASA</h3>
+          <ul>
+            <li><a href="https://pds-geosciences.wustl.edu/missions/lro/lola.htm">LRO LOLA</a> <span data-t="dLola">relieve del polo sur lunar (ldem_80s_80m)</span></li>
+            <li><a href="https://astrogeology.usgs.gov/">MOLA + HRSC</a> <span data-t="dMola">mosaico de Marte a 200 m (NASA/ESA vía USGS)</span></li>
+            <li><a href="https://modis.gsfc.nasa.gov/data/">MODIS MOD13Q1</a> <span data-t="dModis">vegetación (NDVI) para el veto árido</span></li>
+            <li><a href="https://power.larc.nasa.gov/">NASA POWER</a> <span data-t="dPower">oscilación térmica y precipitación</span></li>
+            <li><span data-t="dDiviner">LRO Diviner y MEDA (Perseverance): temperatura de los destinos</span></li>
+          </ul>
+        </div>
+        <div class="revela">
+          <h3 data-t="otrosDatos">Otras fuentes</h3>
+          <ul>
+            <li><a href="https://dataspace.copernicus.eu/">Copernicus DEM GLO-30</a> <span data-t="dCop">relieve de la Tierra (ESA)</span></li>
+            <li><a href="https://www.openstreetmap.org/">OpenStreetMap</a> <span data-t="dOsm">canteras y minas para el cotejo</span></li>
+            <li><a href="https://volcano.si.edu/">Smithsonian GVP</a> <span data-t="dGvp">volcanes y cráteres de referencia</span></li>
+          </ul>
+        </div>
+        <div class="revela">
+          <h3 data-t="reproTitulo">Para revisarlo</h3>
+          <ul>
+            <li><a href="https://github.com/Niettzche/spaceapps-2026/blob/main/model/VALIDATION.md">model/VALIDATION.md</a> <span data-t="rVal">todas las cifras de esta página</span></li>
+            <li><a href="https://github.com/Niettzche/spaceapps-2026/blob/main/docs/METODOLOGIA.md">docs/METODOLOGIA.md</a> <span data-t="rMet">método en una página</span></li>
+            <li><a href="https://github.com/Niettzche/spaceapps-2026/tree/main/informe/exposicion_modelo">informe/exposicion_modelo</a> <span data-t="rCuad">cuadernos que vuelven a calcular las cifras</span></li>
+            <li><a href="https://github.com/Niettzche/spaceapps-2026/blob/main/informe/divulgacion/preparar_datos.py">preparar_datos.py</a> <span data-t="rPrep">genera los datos de esta página y comprueba sus cifras</span></li>
+          </ul>
+        </div>
+      </div>
+      <p class="nota revela" data-t="metodoNota">Pesos, umbrales y la ventana del borde son provisionales. La búsqueda identifica candidatos para revisión, no certifica sitios de entrenamiento. Uso de IA: Claude Code y Codex ayudaron con el código y los textos; las cifras salen de los archivos del repositorio y un script comprueba que coincidan.</p>
+    </section>
+  </main>
+
+  <footer class="pie">
+    <p><strong>Marsception</strong> · <span data-t="pie1">NASA Space Apps Challenge 2026 · Sede UDEM. Sin afiliación con la NASA.</span></p>
+    <p><a href="https://marsception.us/">marsception.us</a> · <a href="https://v1.marsception.us/" data-t="pieJuego">Jugar</a></p>
+  </footer>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

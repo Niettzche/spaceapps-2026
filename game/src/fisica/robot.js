@@ -1,12 +1,13 @@
 // Robot físico (Matter) construido a partir del diseño. Ver docs/juego/ESPECIFICACION.md §3–§7.
 // Dimensiones y constantes de motor = valores de juego (P); deben coincidir con docs/juego/ASSETS_ARTE.md.
 import Phaser from 'phaser';
-import { m, velAMs, msAVel } from './escala.js';
+import { m, velAMs, msAVel, PX_POR_M, FACTOR_GRAVEDAD } from './escala.js';
 import { resolverDiseno, MASA_CARGA_KG, RUEDAS_POR_RANURA } from './diseno.js';
 import { gastoPorSegundo } from './energia.js';
 import { danioChasis, danioCarga, danioSacudida, UMBRAL_CARGA_MS } from './danio.js';
 import { agarreSuelo } from './suelos.js';
 import { factorFrio, temperaturaAmbienteMotor, pasoTemperaturaMotor, potenciaPermitida, recargaPanel, REGLAS } from './ambiente.js';
+import { sueloV2, estadoRueda, anchoRueda, pesoPorRueda } from './suelo_v2.js';
 
 const M = Phaser.Physics.Matter.Matter;
 
@@ -28,6 +29,23 @@ export const DIM = {
 const VEL_MAX_POR_FUERZA = 0.12; // m/s por unidad de `fuerza` → eficiente 6 m/s, potente 10.8 m/s
 const TORQUE_POR_FUERZA = 0.004; // torque de Matter por unidad de `fuerza`, por eje (eficiente sube ~28° si el agarre alcanza)
 const FRACCION_REVERSA = 0.5; // la reversa llega a la mitad de la velocidad
+
+// Física 2 (?fisica=2, suelo_v2.js, docs/juego/FISICA_V2.md). Todos (P) salvo lo que diga su fuente.
+export const V2 = {
+  velMaxPorFuerza: 0.14, // eficiente 7 m/s, potente 12.6 m/s (P). Con 0.145 el motor se sobrecalienta en el vacío lunar
+  exponenteBanda: 1.5, // banda = agarre^1.5: entre lineal y la curva² de la física 1 (P)
+  kTraccion: 1.7, // fricción de Matter = k × banda × H/W; Matter no aplica Coulomb exacto (ver FRICCION_ESTATICA) (P)
+  tauHundir: 0.35, // s: el surco se forma en ~0.35 s al patinar (P)
+  tauSalir: 0.8, // s: la rueda sale del surco al avanzar sin patinar (P)
+  // Extra de gasto por la resistencia: 0 = la resistencia ya cuesta energía porque frena (misma potencia, menos metros). (P)
+  energiaPorResistencia: 0,
+  zAvisoCm: 2, // hundimiento a partir del cual se registra el evento (P)
+  segEmpuje: 1, // s con empuje insuficiente antes de registrar el evento (P)
+  // Fuerza de Matter = N × px/m / 1e6 (escala.js); la gravedad del mundo va × FACTOR_GRAVEDAD, la resistencia también.
+  nAMatter: (PX_POR_M / 1e6) * FACTOR_GRAVEDAD,
+};
+
+// Paso seguro sobre rocas en la misión: PASO_ROCA y velocidadPasoRoca (danio.js); el límite lo fija recorrido.js.
 
 // Detección de patinaje y de falta de fuerza. (P)
 // Matter no usa fricción de Coulomb: el umbral estático es fricción × frictionStatic × 5 (Resolver._frictionNormalMultiplier)
@@ -58,8 +76,10 @@ export class Robot {
    * @param {Array} piezas  catálogo (parts.json)
    * @param {(tipo: string, detalle: string) => void} alEvento  telemetría
    */
-  constructor(scene, x, y, diseno, piezas, alEvento = () => {}, { mundo = 'tierra', ambiente = null, factorAgarre = null } = {}) {
+  constructor(scene, x, y, diseno, piezas, alEvento = () => {}, { mundo = 'tierra', ambiente = null, factorAgarre = null, fisica = 1, gravedad = 9.81, lugar = 'generico' } = {}) {
     this.mundo = mundo; // para el agarre real del suelo (suelos.js)
+    // Física 2: terramecánica (suelo_v2.js). null = modelo 1 sin ningún cambio.
+    this.v2 = fisica === 2 ? { g: gravedad, lugar, ancha: piezas.find((x) => x.id === 'rueda_ancha') ?? null, zAvisado: 0, tEmpuje: 0, zMax: 0 } : null;
     this.ambiente = ambiente; // temperatura, aire y luz del nivel (ambiente.js); null = sin reglas de ambiente
     this.factorAgarre = factorAgarre; // (xMundo) => factor; arena blanda recreada (obstaculos.js)
     this.scene = scene;
@@ -75,7 +95,8 @@ export class Robot {
     const H = m(dimC.alto);
     const cL = m(DIM.carga.largo);
     const cH = m(DIM.carga.alto);
-    const alturaPared = m(DIM.paredSoporte[p.carga.id] ?? 0.25);
+    this.paredSoporte_m = DIM.paredSoporte[p.carga.id] ?? 0.25;
+    const alturaPared = m(this.paredSoporte_m);
     const grosorPared = m(0.12);
     const filtro = { group: grupo };
 
@@ -112,7 +133,7 @@ export class Robot {
         stiffness: 0.5,
         damping: 0.15,
       });
-      return { ranura, pieza, radio, cuerpo, eje, superficie: null, tocando: false, ultimoContacto: -1, tPatina: 0, deslizamiento: 0 };
+      return { ranura, pieza, radio, cuerpo, eje, superficie: null, tocando: false, ultimoContacto: -1, tPatina: 0, deslizamiento: 0, z: 0, terra: null };
     });
 
     // Carga: cuerpo suelto sobre el soporte. Puede caerse.
@@ -146,6 +167,7 @@ export class Robot {
     this.rescates = 0;
     this.sobrecalentado = false;
     this.potenciaMotor = 1;
+    this.limiteVelMs = null; // paso seguro sobre una roca (lo fija recorrido.js en la misión); null = sin límite
     this.vidaMax = p.chasis.resistencia;
     this.vida = this.vidaMax;
     this.integridad = 1;
@@ -240,17 +262,24 @@ export class Robot {
     for (const w of this.ruedas) {
       w.superficie = superficieDe(w.cuerpo.position.x);
       // Fricción = curva(agarre de la pieza) × agarre real del suelo (suelos.js; sin dato = 1).
-      w.cuerpo.friction = friccionDeAgarre(w.pieza.agarre?.[w.superficie] ?? 0.6) * agarreSuelo(this.mundo, w.superficie)
+      // Física 2: coeficiente de la banda × H/W de Mohr–Coulomb con el hundimiento de Bekker (_terramecanica).
+      const base = this.v2 ? this._terramecanica(w, dt)
+        : friccionDeAgarre(w.pieza.agarre?.[w.superficie] ?? 0.6) * agarreSuelo(this.mundo, w.superficie);
+      w.cuerpo.friction = base
         * (this.factorAgarre?.(w.cuerpo.position.x) ?? 1)
         * (this.tRescate > 0 ? this.rescate.agarre : 1); // auto-rescate activo: más agarre unos segundos (P)
     }
 
     // Energía
     const motorActivo = !this.destruido && !this.sinEnergia;
-    const pedido = motorActivo ? acelerador : 0;
+    // Paso seguro sobre roca: a la velocidad límite el motor no empuja (rueda libre o freno), así que no gasta.
+    const gobernado = this.limiteVelMs != null && acelerador > 0 && this.velocidadMs >= this.limiteVelMs;
+    const pedido = motorActivo && !gobernado ? acelerador : 0;
     // Motor caliente (regla b): empuja menos, pero la batería gasta lo que se pide (la diferencia se pierde como calor).
     const a = this.ambiente ? this._termica(pedido, dt) : pedido;
-    this.energia = Math.max(0, this.energia - gastoPorSegundo(this.piezas.motor, this.masaTotal, pedido) * dt);
+    // Física 2: abrir el surco cuesta energía (resistencia por compactación).
+    const extra = this.v2 ? 1 + V2.energiaPorResistencia * this._resistenciaRelativa() : 1;
+    this.energia = Math.max(0, this.energia - gastoPorSegundo(this.piezas.motor, this.masaTotal, pedido) * extra * dt);
     if (this.energia <= 0 && !this.sinEnergia) {
       this.sinEnergia = true;
       this.alEvento('energia_agotada', this.piezas.bateria.id);
@@ -263,14 +292,18 @@ export class Robot {
 
     // Motor: torque limitado por `fuerza`, hasta la velocidad máxima.
     const fuerza = this.piezas.motor.fuerza;
-    const vMax = msAVel(fuerza * VEL_MAX_POR_FUERZA);
+    const vMotor = msAVel(fuerza * (this.v2 ? V2.velMaxPorFuerza : VEL_MAX_POR_FUERZA));
+    const vMax = this.limiteVelMs != null ? Math.min(vMotor, msAVel(this.limiteVelMs)) : vMotor;
     const torque = fuerza * TORQUE_POR_FUERZA;
     for (const w of this.ruedas) {
       const omega = M.Body.getAngularVelocity(w.cuerpo);
       const omegaMax = vMax / w.radio;
       if (a > 0 && omega < omegaMax) w.cuerpo.torque += torque * a;
+      // Paso seguro: si va más rápido que el límite, el motor frena la rueda (acelerador o no; no gasta energía).
+      if (motorActivo && this.limiteVelMs != null && acelerador > 0 && omega > omegaMax * 1.1) w.cuerpo.torque -= torque;
       if (a < 0 && omega > -omegaMax * FRACCION_REVERSA) w.cuerpo.torque += torque * a;
     }
+    if (this.v2) this._resistenciaV2(dt, a);
 
     // Patinaje: la rueda gira mucho más rápido de lo que avanza sobre el suelo.
     const vChasis = M.Body.getVelocity(this.chasis);
@@ -335,6 +368,82 @@ export class Robot {
   }
 
   /**
+   * Física 2: estado terramecánico de una rueda (suelo_v2.js) y su coeficiente de fricción para Matter.
+   * W = m·g/ruedas con la gravedad real; el hundimiento crece al patinar y se suaviza en el tiempo (P).
+   */
+  _terramecanica(w, dt) {
+    const V = this.v2;
+    const suelo = sueloV2(this.mundo, w.superficie, V.lugar);
+    const W = pesoPorRueda(this.masaTotal, V.g, this.ruedas.length * RUEDAS_POR_RANURA);
+    const b = anchoRueda(w.pieza);
+    const r = w.radio / PX_POR_M;
+    // Deslizamiento s = (v_rueda − v_centro) / v_rueda, solo con contacto reciente.
+    const vRueda = velAMs(Math.abs(M.Body.getAngularVelocity(w.cuerpo)) * w.radio);
+    const vCentro = velAMs(M.Body.getSpeed(w.cuerpo));
+    // Solo con contacto en este paso: una rueda en el aire (rebote, poca gravedad) no excava.
+    const s = w.tocando && vRueda > 0.3 ? Math.min(1, Math.max(0, (vRueda - vCentro) / vRueda)) : 0;
+    const objetivo = estadoRueda({ W, b, r, suelo, s }).z;
+    const tau = objetivo > w.z ? V2.tauHundir : V2.tauSalir;
+    w.z += (objetivo - w.z) * Math.min(1, dt / tau);
+    w.terra = { ...estadoRueda({ W, b, r, suelo, z: w.z }), W, b, r, s, suelo };
+    // Coeficiente de la banda/grousers = `agarre` de la pieza para esa superficie (P).
+    const eta = w.pieza.agarre?.[w.superficie] ?? 0.6;
+    return V2.kTraccion * eta ** V2.exponenteBanda * w.terra.muH;
+  }
+
+  /** Σ R_c / (m·g) de las ruedas (adimensional). */
+  _resistenciaRelativa() {
+    const W = this.ruedas.reduce((acc, w) => acc + (w.terra?.W ?? 0), 0);
+    const R = this.ruedas.reduce((acc, w) => acc + (w.terra?.Rc ?? 0), 0);
+    return W > 0 ? R / W : 0;
+  }
+
+  /**
+   * Física 2: la resistencia por compactación empuja cada eje hacia atrás (contra el sentido en que gira la rueda),
+   * con 2 ruedas por eje. Telemetría: `hundimiento` (cm, presión) y `empuje_insuficiente` (H vs. resistencia + pendiente).
+   */
+  _resistenciaV2(dt, a) {
+    const V = this.v2;
+    const ang = this.chasis.angle;
+    for (const w of this.ruedas) {
+      if (!w.terra || !w.tocando) continue;
+      const omega = M.Body.getAngularVelocity(w.cuerpo);
+      const vRim = velAMs(Math.abs(omega) * w.radio);
+      const F = w.terra.Rc * RUEDAS_POR_RANURA * V2.nAMatter * Math.min(1, vRim / 0.3);
+      if (F <= 0) continue;
+      const sentido = -Math.sign(omega);
+      M.Body.applyForce(w.cuerpo, w.cuerpo.position, { x: sentido * F * Math.cos(ang), y: sentido * F * Math.sin(ang) });
+    }
+    // Hundimiento: se registra cada centímetro nuevo a partir de zAvisoCm.
+    const peor = this.ruedas.reduce((x, w) => (w.terra && w.z > (x?.z ?? -1) ? w : x), null);
+    if (!peor?.terra) return;
+    V.zMax = Math.max(V.zMax, peor.z);
+    const cm = Math.floor(peor.z * 100);
+    if (cm >= V2.zAvisoCm && cm > V.zAvisado) {
+      V.zAvisado = cm;
+      const t = peor.terra;
+      const pEst = estadoRueda({ W: t.W, b: t.b, r: t.r, suelo: t.suelo }).p_kPa;
+      let detalle = `${cm} cm · ${pEst.toFixed(1)} kPa · ${peor.superficie}`;
+      if (V.ancha && peor.pieza.id !== 'rueda_ancha') {
+        const pA = estadoRueda({ W: t.W, b: anchoRueda(V.ancha), r: V.ancha.radio_m ?? t.r, suelo: t.suelo }).p_kPa;
+        detalle += ` · ancha ${pA.toFixed(1)} kPa`;
+      }
+      this.alEvento('hundimiento', detalle);
+    }
+    // Empuje insuficiente: capacidad de empuje (banda × H) < resistencia + componente del peso en la pendiente.
+    if (a > 0) {
+      const H = this.ruedas.reduce((acc, w) => acc + (w.terra ? (w.pieza.agarre?.[w.superficie] ?? 0.6) * w.terra.H : 0), 0) * RUEDAS_POR_RANURA;
+      const R = this.ruedas.reduce((acc, w) => acc + (w.terra?.Rc ?? 0), 0) * RUEDAS_POR_RANURA;
+      const pendiente = Math.max(0, -Math.sin(ang)) * this.masaTotal * V.g;
+      V.tEmpuje = H < R + pendiente ? V.tEmpuje + dt : 0;
+      if (V.tEmpuje > V2.segEmpuje) {
+        V.tEmpuje = 0;
+        this.alEvento('empuje_insuficiente', `H ${Math.round(H)} N < R ${Math.round(R + pendiente)} N`);
+      }
+    } else V.tEmpuje = 0;
+  }
+
+  /**
    * Calor del motor (ambiente.js, regla b): sube con acelerador × consumo y lo baja el aire (∝ densidad) y la radiación.
    * Sobre el límite, el motor solo entrega la potencia que el ambiente alcanza a enfriar. Devuelve el acelerador efectivo.
    */
@@ -390,6 +499,7 @@ export class Robot {
       tMotor: this.ambiente ? this.tMotor : null,
       sobrecalentado: this.sobrecalentado,
       rescate: this.tRescate > 0,
+      hundimiento_cm: this.v2 ? Math.max(...this.ruedas.map((w) => w.z)) * 100 : null,
     };
   }
 

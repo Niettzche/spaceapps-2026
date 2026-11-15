@@ -4,6 +4,8 @@ import { SITIOS, DESTINOS } from '../data.js';
 import { partida } from '../main.js';
 import { PRESUPUESTO_INICIAL, TICKETS_POR_PARTIDA, GRAVEDAD } from '../config/world.js';
 import { COLOR, texto, boton, panel, Teclado, limpiar, ayudaFija, cajaArte, tituloPlaca } from './expediente/interfaz.js';
+import { tocarMusica, cambiarVolumenMusica, alternarMusica, alCambiarMusica, estado as estadoMusica } from '../audio/musica.js';
+import { abrirTutora } from '../tutor/panel.js';
 import { DESTINO_POR_DEFECTO, ORDEN_DESTINOS } from './expediente/config.js';
 import { guardadoDisponible, restaurar, nuevaPartida, guardar, partidaActiva } from './expediente/guardado.js';
 import { sitiosParaDestino } from './expediente/logica.js';
@@ -11,13 +13,20 @@ import { MUNDOS } from './expediente/textos.js';
 import { vistaNumeros } from './expediente/numeros.js';
 import { prepararIngles } from './expediente/datos_en.js';
 import { tr, trDato, idioma, alternarIdioma } from '../i18n.js';
-import { debeMostrarComoJugar } from './expediente/como_jugar.js';
+import { CLAVES_TUTORIAL, marcaTutorial, pasosResumen } from './comun/tutorial.js';
+import { abrirResumen } from './comun/tutorial_vista.js';
 import { vistaComoJugar, reiniciarPaginaComoJugar } from './expediente/como_jugar_vista.js';
 import { estrellas, planetaGirando, movimientoReducido } from './expediente/efectos.js';
 import { sonarBoton } from '../fisica/sonido.js';
-import { FondoMenu } from './expediente/fondo_menu.js';
+import { FondoMenu, MARTE_TITULO } from './expediente/fondo_menu.js';
 import { marteGrande, logoBrillo, lineaPixel, restaurarCamara, precargarInicio, videoInicio, warp, textoPx } from './expediente/inicio.js';
-import { escenarioNave, consolaMenu, flechasRejilla, entradaInterfaz, zoomEscotilla, detenerZoom } from './expediente/menu_nave.js';
+import { vozTitulo } from './expediente/voz_titulo.js';
+import { escenarioNave, consolaMenu, flechasRejilla, entradaInterfaz, zoomEscotilla, detenerZoom, botonPx } from './expediente/menu_nave.js';
+
+// Botón de ANA en el menú de opciones: arriba a la izquierda (la consola ya tiene 3 filas llenas y arriba a la derecha
+// está Marte). Las estrellas no titilan debajo.
+const TUTORA = { x: 18, y: 10, w: 214, h: 44 };
+const ZONA_TUTORA = { x: TUTORA.x - 8, y: 0, right: TUTORA.x + TUTORA.w + 8, bottom: TUTORA.y + TUTORA.h + 8 };
 
 // A dónde ir al terminar o saltar "Cómo jugar" (se conserva si el Menú se reinicia al cambiar de idioma).
 let trasComoJugar = 'principal';
@@ -47,6 +56,7 @@ export default class Menu extends Phaser.Scene {
     restaurarCamara(this); // por si la escena se reinicia a media animación (cambio de idioma)
     this.oscuro = false;
     this.zoomando = false;
+    this.tutora = null;
     // Al volver de una partida en curso, el guardado se pone al día (diseño, resultados, tickets) antes de leerlo:
     // así "Continuar" y su resumen muestran lo mismo que había en memoria, no lo último escrito al gastar un ticket.
     if (partidaActiva()) guardar(partida);
@@ -54,10 +64,22 @@ export default class Menu extends Phaser.Scene {
     this.mostrar(this.vistaInicial);
   }
 
-  /** Cambia español ↔ inglés y vuelve a crear el Menú en la misma vista (los textos se arman al crear). */
-  cambiarIdioma(vista = 'principal') {
+  /**
+   * Cambia español ↔ inglés SIN reiniciar nada (retro de Leo, 15 nov: antes se reiniciaba el video de inicio y todo).
+   * - Inicio: solo se rehacen los textos (franja en español, selector ES · EN, lema del respaldo); el video sigue.
+   * - Opciones: solo se rehace la consola; la estación, el logo y el fondo vivo siguen donde iban.
+   * - Las demás vistas se redibujan en su lugar conservando el fondo vivo (planetas, galaxia y asteroides siguen).
+   */
+  cambiarIdioma(vista = this.vista ?? 'principal') {
+    if (this.zoomando && vista !== 'principal') return; // a media transición, se ignora
     alternarIdioma();
-    this.scene.restart({ vista });
+    // Se rehace en el cuadro siguiente: el botón que se pulsó puede ser uno de los que se destruyen.
+    this.time.delayedCall(0, () => {
+      if (!this.sys.isActive()) return;
+      if (vista === 'inicio' && this.vista === 'inicio') this.textosInicio();
+      else if (vista === 'principal' && this.vista === 'principal' && this.consola) this.consolaPrincipal();
+      else if (this.vista === vista) this.mostrar(vista, { conservarFondo: true });
+    });
   }
 
   /**
@@ -88,9 +110,23 @@ export default class Menu extends Phaser.Scene {
     return b;
   }
 
-  mostrar(vista, { llegada = false } = {}) {
-    limpiar(this);
+  mostrar(vista, { llegada = false, conservarFondo = false } = {}) {
+    // Con `conservarFondo` (cambio de idioma) el fondo vivo sigue: sus capas no se destruyen ni se vuelve a crear.
+    const fondoVivo = conservarFondo && this.fondoMenu?.g?.scene ? this.fondoMenu : null;
+    if (fondoVivo) {
+      const mantener = new Set([fondoVivo.g, fondoVivo.gDetras]);
+      this.children.list.slice().forEach((o) => { if (!mantener.has(o)) o.destroy(); });
+      if (this.teclado) { this.teclado.items = []; this.teclado.actual = null; this.teclado.atajos = []; }
+    } else limpiar(this);
+    this.consola = null;
+    this.textosInicioObjs = null;
+    this.resumen = null; // limpiar() ya destruyó su capa
     this.vista = vista;
+    this.dejarMusica?.();
+    this.dejarMusica = null;
+    // Música del menú (audio/musica.js): no suena en la pantalla de inicio; en las opciones empieza al terminar la
+    // llegada de la estación (listoPrincipal), es decir, cuando acaba la animación de inicio.
+    if (vista !== 'inicio' && vista !== 'principal') tocarMusica('menu');
     if (this.alTocarInicio) { this.input.off('pointerdown', this.alTocarInicio); this.alTocarInicio = null; }
     // Después del zoom a la nave (o de un fundido) la pantalla quedó en negro: se aclara con la vista nueva.
     if (this.oscuro) { this.oscuro = false; restaurarCamara(this, { aclarar: true }); }
@@ -120,17 +156,18 @@ export default class Menu extends Phaser.Scene {
     this.teclado.alEscape = vista === 'inicio' || vista === 'principal' ? null : () => this.mostrar('principal');
     if (vista === 'inicio') this.vistaInicio();
     else if (vista === 'destino') this.vistaDestino();
+    else if (vista === 'musica') this.vistaMusica();
     else if (vista === 'como_jugar') {
       vistaComoJugar(this, {
         presupuesto: PRESUPUESTO_INICIAL,
         alTerminar: () => this.mostrar(trasComoJugar),
-        redibujar: () => this.mostrar('como_jugar'),
+        redibujar: () => this.mostrar('como_jugar', { conservarFondo: true }),
         botonIdioma: () => this.botonIdioma('como_jugar'),
       });
     } else if (vista === 'numeros') {
       vistaNumeros(this, {
         volver: () => this.mostrar('principal'),
-        redibujar: () => this.mostrar('numeros'),
+        redibujar: () => this.mostrar('numeros', { conservarFondo: true }),
         botonIdioma: () => this.botonIdioma('numeros'),
       });
     }
@@ -138,12 +175,14 @@ export default class Menu extends Phaser.Scene {
     // Estrellas que titilan detrás de todo y lejos del texto (quietas con prefers-reduced-motion); en las opciones, lejos
     // también de la estación, de la Tierra, del logo y de Marte. La pantalla de inicio no lleva: el video trae su cielo.
     if (vista !== 'inicio') {
-      estrellas(this, nave ? { planeta: { ...nave.marte, r: nave.marte.r + 14 }, zonas: [...nave.zonas, { x: 230, y: 20, right: 730, bottom: 112 }] } : {});
+      estrellas(this, nave ? { planeta: { ...nave.marte, r: nave.marte.r + 14 }, zonas: [...nave.zonas, { x: 230, y: 20, right: 730, bottom: 112 }, ZONA_TUTORA] } : {});
     }
     // Fondo vivo de Leo (#76): asteroides, cometa, planetas detrás de Marte, galaxia, destellos y agujero negro al volver.
     // En «Nueva partida» con el fondo de Mauricio no va (no tiene un Marte al centro para su máscara), ni en el video.
+    const quiereFondo = vista !== 'destino' && vista !== 'inicio';
+    if (fondoVivo && quiereFondo && fondoVivo.marte === (nave ? nave.marte : MARTE_TITULO)) return; // se conserva el que ya iba
     this.fondoMenu?.destruir();
-    this.fondoMenu = vista === 'destino' || vista === 'inicio' ? null
+    this.fondoMenu = !quiereFondo ? null
       : new FondoMenu(this, { resultados: partida.resultados?.length ?? 0, ...(nave ? { marte: nave.marte } : {}) });
   }
 
@@ -182,14 +221,11 @@ export default class Menu extends Phaser.Scene {
    */
   vistaInicio() {
     const v = videoInicio(this);
+    vozTitulo(); // «MARSCEPTION» con la voz de Mauricio, una vez por visita
     if (!v) this.inicioRespaldo();
     const quieto = movimientoReducido();
-    if (idioma() !== 'en') {
-      const aviso = textoPx(this, 480, 519, 'PRESIONA ENTER O TOCA PARA JUGAR', { origen: [0.5, 0.5] });
-      this.add.rectangle(480, 519, aviso.displayWidth + 36, 32, 0x0d0a24, 0.78).setStrokeStyle(2, 0x7a4cff, 0.8).setDepth(1);
-      if (!quieto) this.tweens.add({ targets: aviso, alpha: 0.5, duration: 700, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-    }
-    this.idiomaInicio();
+    this.sinVideoInicio = !v;
+    this.textosInicio();
 
     const entrar = () => {
       if (this.zoomando) return;
@@ -205,6 +241,23 @@ export default class Menu extends Phaser.Scene {
     this.input.on('pointerdown', this.alTocarInicio);
   }
 
+  /**
+   * Textos de la pantalla de inicio que dependen del idioma (franja en español, selector ES · EN y, sin video, el lema del
+   * respaldo). Se rehacen en su lugar al cambiar de idioma: el video, el logo y Marte siguen sin reiniciarse.
+   */
+  textosInicio() {
+    (this.textosInicioObjs ?? []).forEach((o) => { this.tweens.killTweensOf(o); o.destroy(); });
+    const antes = new Set(this.children.list);
+    if (this.sinVideoInicio) this.lemaRespaldo();
+    if (idioma() !== 'en') {
+      const aviso = textoPx(this, 480, 519, 'PRESIONA ENTER O TOCA PARA JUGAR', { origen: [0.5, 0.5] });
+      this.add.rectangle(480, 519, aviso.displayWidth + 36, 32, 0x0d0a24, 0.78).setStrokeStyle(2, 0x7a4cff, 0.8).setDepth(1);
+      if (!movimientoReducido()) this.tweens.add({ targets: aviso, alpha: 0.5, duration: 700, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    }
+    this.idiomaInicio();
+    this.textosInicioObjs = this.children.list.filter((o) => !antes.has(o));
+  }
+
   /** Idioma en la pantalla de inicio: «ES · EN  L» abajo a la derecha (el actual en amarillo y subrayado); clic o L. */
   idiomaInicio() {
     const en = idioma() === 'en';
@@ -217,7 +270,9 @@ export default class Menu extends Phaser.Scene {
     const caja = this.add.rectangle(x0, y, 950 - x0, 32, 0x0d0a24, 0.78).setOrigin(0, 0.5).setStrokeStyle(2, 0x7a4cff, 0.8).setDepth(1);
     const actual = en ? enT : esT;
     this.add.rectangle(actual.x - actual.displayWidth, y + 11, actual.displayWidth, 2, 0xffd166).setOrigin(0, 0.5).setDepth(2);
-    caja.setInteractive({ useHandCursor: true }).on('pointerdown', () => this.cambiarIdioma('inicio'));
+    // Zona táctil de 44 px de alto (la caja dibujada mide 32 y crece hacia arriba para no salirse de la pantalla).
+    caja.setInteractive({ hitArea: new Phaser.Geom.Rectangle(0, -12, 950 - x0, 44), hitAreaCallback: Phaser.Geom.Rectangle.Contains, useHandCursor: true })
+      .on('pointerdown', () => this.cambiarIdioma('inicio'));
   }
 
   /** Respaldo de la pantalla de inicio sin el cuadro del video: Marte que gira, logo con brillo y lema en la fuente pixel. */
@@ -225,6 +280,10 @@ export default class Menu extends Phaser.Scene {
     if (this.textures.exists('titulo/titulo_fondo')) this.add.image(480, 270, 'titulo/titulo_fondo').setScale(3).setDepth(-10);
     marteGrande(this);
     logoBrillo(this, 480, 172, 9);
+  }
+
+  /** Lema del respaldo de inicio (depende del idioma; lo rehace textosInicio). */
+  lemaRespaldo() {
     const T = '#ffffff', TIERRA = '#80e0dc', LUNA = '#c8c8d4', MARTE = '#ff8a7a', LEJOS = '#c9a7ff';
     const lineas = idioma() === 'en'
       ? [[['TRAIN ON ', T], ['EARTH', TIERRA], ['.', T]], [['LAND ON THE ', T], ['MOON', LUNA], [' / ', T], ['MARS', MARTE], ['.', T]],
@@ -247,6 +306,27 @@ export default class Menu extends Phaser.Scene {
    */
   vistaPrincipal(llegada = false) {
     const logo = logoBrillo(this, 480, 66, 7);
+    const consola = this.consolaPrincipal();
+    if (llegada) {
+      entradaInterfaz(this, { consola: consola.objs, logo, retraso: 450 });
+      if (!movimientoReducido() && this.botonTutora) {
+        this.botonTutora.objs.forEach((o) => o.setAlpha(0));
+        this.tweens.add({ targets: this.botonTutora.objs, alpha: 1, delay: 700, duration: 320, ease: 'Quad.easeOut' });
+      }
+    }
+  }
+
+  /**
+   * Consola del menú de opciones (los textos dependen del idioma). Al cambiar de idioma se rehace solo la consola; si la
+   * vista ya estaba lista (no a media llegada), el teclado se vuelve a poner en el mismo botón.
+   */
+  consolaPrincipal() {
+    const previa = this.consola;
+    const enfocado = previa ? previa.botones.indexOf(this.teclado.actual) : -1;
+    if (previa) {
+      previa.objs.forEach((o) => { this.tweens.killTweensOf(o); o.destroy(); });
+      this.teclado.items = []; this.teclado.actual = null; this.teclado.atajos = [];
+    }
     const g = guardadoDisponible(DESTINOS);
     const en = idioma() === 'en';
     const opciones = [
@@ -263,31 +343,102 @@ export default class Menu extends Phaser.Scene {
       { etiqueta: en ? 'Language: English' : 'Idioma: Español', accion: () => this.cambiarIdioma('principal'), tecla: 'L',
         pista: en ? 'Cambiar a español' : 'Switch to English' },
     ];
-    const consola = consolaMenu(this, opciones, {
-      ayudaPorDefecto: tr('↑↓←→ mover · 1–5 / Enter elegir · Esc inicio · L idioma', '↑↓←→ move · 1–5 / Enter choose · Esc title · L language'),
+    const consola = this.consola = consolaMenu(this, opciones, {
+      ayudaPorDefecto: tr('↑↓←→ mover · 1–5 / Enter elegir · Esc inicio · L idioma · A tutora', '↑↓←→ move · 1–5 / Enter choose · Esc title · L language · A tutor'),
     });
     const botones = consola.botones;
     const [nueva, continuar] = botones;
-    if (llegada) entradaInterfaz(this, { consola: consola.objs, logo, retraso: 450 });
+    // Apartado propio de la música (#104, docs/juego/MUSICA.md) arriba a la derecha y ANA (#105) arriba a la izquierda,
+    // fuera de la consola (que ya está llena). Al cambiar de idioma se rehacen con la consola.
+    this.botonMusica?.obj?.destroy();
+    this.botonTutora?.objs?.forEach((o) => o.destroy());
+    const musica = this.botonMusica = boton(this, 945, 28, tr('Música', 'Music'), () => this.fundido(() => this.mostrar('musica')),
+      { size: 14, origen: [1, 0.5], crecer: false });
+    const tutora = this.botonTutora = botonPx(this, TUTORA.x, TUTORA.y, TUTORA.w, TUTORA.h, tr('Tutora ANA', 'ANA, tutor'), () => this.abrirTutora(), {
+      tecla: 'A',
+      alEnfocar: (v) => consola.ayuda(v ? tr('Pregúntale qué es un análogo y de dónde salen los datos', 'Ask her what an analog is and where the data comes from') : '', tutora),
+    });
+    const ponerTeclado = (foco) => {
+      this.teclado.numerar(botones.slice(0, 5));
+      (g ? continuar : nueva).setSugerido(true);
+      // Música y ANA entran al recorrido de Tab y ←→ (después de «Idioma»), pero no a la rejilla de ↑↓ de la consola.
+      this.teclado.poner([...botones, musica, tutora], foco ?? (g ? continuar : nueva));
+      const rejilla = flechasRejilla(this, 2);
+      const enRejilla = (tecla, paso) => (ev) => {
+        const tk = this.teclado;
+        if (this.modoTeclado && tk.actual && !botones.includes(tk.actual)) { tk.mover(paso); return; }
+        const todos = tk.items;
+        tk.items = botones;
+        try { rejilla[tecla](ev); } finally { tk.items = todos; }
+      };
+      const tutoraTecla = () => this.abrirTutora();
+      this.teclado.extra = { ...this.teclado.extra, ...rejilla, ArrowUp: enRejilla('ArrowUp', -1), ArrowDown: enRejilla('ArrowDown', 1),
+        a: tutoraTecla, A: tutoraTecla };
+      this.teclado.alEscape = () => this.fundido(() => this.mostrar('inicio'));
+    };
+    // Cambio de idioma con la vista ya lista: mismo foco, sin animación de entrada.
+    if (previa && !this.listoPrincipal) { ponerTeclado(botones[enfocado] ?? botones[5]); return consola; }
     // Teclado y ratón se habilitan cuando la estación terminó de llegar (escenarioNave llama a listoPrincipal; sin
     // llegada, en el instante siguiente).
     this.listoPrincipal = () => {
       this.listoPrincipal = null;
       if (!this.sys.isActive() || this.vista !== 'principal') return;
+      tocarMusica('menu');
       this.zoomando = false;
       this.input.enabled = true;
-      this.teclado.numerar(botones.slice(0, 5));
-      (g ? continuar : nueva).setSugerido(true);
-      this.teclado.poner(botones, g ? continuar : nueva);
-      this.teclado.extra = { ...this.teclado.extra, ...flechasRejilla(this, 2) };
-      this.teclado.alEscape = () => this.fundido(() => this.mostrar('inicio'));
+      tocarMusica('menu');
+      ponerTeclado();
     };
+    return consola;
   }
 
-  /** "Nueva partida": la primera vez en este navegador muestra "Cómo jugar" antes de elegir destino. */
+  /**
+   * Apartado «Música»: volumen propio de 0 a 100 % en pasos de 10 (se guarda en este navegador) y quitar o poner la
+   * música. Mientras se ajusta suena la del menú. Teclas: - y + bajan y suben; Esc vuelve.
+   */
+  vistaMusica() {
+    tituloPlaca(this, 480, 40, tr('Música', 'Music'), { size: 30 });
+    cajaArte(this, 'ui/ui_tarjeta', 230, 96, 500, 330, { alfa: 0.94 });
+    const valor = texto(this, 480, 146, '', { size: 28, color: COLOR.acento, origen: [0.5, 0.5] });
+    const segmentos = Array.from({ length: 10 }, (_, i) => this.add.rectangle(310 + i * 34, 196, 28, 24, 0x06d6a0).setOrigin(0, 0.5).setDepth(2));
+    texto(this, 480, 244, tr('La música suena debajo de los efectos. La M de las pruebas también la calla.',
+      'Music plays under the sound effects. M during the tests mutes it too.'),
+      { size: 14, color: COLOR.tenue, origen: [0.5, 0.5], ancho: 460, alinear: 'center' });
+    const menos = boton(this, 380, 304, tr('- Bajar', '- Lower'), () => cambiarVolumenMusica(-10), { size: 18, anchoCaja: 170 });
+    const mas = boton(this, 580, 304, tr('+ Subir', '+ Raise'), () => cambiarVolumenMusica(10), { size: 18, anchoCaja: 170 });
+    const quitar = boton(this, 480, 372, '', () => alternarMusica(), { size: 18, anchoCaja: 300 });
+    const volver = boton(this, 480, 512, tr('Volver', 'Back'), () => this.mostrar('principal'), { size: 16 });
+    const pintar = (e) => {
+      if (!valor.active) return;
+      valor.setText(e.quitada ? tr('Música quitada', 'Music off') : `${e.volumen} %`);
+      segmentos.forEach((r, i) => r.setFillStyle(i < e.volumen / 10 && !e.quitada ? 0x06d6a0 : 0x2a3160));
+      quitar.setEtiqueta(e.quitada ? tr('Poner la música', 'Turn music on') : tr('Quitar la música', 'Turn music off'));
+      menos.setHabilitado(e.volumen > 0);
+      mas.setHabilitado(e.volumen < 100);
+    };
+    pintar(estadoMusica());
+    this.dejarMusica = alCambiarMusica(pintar);
+    this.events.once('shutdown', () => { this.dejarMusica?.(); this.dejarMusica = null; });
+    const bajar = () => { sonarBoton(); cambiarVolumenMusica(-10); };
+    const subir = () => { sonarBoton(); cambiarVolumenMusica(10); };
+    this.teclado.extra = { ...this.teclado.extra, '-': bajar, '_': bajar, '+': subir, '=': subir };
+    this.teclado.numerar([menos, mas, quitar, volver]);
+    this.teclado.poner([menos, mas, quitar, volver, this.botonIdioma('musica')], mas);
+  }
+
+  /** ANA sobre el menú de opciones. Sin sitio ni destino: responde sobre el método, la validación y el catálogo. */
+  abrirTutora() {
+    if (this.tutora || this.zoomando || this.vista !== 'principal') return;
+    this.tutora = abrirTutora(this, { pantalla: 'menu', alCerrar: () => { this.tutora = null; } });
+  }
+
+  /**
+   * "Nueva partida" → elegir destino. La primera vez, al elegir Luna o Marte sale el resumen de 4 viñetas (tutorial
+   * guiado, comun/tutorial.js); por eso «Cómo jugar» ya no se abre solo antes (eran las mismas 4 viñetas dos veces).
+   * «Cómo jugar» sigue en el menú (versión larga) y la tecla ? repite el resumen en la elección de destino.
+   */
   alNuevaPartida() {
-    if (debeMostrarComoJugar()) this.verComoJugar('destino');
-    else this.mostrar('destino');
+    this.mostrar('destino');
   }
 
   verComoJugar(despues) {
@@ -320,8 +471,8 @@ export default class Menu extends Phaser.Scene {
     // Ayuda fija: sin nada resaltado muestra los recursos de inicio (valores de juego); al enfocar un destino, su nota de gravedad.
     const ayuda = ayudaFija(this, 480, 466, {
       ancho: 860,
-      porDefecto: tr(`${TICKETS_POR_PARTIDA} tickets · ${formato(PRESUPUESTO_INICIAL, 0)} créditos`,
-        `${TICKETS_POR_PARTIDA} tickets · ${formato(PRESUPUESTO_INICIAL, 0)} credits`),
+      porDefecto: tr(`${TICKETS_POR_PARTIDA} tickets · ${formato(PRESUPUESTO_INICIAL, 0)} créditos · ? cómo jugar`,
+        `${TICKETS_POR_PARTIDA} tickets · ${formato(PRESUPUESTO_INICIAL, 0)} credits · ? how to play`),
     });
     this.planetas = {};
     const botones = ids.map((id, i) => {
@@ -362,6 +513,20 @@ export default class Menu extends Phaser.Scene {
     this.teclado.numerar([...botones, volver]);
     preferido?.setSugerido(true);
     this.teclado.poner([...botones, volver, this.botonIdioma('destino')], preferido);
+    // ?: repite el resumen de 4 viñetas sin empezar (vuelve a esta vista).
+    this.teclado.extra = { ...this.teclado.extra, '?': () => this.verResumen(null, () => this.mostrar('destino')) };
+  }
+
+  /** Resumen de 4 viñetas (tutorial guiado): `destinoId` personaliza las frases; `luego` al terminar o saltar. */
+  verResumen(destinoId, luego) {
+    if (this.resumen?.abierto()) return;
+    const mundo = DESTINOS[destinoId]?.mundo ?? null;
+    const titulo = mundo === 'luna' ? tr('Rumbo a la Luna', 'Heading to the Moon')
+      : mundo === 'marte' ? tr('Rumbo a Marte', 'Heading to Mars') : tr('Tu misión', 'Your mission');
+    this.resumen = abrirResumen(this, {
+      vinetas: pasosResumen(mundo), titulo, marca: marcaTutorial(CLAVES_TUTORIAL.resumen),
+      alCerrar: () => { this.resumen = null; luego(); },
+    });
   }
 
   /** Giro rápido del planeta elegido y luego empieza la partida (una sola vez aunque se pulse varias veces). */
@@ -373,7 +538,13 @@ export default class Menu extends Phaser.Scene {
     else this.empezar(id);
   }
 
+  /** La primera vez en este navegador, antes de empezar, el resumen de 4 viñetas (saltable, se recuerda). */
   empezar(destinoId) {
+    if (marcaTutorial(CLAVES_TUTORIAL.resumen).debeMostrar()) this.verResumen(destinoId, () => this.arrancar(destinoId));
+    else this.arrancar(destinoId);
+  }
+
+  arrancar(destinoId) {
     nuevaPartida(partida, destinoId, { presupuesto: PRESUPUESTO_INICIAL, tickets: TICKETS_POR_PARTIDA });
     irA(this, 'Expediente');
   }

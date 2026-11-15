@@ -21,17 +21,35 @@ const SITIOS_EN = {
     uso_exploracion: 'Field geology and mobility on volcanic terrain and inside a crater (El Elegante maar)',
   },
   mx0207: {
-    nombre: 'Real de Ángeles (Zac.)',
+    nombre: 'Real de Ángeles (Zacatecas)',
     proceso: 'Probable open-pit mine (OpenStreetMap quarry within ≤ 2 km; to be verified)',
     uso_exploracion: 'Operational analog, not geological: test rover navigation and mobility on steep walls, '
       + 'excavation (ISRU) and operations in shadow at the bottom of the pit',
   },
   g00281: {
     nombre: 'Al Wahbah maar (Harrat Kishb, Saudi Arabia)',
-    proceso: 'Closed crater-like depression of unconfirmed origin (no rim: sinkhole, basin or eroded maar)',
+    proceso: 'Closed crater-like depression (maar); measured raised rim of 6.1 m',
     uso_exploracion: 'Candidate to verify in the field: navigation and mobility inside a crater-like depression',
   },
+  // Solo nombres (revisión de Leo, docs/taller/REVISION_EN.md): sin esto salían en español en las pantallas en inglés.
+  g00263: { nombre: 'Al Hutaymah maar (Harrat Hutaymah, Saudi Arabia)' },
+  g00266: { nombre: 'Jabal Bayda tuff ring (Harrat Khaybar, Saudi Arabia)' },
+  tenoumer: { nombre: 'Tenoumer impact crater (Mauritania)' },
+  talemzane: { nombre: 'Talemzane impact crater (Algeria)' },
+  roter_kamm: { nombre: 'Roter Kamm impact crater (Namibia)' },
+  pingualuit: { nombre: 'Pingualuit impact crater (Nunavik, Quebec, Canada)' },
+  meteor_crater: { nombre: 'Meteor Crater (Arizona, USA)' },
+  mx0261: { nombre: 'Rincón de Parangueo maar' },
 };
+
+// Correcciones de nombres en español hechas del lado del juego (data/sites es del frente modelo: se le pidió corregir el JSON).
+// g00266: las fuentes (Camp 1991; Németh 2026; docs/taller/FUENTES_NIVELES.md) lo describen como anillo de toba, no cono.
+const NOMBRES_ES = {
+  g00266: 'Anillo de toba Jabal Bayda (Harrat Khaybar, Arabia Saudita)',
+};
+
+// Abreviaturas de estados de México en los nombres del catálogo («Cananea (Son.)»): en inglés no se entienden.
+const ESTADOS_MX = { 'Son.': 'Sonora', 'Zac.': 'Zacatecas', 'Coah.': 'Coahuila', 'Chih.': 'Chihuahua' };
 
 const DESTINOS_EN = {
   jezero: {
@@ -95,8 +113,8 @@ const EXACTOS = {
     'Perseverance MEDA, Munguira et al. 2023, JGR Planets 128, e2022JE007559 (doi:10.1029/2022JE007559), Table 1',
   'Mosaico HRSC+MOLA Blend DEM 200 m (ESA/NASA, vía USGS Astrogeology)': 'HRSC+MOLA Blend DEM 200 m mosaic (ESA/NASA, via USGS Astrogeology)',
   'LRO LOLA polar ldem_80s_80m (NASA), promediado a 200 m': 'LRO LOLA polar ldem_80s_80m (NASA), averaged to 200 m',
-  'Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)':
-    'Closed crater-like depression of unconfirmed origin (no rim: sinkhole, basin or eroded maar)',
+  'Depresión cerrada tipo cráter (maar); borde levantado medido de 6.1 m':
+    'Closed crater-like depression (maar); measured raised rim of 6.1 m',
   'Depresión cerrada tipo cráter de origen sin confirmar (borde levantado: probable volcánico)':
     'Closed crater-like depression of unconfirmed origin (raised rim: probably volcanic)',
   'Probable tajo minero a cielo abierto (cantera de OpenStreetMap a ≤ 2 km; por verificar)':
@@ -108,6 +126,20 @@ const EXACTOS = {
     'Candidate to verify in the field: navigation and mobility inside a crater-like depression',
   'Navegación y movilidad de rovers dentro y en el borde de un cráter; geología de campo en un cráter real':
     'Rover navigation and mobility inside and on the rim of a crater; field geology in a real crater',
+  'Navegación y movilidad de rovers dentro y en el borde de un cráter de impacto; geología de campo en un cráter de impacto real':
+    'Rover navigation and mobility inside and on the rim of an impact crater; field geology in a real impact crater',
+  'Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)':
+    'Closed crater-like depression of unconfirmed origin (no rim: sinkhole, basin or eroded maar)',
+  'Impacto: cráter de impacto de la lista ciencia_datos/datos/impactos_tierra.csv (Earth Impact Database)':
+    'Impact: impact crater from the list ciencia_datos/datos/impactos_tierra.csv (Earth Impact Database)',
+};
+
+// Primera frase de `uso_exploracion` de los candidatos (antes de «La analogía se rompe…»).
+const USO_CABEZA = {
+  'Análogo operativo, no geológico: probar navegación y movilidad de rovers en paredes empinadas, excavación (ISRU) y operación con sombra en el fondo del tajo':
+    SITIOS_EN.mx0207.uso_exploracion,
+  'Candidato a verificar en campo: navegación y movilidad dentro de una depresión tipo cráter':
+    'Candidate to verify in the field: navigation and mobility inside a crater-like depression',
 };
 
 // Cola de las notas de forma que escribe model/scan.py.
@@ -119,7 +151,15 @@ const COLA_FORMA = [
 
 // Patrones de los textos generados (nombres de detecciones, notas de forma, límites del cálculo).
 const PATRONES = [
-  [/^Depresión tipo cráter (\S+)(?: \((.+)\))?$/, (m) => `Crater-like depression ${m[1]}${m[2] ? ` (${m[2].replace('EE. UU.', 'USA')})` : ''}`],
+  // «(Atacama (Chile))» → «(Atacama, Chile)»: sin paréntesis dentro de paréntesis.
+  [/^Depresión tipo cráter (\S+)(?: \((.+)\))?$/,
+    (m) => `Crater-like depression ${m[1]}${m[2] ? ` (${m[2].replace('EE. UU.', 'USA').replace(/ \((.+)\)$/, ', $1')})` : ''}`],
+  [/^(.+) \((Son\.|Zac\.|Coah\.|Chih\.)\)$/, (m) => `${m[1]} (${ESTADOS_MX[m[2]]})`],
+  // «La analogía se rompe…» que model/scan.py agrega a `uso_exploracion` de los candidatos de la Luna.
+  [/^(.+?)\. La analogía se rompe por ser un hueco artificial escalonado; su d\/D \(([\d.]+)\) supera solo al (\d+) % de los ([\d,]+) cráteres lunares de diámetro parecido, así que aquí la profundidad no es el problema\.$/,
+    (m) => USO_CABEZA[m[1]] && `${USO_CABEZA[m[1]]}. The analogy breaks because it is a stepped artificial hole; its d/D (${m[2]}) exceeds only ${m[3]} % of the ${m[4]} lunar craters of similar diameter, so depth is not the problem here.`],
+  [/^(.+?)\. La analogía se rompe por exceso de profundidad, sobre todo en el fondo: su d\/D \(([\d.]+)\) supera al (\d+) % de los ([\d,]+) cráteres lunares de diámetro parecido \(mitad a doble\) medidos a 200 m\.$/,
+    (m) => USO_CABEZA[m[1]] && `${USO_CABEZA[m[1]]}. The analogy breaks from excess depth, especially at the bottom: its d/D (${m[2]}) exceeds ${m[3]} % of the ${m[4]} lunar craters of similar diameter (half to double) measured at 200 m.`],
   [/^más hondo que casi cualquier cráter planetario de su tamaño$/, () => 'deeper than almost any planetary crater of its size'],
   [/^forma poco común en la Luna y Marte$/, () => 'shape uncommon on the Moon and Mars'],
   [/^(?:Cráter (\S+): )?P\(Luna\)=([\d.]+), distancia a la nube=([\d.]+); (.+)$/, (m) => {
@@ -163,6 +203,9 @@ let listo = false;
 export function prepararIngles(sitios = TODOS_LOS_SITIOS, destinos = DESTINOS) {
   if (listo) return;
   listo = true;
-  for (const s of sitios) prepararObjeto(s, SITIOS_EN[s.id]);
+  for (const s of sitios) {
+    if (NOMBRES_ES[s.id]) s.nombre = NOMBRES_ES[s.id];
+    prepararObjeto(s, SITIOS_EN[s.id]);
+  }
   for (const d of Object.values(destinos)) prepararObjeto(d, DESTINOS_EN[d.id]);
 }

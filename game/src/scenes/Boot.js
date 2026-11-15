@@ -53,7 +53,7 @@ export default class Boot extends Phaser.Scene {
     this.add.rectangle(180, 270, 600, 16).setOrigin(0, 0.5).setStrokeStyle(1, COLOR.borde);
     const barra = this.add.rectangle(180, 270, 0, 16, 0xffd166).setOrigin(0, 0.5);
     const pct = texto(this, 480, 240, tr('Cargando 0 %', 'Loading 0 %'), { size: 16, origen: [0.5, 0.5] });
-    this.detalle = texto(this, 480, 300, tr('Revisando el arte…', 'Checking the art…'), { size: 12, color: COLOR.tenue, origen: [0.5, 0.5] });
+    this.detalle = texto(this, 480, 300, tr('Revisando el arte…', 'Checking the art…'), { size: 14, color: COLOR.tenue, origen: [0.5, 0.5] });
     this.pintar = (p) => { barra.width = 600 * p; pct.setText(tr(`Cargando ${Math.round(p * 100)} %`, `Loading ${Math.round(p * 100)} %`)); };
     this.cargarArte();
   }
@@ -100,15 +100,15 @@ export default class Boot extends Phaser.Scene {
     if (this.saltados.length) {
       const lista = this.saltados.slice(0, 3).map((a) => `${a.archivo} (${formatoBytes(a.bytes)})`).join(' · ');
       texto(this, 480, 330, `${tr('No se precargó', 'Not preloaded')}: ${lista}${this.saltados.length > 3 ? ` ${tr('y', 'and')} ${this.saltados.length - 3} ${tr('más', 'more')}` : ''}`,
-        { size: 12, color: COLOR.acento, origen: [0.5, 0.5], ancho: 860, alinear: 'center' });
+        { size: 14, color: COLOR.acento, origen: [0.5, 0.5], ancho: 860, alinear: 'center' });
     }
     if (this.errores.length) {
       texto(this, 480, 370, `${tr('No se pudo cargar', 'Could not load')}: ${this.errores.slice(0, 4).join(', ')}${this.errores.length > 4 ? '…' : ''}`,
-        { size: 12, color: COLOR.alerta, origen: [0.5, 0.5], ancho: 860, alinear: 'center' });
+        { size: 14, color: COLOR.alerta, origen: [0.5, 0.5], ancho: 860, alinear: 'center' });
     }
     if (!SITIOS.length || !destinos) {
       texto(this, 480, 390, tr('Faltan datos en data/sites o data/targets: el Expediente mostrará "sin dato".', 'Missing data in data/sites or data/targets: the Site File will show "no data".'),
-        { size: 12, color: COLOR.alerta, origen: [0.5, 0.5] });
+        { size: 14, color: COLOR.alerta, origen: [0.5, 0.5] });
     }
     // Si hubo algo que avisar (saltados o errores), el resumen queda visible un momento antes de la pantalla de inicio.
     const pausa = this.errores.length || this.saltados.length ? 1800 : 0;

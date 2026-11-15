@@ -229,7 +229,7 @@ caso('inglés: analogía, recomendaciones y notas de perfil y suelo', () => {
     assert.ok(p.nota.includes('recreated dune faces') && p.nota.endsWith('flat start and finish = recreation'));
     assert.match(generarPerfil({ tipo: 'dunas' }).nota, /^Illustrative generated terrain \(dunes\)/);
     const suelo = notaSuelo('tierra', [{ tipo: 'arena' }, { tipo: 'roca' }]);
-    assert.ok(suelo.startsWith('Soil: sand') && suelo.endsWith(' · rock: provisional grip (P)'));
+    assert.ok(suelo.startsWith('Ground: sand') && suelo.endsWith(' · rock: provisional grip (P)'));
   } finally {
     setIdioma('es');
   }
@@ -330,13 +330,13 @@ caso('ambiente: luz rasante reduce la recarga del panel solar', () => {
 });
 caso('ambiente: textos bilingües para el Expediente y las instrucciones', () => {
   const jez = ambienteDeDestino('jezero', 'marte');
-  assert.equal(resumenAmbiente(jez), 'Marte: −83 a −22 °C (dos soles, MEDA) · aire 0.017 kg/m³ (1 % de la Tierra): el motor se enfría poco');
+  assert.equal(resumenAmbiente(jez), 'Marte: −83 a −22 °C (dos soles, MEDA) · aire 0.017 kg/m³ (1.4 % de la Tierra): el motor se enfría poco');
   const l = lineasAmbiente(ambienteDeDestino('polo_sur_lunar', 'luna'));
   assert.ok(l[0] === 'Temperatura: −53 °C (borde iluminado)' && l.some((x) => x.startsWith('Luz: rasante')) && l.at(-1).startsWith('Fuente: docs/taller/AMBIENTE.md: LRO Diviner'));
   assert.ok(lineasAmbiente(ambienteDeSitio('pinacate'))[0].includes('extremos −4.7 / 48.4 °C'));
   setIdioma('en');
   try {
-    assert.ok(resumenAmbiente(jez).startsWith('Mars: −83 to −22 °C (2 sols, MEDA) · air 0.017 kg/m³ (1 % of Earth'));
+    assert.ok(resumenAmbiente(jez).startsWith('Mars: −83 to −22 °C (2 sols, MEDA) · air 0.017 kg/m³ (1.4 % of Earth'));
     assert.ok(lineasAmbiente(jez).at(-1).startsWith('Source: docs/taller/AMBIENTE.md: MEDA'));
   } finally {
     setIdioma('es');
@@ -378,3 +378,27 @@ caso('feedback: sobrecalentamiento → línea de analogía y recomendación', ()
   assert.ok(recP.some((r) => r.id === 'motor_eficiente_calor' && r.cambio.pieza === 'motor_eficiente'));
 });
 console.log(`${n} casos OK (con ambiente y obstáculos)`);
+
+// Robustez del camino dorado (docs/juego/FISICA_V2.md §5.2): tope de las caras de duna y paso seguro sobre rocas.
+import { velocidadPasoRoca, PASO_ROCA } from './danio.js';
+caso('caras de duna recreadas: pendiente total ≤ 30° (borde inferior del ángulo de reposo), también sobre una base que sube', () => {
+  // Base que sube 8° (≤ pendienteBaseMax 10°): sin el tope, cara + base pasaban de 35°.
+  const elev = Array.from({ length: 101 }, (_, i) => i * 30 * Math.tan((8 * Math.PI) / 180));
+  const p = perfilDesdeElevaciones(elev, { paso_m: 30, superficies: [{ desde: 0, hasta: 3000, tipo: 'arena' }], dunasRecreadas: true });
+  assert.ok(p.recreacion.some((r) => r.tipo === 'cara_duna'), 'hay dunas recreadas');
+  assert.ok(pendienteMaxima(p) <= 30.5, `pendiente máxima ${pendienteMaxima(p)}`);
+  for (const id of ['samalayuca']) { // todo arena (g00263 tiene además paredes de roca con bloques recreados)
+    const s = perfilDeSitio(JSON.parse(readFileSync(new URL(`../../../data/sites/${id}.json`, import.meta.url))));
+    assert.ok(pendienteMaxima(s) <= 30.5, `${id}: ${pendienteMaxima(s)}`);
+  }
+});
+caso('paso seguro sobre roca (misión): crece con √g y con la pared del soporte; Marte ≈ 2.9 m/s con soporte básico', () => {
+  const marte = velocidadPasoRoca({ g: 3.71, radio_m: 0.5, alto_m: 0.24, pared_m: 0.25 });
+  assert.ok(marte > 2.7 && marte < 3.1, `Marte ${marte}`);
+  const luna = velocidadPasoRoca({ g: 1.62, radio_m: 0.5, alto_m: 0.24, pared_m: 0.25 });
+  assert.ok(Math.abs(luna / marte - Math.sqrt(1.62 / 3.71)) < 1e-9, 'escala con √g');
+  assert.ok(velocidadPasoRoca({ g: 3.71, radio_m: 0.5, alto_m: 0.24, pared_m: 0.45 }) > marte, 'soporte más alto = más rápido');
+  assert.ok(velocidadPasoRoca({ g: 3.71, radio_m: 0.5, alto_m: 0.1, pared_m: 0.25 }) > marte, 'roca más baja = más rápido');
+  assert.equal(PASO_ROCA.k, 1.5);
+});
+console.log(`${n} casos OK (con robustez)`);

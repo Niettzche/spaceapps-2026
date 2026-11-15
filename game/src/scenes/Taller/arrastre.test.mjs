@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
   PESTANAS, tarjetasDe, pestanaDeRanura, socketsPara, socketPreferido, poner, quitar, mover, ambosEjes, costoDe, nombreCorto,
+  ponerRueda,
 } from './arrastre.js';
 import { BLOQUEADAS, RAZONES } from './bloqueadas.js';
 import { RANURAS, DISENO_POR_DEFECTO, comoMapa, comoDiseno, resumen, validar } from './diseno.js';
@@ -131,6 +132,32 @@ caso('feedback: el camino dorado sigue recomendando ruedas anchas primero; auto-
   const golpes = Array.from({ length: 5 }, (_, i) => ({ t: i, tipo: 'golpe_carga', detalle: '3 m/s' }));
   const r4 = recomendar({ eventos: golpes, integridad_carga: 0.7, diseno: comoDiseno({ ...base(), carga: 'soporte_amortiguado' }) }, 'meta');
   assert.ok(r4.some((r) => r.id === 'rueda_nitinol'));
+});
+
+caso('soltar una rueda la pone en los dos ejes; con «separar» solo en uno; el segundo arrastre es inocuo', () => {
+  const ancha = porId.rueda_ancha;
+  const r1 = ponerRueda(base(), ancha, 'rueda_del');
+  assert.ok(r1.ok && r1.ambos);
+  assert.equal(r1.mapa.rueda_del, 'rueda_ancha');
+  assert.equal(r1.mapa.rueda_tras, 'rueda_ancha');
+  assert.equal(r1.otro, 'rueda_tras');
+  // Segundo arrastre al otro eje (como la e2e): no cambia nada.
+  const r2 = ponerRueda(r1.mapa, ancha, 'rueda_tras');
+  assert.equal(r2.ok, false);
+  assert.equal(r2.motivo, 'igual');
+  assert.deepEqual(r2.mapa, r1.mapa);
+  // Separar: solo el eje donde se suelta.
+  const r3 = ponerRueda(base(), ancha, 'rueda_tras', { separar: true });
+  assert.ok(r3.ok && !r3.ambos);
+  assert.equal(r3.mapa.rueda_tras, 'rueda_ancha');
+  assert.equal(r3.mapa.rueda_del, base().rueda_del);
+  // Con ejes mezclados, soltar sin separar los vuelve a unir.
+  const r4 = ponerRueda(r3.mapa, ancha, 'rueda_del');
+  assert.ok(r4.ok && r4.mapa.rueda_del === 'rueda_ancha' && r4.mapa.rueda_tras === 'rueda_ancha');
+  // Otras piezas no cambian de comportamiento; una rueda no cabe en el motor.
+  const r5 = ponerRueda(base(), porId.motor_potente, 'motor');
+  assert.ok(r5.ok && !r5.ambos);
+  assert.equal(ponerRueda(base(), ancha, 'motor').ok, false);
 });
 
 console.log(`\n${n} casos OK`);

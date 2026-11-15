@@ -26,6 +26,29 @@
 - **Pruebas:** `node game/src/fisica/fisica.test.mjs` (24 casos) y la prueba de punta a punta `game/e2e/camino_dorado.mjs`
   (Marte y Luna con clics y teclado reales; 22/23 en la última corrida, la falla fue una recarga de página ajena al juego).
 
+## Niveles destacados (15 nov)
+- 5 sitios de mayor similitud, uno por tipo (toba g00266, impacto en desierto tenoumer, mina mx0023, lava pinacate, impacto helado
+  pingualuit): clima real de NASA POWER (consultado el 15 nov), viento con arrastre ½ρv²CdA (en Marte casi no empuja), bloques y
+  parches recreados, eventos de fondo (remolinos, Fobos, la Tierra, micrometeoritos, desprendimientos) y «Entrena» en las
+  instrucciones. Detalle y tabla de balance (física 2): `docs/juego/NIVELES_DESTACADOS.md`. Pruebas: `fisica/niveles_destacados.test.mjs`.
+
+## Física 2 (15 nov, experimental, `?fisica=2`)
+- Terramecánica Bekker–Wong en `game/src/fisica/suelo_v2.js` (pruebas `suelo_v2.test.mjs`), rama `v2` de robot.js, bandera en
+  `version.js` (por defecto 1). Ecuaciones, fuentes, (P), calibración y tabla de niveles: `docs/juego/FISICA_V2.md`.
+- Feedback: «Tus ruedas se hundieron N cm: presión X kPa; con ruedas anchas sería Y kPa»; atasco en reversa recomienda avanzar.
+- Bloquea activarla por defecto: g00281 nuevo (main) deja pasar a la estándar también con física 1; 1 de 4 corridas de Jezero
+  pierde la carga con física 2.
+
+## Retro de Leo, playtest de las 5 am (15 nov) — hecho
+- Fondo vivo del Menú: nada aparece ni desaparece a media pantalla (trayectorias puras y probadas en `ambiente_plan.js`).
+- Cambiar de idioma no reinicia nada: inicio (el video sigue), opciones (solo la consola), números y cómo jugar (fondo vivo conservado).
+- Expediente con selector `ES · EN (L)`: redibuja con el mismo sitio y la misma vista.
+- Taller: soltar una rueda la pone en los 2 ejes; mezclar = Mayús al soltar o «Separar ejes» (A).
+- Textos: los 18 hallazgos Alta de `docs/taller/REVISION_EN.md` y las Media rápidas; español más natural.
+- `docs/juego/PRESUPUESTO.md`: diseño más barato por nivel y propuesta de presupuesto por nivel (sin aplicar: decide Edmundo).
+- Pendiente del modelo: `data/sites/g00266.json` aún dice «Cono de toba» (el juego lo corrige al mostrarlo) y `mx0023.json` `proceso`
+  dice «Probable tajo… por verificar» (el tajo está verificado: Buenavista del Cobre, S137).
+
 ## En curso
 - Niveles críticos: el tramo más exigente que siga siendo superable, en la dirección correcta (subir la pared del maar, bancos de la mina,
   Jezero con relieve).

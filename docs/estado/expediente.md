@@ -126,6 +126,39 @@ Pedido: "agrega los efectos de menú dentro de Nueva partida y ¿De dónde salen
 - [x] Pruebas `pruebas/tutorial.test.js` (6) y revisión es/en (Marte y Luna, 6 pasos, detalle, condiciones): 0 textos
   < 14 px, 0 fuera, 0 encimados.
 
+### El modelo dentro del juego: «¿Por qué aquí?», «Qué entrena», Descubrir y Explorador → jugar (`feat/juego`, 15 nov)
+Pedido de Edmundo: que la solución también abarque *encontrar* terrenos análogos con el modelo (AGENTS.md §6.4).
+- [x] **«M · ¿Por qué aquí?»** (botón junto a la línea de keywords y tecla M; también en Descubrir): tarjeta a todo lo ancho
+  con ícono por fila: cómo se encontró (curado · control positivo · búsqueda global en zonas áridas + país · propuesta),
+  qué es (de `proceso`; «probable, por verificar» si así lo dice), forma d/D frente a su gemelo de forma (de la `nota` de
+  model/scan.py), salida del modelo Luna/Marte (P(Luna) de `variables.forma.nota`), borde levantado, filtro árido
+  (NDVI p90 < 0.35; si no hay p90 lo dice), novedoso (true/false/«sin verificar») y «Qué entrena». Solo campos de
+  data/sites; lo que falta dice «sin dato» o «no aplica» (Samalayuca: no es cráter). Lógica pura en `expediente/descubrir.js`.
+- [x] **«Qué entrena»** de `NIVELES_DESTACADOS[id].entrena` en verde en la vista principal (en lugar de las keywords) y
+  completo en la tarjeta.
+- [x] **Pestañas «Sugeridos» | «Descubrir»** (tecla D). Por defecto sigue «Sugeridos» (e2e intacta). Descubrir: TODOS los
+  sitios del destino en el orden del modelo (Marte 32, Luna 31), filtros J «con nivel», N «novedosos», T «tipo»
+  (impacto · volcán o maar · mina · dunas · sin verificar; el ciclo salta tipos vacíos), minimapa del mundo en pixel art
+  (160 × 60 celdas de 2.25°, Natural Earth 1:110m vía world-atlas@2.0.2, la misma fuente que la máscara de Mauricio, que
+  no cubre el mundo entero) con un punto por sitio (amarillo con nivel, cian solo catálogo, gris fuera del filtro); un toque
+  en el mapa elige el sitio visible más cercano. Ficha abajo: nombre, %, tipo · origen, chips (d/D, borde, árido,
+  novedoso) y si tiene nivel. Con nivel: «Abrir su expediente» (pasa a Sugeridos, sin gastar ticket). Sin nivel:
+  «Este lugar aún no tiene nivel: la API lo puede generar» + «Generar nivel · Explorador» (abre el Explorador con sus
+  coordenadas y consulta sola; al volver, Descubrir recuerda filtros y sitio).
+- [x] **Tutorial:** paso nuevo «descubrir» (7 pasos) que señala la pestaña y nombra M · ¿Por qué aquí?.
+- [x] **Explorador → jugar:** si la coordenada cae a ≤ 25 km de un sitio con nivel, «Probar mi robot aquí» (antes «Abrir su
+  Expediente»; no gasta ticket hasta confirmar). Con la API: el mismo botón si coincide con el catálogo, y la tarjeta del
+  modelo con el formato de M (punto nuevo: la API no mide forma, NDVI medio/vetado, novedoso por distancia a
+  data/known_analogs.json con su regla de 50 km, «sin verificar»). `método` ahora sale en inglés (`metodo_en`).
+- [x] Pruebas `pruebas/descubrir.test.js` (9) con los datos reales; frente: 90/90. Revisión es/en (Marte g00266 y Luna
+  Pinacate, tarjeta M, Descubrir, filtros, ficha sin nivel, Explorador → jugar): 0 textos < 14 px, 0 fuera, 0 encimados,
+  0 zonas < 64×44. Explorador probado con la API real (v1.marsception.us/api; Playwright reenvía la respuesta porque la API
+  no acepta el origen local por CORS).
+
+**Pendiente / limitaciones:** la API no tiene `/nivel` (generar el perfil del DEM de un punto nuevo: `perfil_elevacion` ya
+existe en model/features.py; falta exponerlo y que el juego lo use) → propuesto a Mario. `novedoso` es null en muchos
+candidatos (se muestra «sin verificar»). El umbral del juego para proponer (0.6) no coincide con el de la API (0.4).
+
 ## Prueba del camino completo en Luna y Marte
 Recorrido con clics y teclas reales (`npm run dev`, Chrome sin ventana): Menú → Nueva partida → destino → Expediente →
 ticket → Taller → Prueba → Resultados → Misión → Resultados → Menú → recarga → Continuar.
