@@ -17,7 +17,13 @@ import { estrellas, planetaGirando, movimientoReducido } from './expediente/efec
 import { sonarBoton } from '../fisica/sonido.js';
 import { FondoMenu } from './expediente/fondo_menu.js';
 import { marteGrande, logoBrillo, lineaPixel, restaurarCamara, precargarInicio, videoInicio, warp, textoPx } from './expediente/inicio.js';
-import { escenarioNave, consolaMenu, flechasRejilla, entradaInterfaz, zoomEscotilla, detenerZoom } from './expediente/menu_nave.js';
+import { escenarioNave, consolaMenu, flechasRejilla, entradaInterfaz, zoomEscotilla, detenerZoom, botonPx } from './expediente/menu_nave.js';
+import { abrirTutora } from '../tutor/panel.js';
+
+// Botón de ANA en el menú de opciones: arriba a la izquierda (la consola ya tiene 3 filas llenas y arriba a la derecha
+// está Marte). Las estrellas no titilan debajo.
+const TUTORA = { x: 18, y: 10, w: 214, h: 44 };
+const ZONA_TUTORA = { x: TUTORA.x - 8, y: 0, right: TUTORA.x + TUTORA.w + 8, bottom: TUTORA.y + TUTORA.h + 8 };
 
 // A dónde ir al terminar o saltar "Cómo jugar" (se conserva si el Menú se reinicia al cambiar de idioma).
 let trasComoJugar = 'principal';
@@ -47,6 +53,7 @@ export default class Menu extends Phaser.Scene {
     restaurarCamara(this); // por si la escena se reinicia a media animación (cambio de idioma)
     this.oscuro = false;
     this.zoomando = false;
+    this.tutora = null;
     // Al volver de una partida en curso, el guardado se pone al día (diseño, resultados, tickets) antes de leerlo:
     // así "Continuar" y su resumen muestran lo mismo que había en memoria, no lo último escrito al gastar un ticket.
     if (partidaActiva()) guardar(partida);
@@ -138,7 +145,7 @@ export default class Menu extends Phaser.Scene {
     // Estrellas que titilan detrás de todo y lejos del texto (quietas con prefers-reduced-motion); en las opciones, lejos
     // también de la estación, de la Tierra, del logo y de Marte. La pantalla de inicio no lleva: el video trae su cielo.
     if (vista !== 'inicio') {
-      estrellas(this, nave ? { planeta: { ...nave.marte, r: nave.marte.r + 14 }, zonas: [...nave.zonas, { x: 230, y: 20, right: 730, bottom: 112 }] } : {});
+      estrellas(this, nave ? { planeta: { ...nave.marte, r: nave.marte.r + 14 }, zonas: [...nave.zonas, { x: 230, y: 20, right: 730, bottom: 112 }, ZONA_TUTORA] } : {});
     }
     // Fondo vivo de Leo (#76): asteroides, cometa, planetas detrás de Marte, galaxia, destellos y agujero negro al volver.
     // En «Nueva partida» con el fondo de Mauricio no va (no tiene un Marte al centro para su máscara), ni en el video.
@@ -264,11 +271,22 @@ export default class Menu extends Phaser.Scene {
         pista: en ? 'Cambiar a español' : 'Switch to English' },
     ];
     const consola = consolaMenu(this, opciones, {
-      ayudaPorDefecto: tr('↑↓←→ mover · 1–5 / Enter elegir · Esc inicio · L idioma', '↑↓←→ move · 1–5 / Enter choose · Esc title · L language'),
+      ayudaPorDefecto: tr('↑↓←→ mover · 1–5 / Enter elegir · Esc inicio · L idioma · A tutora', '↑↓←→ move · 1–5 / Enter choose · Esc title · L language · A tutor'),
     });
     const botones = consola.botones;
     const [nueva, continuar] = botones;
-    if (llegada) entradaInterfaz(this, { consola: consola.objs, logo, retraso: 450 });
+    // ANA, la tutora de análogos (tecla A; src/tutor/, frente modelo). Abre su panel encima del menú, sin zoom a la nave.
+    const tutora = botonPx(this, TUTORA.x, TUTORA.y, TUTORA.w, TUTORA.h, tr('Tutora ANA', 'ANA, tutor'), () => this.abrirTutora(), {
+      tecla: 'A',
+      alEnfocar: (v) => consola.ayuda(v ? tr('Pregúntale qué es un análogo y de dónde salen los datos', 'Ask her what an analog is and where the data comes from') : '', tutora),
+    });
+    if (llegada) {
+      entradaInterfaz(this, { consola: consola.objs, logo, retraso: 450 });
+      if (!movimientoReducido()) {
+        tutora.objs.forEach((o) => o.setAlpha(0));
+        this.tweens.add({ targets: tutora.objs, alpha: 1, delay: 700, duration: 320, ease: 'Quad.easeOut' });
+      }
+    }
     // Teclado y ratón se habilitan cuando la estación terminó de llegar (escenarioNave llama a listoPrincipal; sin
     // llegada, en el instante siguiente).
     this.listoPrincipal = () => {
@@ -278,10 +296,27 @@ export default class Menu extends Phaser.Scene {
       this.input.enabled = true;
       this.teclado.numerar(botones.slice(0, 5));
       (g ? continuar : nueva).setSugerido(true);
-      this.teclado.poner(botones, g ? continuar : nueva);
-      this.teclado.extra = { ...this.teclado.extra, ...flechasRejilla(this, 2) };
+      // ANA entra al recorrido de Tab y ←→ (después de «Idioma»), pero no a la rejilla de ↑↓ de la consola.
+      this.teclado.poner([...botones, tutora], g ? continuar : nueva);
+      const rejilla = flechasRejilla(this, 2);
+      const enRejilla = (tecla, paso) => (ev) => {
+        const tk = this.teclado;
+        if (this.modoTeclado && tk.actual === tutora) { tk.mover(paso); return; }
+        const todos = tk.items;
+        tk.items = botones;
+        try { rejilla[tecla](ev); } finally { tk.items = todos; }
+      };
+      const tutoraTecla = () => this.abrirTutora();
+      this.teclado.extra = { ...this.teclado.extra, ArrowUp: enRejilla('ArrowUp', -1), ArrowDown: enRejilla('ArrowDown', 1),
+        a: tutoraTecla, A: tutoraTecla };
       this.teclado.alEscape = () => this.fundido(() => this.mostrar('inicio'));
     };
+  }
+
+  /** ANA sobre el menú de opciones. Sin sitio ni destino: responde sobre el método, la validación y el catálogo. */
+  abrirTutora() {
+    if (this.tutora || this.zoomando || this.vista !== 'principal') return;
+    this.tutora = abrirTutora(this, { pantalla: 'menu', alCerrar: () => { this.tutora = null; } });
   }
 
   /** "Nueva partida": la primera vez en este navegador muestra "Cómo jugar" antes de elegir destino. */
