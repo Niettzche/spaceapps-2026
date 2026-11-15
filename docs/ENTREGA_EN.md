@@ -26,7 +26,9 @@ Distinct component evaluations include 9/11 documented Mexican craters in the or
 |---|---|
 | Demo | [MARSCEPTION](https://v1.marsception.us/) |
 | Rover game | [Play in English](https://v1.marsception.us/game/?lang=en) |
-| Video | [Current captioned overview](https://v1.marsception.us/media/mision-cero-30s-en.mp4); replace with the final 30-second cut after gameplay is recorded |
+| Submission asset | [Seven-slide English PDF](media/marsception_slides.pdf) · [editable source](media/marsception_slides.pptx) |
+| Slides after deployment | [Public PDF URL](https://v1.marsception.us/media/marsception_slides.pdf) — verify after Mario publishes this change |
+| Video | Work paused; PR #75 remains a draft. Use the seven-slide PDF for this submission route |
 | Source code | [GitHub repository](https://github.com/Niettzche/spaceapps-2026) — owner must verify public access |
 | Methodology | [English, in this repository](METHODOLOGY_EN.md) · [Public GitHub URL](https://github.com/Niettzche/spaceapps-2026/blob/main/docs/METHODOLOGY_EN.md) |
 
@@ -48,7 +50,7 @@ Distinct component evaluations include 9/11 documented Mexican craters in the or
 - Viking soil properties: https://ntrs.nasa.gov/citations/20200003046
 - NASA JPL planetary physical parameters, adopted Mars gravity convention: https://ssd.jpl.nasa.gov/planets/phys_par.html
 
-Site records and methodology retain the detailed article, unit, date and limitation for each measurement. The video uses local elevation-derived relief and MARSCEPTION presentation artwork; it is not a recording of a rover mission.
+Site records and methodology retain the detailed article, unit, date and limitation for each measurement. The seven slides use real elevation-derived relief and declared AI-assisted MARSCEPTION game art. The four gameplay vignettes illustrate the intended path; they are not screenshots proving a completed run. The editable PowerPoint retains source links in the slide notes. Code, artwork and label assistance are disclosed below.
 
 ## Tools
 

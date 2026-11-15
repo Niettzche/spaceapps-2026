@@ -6,6 +6,8 @@ An open-data Earth-analog explorer and 2D rover game for preparing selected Moon
 
 NASA Space Apps 2026 · Monterrey / UDEM. Challenge: [Identify Earth Locations that Analog the Permanent Moon Base Locations and Mars](https://www.spaceappschallenge.org/2026/challenges/permanent-moon-base-locations-and-mars/).
 
+**Submission slides:** [seven-page English PDF](docs/media/marsception_slides.pdf) · [editable PowerPoint](docs/media/marsception_slides.pptx) · [source and regeneration notes](docs/media/SLIDES_SOURCE.md). Video work is paused; PR #75 remains a draft. Edmundo confirms the official submission.
+
 ## What to explore
 
 Inspect candidate Earth sites, their measurements, sources and limits in the web explorer. Build a rover within a 1,000-credit game budget, test it on Earth terrain and attempt a delivery on the Moon or Mars. Bundled data keep the game usable without a live API. Robot balance and added terrain features are declared game approximations, not evidence of field readiness.
