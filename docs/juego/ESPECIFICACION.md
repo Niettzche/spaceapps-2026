@@ -72,9 +72,10 @@
 - **Agarre real del suelo** (`fisica/suelos.js`): fricción de la rueda = curva(agarre de la pieza) × tan(φ medio del suelo), con tope 1.
   Datos del libro de taller (Space_Apps_Game_Data.xlsx, hoja Biomes): Luna regolito φ 30–50° (Connolly y Carrier, NASA NTRS 20220014634);
   Marte drift 15.6–20.4°, costra 29.8–39.2°, roca 40–60° (Viking, NASA NTRS 20200003046, tabla 1). Tierra: sin dato (Gap) → el suelo no limita.
-  Medido (batería chica, motor eficiente, perfiles reales de data/): Luna ancha entrega (79 s, 21 %), estándar sin energía;
-  Marte ancha entrega (63 s, 37 %), estándar también entrega (71 s, 32 %) porque Jezero es casi plano (≤4.3°): el hundimiento
-  en suelo blando (Bekker) haría la diferencia, pero es Gap en el libro de datos. Samalayuca: estándar sin energía; ancha llega (59 s).
+  Medido (batería chica, motor eficiente, tramos críticos de data/, §8): Luna ancha entrega (86 s, 13 %), estándar sin energía;
+  Marte ancha entrega (82 s, 17 %) y la estándar también, con más energía (77 s, 25 %): en una subida las dos patinan sobre el polvo
+  (φ 18°) y la estándar es más ligera y de radio menor. El hundimiento en suelo blando (Bekker) haría la diferencia, pero es Gap en el
+  libro de datos. Samalayuca: estándar atascada; ancha llega (57 s).
 - **Patinaje:** `|ω_rueda × r| − |v_chasis|` mayor que un umbral durante más de ~0.3 s → evento `patinaje` con la superficie del tramo.
 
 ## 6. Energía
@@ -97,13 +98,45 @@
 
 - Si el sitio tiene `nivel.perfil_elevacion_m`, se usa ese perfil con su `exageracion_vertical` y la compresión horizontal declarada.
 - Si no, **generador procedural con semilla fija** por tipo (dunas, lava, pendiente, cráter), con aviso en pantalla **"terreno ilustrativo"**.
-- **Perfil real largo (3–10 km):** se usa un **tramo real de 250 m sin deformar** (la ventana de mayor pendiente media con pendiente máxima ≤ 30°); en pantalla se declara "tramo real de 250 m (desde el m X) de un transecto de Y km".
-- **Caras de duna recreadas:** en tramos de arena de sitios terrestres se agregan caras de duna de ~32° (ángulo de reposo de la arena), porque el modelo de 30 m no las resuelve. Se declaran en pantalla y en `perfil.recreacion`. Verificado con el perfil real de Samalayuca: la rueda estándar patina y se queda sin energía; la ancha llega a la meta en ~64 s.
+- **Perfil real largo (3–10 km): tramo crítico y transitable** (`fisica/perfil.js`). Se usa un **tramo real sin deformar** (250 m; 180 m en la
+  mina), elegido para poner al robot en las **condiciones más críticas del lugar** sin hacerlo imposible:
+  - Regla general (`ventanaCritica`, para niveles sin entrada fija): ventanas de 250 m cada 10 m **en los dos sentidos** (`ida` = como viene el
+    transecto; `vuelta` = recorrido al revés, p. ej. para subir una pared que en los datos es bajada). Criticidad (P) = metros de subida × (1 +
+    fracción de superficie difícil para las ruedas previstas) + pendiente máxima de subida. Transitable = subida y bajada ≤ 30° en el DEM.
+  - **Tabla `VENTANAS_JUEGO`**: para los 6 niveles reales la ventana se fijó después de **verificarla con la física** (simulación sin interfaz,
+    paso fijo de 60 Hz, acelerador a fondo) con el diseño previsto para el sitio. Solo se usa si el largo del transecto de los datos coincide; si el
+    frente modelo cambia el perfil, se vuelve a la regla general. Nunca se sube una cara de más de ~32° del DEM.
+  - En pantalla: "tramo real de 250 m (del m A al m B[, sentido inverso del transecto]) de un transecto de Y km, sube N m, pendiente máx. P° de
+    subida: <qué es>". `perfil.ventana` = `{ desde_m, hasta_m, transecto_m, sentido: 'ida'|'vuelta', subida_m, pendiente_max_subida, pieza_clave }`.
+
+Niveles reales (tabla `VENTANAS_JUEGO`; "sube" y "máx." son del DEM, sin recreaciones). Resultados con la simulación sin interfaz (60 Hz,
+acelerador a fondo; misión: frenar al entrar 3 m en la zona). Diseño base = chasis ligero, motor eficiente, batería chica, soporte básico; solo
+se cambia lo indicado.
+
+| Nivel | Tramo · sentido | Qué es | Sube · máx. | Superficie | Pieza clave | Resultado medido |
+|---|---|---|---|---|---|---|
+| Samalayuca (prueba, Marte) | m 1630 → 1380 de 3.0 km · vuelta | campo de dunas en el sentido en que más se sube; caras de duna recreadas en lo casi plano (38° con ellas) | 22 m · 16° | arena 100 % | rueda ancha | ancha: meta 57 s, 40 % · estándar: atascada a 42 m · tacos: atascada a 40 m |
+| Pinacate (prueba, Marte) | m 1570 → 1320 de 4.0 km · vuelta | pared oeste del maar El Elegante (el borde, > 50°, queda fuera) | 64 m · 30° | roca 100 % + bloques recreados | tacos o estándar | tacos: 59 s, 36 % · estándar: 62 s, 37 % · ancha: atascada a 239 de 266 m · ancha + potente: sin energía a 206 m |
+| Real de Ángeles, mx0207 (prueba, Luna) | m 1710 → 1890 de 3.0 km · ida (180 m) | pared este del tajo: el único tramo largo ≤ 32° (abajo y arriba pasa de 40°) | 87 m · 32° | roca 100 % + bloques recreados | tacos o estándar | tacos: 51 s, 45 % · estándar: 58 s, 42 % · ancha: atascada a 15 m (primera rampa) · ancha + potente: sin energía a 86 m · tacos + potente: 34 s, 26 %, carga 83 % |
+| Maar Al Wahbah, g00281 (prueba, Luna) | m 1300 → 1050 de 4.0 km · vuelta | salida del cráter desde el fondo por la pared oeste (el escalón final de 50° queda fuera) | 89 m · 27° | arena (regolito) 100 % | rueda ancha | ancha: 58 s, 38 % · estándar: sin energía a 244 m · tacos: 84 s, 9 % |
+| Polo sur lunar (misión) | m 2000 → 2250 de 4.0 km · ida | pared de una depresión de ~125 m hacia su borde | 65 m · 21° | arena (regolito) 100 % | rueda ancha | ancha: entrega 83–86 s, 13–16 % · estándar: sin energía a 220 m · estándar + batería grande: 127 s, 41 % · tacos: sin energía a 161 m |
+| Jezero (misión) | m 2910 → 2660 de 10.0 km · vuelta | subida suave y sostenida sobre arena (DEM de 200 m) | 13 m · 4° | arena 100 % | rueda ancha (ver §10) | ancha: entrega 82–85 s, 14–17 % · estándar: 77 s, 25 % · estándar + batería grande: 78 s, 65 % · tacos: 91 s, 5 % |
+
+- Por qué no las ventanas más críticas en las misiones: en la Luna, las de 71–88 m de subida dejaban al diseño dorado con 7–15 % de energía según la corrida; en
+  Jezero, la de 19 m (m 8800 → 8550), con 11–12 %. El orden de los pares de colisión de Matter depende de los ids de los cuerpos (de lo jugado
+  antes): la energía final varía ±2–3 puntos entre corridas, así que se exige ≥ 13 % medido.
+- La mina ya no es camino dorado de la Luna (la rueda ancha no sube la roca); el e2e de la Luna usa el maar Al Wahbah. Quien prepare la Luna en la
+  mina con tacos o estándar falla la misión (regolito): es una ruptura de la analogía que el jugador descubre.
+- El motor potente con batería chica se queda sin energía en todos los niveles (balance existente, no de la ventana).
+
+- **Caras de duna recreadas:** en tramos de arena de sitios terrestres se agregan caras de duna de ~32° (ángulo de reposo de la arena), porque el
+  modelo de 30 m no las resuelve, **solo donde el terreno medido es casi plano (≤ 10°)**: las dunas se forman sobre llanuras; sobre la pared de un
+  cráter darían caras de más de 50°. Se declaran en pantalla y en `perfil.recreacion`. Samalayuca: la estándar se atasca, la ancha llega.
 - Acepta `superficies [{desde, hasta}]` y `superficie_tramos [{desde_m, hasta_m}]` (formato de `ciencia_datos/datos/niveles.json`).
 - Superficie **por tramo**: `nivel.superficies = [{ desde, hasta, tipo }]` en metros, `tipo` ∈ `arena | roca | compacto` (propuesta de esquema).
 - **Bloques de roca recreados:** en tramos de roca de sitios terrestres, bloques de ~0.2–0.4 m cada 6 m (el modelo de 30 m no resuelve rocas
-  sueltas), declarados en pantalla y en `perfil.recreacion`. Resultado: en Pinacate la rueda ancha (agarre en roca 0.5) se atasca y la de tacos o
-  la estándar pasan: la rueda buena para arena es mala en roca.
+  sueltas), declarados en pantalla y en `perfil.recreacion`. Resultado: en Pinacate y en la mina la rueda ancha (agarre en roca 0.5) se atasca y
+  la de tacos o la estándar pasan: la rueda buena para arena es mala en roca.
 - Obstáculos agregados para jugar llevan `recreacion: true`.
 
 ## 9. Prueba terrestre
@@ -113,8 +146,8 @@
 - Genera telemetría (eventos) para el feedback.
 
 - **Atasco:** si el robot acelera sin ganar 1.5 m de avance en 15 s, la prueba termina ("quedó atascado"); estar quieto a propósito no cuenta. (P)
-  En Samalayuca con rueda estándar la prueba falla a los ~60 s de juego en vez de ~99 s.
-- **Prueba de punta a punta:** `game/e2e/camino_dorado.mjs` (clics y teclado reales, Marte y Luna). Última corrida: 25/25 pasos OK.
+  En Samalayuca con rueda estándar la prueba falla a los ~26–32 s de juego (atascada en la primera cara de duna, a 42 m).
+- **Prueba de punta a punta:** `game/e2e/camino_dorado.mjs` (clics y teclado reales, Marte y Luna; la Luna usa el maar Al Wahbah). Última corrida (14 nov, máquina cargada): Marte 13/13 OK (misión: entrega, 14 %); Luna 11/12: pruebas OK (estándar sin energía a 246 m, ancha meta 58 s), la misión cortó por el límite de pared (6 fps, iba a 237 m a los 65 s de juego); en la simulación sin interfaz entrega. Pendiente repetir con `LIMITE_S` mayor.
 
 ## 10. Misión
 
@@ -124,18 +157,23 @@
 - **Derrota:** destrucción, pérdida de la carga o energía agotada (al detenerse sin energía, o a los 5 s sin energía si queda atascado contra el borde del nivel) (P).
 - Llegar a fondo sin frenar no gana: el robot pasa la zona, choca con el borde y pierde la carga o se queda sin energía.
 - **Tiempo de juego = tiempo de física:** energía, patinaje y entrega usan el paso fijo de Matter (`runner.delta`), no el delta del cuadro. Así el balance no cambia con los fps (antes, a 30 fps la batería se gastaba al doble por metro).
-- **Terreno real** (`destino.nivel`, formato de `ciencia_datos/datos/niveles.json`): tramo real de 250 m sin deformar, elegido como la ventana cuya **pendiente media se parece más a la pendiente típica medida del destino** (`variables.pendiente`: Luna 8.63°, Marte 3.56°), no la más empinada; se declara en pantalla (desde qué metro, de qué transecto y con qué pendiente media). Polo sur lunar: m 1920 de 4.0 km, media 8.2°, sube 37 m. Jezero: m 2600 de 10.0 km, media 3.4°, baja 15 m. Sin `variables.pendiente`, se usa la regla de la prueba (la más empinada ≤ 30°).
+- **Terreno real** (`destino.nivel`, formato de `ciencia_datos/datos/niveles.json`): tramo real de 250 m sin deformar, el **más crítico que el
+  diseño dorado completa con margen** (tabla de §8): Polo sur lunar m 2000 → 2250, sube 65 m (hasta 21°), pared de una depresión hacia su
+  borde; Jezero m 2910 → 2660 en sentido inverso del transecto, sube 13 m (hasta 4°; el DEM de 200 m es casi plano). Se declara en pantalla
+  (del m A al m B, sentido, transecto, metros de subida, pendiente máxima y qué es). Antes se usaba la ventana de pendiente media típica.
 - **Terreno ilustrativo** (sin `nivel`, aviso "terreno ilustrativo"): todo arena salvo un afloramiento de roca en Marte, como los perfiles reales (98–100 % arena por la regla de pendiente). Luna: 240 m jugables, ladera con cráteres pequeños (≤ 1.2 m de hondo). Marte: 170 m, ondulaciones y dunas bajas. A los dos se les suma una inclinación media igual a la pendiente típica medida del destino, declarada en la nota. Sin paredes de más de ~18° (con gravedad baja, las de 25–30° tiraban la carga). (P)
 - Resultados medidos sin interfaz (paso fijo 60 Hz, acelerador a fondo y frenar al entrar 3 m en la zona; batería chica, motor eficiente, chasis ligero y soporte básico salvo donde se indica):
 
 | Destino · terreno | Rueda ancha (camino dorado) | Rueda estándar | Motor potente + rueda ancha | Estándar + batería grande |
 |---|---|---|---|---|
 | Luna · ilustrativo | entrega, 71 s, 29 % energía | sin energía a 243 de 288 m | sin energía a 240 m | entrega, 109 s, 50 % |
-| Luna · real (LOLA) | entrega, 74 s, 26 % | sin energía a 246 de 298 m | sin energía a 225 m | entrega, 115 s, 47 % |
+| Luna · real (LOLA, sube 65 m) | entrega, 86 s, 13 % (13–16 %) | sin energía a 220 de 298 m | sin energía a 171 m | entrega, 127 s, 41 % |
 | Marte · ilustrativo | entrega, 43 s, 58 % | entrega, 55 s, 48 % | entrega, 32 s, 41 % | entrega, 56 s, 75 % |
-| Marte · real (HRSC+MOLA) | entrega, 53 s, 47 % | entrega, 71 s, 32 % | entrega, 38 s, 27 % | entrega, 71 s, 68 % |
+| Marte · real (HRSC+MOLA, sube 13 m) | entrega, 82 s, 17 % (14–17 %) | entrega, 77 s, 25 % | sin energía a 229 m | entrega, 78 s, 65 % |
 
-  Integridad de la carga 100 % en todos. A fondo sin frenar: derrota en los cuatro terrenos. La Luna es la que separa ruedas
+  Integridad de la carga ≥ 98 % en todos. A fondo sin frenar: derrota en los cuatro terrenos (en los reales, sin energía contra el borde).
+  En Jezero, con cualquier subida, la estándar llega con más energía que la ancha (en el tramo plano anterior era al revés: 47 % vs 32 %):
+  es del modelo de agarre (P), no de los datos; queda para balance. La Luna es la que separa ruedas
   (con gravedad baja, Matter da menos agarre y la rueda estándar patina todo el recorrido); Marte separa por energía y tiempo.
   Rueda con tacos en la Luna: sin energía a ~185 m (más lenta que la estándar en regolito; por revisar con taller).
 

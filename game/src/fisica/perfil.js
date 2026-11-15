@@ -126,8 +126,6 @@ const GENERADORES = {
 export const TIPOS_GENERADOS = Object.keys(GENERADORES);
 const TIPO_EN = { dunas: 'dunes', lava: 'lava field', pendiente: 'slope', luna: 'Moon', marte: 'Mars' };
 
-/** Parte de la nota que describe el tramo real usado (se reemplaza en la misión). */
-const esParteTramo = (p) => p.startsWith('tramo real de') || p.startsWith('real ');
 
 /** Recorta y desplaza los tramos de superficie de [0, largo] a [desplazamiento, desplazamiento + largo]. */
 function desplazarSuperficies(superficies, desplazamiento, largoTotal) {
@@ -173,73 +171,224 @@ export function generarPerfil({ tipo = 'dunas', semilla = 1, largo_m = 240 } = {
 
 // Largo jugable de un tramo real (m): un nivel de 2 a 3 minutos. Se toma a escala real, sin deformar. (P)
 export const VENTANA_REAL_M = 250;
-// Pendiente máxima admitida al elegir la ventana: tramos más empinados (paredes de cráter o de tajo) no se pueden subir. (P)
-const PENDIENTE_MAX_VENTANA = 30;
+// Regla general de "transitable" al elegir la ventana (sitios sin entrada en VENTANAS_JUEGO): pendiente máxima de subida y
+// de bajada (°). Más empinado (paredes de cráter o de tajo de 40–64°) el modelo de agarre no lo sube ni lo baja entero. (P)
+export const LIMITES_VENTANA = { subida: 30, bajada: 30 };
+const PASO_BUSQUEDA_M = 10; // separación entre ventanas candidatas (m)
 
 // Caras de duna recreadas (recreación declarada): el DEM de 30 m no resuelve la cara de una duna, que llega al ángulo de
-// reposo de la arena (~30–34°). Se agregan solo en tramos de arena de sitios terrestres. (P)
-const DUNA = { periodo: 28, subida: 0.22, alturaMin: 3.6, alturaVar: 0.8, anguloRef: 32 };
+// reposo de la arena (~30–34°). Se agregan solo en tramos de arena de sitios terrestres y solo donde el terreno medido es
+// casi plano (≤ pendienteBaseMax): las dunas se forman sobre llanuras; en una pared de cráter o de tajo el DEM ya muestra el
+// relieve y una duna encima daría paredes de más de 50° que nadie sube. (P)
+const DUNA = { periodo: 28, subida: 0.22, alturaMin: 3.6, alturaVar: 0.8, anguloRef: 32, pendienteBaseMax: 10 };
 
 // Bloques de roca recreados (recreación declarada): el DEM de 30 m tampoco resuelve rocas sueltas de medio metro.
 // Se agregan solo en tramos de roca de sitios terrestres; dan golpes a la carga (el soporte amortiguado sirve). (P)
 const ROCA = { separacion: 6, ancho: 1.2, alturaMin: 0.22, alturaVar: 0.18 };
 
-/** Ventana de `largo` m dentro de [0, total]: la de mayor pendiente media cuya pendiente máxima no pase el límite. */
-function elegirVentana(elev, total, largo, paso) {
-  if (total <= largo) return { desde: 0, hasta: total };
-  const pend = (a, b) => Math.abs(Math.atan2(elev(b) - elev(a), b - a)) * (180 / Math.PI);
-  let mejor = null;
-  for (let d = 0; d + largo <= total + 1e-9; d += paso) {
-    let suma = 0;
-    let max = 0;
-    for (let x = d; x < d + largo; x += paso) {
-      const p = pend(x, Math.min(x + paso, d + largo));
-      suma += p;
-      max = Math.max(max, p);
+const GRADOS = 180 / Math.PI;
+const km = (mts) => (mts >= 1000 ? `${(mts / 1000).toFixed(1)} km` : `${Math.round(mts)} m`);
+
+/**
+ * Transecto en un sentido de marcha. 'ida' = como viene en los datos (el robot va del m 0 al final); 'vuelta' = invertido
+ * (el robot recorre el transecto de su final a su inicio, p. ej. para subir una pared que en los datos es bajada).
+ * Las superficies quedan en metros del recorrido orientado.
+ */
+export function transectoEnSentido(elevaciones, paso, superficies, sentido = 'ida') {
+  if (sentido !== 'vuelta') return { elevaciones, superficies };
+  const total = paso * (elevaciones.length - 1);
+  return {
+    elevaciones: [...elevaciones].reverse(),
+    superficies: superficies?.map((t) => ({ ...t, desde: total - t.hasta, hasta: total - t.desde })).reverse(),
+  };
+}
+
+/**
+ * Métricas de la ventana [desde, desde + largo] (m) de un transecto ya orientado, exactas por segmento (el perfil es lineal
+ * entre puntos): metros de subida y de bajada, pendiente máxima de subida y de bajada (°), pendiente media de los tramos de
+ * subida (°) y fracción del largo con la superficie difícil para el juego de ruedas previsto.
+ */
+export function metricasVentana(elevaciones, paso, desde, largo, superficies, superficieDificil) {
+  const hasta = desde + largo;
+  let subida = 0;
+  let bajada = 0;
+  let maxSubida = 0;
+  let maxBajada = 0;
+  let sumaSubida = 0;
+  let largoSubida = 0;
+  for (let i = Math.max(0, Math.floor(desde / paso)); i < elevaciones.length - 1 && i * paso < hasta; i++) {
+    const a = Math.max(desde, i * paso);
+    const b = Math.min(hasta, (i + 1) * paso);
+    if (b <= a) continue;
+    const dy = elevaciones[i + 1] - elevaciones[i];
+    const angulo = Math.atan2(dy, paso) * GRADOS;
+    if (dy > 0) {
+      subida += (dy * (b - a)) / paso;
+      maxSubida = Math.max(maxSubida, angulo);
+      sumaSubida += angulo * (b - a);
+      largoSubida += b - a;
+    } else {
+      bajada -= (dy * (b - a)) / paso;
+      maxBajada = Math.max(maxBajada, -angulo);
     }
-    const candidata = { desde: d, hasta: d + largo, media: suma / Math.ceil(largo / paso), max };
-    const valida = max <= PENDIENTE_MAX_VENTANA;
-    if (!mejor || (valida && (!mejor.valida || candidata.media > mejor.media)) || (!valida && !mejor.valida && candidata.max < mejor.max)) {
-      mejor = { ...candidata, valida };
+  }
+  let dificil = 0;
+  for (const t of superficies ?? []) if (t.tipo === superficieDificil) dificil += Math.max(0, Math.min(t.hasta, hasta) - Math.max(t.desde, desde));
+  return {
+    subida_m: subida,
+    bajada_m: bajada,
+    max_subida: maxSubida,
+    max_bajada: maxBajada,
+    media_subida: largoSubida ? sumaSubida / largoSubida : 0,
+    fraccion_dificil: largo ? Math.min(1, dificil / largo) : 0,
+  };
+}
+
+/** Criticidad de una ventana (valor de juego, P): metros de subida, más si es superficie difícil, más la pared más empinada. */
+export const puntajeCriticidad = (mt) => mt.subida_m * (1 + mt.fraccion_dificil) + mt.max_subida;
+
+/**
+ * Ventana más crítica y transitable de un transecto: recorre ventanas de `largo` m cada PASO_BUSQUEDA_M en los dos sentidos
+ * (ida y vuelta) y se queda con la de mayor puntajeCriticidad cuya pendiente máxima de subida y de bajada no pase los
+ * límites. Si ninguna es transitable, la menos empinada (transitable: false). Devuelve { desde_m, hasta_m } en metros del
+ * transecto original (desde < hasta) + sentido + métricas.
+ */
+export function ventanaCritica(elevaciones, paso, superficies, {
+  largo = VENTANA_REAL_M, superficieDificil = 'arena', maxSubida = LIMITES_VENTANA.subida, maxBajada = LIMITES_VENTANA.bajada,
+} = {}) {
+  const total = paso * (elevaciones.length - 1);
+  const L = Math.min(largo, total);
+  let mejor = null;
+  for (const sentido of ['ida', 'vuelta']) {
+    const o = transectoEnSentido(elevaciones, paso, superficies, sentido);
+    const inicios = [];
+    for (let d = 0; d + L <= total + 1e-9; d += PASO_BUSQUEDA_M) inicios.push(d);
+    if (total - L - inicios[inicios.length - 1] > 1e-9) inicios.push(total - L); // la última ventana llega al final
+    for (const d of inicios) {
+      const mt = metricasVentana(o.elevaciones, paso, d, L, o.superficies, superficieDificil);
+      const transitable = mt.max_subida <= maxSubida && mt.max_bajada <= maxBajada;
+      const c = {
+        desde_m: sentido === 'ida' ? d : total - d - L, hasta_m: sentido === 'ida' ? d + L : total - d, sentido, ...mt, puntaje: puntajeCriticidad(mt), transitable,
+      };
+      const peor = (x) => Math.max(x.max_subida, x.max_bajada);
+      if (!mejor || (transitable && (!mejor.transitable || c.puntaje > mejor.puntaje + 1e-9))
+        || (!transitable && !mejor.transitable && peor(c) < peor(mejor))) mejor = c;
     }
   }
   return mejor;
 }
 
 /**
+ * Ventana elegida y medida con la física para cada nivel real (valores de juego, P). Se fija aquí porque "transitable" se
+ * verificó corriendo la simulación (paso fijo de 60 Hz, acelerador a fondo) con el diseño previsto para el sitio, no con una
+ * regla. desde_m < hasta_m en metros del transecto de data/; sentido 'vuelta' = se recorre del hasta al desde.
+ * Solo se usa si `transecto_m` coincide con el largo del transecto de los datos (si el frente modelo cambia el perfil, se cae a
+ * la regla general ventanaCritica). Resultados medidos: docs/juego/ESPECIFICACION.md §8–§10.
+ */
+export const VENTANAS_JUEGO = {
+  // Mina de Real de Ángeles (tajo de ~340 m de hondo, paredes de 25–64° en el DEM). La pared este entre el m 1710 y el 1890 es
+  // el único tramo largo de ≤ 32° (abajo y arriba pasa de 40°): sube 87 m en 180 m. Es roca: la rueda ancha (agarre 0.5 en
+  // roca) se atasca en la primera rampa; la de tacos (51 s, 45 % de energía) y la estándar (58 s, 42 %) suben. El motor potente
+  // con rueda ancha no basta: falta agarre, no fuerza. Las rampas de acarreo de la mina (mucho más suaves) no caen en este corte del DEM.
+  mx0207: {
+    desde_m: 1710, hasta_m: 1890, sentido: 'ida', transecto_m: 3000, pieza_clave: ['rueda_tacos', 'rueda_estandar'],
+    descripcion: ['subida por la pared este del tajo (más abajo y más arriba la pared pasa de 40°)',
+      'climb up the east wall of the open pit (below and above, the wall exceeds 40°)'],
+  },
+  // Maar Al Wahbah: salida del cráter por la pared oeste (los datos la tienen como bajada: se recorre al revés). Sube 89 m con
+  // paredes de hasta 27°; el escalón final al borde (50°) queda fuera. Regolito/arena: la ancha llega, la estándar se queda sin energía.
+  g00281: {
+    desde_m: 1050, hasta_m: 1300, sentido: 'vuelta', transecto_m: 3990, pieza_clave: ['rueda_ancha'],
+    descripcion: ['salida del cráter: subida desde el fondo por la pared oeste (el escalón final al borde, de 50°, queda fuera)',
+      'climbing out of the crater: up the west wall from the floor (the last 50° step to the rim is left out)'],
+  },
+  // Samalayuca: campo de dunas en el sentido en que más se sube (22 m en el DEM, más caras de duna recreadas en lo casi plano).
+  samalayuca: {
+    desde_m: 1380, hasta_m: 1630, sentido: 'vuelta', transecto_m: 3000.0019, pieza_clave: ['rueda_ancha'],
+    descripcion: ['campo de dunas, en el sentido en que más se sube', 'dune field, in the direction that climbs the most'],
+  },
+  // Pinacate (transecto centrado en el maar El Elegante): subida por la pared oeste del cráter, 64 m con tramos de 30°, roca
+  // con bloques recreados. La rueda ancha se atasca antes de la meta; la de tacos y la estándar suben.
+  pinacate: {
+    desde_m: 1320, hasta_m: 1570, sentido: 'vuelta', transecto_m: 3999.9946, pieza_clave: ['rueda_tacos', 'rueda_estandar'],
+    descripcion: ['subida por la pared oeste del cráter El Elegante (el borde, a más de 50°, queda fuera)',
+      'climb up the west wall of El Elegante crater (the rim, steeper than 50°, is left out)'],
+  },
+  // Polo sur lunar: pared de una depresión de ~125 m hacia su borde (sube 65 m, hasta 21°). Ventanas más críticas (78–88 m)
+  // dejan al diseño dorado con < 10 % de energía o al límite (10–15 % según el orden de los pares de colisión de Matter).
+  polo_sur_lunar: {
+    desde_m: 2000, hasta_m: 2250, sentido: 'ida', transecto_m: 4000, pieza_clave: ['rueda_ancha'],
+    descripcion: ['subida por la pared de una depresión de ~125 m hacia su borde', 'climb up the wall of a ~125 m deep depression toward its rim'],
+  },
+  // Jezero (DEM de 200 m, casi plano: ≤ 4.3°): subida sostenida de 13 m sobre arena, recorriendo al revés el tramo que los
+  // datos tienen como bajada. La subida más larga (19 m, m 8550–8800) deja al diseño dorado con 11–12 % de energía: sin margen.
+  jezero: {
+    desde_m: 2660, hasta_m: 2910, sentido: 'vuelta', transecto_m: 10000, pieza_clave: ['rueda_ancha'],
+    descripcion: ['subida suave y sostenida sobre arena (el modelo de 200 m no resuelve dunas ni rocas)',
+      'gentle, sustained climb over sand (the 200 m model does not resolve dunes or rocks)'],
+  },
+};
+
+/** Ventana fija de VENTANAS_JUEGO para un nivel, o null si no hay o no corresponde al transecto actual. */
+function ventanaFija(id, total) {
+  const v = id ? VENTANAS_JUEGO[id] : null;
+  if (!v || Math.abs(v.transecto_m - total) > 1 || v.desde_m < 0 || v.hasta_m > total + 1e-6 || v.hasta_m <= v.desde_m) return null;
+  return v;
+}
+
+/**
  * Perfil a partir de elevaciones reales (m) con su paso y exageración vertical declarados.
- * Si el transecto es más largo que `ventana_m`, se usa un tramo real de ese largo, sin deformar.
- * Con `dunasRecreadas`, se agregan caras de duna en los tramos de arena, marcadas como recreación.
+ * Si el transecto es más largo que `ventana_m`, se usa un tramo real de ese largo, sin deformar: el de `ventana` si se da
+ * ({ desde_m, hasta_m, sentido }), si no el más crítico y transitable (ventanaCritica), en cualquiera de los dos sentidos.
+ * Con `dunasRecreadas`, se agregan caras de duna en los tramos de arena casi planos, marcadas como recreación.
  */
 export function perfilDesdeElevaciones(elevaciones, {
-  paso_m = PASO_REAL_DEFECTO_M, exageracion = 1, superficies, fuente = null, ventana_m = VENTANA_REAL_M, dunasRecreadas = false, rocasRecreadas = false, semilla = 1,
+  paso_m = PASO_REAL_DEFECTO_M, exageracion = 1, superficies, fuente = null, ventana_m = VENTANA_REAL_M, ventana = null, descripcion = null,
+  superficieDificil = 'arena', dunasRecreadas = false, rocasRecreadas = false, semilla = 1,
 } = {}) {
-  const e0 = elevaciones[0];
   const total = paso_m * (elevaciones.length - 1);
-  const elevReal = (x) => {
-    const i = Math.max(0, Math.min(Math.floor(x / paso_m), elevaciones.length - 2));
-    const t = (x - i * paso_m) / paso_m;
-    return ((elevaciones[i] * (1 - t) + elevaciones[i + 1] * t) - e0) * exageracion;
-  };
-  const v = elegirVentana(elevReal, total, ventana_m, paso_m);
-  const largoJugable = v.hasta - v.desde;
+  const elevEx = elevaciones.map((e) => e * exageracion);
   const tramosTotales = superficies?.length ? superficies : [{ desde: 0, hasta: total, tipo: 'compacto' }];
+  const elegida = ventana ?? ventanaCritica(elevEx, paso_m, tramosTotales, { largo: ventana_m, superficieDificil });
+  const sentido = elegida.sentido === 'vuelta' ? 'vuelta' : 'ida';
+  const largoJugable = elegida.hasta_m - elegida.desde_m;
+  const o = transectoEnSentido(elevEx, paso_m, tramosTotales, sentido);
+  const d0 = sentido === 'vuelta' ? total - elegida.hasta_m : elegida.desde_m; // inicio de la ventana en el recorrido orientado
+  const mt = metricasVentana(o.elevaciones, paso_m, d0, largoJugable, o.superficies, superficieDificil);
+  const elevReal = (x) => {
+    const i = Math.max(0, Math.min(Math.floor(x / paso_m), o.elevaciones.length - 2));
+    const t = (x - i * paso_m) / paso_m;
+    return o.elevaciones[i] * (1 - t) + o.elevaciones[i + 1] * t;
+  };
+  const pendienteBase = (x) => {
+    const i = Math.max(0, Math.min(Math.floor((d0 + x) / paso_m), o.elevaciones.length - 2));
+    return Math.abs(Math.atan2(o.elevaciones[i + 1] - o.elevaciones[i], paso_m)) * GRADOS;
+  };
   // Tramos dentro de la ventana, en coordenadas de la ventana.
-  const tramos = tramosTotales
-    .map((t) => ({ ...t, desde: Math.max(t.desde, v.desde) - v.desde, hasta: Math.min(t.hasta, v.hasta) - v.desde }))
+  const tramos = o.superficies
+    .map((t) => ({ ...t, desde: Math.max(t.desde, d0) - d0, hasta: Math.min(t.hasta, d0 + largoJugable) - d0 }))
     .filter((t) => t.hasta > t.desde);
   if (!tramos.length) tramos.push({ desde: 0, hasta: largoJugable, tipo: 'compacto' });
   const tipoEn = (x) => tramos.find((t) => x >= t.desde && x < t.hasta)?.tipo ?? tramos[tramos.length - 1].tipo;
 
   const r = aleatorio(semilla);
-  const alturasDuna = Array.from({ length: Math.ceil(largoJugable / DUNA.periodo) + 1 }, () => DUNA.alturaMin + r() * DUNA.alturaVar);
+  const nDunas = Math.ceil(largoJugable / DUNA.periodo) + 1;
+  const alturasDuna = Array.from({ length: nDunas }, () => DUNA.alturaMin + r() * DUNA.alturaVar);
+  // Una duna entera por periodo, solo si todo el periodo es arena casi plana: así nunca hay un escalón en el borde.
+  const hayDuna = Array.from({ length: nDunas }, (_, k) => {
+    if (!dunasRecreadas || k * DUNA.periodo >= largoJugable) return false;
+    for (let x = k * DUNA.periodo; x <= Math.min((k + 1) * DUNA.periodo, largoJugable); x += 2) {
+      if (tipoEn(x) !== 'arena' || pendienteBase(x) > DUNA.pendienteBaseMax) return false;
+    }
+    return true;
+  });
   const duna = (x) => {
-    if (!dunasRecreadas || tipoEn(x) !== 'arena') return 0;
     const k = Math.floor(x / DUNA.periodo);
+    if (!hayDuna[k]) return 0;
     const t = (x % DUNA.periodo) / DUNA.periodo;
     return alturasDuna[k] * (t < DUNA.subida ? t / DUNA.subida : (1 - t) / (1 - DUNA.subida));
   };
-  const hayDunas = dunasRecreadas && tramos.some((t) => t.tipo === 'arena');
+  const hayDunas = hayDuna.some(Boolean);
   const alturasRoca = Array.from({ length: Math.ceil(largoJugable / ROCA.separacion) + 1 }, () => ROCA.alturaMin + r() * ROCA.alturaVar);
   const roca = (x) => {
     if (!rocasRecreadas || tipoEn(x) !== 'roca') return 0;
@@ -248,16 +397,20 @@ export function perfilDesdeElevaciones(elevaciones, {
     return local < ROCA.ancho ? alturasRoca[k] * Math.sin((Math.PI * local) / ROCA.ancho) : 0;
   };
   const hayRocas = rocasRecreadas && tramos.some((t) => t.tipo === 'roca');
-  const elev = (x) => elevReal(v.desde + x) - elevReal(v.desde) + duna(x) + roca(x);
+  const elev = (x) => elevReal(d0 + x) - elevReal(d0) + duna(x) + roca(x);
 
   const base = conPlanos(elev, largoJugable);
-  const km = (mts) => (mts >= 1000 ? `${(mts / 1000).toFixed(1)} km` : `${Math.round(mts)} m`);
+  const vuelta = sentido === 'vuelta';
+  const [a, b] = vuelta ? [elegida.hasta_m, elegida.desde_m] : [elegida.desde_m, elegida.hasta_m];
+  const desc = descripcion ? tr(`: ${descripcion[0]}`, `: ${descripcion[1]}`) : '';
+  const datosTramo = tr(`sube ${Math.round(mt.subida_m)} m, pendiente máx. ${Math.round(mt.max_subida)}° de subida`,
+    `climbs ${Math.round(mt.subida_m)} m, max ${Math.round(mt.max_subida)}° uphill`);
   const partes = [
     tr(`Perfil medido (${fuente ?? 'fuente sin declarar'})`, `Measured profile (${traducirFuente(fuente) ?? 'source not declared'})`),
-    total > largoJugable
-      ? tr(`tramo real de ${km(largoJugable)} (desde el m ${Math.round(v.desde)}) de un transecto de ${km(total)}`,
-        `real ${km(largoJugable)} stretch (from m ${Math.round(v.desde)}) of a ${km(total)} transect`)
-      : null,
+    total > largoJugable + 1e-6
+      ? tr(`tramo real de ${km(largoJugable)} (del m ${Math.round(a)} al m ${Math.round(b)}${vuelta ? ', sentido inverso del transecto' : ''}) de un transecto de ${km(total)}, ${datosTramo}${desc}`,
+        `real ${km(largoJugable)} stretch (from m ${Math.round(a)} to m ${Math.round(b)}${vuelta ? ', reverse direction of the transect' : ''}) of a ${km(total)} transect, ${datosTramo}${desc}`)
+      : vuelta ? tr(`recorrido en sentido inverso del transecto${desc}`, `driven in the reverse direction of the transect${desc}`) : null,
     exageracion !== 1 ? tr(`exageración vertical ×${exageracion}`, `vertical exaggeration ×${exageracion}`) : null,
     hayDunas ? tr(`caras de duna recreadas (~${DUNA.anguloRef}°, ángulo de reposo de la arena; el modelo de 30 m no las resuelve)`,
       `recreated dune faces (~${DUNA.anguloRef}°, angle of repose of sand; the 30 m model does not resolve them)`) : null,
@@ -272,7 +425,10 @@ export function perfilDesdeElevaciones(elevaciones, {
     fuente,
     nota: partes.join(' · '),
     tipo: 'real',
-    ventana: { desde_m: v.desde, hasta_m: v.hasta, transecto_m: total },
+    ventana: {
+      desde_m: elegida.desde_m, hasta_m: elegida.hasta_m, transecto_m: total, sentido, subida_m: mt.subida_m, pendiente_max_subida: mt.max_subida,
+      pieza_clave: elegida.pieza_clave ?? null, // pieza que el diseño previsto necesita en este tramo (medido, VENTANAS_JUEGO)
+    },
     recreacion: [...(hayDunas ? [{ tipo: 'cara_duna', recreacion: true }] : []), ...(hayRocas ? [{ tipo: 'bloque_roca', recreacion: true }] : [])],
   };
 }
@@ -289,15 +445,28 @@ export function tramosDeNivel(nivel) {
     .filter((t) => Number.isFinite(t.desde) && Number.isFinite(t.hasta) && SUPERFICIES.includes(t.tipo));
 }
 
+/** Opciones comunes de un nivel real (sitio o destino): paso, exageración, superficies, fuente y ventana fija si la hay. */
+function opcionesDeNivel(id, nivel) {
+  const paso_m = nivel.paso_m ?? PASO_REAL_DEFECTO_M;
+  const fija = ventanaFija(id, paso_m * (nivel.perfil_elevacion_m.length - 1));
+  return {
+    paso_m,
+    exageracion: nivel.exageracion_vertical ?? 1,
+    superficies: tramosDeNivel(nivel),
+    fuente: nivel.fuente,
+    ventana: fija,
+    descripcion: fija?.descripcion ?? null,
+  };
+}
+
+const tienePerfil = (nivel) => Array.isArray(nivel?.perfil_elevacion_m) && nivel.perfil_elevacion_m.length >= 2;
+
 /** Perfil de la prueba terrestre de un sitio: real si existe, si no ilustrativo según su prueba_util. */
 export function perfilDeSitio(sitio) {
   const nivel = sitio?.nivel;
-  if (Array.isArray(nivel?.perfil_elevacion_m) && nivel.perfil_elevacion_m.length >= 2) {
+  if (tienePerfil(nivel)) {
     return perfilDesdeElevaciones(nivel.perfil_elevacion_m, {
-      paso_m: nivel.paso_m ?? PASO_REAL_DEFECTO_M,
-      exageracion: nivel.exageracion_vertical ?? 1,
-      superficies: tramosDeNivel(nivel),
-      fuente: nivel.fuente,
+      ...opcionesDeNivel(sitio.id, nivel),
       dunasRecreadas: true,
       rocasRecreadas: true,
       semilla: semillaDe(sitio.id),
@@ -310,61 +479,10 @@ export function perfilDeSitio(sitio) {
 // llega con energía de sobra y la estándar (que patina en el regolito) no alcanza en la Luna.
 const LARGO_MISION_M = { luna: 240, marte: 170 };
 
-/**
- * Tramo real de la misión (índice de inicio en el transecto): la ventana de `largo` m cuya pendiente media (en valor
- * absoluto) más se parece a la pendiente típica medida del destino (`variables.pendiente`, mediana de cuadros de 10 km
- * a 200 m). Así el nivel representa el terreno típico del destino y no su peor pared. Ignora ventanas con tramos de más
- * de PENDIENTE_MAX_VENTANA. Devuelve null si no hay pendiente de referencia o el transecto es más corto que la ventana.
- */
-export function ventanaRepresentativa(elevaciones, paso, largo, pendienteObjetivo) {
-  const segmentos = elevaciones.length - 1;
-  const k = Math.ceil(largo / paso - 1e-9); // segmentos que toca la ventana
-  if (!Number.isFinite(pendienteObjetivo) || segmentos < k || paso * segmentos <= largo) return null;
-  const pend = (i) => Math.abs(Math.atan2(elevaciones[i + 1] - elevaciones[i], paso)) * (180 / Math.PI);
-  let mejor = null;
-  for (let i0 = 0; i0 + k <= segmentos; i0++) {
-    let suma = 0;
-    let max = 0;
-    for (let j = 0; j < k; j++) {
-      const tramo = Math.min(paso, largo - j * paso); // el último segmento puede entrar solo en parte
-      suma += pend(i0 + j) * tramo;
-      max = Math.max(max, pend(i0 + j));
-    }
-    const media = suma / largo;
-    const dif = Math.abs(media - pendienteObjetivo);
-    if (max <= PENDIENTE_MAX_VENTANA && (!mejor || dif < mejor.dif)) mejor = { i0, k, media, dif };
-  }
-  return mejor;
-}
-
 /** Perfil de la misión en el destino: real si el destino lo trae (nivel), si no ilustrativo por mundo. */
 export function perfilDeDestino(destino) {
   const nivel = destino?.nivel;
-  if (Array.isArray(nivel?.perfil_elevacion_m) && nivel.perfil_elevacion_m.length >= 2) {
-    const elev = nivel.perfil_elevacion_m;
-    const paso = nivel.paso_m ?? PASO_REAL_DEFECTO_M;
-    const exageracion = nivel.exageracion_vertical ?? 1;
-    const superficies = tramosDeNivel(nivel);
-    const opciones = { paso_m: paso, exageracion, fuente: nivel.fuente };
-    const objetivo = destino.variables?.pendiente?.valor;
-    const v = ventanaRepresentativa(elev.map((e) => e * exageracion), paso, VENTANA_REAL_M, objetivo);
-    if (!v) return perfilDesdeElevaciones(elev, { ...opciones, superficies });
-
-    // Se recorta el transecto a los k segmentos de la ventana: dentro de ese recorte la única ventana posible empieza en 0.
-    const desde = v.i0 * paso;
-    const perfil = perfilDesdeElevaciones(elev.slice(v.i0, v.i0 + v.k + 1), {
-      ...opciones,
-      superficies: superficies?.map((t) => ({ ...t, desde: t.desde - desde, hasta: t.hasta - desde })),
-    });
-    const transecto = paso * (elev.length - 1);
-    const km = (mts) => (mts >= 1000 ? `${(mts / 1000).toFixed(1)} km` : `${Math.round(mts)} m`);
-    const partes = perfil.nota.split(' · ').filter((p) => !esParteTramo(p));
-    partes.splice(1, 0, tr(`tramo real de ${km(VENTANA_REAL_M)} (desde el m ${Math.round(desde)}) de un transecto de ${km(transecto)}, `
-      + `elegido por su pendiente media (${v.media.toFixed(1)}°), la más parecida a la típica del destino (${objetivo}°)`,
-    `real ${km(VENTANA_REAL_M)} stretch (from m ${Math.round(desde)}) of a ${km(transecto)} transect, `
-      + `chosen because its mean slope (${v.media.toFixed(1)}°) is the closest to the destination's typical slope (${objetivo}°)`));
-    return { ...perfil, nota: partes.join(' · '), ventana: { desde_m: desde, hasta_m: desde + VENTANA_REAL_M, transecto_m: transecto, pendiente_media: v.media } };
-  }
+  if (tienePerfil(nivel)) return perfilDesdeElevaciones(nivel.perfil_elevacion_m, opcionesDeNivel(destino.id, nivel));
   const mundo = TIPO_POR_MUNDO[destino?.mundo] ?? 'marte';
   const largo = LARGO_MISION_M[mundo];
   const perfil = generarPerfil({ tipo: mundo, semilla: semillaDe(destino?.id ?? 'destino'), largo_m: largo });
