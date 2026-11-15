@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   sitiosParaDestino, filasComparacion, limitesDe, usarTicket, serializarPartida, leerGuardado,
-  validarCoordenadas, puedeProponer, validarNombrePropuesta, formatoValor, esDemostracion, SIN_DATO,
+  validarCoordenadas, validarCoordenadasHemisferio, aHemisferio, formatoCoordenada, puedeProponer, validarNombrePropuesta, formatoValor, esDemostracion, SIN_DATO,
 } from '../logica.js';
 
 const destino = {
@@ -127,4 +127,29 @@ test('formatos y marcas', () => {
   assert.equal(esDemostracion({ estado: 'documentado' }), false);
   assert.equal(validarNombrePropuesta('  ab ').ok, false);
   assert.equal(validarNombrePropuesta('Cráter X').nombre, 'Cráter X');
+});
+
+test('hemisferio: S y O se convierten a grados negativos antes de llamar a /score', () => {
+  assert.deepEqual(validarCoordenadasHemisferio({ lat: '31.84', latHem: 'N', lon: '113.39', lonHem: 'O' }), { ok: true, lat: 31.84, lon: -113.39 });
+  assert.deepEqual(validarCoordenadasHemisferio({ lat: '22,9', latHem: 'S', lon: '41.14', lonHem: 'E' }), { ok: true, lat: -22.9, lon: 41.14 });
+  // 0 no lleva signo aunque el hemisferio sea S u O
+  const cero = validarCoordenadasHemisferio({ lat: '0', latHem: 'S', lon: '0', lonHem: 'O' });
+  assert.ok(cero.ok && Object.is(cero.lat, 0) && Object.is(cero.lon, 0));
+});
+
+test('hemisferio: rechaza signo, rangos fuera y hemisferio sin elegir', () => {
+  assert.equal(validarCoordenadasHemisferio({ lat: '-31', latHem: 'N', lon: '10', lonHem: 'E' }).ok, false);
+  assert.equal(validarCoordenadasHemisferio({ lat: '91', latHem: 'N', lon: '10', lonHem: 'E' }).ok, false);
+  assert.equal(validarCoordenadasHemisferio({ lat: '10', latHem: 'N', lon: '181', lonHem: 'E' }).ok, false);
+  assert.equal(validarCoordenadasHemisferio({ lat: '10', latHem: '', lon: '10', lonHem: 'E' }).ok, false);
+  assert.equal(validarCoordenadasHemisferio({ lat: '10', latHem: 'N', lon: '10', lonHem: 'W' }).ok, false);
+  assert.equal(validarCoordenadasHemisferio({ lat: 'abc', latHem: 'N', lon: '10', lonHem: 'E' }).ok, false);
+});
+
+test('aHemisferio y formatoCoordenada: ida y vuelta con un sitio del catálogo', () => {
+  const h = aHemisferio(-21.92, -68.832);
+  assert.deepEqual(h, { lat: 21.92, latHem: 'S', lon: 68.832, lonHem: 'O' });
+  const v = validarCoordenadasHemisferio({ lat: String(h.lat), latHem: h.latHem, lon: String(h.lon), lonHem: h.lonHem });
+  assert.deepEqual(v, { ok: true, lat: -21.92, lon: -68.832 });
+  assert.equal(formatoCoordenada(31.84, -113.39), '31.84° N, 113.39° O');
 });

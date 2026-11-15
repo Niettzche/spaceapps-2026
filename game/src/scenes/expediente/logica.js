@@ -198,6 +198,40 @@ export function validarCoordenadas(latTxt, lonTxt) {
   return { ok: true, lat, lon };
 }
 
+// En el teléfono no se depende del signo menos (el teclado decimal de iOS no lo tiene): el usuario escribe solo
+// los grados y elige el hemisferio (N/S, E/O). Aquí se convierte a grados con signo antes de llamar a /score.
+export const HEMISFERIOS = { lat: ['N', 'S'], lon: ['E', 'O'] };
+
+/** Valida grados sin signo + hemisferio y devuelve { ok, lat, lon } con signo (S y O son negativos). */
+export function validarCoordenadasHemisferio({ lat, latHem, lon, lonHem }) {
+  const conSigno = (t) => /^\s*[-+]/.test(String(t ?? ''));
+  if (conSigno(lat) || conSigno(lon)) {
+    return { ok: false, error: 'Escribe solo los grados, sin signo, y elige el hemisferio (N/S y E/O) en la lista.' };
+  }
+  const a = numero(lat);
+  const o = numero(lon);
+  if (Number.isNaN(a)) return { ok: false, error: 'Latitud no válida: usa grados decimales, por ejemplo 31.84.' };
+  if (Number.isNaN(o)) return { ok: false, error: 'Longitud no válida: usa grados decimales, por ejemplo 113.39.' };
+  if (!HEMISFERIOS.lat.includes(latHem)) return { ok: false, error: 'Elige el hemisferio de la latitud: N o S.' };
+  if (!HEMISFERIOS.lon.includes(lonHem)) return { ok: false, error: 'Elige el hemisferio de la longitud: E u O.' };
+  if (a > 90) return { ok: false, error: 'La latitud va de 0 a 90 grados (y luego N o S).' };
+  if (o > 180) return { ok: false, error: 'La longitud va de 0 a 180 grados (y luego E u O).' };
+  const lat2 = latHem === 'S' && a !== 0 ? -a : a;
+  const lon2 = lonHem === 'O' && o !== 0 ? -o : o;
+  return { ok: true, lat: lat2, lon: lon2 };
+}
+
+/** Grados con signo → grados sin signo + hemisferio (para rellenar el formulario con un sitio del catálogo). */
+export function aHemisferio(lat, lon) {
+  return { lat: Math.abs(lat), latHem: lat < 0 ? 'S' : 'N', lon: Math.abs(lon), lonHem: lon < 0 ? 'O' : 'E' };
+}
+
+/** "31.84° N, 113.39° O" */
+export function formatoCoordenada(lat, lon) {
+  const h = aHemisferio(lat, lon);
+  return `${h.lat}° ${h.latHem}, ${h.lon}° ${h.lonHem}`;
+}
+
 /** ¿Se puede proponer el sitio? Solo si la API lo permite Y la similitud total alcanza el umbral. */
 export function puedeProponer(respuesta, umbral) {
   const t = respuesta?.similitud?.total;
