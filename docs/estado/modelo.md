@@ -6,6 +6,9 @@
 **Última actualización:** 15 nov 2026, mañana (landing con divulgación científica en `informe/divulgacion/`; ANA, la tutora de análogos, ya en `main`; demo en https://v1.marsception.us/)
 
 ## Hecho (landing: «Los análogos» y «Pruébalo», 15 nov, mañana)
+- **Los cráteres primero (11:10, pedido de Mario):** la portada dice que comparamos los cráteres de la Tierra con 4,288 de la Luna
+  y 573 de Marte, y su segundo botón es «Clasifica un cráter» (#pruebalo). Orden nuevo: portada → Pruébalo → la ciencia → los
+  análogos → lo que encontramos → cómo se juega → destinos → detalles. Navegación y descripción de la página en el mismo orden.
 - **«Pruébalo» (`#pruebalo`, `src/clasificador.js` + `src/modelo_forma.js`):** el modelo de forma de `model/forma.py` en el
   navegador, sin red. Deslizadores de diámetro, profundidad y borde, o 7 cráteres reales/medianas; da P(Luna), dentro o fuera de la
   nube Luna+Marte, el parecido de forma del juego y el aporte de cada variable, sobre la gráfica de 4,288 + 573 cráteres. El tajo
