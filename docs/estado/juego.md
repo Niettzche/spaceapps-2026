@@ -11,6 +11,12 @@
   patinaje, energía, volcado, fin por atasco, telemetría `Result`.
 - **Pantalla:** portada de MARSCEPTION, menú con fondo de arte, HUD con íconos y marcos de arte, barra de progreso, nota de datos en una
   línea (panel completo con I), botones táctiles de arte, pausa con Esc, instrucciones al empezar y llegada a la misión con la gravedad.
+- **Pantalla de inicio y menú (15 nov):** el inicio reproduce el GIF de título de Mauricio como video (`game/public/video/inicio.webm`,
+  0.97 MB, respaldo `.mp4` 1.35 MB, cuadro fijo `.webp` con reduced-motion o si el video falla), franja «Presiona Enter o toca para
+  jugar» en español e idioma `ES · EN  L`. Enter/clic → salto (warp) a Marte con estelas y destello; la estación de `menu_nave` llega
+  desde lejos (el cielo sin la estación se genera del arte). Menú de opciones: logo, estación con luces que flota y consola
+  `ui_tarjeta` con 2 × 3 botones `ui_boton` en la fuente pixel (tecla visible, ayuda de una línea, flechas en rejilla). Al elegir:
+  zoom a la escotilla (brillo, anillos, el iris se abre). Código: `expediente/inicio.js`, `expediente/menu_nave.js`, `Menu.js`.
 - **Sonido sintetizado** (motor, arena, golpes, entrega, falla; M silencia).
 - **Bilingüe español/inglés** en todo el juego (`game/src/i18n.js`; `?lang=en|es`, selector en el menú, tecla L).
 - **Resultados:** puntuación con estrellas de arte, "dónde se rompe la analogía" con la telemetría de prueba y misión, recomendaciones,
