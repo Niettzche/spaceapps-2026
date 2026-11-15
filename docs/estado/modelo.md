@@ -5,6 +5,23 @@
 **Responsable:** Mario  ·  **Agente:** Claude Code / Codex
 **Última actualización:** 15 nov 2026, mañana (landing con divulgación científica en `informe/divulgacion/`; ANA, la tutora de análogos, ya en `main`; demo en https://v1.marsception.us/)
 
+## Hecho (textos verificados de Jabal Bayda y Cananea, 15 nov, 09:40; pedido de integración)
+- **`data/sites/g00266.json`:** el nombre pasa de «Cono de toba» a «Anillo de toba Jabal Bayda (Harrat Khaybar, Arabia Saudita)» y
+  `proceso` a «Volcánico: anillo de toba de comendita (una riolita), de origen freatomagmático». La nota dice las dos versiones:
+  Németh (2026) y Alohali et al. (2022, que cita a Camp et al. 1991) lo describen como anillo de toba; el GVP y NASA Earth
+  Observatory, como cono de toba. Fuentes del frente taller (`docs/taller/FUENTES_NIVELES.md`, filas AM-038 a AM-042).
+- **`data/sites/mx0023.json` (Cananea):** `proceso` pasa de «Probable tajo… por verificar» a «Tajo minero a cielo abierto: mina de
+  cobre Buenavista del Cobre, en Cananea», y la nota cambia «Nombre por verificar» por la fuente (informe técnico S-K 1300 de
+  Southern Copper ante la SEC, fila AM-066). Los otros 21 tajos siguen diciendo «Probable… por verificar»: no tienen fuente.
+- **Cómo:** `model/scan.py` (`PROCESOS_VERIFICADOS`, `NOMBRES_VERIFICADOS`, modo `--solo-textos`); no se editó ningún JSON a mano
+  y no cambian `novedoso`, `nivel`, variables ni similitud. Los otros modos (`--solo-ia`, `--solo-categoria`,
+  `--solo-literatura`) no deshacen el cambio. Cananea sigue siendo tajo para el modelo (regla 6) y para el juego (`esMina`).
+  3 pruebas nuevas (26 en total).
+- **Otro frente (expediente), en commit aparte:** dos líneas en `game/src/scenes/expediente/datos_en.js` con la traducción de los
+  dos `proceso` nuevos; sin ellas, el juego en inglés los mostraría en español. La corrección `NOMBRES_ES.g00266` de ese archivo
+  ya no hace falta, y se puede quitar.
+- **Visto de paso:** `game/tests/game-config.test.cjs` («60 Hz cap…») falla en `main` sin este cambio (133 de 134 pasan).
+
 ## Hecho (landing con divulgación científica, 15 nov)
 - **`informe/divulgacion/`: landing del juego con la ciencia explicada** (Vite, bilingüe con `?lang=en`, tema oscuro y claro).
   Portada inspirada en la pantalla de inicio del juego (pixel art animado, con el rover del juego), cómo se juega con capturas

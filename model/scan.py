@@ -28,6 +28,8 @@ Uso extra:  python -m model.scan --solo-categoria   (aplica solo la regla 6 a lo
             python -m model.scan --global --ids G00263,G00266   (exporta esos candidatos globales, no los N mejores)
 Uso extra:  python -m model.scan --solo-literatura   (reescribe en la nota de g00263 y g00266 el resultado de la revisión de
             literatura, sin consultar nada y sin tocar novedoso, nivel, variables ni similitud)
+Uso extra:  python -m model.scan --solo-textos   (pone el nombre y el proceso verificados con fuente por el frente taller en
+            g00266 y mx0023, sin consultar nada y sin tocar novedoso, nivel, variables ni similitud)
 Uso extra:  python -m model.scan --solo-ia   (aplica solo la regla 5 a los JSON de data/sites/ que ya existen, sin
             consultar NASA POWER ni Earth Engine y sin tocar nivel, variables ni similitud)
 
@@ -129,10 +131,29 @@ NOMBRES_GLOBALES = {
     "g00263": ("Maar Al Hutaymah (Harrat Hutaymah, Arabia Saudita)",
                "nodo natural=volcano 'الهتيمة' de OpenStreetMap a ~0.10 km; anillo de toba con cráter central de ~1 km en Pallister (1985), "
                "USGS OFR 85-125 (https://pubs.usgs.gov/of/1985/0125/report.pdf)"),
-    "g00266": ("Cono de toba Jabal Bayda (Harrat Khaybar, Arabia Saudita)",
-               "nodo 'جبل البيضاء' de OpenStreetMap a ~0.04 km; NASA Earth Observatory (2024) lo describe como cono de toba con cráter de "
-               "1,400 m (https://science.nasa.gov/earth/earth-observatory/white-and-black-volcanoes-of-saudi-arabia-152839); "
-               "el detector mide ~1.0 km a 200 m"),
+    "g00266": ("Anillo de toba Jabal Bayda (Harrat Khaybar, Arabia Saudita)",
+               "nodo 'جبل البيضاء' de OpenStreetMap a ~0.04 km. Tipo: anillo de toba riolítico según Németh (2026, "
+               "doi:10.5772/intechopen.1016928) y Alohali et al. (2022, doi:10.1186/s13617-022-00124-z, que cita a Camp et al. 1991), "
+               "con un domo pequeño de comendita en el fondo del cráter; el Programa de Vulcanismo Global del Smithsonian (volcán "
+               "231060) y NASA Earth Observatory (2024, "
+               "https://science.nasa.gov/earth/earth-observatory/white-and-black-volcanoes-of-saudi-arabia-152839) lo llaman cono de "
+               "toba. Base de ~1.5 km y cráter de 1,400 m según esas fuentes; el detector mide ~1.0 km a 200 m "
+               "(docs/taller/FUENTES_NIVELES.md)"),
+}
+
+# Textos verificados con fuente por el frente taller (docs/taller/FUENTES_NIVELES.md y su libro de datos, hoja Ambiente):
+# reemplazan al texto genérico de `proceso` y, en los tajos, a la frase «Nombre por verificar» de la nota.
+PROCESOS_VERIFICADOS = {
+    "g00266": "Volcánico: anillo de toba de comendita (una riolita), de origen freatomagmático",
+    "mx0023": "Tajo minero a cielo abierto: mina de cobre Buenavista del Cobre, en Cananea",
+}
+NOMBRE_POR_VERIFICAR = (" Nombre por verificar: se asignó en analisis/09 por cercanía a una mina o cantera de OpenStreetMap; "
+                        "no se cotejó con un inventario minero oficial.")
+NOMBRES_VERIFICADOS = {
+    "mx0023": (" Nombre verificado: mina de cobre a tajo abierto Buenavista del Cobre, en el distrito de Cananea (WSP USA 2025, "
+               "informe técnico S-K 1300 de Southern Copper ante la SEC, "
+               "https://www.sec.gov/Archives/edgar/data/1001838/000155837025002017/scco-20241231xex96d6.pdf); la coordenada cae "
+               "dentro del polígono de la mina en OpenStreetMap (docs/taller/FUENTES_NIVELES.md)."),
 }
 
 # Resultado de la revisión de literatura (model/NIVEL2.md §A): novedoso queda null y la nota dice qué se encontró. Ninguno se
@@ -189,6 +210,33 @@ def aplicar_literatura() -> list[dict]:
         cambios.append({"id": sid, "novedoso": s.get("novedoso"), "cambio": nota != s["nota"]})
         s["nota"] = nota
         f.write_text(json.dumps(s, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return cambios
+
+
+def aplicar_textos_verificados() -> list[dict]:
+    """Modo --solo-textos: pone en los JSON existentes el nombre, el proceso y la frase del nombre verificados. No toca nada más."""
+    cambios = []
+    for sid in sorted(set(PROCESOS_VERIFICADOS) | set(NOMBRES_VERIFICADOS) | {"g00266"}):
+        f = SITES / f"{sid}.json"
+        s = json.loads(f.read_text(encoding="utf-8"))
+        antes = json.dumps(s, ensure_ascii=False, sort_keys=True)
+        if sid in PROCESOS_VERIFICADOS:
+            s["proceso"] = PROCESOS_VERIFICADOS[sid]
+        if sid in NOMBRES_GLOBALES:
+            nombre, fuente = NOMBRES_GLOBALES[sid]
+            nota, n = re.subn(r" Nombre: .*?(?= novedoso: null;)", lambda _: f" Nombre: {fuente}.", s["nota"], count=1)
+            if n != 1:
+                raise SystemExit(f"{sid}: no encontré la frase «Nombre:» en la nota; no se escribe nada.")
+            s["nombre"], s["nota"] = nombre, nota
+        if sid in NOMBRES_VERIFICADOS:
+            if NOMBRE_POR_VERIFICAR in s["nota"]:
+                s["nota"] = s["nota"].replace(NOMBRE_POR_VERIFICAR, NOMBRES_VERIFICADOS[sid], 1)
+            elif NOMBRES_VERIFICADOS[sid] not in s["nota"]:
+                raise SystemExit(f"{sid}: no encontré la frase «Nombre por verificar» en la nota; no se escribe nada.")
+        cambio = json.dumps(s, ensure_ascii=False, sort_keys=True) != antes
+        cambios.append({"id": sid, "nombre": s["nombre"], "proceso": s["proceso"], "cambio": cambio})
+        if cambio:
+            f.write_text(json.dumps(s, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return cambios
 
 
@@ -277,7 +325,7 @@ def categoria(s: dict, etiquetas: dict) -> tuple[str, str]:
         return "crater_natural", "catálogo de cráteres conocidos de México (ciencia_datos/datos/crateres_conocidos_mx.csv)"
     if tipo in TIPOS_IA_NATURAL and conf >= CONF_IA_MIN:
         return "crater_natural", f"etiqueta de IA {tipo}, confianza {conf:.2f}"
-    if "tajo minero" in proceso:
+    if "tajo minero" in proceso.lower():
         return "tajo_minero", "cantera de OpenStreetMap a ≤ 2 km" + (f"; etiqueta de IA {tipo}, confianza {conf:.2f}" if tipo else "; sin etiqueta de IA")
     if tipo == "mina_o_cantera" and conf >= CONF_IA_MIN:
         return "tajo_minero", f"etiqueta de IA mina_o_cantera, confianza {conf:.2f}"
@@ -371,8 +419,7 @@ def construir_sitio(r: pd.Series, targets: dict, ref: pd.DataFrame, conocidos: l
     nombre = r.nombre_catalogo or (r.nombre_previo if isinstance(r.nombre_previo, str) else None) or (nombre_global or (None,))[0]
     aviso_nombre = (f" Nombre: {nombre_global[1]}." if nombre_global and nombre == nombre_global[0] else
                     "" if r.nombre_catalogo or not nombre else
-                    " Nombre por verificar: se asignó en analisis/09 por cercanía a una mina o cantera de OpenStreetMap; "
-                    "no se cotejó con un inventario minero oficial.")
+                    NOMBRES_VERIFICADOS.get(str(r.cid).lower(), NOMBRE_POR_VERIFICAR))
     if es_mina:
         proceso = "Probable tajo minero a cielo abierto (cantera de OpenStreetMap a ≤ 2 km; por verificar)"
         uso = ("Análogo operativo, no geológico: probar navegación y movilidad de rovers en paredes empinadas, "
@@ -384,6 +431,7 @@ def construir_sitio(r: pd.Series, targets: dict, ref: pd.DataFrame, conocidos: l
         proceso = ("Depresión cerrada tipo cráter de origen sin confirmar "
                    + ("(borde levantado: probable volcánico)" if r.borde_m >= 10 else "(sin borde: dolina, cuenca o maar erosionado)"))
         uso = "Candidato a verificar en campo: navegación y movilidad dentro de una depresión tipo cráter"
+    proceso = PROCESOS_VERIFICADOS.get(str(r.cid).lower(), proceso)
     variables = {
         "forma": variable(fz["valor"], "0-1", forma.FUENTE,
                           f"P(Luna)={fz['P_Luna']}, distancia a la nube={fz['dist']}; {fz['nota']}", "2026-11-14"),
@@ -444,6 +492,10 @@ def main():
         return t
     if "--solo-literatura" in sys.argv:
         t = pd.DataFrame(aplicar_literatura())
+        print(t.to_string(index=False))
+        return t
+    if "--solo-textos" in sys.argv:
+        t = pd.DataFrame(aplicar_textos_verificados())
         print(t.to_string(index=False))
         return t
     if "--solo-ia" in sys.argv:
