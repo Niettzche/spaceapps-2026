@@ -21,3 +21,5 @@
 
 - 14 nov · Integración: límite real de 60 fps (target y limit) con runner fijo de Matter, para evitar doble velocidad en monitores de alta frecuencia. Prueba con reloj sintético a 60/120/144/240 Hz.
 - 14 nov · Marte conserva 3.71 m/s², gravedad ecuatorial de NASA JPL (https://ssd.jpl.nasa.gov/planets/phys_par.html, consultada 2026-11-14). La Mars Fact Sheet (https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html) usa 3.73 como gravedad media. Son convenciones distintas; la demo usa 3.71 uniformemente, no una medición local de Jezero.
+
+- 14 nov · Precio por pieza para el MVP (presupuesto 1,000, robot mínimo 730); el precio por kilo del libro de datos de taller queda como mejora posterior · el camino dorado está calibrado con este modelo.
