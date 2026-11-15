@@ -29,3 +29,10 @@
 - **Camino dorado lunar:** de maar Al Wahbah (g00281) a **maar Al Hutaymah (g00263, 54 % de parecido)**. Motivo: con la regla de superficies v2 de Mario (paredes > 15° = roca, más realista), en g00281 la rueda estándar pasa y la ancha se queda sin energía. En g00263 con física 2 la estándar se hunde y se atasca y la ancha pasa (E 38 %); la misión lunar entrega con la ancha.
 - **Orden de sitios en el Expediente:** se respeta el orden del modelo por similitud (opción A); el camino dorado de Marte (Samalayuca) queda en la página 2.
 - **5 niveles destacados** (todos distintos): Jabal Bayda (toba), Tenoumer (impacto en desierto), Cananea (mina), Pinacate (lava), Pingualuit (impacto helado). Ver `docs/juego/NIVELES_DESTACADOS.md`.
+
+## 15 nov 2026 (madrugada) · Integración nocturna (Edmundo dormido; integración a cargo del agente de Edmundo)
+- **Física 2 robusta:** las caras de duna recreadas se limitan a 30° de pendiente total (límite inferior del ángulo de reposo, Pelletier 2015); antes llegaban a 36–39° y el camino dorado quedaba al límite. Valores verificados por Leo (docs/taller/FUENTES_FISICA.md): Luna c 0.52 kPa, φ 42°; drift de Marte c 1.6 kPa (Moore); ceniza c 0; suelo compacto φ 38°; roca de la Tierra μ 0.7 (P). En misiones el robot frena solo sobre rocas recreadas (v ≤ 1.5·√(2gH)/sin α, P), como la navegación autónoma de los rovers. Camino dorado 5/5 en simulador y en tiempo real.
+- **Niveles destacados (7):** Jabal Bayda, Tenoumer, Cananea, Pinacate, Pingualuit, Samalayuca (solo ambiente, es el camino dorado) y Rincón de Parangueo. En Cananea y Pingualuit la pieza clave pasa a la rueda de malla (con roca μ 0.7 la ancha queda al límite).
+- **Música** (#98 Leo, #103 Diego): por escena, fundido cruzado, control propio (tecla U), separado del silencio de efectos (M).
+- **ANA, la tutora de análogos** (#102 Mario): reglas sin red + /tutor con IA en el servidor (sin llave responde con reglas). Es un extra (AGENTS §15).
+- **Presupuesto:** sigue fijo en 1000 hasta que Edmundo decida (propuesta en docs/juego/PRESUPUESTO.md).
