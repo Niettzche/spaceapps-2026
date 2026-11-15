@@ -1,96 +1,112 @@
 # Estado — Taller y piezas
 
-> Lo actualiza SOLO este frente. Rama: `feat/taller` (ronda 3: `feat/taller-datos`).
+> Lo actualiza SOLO este frente.
 
-**Responsable:** Leo  ·  **Agente:** Claude Code / Codex
-**Última actualización:** 14 nov 2026 (ronda 3, tras el merge de #16 y #21)
+**Responsable:** Leo hasta el 14 nov 2026 · **desde ahora: Alan** (Leo se queda sin sesión) · **Agente:** Claude Code / Codex
+**Última actualización:** 15 nov 2026, cierre de Leo. Todo lo del taller está en `main` (#7, #16, #23, #28, #31, #38, #39).
+
+## Para quien sigue (Alan)
+
+**Archivos del frente**
+| Archivo | Qué es |
+|---|---|
+| `game/src/scenes/Taller/diseno.js` | Reglas del diseño, sin Phaser: 7 ranuras, ruedas × 2 (costo y masa), `resumen()`, `validar()` |
+| `game/src/scenes/Taller/diseno.test.mjs` | Prueba: `node game/src/scenes/Taller/diseno.test.mjs` → **14 casos OK** |
+| `game/src/scenes/Taller.js` | La escena: esquema del robot, catálogo, presupuesto, validación, teclado, toque e íconos |
+| `game/src/content/parts.json` | Las 12 piezas (valores de juego, P) |
+| `docs/taller/Space_Apps_Game_Data.xlsx` | Libro de datos en inglés, 13 hojas, con la hoja **Judges** para el pitch |
+| `docs/taller/PIEZAS.md` | Qué hecho real inspira cada pieza, las reglas del armado y el resumen del libro de datos |
+
+**Reglas que no se rompen**
+- La física **importa** de `Taller/diseno.js`: `RANURAS`, `DISENO_POR_DEFECTO`, `comoDiseno` y `resumen` (usa `costo` y `masa`).
+  No renombres esas exportaciones. `resumen().masa` es **solo el robot**: la física suma aparte los 10 kg de carga.
+- Si cambias en `parts.json` el agarre, la fuerza, el consumo, la capacidad, la masa o el radio, **avisa a juego (Edmundo)**:
+  el camino dorado está calibrado con esos números y hay que volver a correr las simulaciones.
+- Contrato con juego: `partida.diseno = [{ ranura, pieza }]`. Cada ranura de rueda es un eje con 2 ruedas.
+  El robot mínimo cuesta 730 de 1,000 créditos; con ruedas anchas, 890.
+- Nada de datos inventados: un valor real lleva S-ID en la hoja Sources; un valor de juego se marca (P).
+
+**Cómo verificar que todo sigue bien**
+```
+node game/src/scenes/Taller/diseno.test.mjs   # 14 casos
+node game/src/fisica/fisica.test.mjs          # 22 casos (la física usa las reglas del taller)
+python model/validate_data.py                  # valida parts.json contra el esquema
+cd game && npm run build
+```
+Camino dorado completo (pasa por el Taller real): ver la cabecera de `game/e2e/camino_dorado.mjs`.
 
 ## Hecho
-- [x] Investigación de ruedas, chasis, energía y materiales reales con fuentes NASA/JPL/Smithsonian → `docs/taller/PIEZAS.md`
-- [x] `parts.json`: mismos `id` y números (cuadran 730 / 890); notas con inspiración real; `radio_m` en ruedas (valor de juego);
-      `panel_solar` marcado "sin efecto en el MVP"
-- [x] Reglas del diseño sin Phaser: `game/src/scenes/Taller/diseno.js` (`RANURAS`, `DISENO_POR_DEFECTO`, `resumen()`, `validar()`)
-      + prueba `node game/src/scenes/Taller/diseno.test.mjs` (14 casos)
-- [x] Escena Taller: 7 ranuras del contrato del frente juego, ruedas = eje × 2 (costo y masa), presupuesto visible,
-      validación (estructura, movilidad, energía, carga, presupuesto), quitar/restablecer, teclado completo
-- [x] Guarda `partida.diseno = [{ ranura, pieza }]` al continuar (bloqueado si el diseño no es válido)
-- [x] Ronda 2 (pedido de integración): `irA()`, validación sin encimarse con los botones, íconos 16 × 16 con respaldo de texto.
-- [x] Ronda 3 (pedido de integración):
-  - **Libro de datos** lleno y subido a `docs/taller/Space_Apps_Game_Data.xlsx` (mismo archivo que el original del equipo):
-    hoja Parts (PT-001…PT-012 = `parts.json`), φ de arena de duna (BM-004, 28–34°) y de escoria de lava (BM-003, 25–32°)
-    con fuente, constantes de Bekker (arena seca; lunar aproximado), fuentes S59–S70 y Review Log RV-094…RV-130.
-    Resumen en `docs/taller/PIEZAS.md` §4.
-  - **Autonomía con carga**: suma los 10 kg (`MASA_CARGA_KG` de `fisica/diseno.js`) y usa `gastoPorSegundo()` de
-    `fisica/energia.js` (misma regla que la física). `resumen().masa` sigue siendo solo el robot.
-  - **Regla de ejes**: agarre = promedio de los dos ejes (como en la física, cada rueda aporta); si los ejes son distintos,
-    aviso "con las dos anchas es más seguro".
-  - Correcciones en `PIEZAS.md` tras revisar las fuentes: Opportunity se hundió "más de 10 cm" (no "hasta los rines");
-    "cada rueda con su propio motor" ahora cita la página de componentes de Perseverance.
-  - Gravedad de Marte cerrada en el libro de datos según la decisión del equipo: el juego usa 3.71 (ecuatorial, NASA JPL,
-    Mars!MR-056, S71); el 3.73 de MR-001 queda como media global de referencia. Flag del Index actualizado.
-- [x] Uso de IA en el frente taller (para `docs/USO_IA.md`, dueño: integración): la investigación de piezas, el libro de datos
-      (búsqueda y verificación de fuentes) y el código del taller se hicieron con Claude Code; cada dato se revisó contra su fuente.
-
-- [x] **Modelo de precios (acordado taller + juego):** el MVP se queda con el **precio por pieza** de `parts.json` (mínimo 730,
-      presupuesto 1,000), que es con el que se calibró el camino dorado. El precio por kilo de material del libro de datos queda
-      como mejora posterior (se puede mencionar en el pitch). Registrado en el libro de datos (Index A34, Materials A2,
-      RV-137/138); falta que integración lo anote en `docs/DECISIONES.md`.
-- [x] **Agarre del suelo de la Tierra (propuesta del taller, integrada por juego en `feat/juego`, commit a19c380)**: `suelos.js`
-      con la arena de duna (BM-004, con fuente), `AGARRE_PROVISIONAL = 1` (P) explícito donde no hay φ, y el HUD lo declara en
-      pantalla. Queda **apagado** (`USAR_SUELO_TIERRA = false`): juego confirmó que con la arena real la ancha no sube la cara
-      de ~33°, y que con las dunas en su orientación real (subir por barlovento ~10°, bajar por sotavento ~33°) también llega
-      la estándar (68 s contra 54 s de la ancha), así que el camino dorado deja de distinguir las ruedas. Ramas y worktree
-      temporales (`feat/taller-agarre`, `mc-juego-agarre`, `feat/taller` local) borrados.
-- [x] Las dos observaciones de juego sobre #16 ya están resueltas en #23: la regla del "peor eje" ahora es el promedio de
-      ejes con aviso, y la autonomía ya incluye los 10 kg de carga (99 s, igual que la física).
-
-- [x] **Gravedad de Marte: 3.71** (ecuatorial, NASA JPL SSD), ya registrada por integración; juego está de acuerdo. El libro de
-      datos ya la marca como la que usa el juego (MR-056); 3.73 queda como media de referencia (MR-001). Nada que cambiar.
-
-## En curso
-- #23 ya entró. #28 aprobado por juego, con su precisión del texto: "En la prueba: agarre² × agarre del suelo (P)" (antes
-  omitía el cuadrado). Ya está en #28, #31 y #39. #28, #31, #38 y #39 en revisión; los cuatro mergean limpio con main y con feat/juego.
-- **Íconos 16 × 16 de arte (#26), revisados en el Taller con main + #28 + #26 combinados localmente:**
-  - Los 12 cargan bien y se ven nítidos.
-  - El texto de la ranura de carga se salía de la caja; lo arreglé en #31.
-  - Le pedí a Mauricio en #26 que la rueda ancha se distinga de la estándar a 16 px (hoy solo cambian 44 de 256 píxeles) y un poco más de contraste sobre el fondo de las ranuras.
-  - Juego lo pasó a arte como prioridad alta en `docs/arte/SPRITES_PENDIENTES.md`. Además, `aspecto.js` (juego) ya no usa
-    `assets/iconos/` como sprites, así que se acabó el aviso de nombres repetidos.
-- **Hoja `Judges` del libro de datos** (respuestas para los jueces con dato real y fuente): en #38.
-- **Prueba en teléfono (emulación de Edge con toques reales, 3 pantallas):**
-  - Todo se puede tocar: 7/7 ranuras, 15/15 filas del catálogo, Quitar, Restablecer y Probar el robot.
-  - Antes los botones de abajo medían ~13 px de alto y Quitar ~10 px; ahora las zonas de toque miden ≥ 37 px en horizontal
-    (el dibujo no cambió). Ver el PR de este cambio.
-  - Lo que no era del taller ya lo aplicó juego en `game/index.html` (`feat/juego`): `touch-action: manipulation` (sin zoom por
-    doble toque), aviso de "gira tu teléfono" en vertical y la pestaña se llama MARSCEPTION.
-  - **Queda para después de la entrega** (acordado con juego): el texto del Taller mide ~8 px en un teléfono; necesita un
-    diseño propio para móvil.
-- La hoja `Judges` ya la usa el equipo para preparar las respuestas del pitch.
-
-## Siguiente
-- Corridas de verificación (las corre juego en `game/e2e/`; resultados esperados según el reporte de juego):
-
-  | # | Corrida | Esperado |
+- **Piezas y reglas.** 12 piezas con inspiración real verificada (NASA/JPL/Smithsonian, `PIEZAS.md`), 7 ranuras, ruedas × 2,
+  presupuesto y validación (estructura, movilidad, energía, carga y presupuesto). Se puede quitar y restablecer, y se usa todo con
+  teclado y con toque.
+- **Agarre.** El taller muestra el **agarre de la rueda** como promedio de los dos ejes (en la física cada rueda aporta) y avisa
+  "con las dos anchas es más seguro" si los ejes son distintos. En pantalla dice "En la prueba: agarre² × agarre del suelo (P)",
+  que es la fórmula de `fisica/robot.js`.
+- **Autonomía.** Incluye los 10 kg de carga (`MASA_CARGA_KG`) con la misma regla de energía que la física
+  (`fisica/energia.js`): el robot mínimo da 99 s, igual que la física.
+- **Teléfono.** Lo probé en emulación con toques reales en 3 pantallas: todo responde (7/7 ranuras, 15/15 filas, Quitar,
+  Restablecer, Probar). Las zonas de toque crecieron de ~10–13 px a ≥ 37 px en horizontal y el dibujo no cambió (`zonaToque()`,
+  marcada `customHitArea`). Juego agregó en `game/index.html` `touch-action: manipulation` y el aviso de "gira tu teléfono".
+- **Íconos de arte.** Los 12 íconos de 16 × 16 cargan solos desde `assets/iconos/<id>.png` (clave `iconos/<id>`). Sin ícono,
+  la pieza se ve solo con texto.
+- **Libro de datos** (`docs/taller/Space_Apps_Game_Data.xlsx`):
+  - Hoja Parts con las 12 piezas.
+  - Ángulo de fricción de la arena de duna (BM-004, 28–34°) y de la escoria de lava (BM-003, 25–32°).
+  - Bekker de arena seca; el lunar es aproximado; el del polvo de Marte es Gap y se declara como límite en `docs/METODOLOGIA.md`.
+  - Gravedad de Marte 3.71 (JPL, ecuatorial; MR-056).
+  - Fuentes S59–S73, Review Log RV-094…RV-149.
+- **Hoja Judges** (para el pitch). Cada respuesta trae dato real con fuente, el valor de juego al lado y dónde se rompe la analogía:
+  | ID | Pregunta | Respuesta corta |
   |---|---|---|
-  | 1 | Samalayuca, rueda estándar | Falla (patina en las caras de duna) |
-  | 2 | Samalayuca, rueda ancha | Llega (~59 s) |
-  | 3 | Samalayuca, ancha + soporte básico | Integridad de la carga ~82 % |
-  | 4 | Samalayuca, ancha + soporte amortiguado | Integridad de la carga ~94 % |
-  | 5 | Pinacate, rueda ancha | Se atora en los bloques de roca recreados |
-  | 6 | Pinacate, rueda con tacos | Pasa |
-  | 7 | Misión Luna, batería chica | Entrega |
-  | 8 | Misión Jezero, batería chica | Entrega (repetir si la gravedad cambia a 3.73) |
+  | QA-001 | ¿Por qué el robot va a 6 m/s? | Perseverance va a 0.042 m/s (152 m/h) y VIPER a ~0.1 m/s (diseño, no ha volado). El juego va ~60 veces más rápido: 266 m en ~1 min en vez de ~44 min. La velocidad es (P) |
+  | QA-002 | ¿Por qué se atascó Spirit? | Las ruedas rompieron una costra y cayeron en arena blanda y resbalosa; además la rueda delantera derecha ya no giraba (NASA/JPL, 2009) |
+  | QA-003 | ¿Agarre del regolito lunar? | φ 30–50° (Apolo), tan 0.58–1.19; el juego usa 0.84 |
+  | QA-004 | ¿Y el polvo de Marte? | φ 15.6–20.4° (Viking), tan 0.28–0.37; 20–25° en el sitio de Spirit; el juego usa 0.32 |
+- **Decisiones cerradas con juego**:
+  - Precio por pieza para el MVP; el precio por kilo del Excel queda para después.
+  - Gravedad de Marte 3.71.
+  - La arena real de la Tierra queda **apagada** en `fisica/suelos.js` (`USAR_SUELO_TIERRA = false`): con ella el camino dorado
+    deja de distinguir las ruedas.
+  - Sin hundimiento (no hay Bekker real para Marte).
+- **Correcciones de datos** que salieron de revisar las fuentes primarias:
+  - BM-013 decía "Spirit se hundió 50–90 %", y la fuente no lo dice: se quitó.
+  - Opportunity se hundió "más de 10 cm", no "hasta los rines".
+  - La afirmación "cada rueda con su propio motor" ahora cita la página correcta de NASA.
 
-  Si juego activa `USAR_SUELO_TIERRA`, hay que repetir 1–6 (y voltear las dunas a su orientación real cambia el resultado de 1).
-- [ ] Balance fino con telemetría real (agarre, consumo) junto con el frente juego
+## Lo que queda
+1. **Pitch:** usar la hoja `Judges` para las preguntas de velocidad, Spirit y agarre. Decir siempre que el 0.1 m/s de VIPER es
+   de diseño y que los valores de Marte son estimaciones de ingeniería (lo dice la tabla de NASA).
+2. **Íconos de las ruedas:** a 16 px, la estándar y la ancha solo difieren en 44 de 256 píxeles. Arte (Mauricio) lo tiene como
+   prioridad alta en `docs/arte/SPRITES_PENDIENTES.md`. Cuando los cambie, abrir el Taller y revisar que se distingan en el
+   catálogo y dentro de las ruedas.
+3. **Texto chico en teléfono** (~8 px en pantalla): necesita un diseño propio para móvil. Queda **para después de la entrega**
+   (acordado con juego).
+4. **`docs/DECISIONES.md`:** anotar "precio por pieza para el MVP (taller + juego, 14 nov)". Está en el libro de datos
+   (Index A34), pero no en DECISIONES.
+5. **Corridas de verificación:** el camino dorado de Marte y de la Luna está automatizado en `game/e2e/camino_dorado.mjs`. Las
+   demás corridas de la tabla de juego (Pinacate con rueda ancha contra tacos, y soporte básico ~82 % contra amortiguado ~94 %)
+   las reportó juego, pero no están automatizadas.
+6. **Después de la entrega:** precio por kilo de material (hoja Materials), Bekker para Marte si se publica, panel solar con
+   regla de iluminación (hoy está marcado "sin efecto en el MVP") y balance fino con telemetría.
+
+## Verificación final (15 nov, sobre `main` 5503a6a)
+- `diseno.test.mjs` 14/14 y `fisica.test.mjs` 22/22.
+- `game/e2e/camino_dorado.mjs ambos` (Edge sin interfaz). **Todos los pasos del Taller pasan**: Marte con estándar, Marte con
+  anchas (890 créditos, "✓ Diseño válido") y Luna con estándar.
+  - Marte completo: la estándar se atasca a 153 m y recomienda ruedas anchas; la ancha llega a la meta (266 m, 59 s de juego).
+    La misión entrega con 843 puntos y 2 estrellas.
+- Lo que falló **no es del taller** (para juego/Edmundo):
+  - `resultados_mision`: el script dice "no se ve la puntuación con estrellas", pero la captura sí las muestra (843, 2 de 3
+    estrellas de arte). Seguramente el script busca el carácter "★", que 5503a6a cambió por sprites. Además, el "843" queda
+    cortado contra el borde de arriba del panel.
+  - `luna_prueba_1`: se acabó el tiempo del script (360 s de reloj) a 269 de 272 m, porque esta máquina corrió la Luna a 4 fps.
+    No es concluyente; repetir con más `LIMITE_S` o en otra máquina.
+  - `boot`: un error 404 de un recurso en la consola (el script no dice cuál).
+  - En la misión de Marte la flecha real no movió el robot sin interfaz y el script usó su respaldo (`controles.forzado`).
 
 ## Bloqueos / necesito de otro frente
-- Integración (Alan): anotar en `docs/DECISIONES.md` el modelo de precios por pieza para el MVP (acordado taller + juego), y en
-  `docs/METODOLOGIA.md` el límite acordado con juego: **sin Bekker para el polvo de Marte** (no hay valores reales publicados;
-  NASA/TM-20250006958 dice lo mismo del regolito lunar), así que el juego no simula hundimiento. Fila BM-013 del libro de datos.
-- Arte (Mauricio): íconos de las 12 piezas, 16 × 16, PNG transparente, en **`assets/iconos/<id_de_pieza>.png`**.
-  Ids: `rueda_estandar`, `rueda_ancha`, `rueda_tacos`, `chasis_ligero`, `chasis_reforzado`, `bateria_chica`,
-  `bateria_grande`, `motor_eficiente`, `motor_potente`, `soporte_basico`, `soporte_amortiguado`, `panel_solar`.
+- Ninguno que frene la entrega.
 
-## Cambios que propongo a contratos o AGENTS.md (los aplica el integrador)
-- `docs/juego/ASSETS_ARTE.md` (dueño: juego): anotar la ruta `assets/iconos/<id>.png` en la fila "Íconos de las 12 piezas".
+## Uso de IA (para `docs/USO_IA.md`)
+La investigación de piezas, la búsqueda y verificación de fuentes del libro de datos, la hoja Judges, el código del taller y
+las pruebas en teléfono se hicieron con Claude Code. Cada dato se revisó contra su fuente primaria.

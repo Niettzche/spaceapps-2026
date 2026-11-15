@@ -40,6 +40,9 @@ export default class Resultados extends Phaser.Scene {
     const esMision = tipo === 'mision';
     titulo(this, esMision ? (exito ? 'Misión cumplida' : 'Misión fallida') : (exito ? 'Prueba superada' : 'La prueba falló'), MOTIVOS[motivo] ?? motivo);
 
+    // Marco de arte (assets/ui/ui_panel.png, 9 partes de 16 × 16) detrás del contenido; las esquinas se escalan × 3 enteras.
+    if (this.textures.exists('ui/ui_panel')) this.add.nineslice(480, 282, 'ui/ui_panel', undefined, 306, 104, 5, 5, 5, 5).setScale(3).setDepth(-1);
+
     let y = 130;
     const linea = (texto, color = '#cfd6ff') => { this.add.text(70, y, texto, { ...ESTILO, color }); y += 22; };
     const lineaChica = (texto, color = '#9aa4c7') => {
@@ -50,8 +53,16 @@ export default class Resultados extends Phaser.Scene {
 
     if (esMision) {
       const p = puntuar(resultado, PRESUPUESTO_INICIAL);
-      const estrellas = '★'.repeat(p.estrellas) + '☆'.repeat(3 - p.estrellas);
-      this.add.text(890, 130, `${p.total}\n${estrellas}`, { ...ESTILO, fontSize: '28px', color: '#ffd166', align: 'right' }).setOrigin(1, 0);
+      // Estrellas de arte (assets/ui/ui_estrella_*.png, 16 × 16 × 3); si no hay arte, texto.
+      if (this.textures.exists('ui/ui_estrella_llena') && this.textures.exists('ui/ui_estrella_vacia')) {
+        this.add.text(890, 124, `${p.total}`, { ...ESTILO, fontSize: '28px', color: '#ffd166' }).setOrigin(1, 0);
+        for (let i = 0; i < 3; i++) {
+          this.add.image(890 - (2 - i) * 52, 182, i < p.estrellas ? 'ui/ui_estrella_llena' : 'ui/ui_estrella_vacia').setOrigin(1, 0.5).setScale(3);
+        }
+      } else {
+        const estrellas = '★'.repeat(p.estrellas) + '☆'.repeat(3 - p.estrellas);
+        this.add.text(890, 130, `${p.total}\n${estrellas}`, { ...ESTILO, fontSize: '28px', color: '#ffd166', align: 'right' }).setOrigin(1, 0);
+      }
       if (resultado.entrega) linea(`Entrega ${p.desglose.entrega} + carga ${p.desglose.integridad} + energía ${p.desglose.energia} + ahorro ${p.desglose.ahorro}`, '#9aa4c7');
     }
 

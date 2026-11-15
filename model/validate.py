@@ -91,6 +91,10 @@ def parte_forma() -> list[str]:
                f"(variables {', '.join(res['variables'])}; sitios de Marte excluidos: {', '.join(res['sitios_marte_excluidos'])}). "
                "Exactitud balanceada fuera de pliegue con grupos espaciales: 78 %; en un sitio de Marte nunca visto, entre 70 % (Gale) "
                "y 92 % (Meridiani). Detalle en `ciencia_datos/03_etiquetas_por_fuentes.ipynb`.")
+    out += ["", "**Objeción del instrumento** (MOLA ≈ 463 m de resolución efectiva): con LOLA suavizado a esa resolución (gaussiano con FWHM de 463 m), "
+            "el d/D lunar baja de 0.058 a 0.043 con todos los tamaños y de 0.059 a 0.051 con D ≥ 2 km (Marte: 0.027 y 0.019). La separación en "
+            "cráteres de 2 km o más no es instrumental; en los de menos de 1 km, parcialmente sí. No se reentrenó el modelo con LOLA suavizado. "
+            "Detalle en `model/NIVEL2.md` §B y `analisis/24_experimento_instrumento_marte.py`."]
     out.append("")
     imp = pd.read_csv(DATOS / "impactos_tierra.csv")
     imp = imp[imp.detectado.astype(bool) & (imp.nombre != "Xiuyan")]
@@ -168,7 +172,7 @@ def parte_discriminacion() -> list[str]:
             f"5,000 repeticiones): puntaje de forma {a_forma:.2f} (p = {p_permutacion(nat.forma_mejor, neg.forma_mejor):.2f}); "
             f"d/D {a_dd:.2f} (p = {p_permutacion(nat.prof_diam, neg.prof_diam):.2f}); diferencia de perfil con el gemelo lunar {a_perfil:.2f} "
             f"(p = {p_permutacion(-nat_p, -neg_p):.2f}; menor diferencia = más lunar). Un AUC por debajo de 0.5 quiere decir que las presas, "
-            "valles y dunas puntúan **más** lunar que los cráteres: son más planas; el puntaje de forma las toma por marcianas (en Marte los cráteres son planos) y la diferencia de perfil absoluta premia lo plano (eso lo corrige el PR de la diferencia relativa).", "",
+            "valles y dunas puntúan **más** lunar que los cráteres: son más planas; el puntaje de forma las toma por marcianas (en Marte los cráteres son planos) y la diferencia de perfil absoluta premia lo plano (por eso la lista corta usa `dif_rel` = diferencia media / d/D, en `ciencia_datos/salidas/fichas_integradas.csv`).", "",
             "**Límite declarado.** La forma sola (3 medidas a 200 m) no distingue un cráter de otra depresión cerrada de tamaño parecido. "
             "Por eso el catálogo usa la **etiqueta verificada** (IA sobre imagen de satélite y relieve, revisada contra fuentes) para decidir "
             "qué es un cráter, y la forma solo para decir **qué tan lunar o marciano** es un cráter ya identificado.", ""]
@@ -197,6 +201,9 @@ def main():
     out = ["# Validación del modelo (frente modelo)", "",
            f"Generado por `model/validate.py` el {hoy}. Pesos (P): {pesos}. Umbrales (P): control negativo < {UMBRAL_NEGATIVO}, "
            f"análogo conocido > {UMBRAL_POSITIVO}.", "",
+           "Ojo: `oscilacion_termica` vale entre 0.20 y 0.33 en todos los sitios (mediana 0.28), porque los dos destinos (Luna 176 K, "
+           "Jezero 55 K) superan el máximo terrestre de 40 K y se recortan ahí. Es una dimensión que la Tierra no alcanza: rebaja todos los "
+           "totales casi por igual y no ordena sitios. No se cambia el peso antes de la entrega (`model/NIVEL2.md` §C).", "",
            "## A. Comparador de variables (dimensiones complementarias)", "",
            "En estos puntos no hay un cráter medido, así que la forma no aplica: la similitud usa clima (NASA POWER), "
            "vegetación (MODIS) y pendiente (Copernicus DEM a 200 m), y la confianza baja en consecuencia.", ""]
