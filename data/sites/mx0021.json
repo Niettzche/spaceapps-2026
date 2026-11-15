@@ -9,7 +9,7 @@
   "prueba_util": null,
   "uso_exploracion": "Análogo operativo, no geológico: probar navegación y movilidad de rovers en paredes empinadas, excavación (ISRU) y operación con sombra en el fondo del tajo. La analogía se rompe por ser un hueco artificial escalonado; su d/D (0.091) supera solo al 86 % de los 2,783 cráteres lunares de diámetro parecido, así que aquí la profundidad no es el problema.",
   "proceso": "Probable tajo minero a cielo abierto (cantera de OpenStreetMap a ≤ 2 km; por verificar)",
-  "novedoso": true,
+  "novedoso": null,
   "variables": {
     "forma": {
       "valor": 0.8864,
@@ -114,5 +114,5 @@
     "exageracion_vertical": null,
     "obstaculos": []
   },
-  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Anillo 80-85°S (Luna), 0.64 km, 59 m, d/D 0.092, en -83.76, 47.017. Categoría: tajo minero (cantera de OpenStreetMap a ≤ 2 km; etiqueta de IA mina_o_cantera, confianza 0.75). Análogo operativo de una excavación somera, no geológico. La analogía se rompe por ser un hueco artificial escalonado; su d/D (0.091) supera solo al 86 % de los 2,783 cráteres lunares de diámetro parecido, así que aquí la profundidad no es el problema (ciencia_datos/salidas/lista_corta.md). Sin borde levantado medido (-1.6 m sobre el terreno lejano; model/borde.py). novedoso se refiere a data/known_analogs.json, no a un hallazgo geológico. Etiqueta de IA: mina_o_cantera, confianza 0.75 (claude -p sobre Sentinel-2 y relieve; 29 de 33 aciertos en la validación, ciencia_datos/etiquetado_ia)."
+  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Anillo 80-85°S (Luna), 0.64 km, 59 m, d/D 0.092, en -83.76, 47.017. Categoría: tajo minero (cantera de OpenStreetMap a ≤ 2 km; etiqueta de IA mina_o_cantera, confianza 0.75). Análogo operativo de una excavación somera, no geológico. La analogía se rompe por ser un hueco artificial escalonado; su d/D (0.091) supera solo al 86 % de los 2,783 cráteres lunares de diámetro parecido, así que aquí la profundidad no es el problema (ciencia_datos/salidas/lista_corta.md). Sin borde levantado medido (-1.6 m sobre el terreno lejano; model/borde.py). novedoso se refiere a data/known_analogs.json, no a un hallazgo geológico. Etiqueta de IA: mina_o_cantera, confianza 0.75 (claude -p sobre Sentinel-2 y relieve; 29 de 33 aciertos en la validación, ciencia_datos/etiquetado_ia). novedoso: null (tajo minero según la IA: análogo operativo, no se presenta como hallazgo)."
 }
