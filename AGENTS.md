@@ -80,7 +80,7 @@ El modelo tiene dos partes, y así se presenta:
 1. **Similitud de forma (núcleo, `analisis/` + `ciencia_datos/`):** un detector de depresiones tipo cráter corre con el mismo código y a
    la misma resolución (200 m) sobre la Tierra (hoy México, validado; se extiende a regiones áridas del mundo, §6.4), el polo sur lunar y Marte. Después, **modelos explicables entrenados con cráteres de la Luna
    y de Marte** (árbol de decisión poco profundo y regresión logística, Luna contra Marte) separan los dos cuerpos con **75–77 % de
-   exactitud balanceada** fuera de pliegue (validación por grupos espaciales, `ciencia_datos/02`); con 8 sitios de Marte, 78 %
+   exactitud balanceada** fuera de pliegue (validación por grupos espaciales, `ciencia_datos/02`); con 6 sitios de Marte y 573 cráteres, 78 % (76 % solo con profundidad/diámetro)
    (`ciencia_datos/03`). El puntaje de un cráter mexicano combina ese modelo con su distancia a la nube Luna+Marte. La regla principal
    del árbol es profundidad/diámetro.
 2. **Comparador transparente de variables (complemento, `/model`):** variables climáticas y de superficie medidas por la NASA, comparadas
