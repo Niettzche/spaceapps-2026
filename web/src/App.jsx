@@ -66,11 +66,11 @@ export default function App() {
       <header className="top">
         <a className="brand" href="#inicio">{t.brand}</a>
         <nav aria-label="Sections">
-          <a href="#juego">{t.nav_game}</a>
+          <a href="#juego" onClick={() => document.getElementById('quiz')?.setAttribute('open', '')}>{t.nav_game}</a>
           {data?.sites.length > 0 && <a href="#sitios">{t.nav_sites}</a>}
           <a href="#mapa">{t.nav_map}</a>
-          <a href="#metodo">{t.nav_method}</a>
-          <a href="#mision">Misión Cero</a>
+          <a href="#metodo" onClick={() => document.getElementById('metodologia')?.setAttribute('open', '')}>{t.nav_method}</a>
+          <a href="#mision">MARSCEPTION</a>
         </nav>
         <div className="lang" role="group" aria-label="Language">
           {['en', 'es'].map((l) => (
@@ -86,10 +86,10 @@ export default function App() {
       {!data && !err && <p className="notice" role="status">{t.loading}</p>}
       {data && (
         <>
-          <Game t={t} items={data.juego} imgBase={D + 'img/'} hasSheet={(id) => !!fichasById[id]} onOpen={setOpenId} />
+          <details className="explorer-detail" id="quiz"><summary>{lang === 'en' ? 'Terrain quiz / Earth, Moon or Mars?' : 'Quiz de terrenos / Tierra, Luna o Marte'}</summary><Game t={t} items={data.juego} imgBase={D + 'img/'} hasSheet={(id) => !!fichasById[id]} onOpen={setOpenId} /></details>
           <Sites t={t} sites={data.sites} imgBase={D} onOpen={setSiteId} onShowMap={showOnMap} />
           <MapView t={t} craters={data.crateres} plains={data.llanuras} sites={data.sites} hasSheet={(id) => !!fichasById[id]} onOpen={setOpenId} onOpenSite={setSiteId} activeId={openId} focus={focus} />
-          <Method t={t} refData={data.ref} craters={data.crateres} />
+          <details className="explorer-detail" id="metodologia"><summary>{lang === 'en' ? 'Method / sources and validation' : 'Método / fuentes y validación'}</summary><Method t={t} refData={data.ref} craters={data.crateres} /></details>
         </>
       )}
       <ProjectFooter lang={lang} />
