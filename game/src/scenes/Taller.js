@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { irA } from './ui.js';
 import * as K from './comun/pixel.js'; // botones, chips, barras, paneles e íconos de arte (DISENO.md §2)
+import { ajustarAncho } from './comun/fuente.js';
 import { PIEZAS, DESTINOS } from '../data.js';
 import { PRESUPUESTO_INICIAL } from '../config/world.js';
 import { partida } from '../main.js';
@@ -34,38 +35,48 @@ const BIEN = 0x6ee7a8;
 const ROJO = 0xff7a7a;
 const BORDE = 0x4a5490;
 
-// Texto del Taller: un solo punto de entrada para cambiarlo a la fuente bitmap cuando comun/pixel.js tenga `textoPixel`
-// (hoy no existe en esta base). Mantiene la letra ≥ 14 px (DISENO.md §2.1).
-const texto = (scene, x, y, s, o = {}) => K.txt(scene, x, y, s, o);
+// Todo el texto del Taller va con la fuente pixel (comun/fuente.js, BitmapText ×2 = mayúscula de 14 px, DISENO.md §2.1).
+// Es más ancha que monospace (~10 px por letra): cada texto tiene su ancho medido y, si no cabe, se recorta con «…»
+// (`max`) o se parte en líneas (`ancho`). Una línea ×2 mide 24 px de alto (22 de glifo + 2 de interlínea): filas cada 24 px.
+const texto = (scene, x, y, s, { max, ...o } = {}) => {
+  const t = K.txt(scene, x, y, s, o);
+  if (max) ajustarAncho(t, max);
+  return t;
+};
+const LINEA = 24;
 
 // ---- Disposición (960 × 540) ----
+// Encabezado (0–48): título, sitio y destino en 2 líneas, Personalizar y Ayuda · escenario y panel de cifras (48–302)
+// · pestañas (306–334) · tarjetas (338–460) · botones (464–506) · línea de ayuda (512–536).
 const S = 8; // escala del robot: 1 px de arte = 8 px de pantalla (el chasis de 24 px mide 192)
-const ROBOT = { x: 308, y: 222 }; // centro del chasis
-const ESCENARIO = { x: 14, y: 82, w: 588, h: 252 };
-const LADO = { x: 612, y: 82, w: 334, h: 252 };
-const SOCKET_W = 150;
-const SOCKET_H = 46;
+const ROBOT = { x: 308, y: 186 }; // centro del chasis
+const ESCENARIO = { x: 14, y: 48, w: 588, h: 254 };
+const LADO = { x: 612, y: 48, w: 334, h: 254 };
+const SOCKET_W = 168;
+const SOCKET_H = 50;
+const SOCKET_TEXTO = 42; // el texto empieza después del ícono de 32 px
 // Caja de cada socket (centro) y su punto de anclaje en el robot (px de arte desde el centro del chasis, como fisica/aspecto.js).
 const SOCKETS = {
-  modulo: { x: 98, y: 108, ancla: [5, -4.5] },
-  carga: { x: 308, y: 108, ancla: [0, -5.5] },
-  chasis: { x: 518, y: 108, ancla: [10, 0.5] },
-  motor: { x: 92, y: 222, ancla: [-8, 0] },
-  bateria: { x: 524, y: 222, ancla: [4.5, 0] },
-  rueda_tras: { x: 108, y: 306, ancla: [-8.64, 3.2] },
-  rueda_del: { x: 508, y: 306, ancla: [8.64, 3.2] },
+  modulo: { x: 108, y: 79, ancla: [5, -4.5] },
+  carga: { x: 308, y: 79, ancla: [0, -5.5] },
+  chasis: { x: 508, y: 79, ancla: [10, 0.5] },
+  motor: { x: 106, y: 186, ancla: [-8, 0] },
+  bateria: { x: 510, y: 186, ancla: [4.5, 0] },
+  rueda_tras: { x: 108, y: 272, ancla: [-8.64, 3.2] },
+  rueda_del: { x: 508, y: 272, ancla: [8.64, 3.2] },
 };
 const DECO = { motor: [-8, 0], bateria: [6, 0], modulo: [5, -4] }; // calcomanías sobre el chasis (fisica/aspecto.js POS_DECO)
-const PESTANA_Y = 340;
-const PESTANA_H = 30;
-const CARTA_Y = 378;
+const PESTANA_Y = 306;
+const PESTANA_H = 28;
+const PESTANA_W = 148;
+const CARTA_Y = 338;
 const CARTA_W = 136;
-const CARTA_H = 90;
+const CARTA_H = 122;
 const CARTA_X0 = 52;
 const CARTA_PASO = CARTA_W + 8;
 const POR_PAGINA = 6;
-const BOTONES_Y = 494;
-const AYUDA_Y = 530;
+const BOTONES_Y = 485;
+const AYUDA_Y = 524;
 const UMBRAL_ARRASTRE = 6; // px que hay que mover para que un toque se vuelva arrastre
 
 const piezaPorId = Object.fromEntries(PIEZAS.map((p) => [p.id, p]));
@@ -92,6 +103,8 @@ const RESPALDO_ICONO = {
   chasis_titanio: ['chasis_ligero', 0xb4c0d4], chasis_carbono: ['chasis_ligero', 0x5c6274],
   rueda_nitinol: ['rueda_malla', 0xc8dcff], auto_rescate: ['ico_subida', null],
 };
+// Archivos de arte con otro nombre que el id del juego (#89): se buscan también con este nombre.
+const ALIAS_ARTE = { chasis_carbono: 'chasis_fibra_carbono', auto_rescate: 'modulo_autorescate' };
 
 const SUPERFICIE_EN = { arena: 'sand', roca: 'rock', compacto: 'compact' };
 const sup = (s) => tr(s, SUPERFICIE_EN[s] ?? s);
@@ -109,7 +122,7 @@ function cifrasDe(p) {
     case 'estructura': return [{ k: tr('resist.', 'durab.'), v: p.resistencia / 120 }, masa(35)];
     case 'potencia': return [{ k: tr('fuerza', 'force'), v: p.fuerza / 90 }, { k: tr('gasto', 'drain'), v: p.consumo / 1.2 }];
     case 'energia': return [{ k: tr('carga', 'charge'), v: p.capacidad / 220 }, masa(11)];
-    case 'carga': return [{ k: tr('protec.', 'prot.'), v: p.proteccion }, masa(6)];
+    case 'carga': return [{ k: tr('prot.', 'prot.'), v: p.proteccion }, masa(6)];
     default: {
       let k = '';
       if (p.capacidad) k = tr(`recarga ${p.capacidad}`, `charge ${p.capacidad}`);
@@ -125,17 +138,17 @@ function cifrasDe(p) {
 function detalleDe(p) {
   if (p.bloqueada) return `${tr('Bloqueada', 'Locked')} · ${trDato(p, 'nombre')} (${p.excel}, ${p.estado}): ${trDato(p, 'detalle')}`;
   const eje = p.sistema === 'movilidad';
-  const costo = eje ? tr(`2 × ${p.costo} cr por eje`, `2 × ${p.costo} cr per axle`) : `${p.costo} cr`;
+  const costo = eje ? tr(`2×${p.costo} cr/eje`, `2×${p.costo} cr/axle`) : `${p.costo} cr`;
   const masa = `${p.masa * (eje ? 2 : 1)} kg`;
   let dato = '';
-  if (p.agarre) dato = tr(`agarre arena ${f2(p.agarre.arena)} · roca ${f2(p.agarre.roca)} · comp. ${f2(p.agarre.compacto)}`,
-    `grip sand ${f2(p.agarre.arena)} · rock ${f2(p.agarre.roca)} · compact ${f2(p.agarre.compacto)}`);
-  if (p.amortiguacion) dato += tr(` · absorbe ${pct(p.amortiguacion)} de sacudidas`, ` · absorbs ${pct(p.amortiguacion)} of jolts`);
+  if (p.agarre) dato = tr(`agarre: arena ${f2(p.agarre.arena)}, roca ${f2(p.agarre.roca)}, comp. ${f2(p.agarre.compacto)}`,
+    `grip: sand ${f2(p.agarre.arena)}, rock ${f2(p.agarre.roca)}, compact ${f2(p.agarre.compacto)}`);
+  if (p.amortiguacion) dato += tr(` · absorbe ${pct(p.amortiguacion)} de golpes`, ` · absorbs ${pct(p.amortiguacion)} of jolts`);
   else if (p.sistema === 'estructura') dato = tr(`resistencia ${p.resistencia}`, `durability ${p.resistencia}`);
   else if (p.sistema === 'potencia') dato = tr(`fuerza ${p.fuerza} · consumo ${p.consumo}/s`, `force ${p.fuerza} · drain ${p.consumo}/s`);
   else if (p.sistema === 'energia') dato = tr(`capacidad ${p.capacidad}`, `capacity ${p.capacidad}`);
   else if (p.sistema === 'carga') dato = tr(`protección ${pct(p.proteccion)}`, `protection ${pct(p.proteccion)}`);
-  else if (p.capacidad) dato = tr(`recarga con la luz del lugar · capacidad ${p.capacidad}`, `recharges in local sunlight · capacity ${p.capacidad}`);
+  else if (p.capacidad) dato = tr(`recarga con la luz del lugar, capacidad ${p.capacidad}`, `recharges in local sunlight, capacity ${p.capacidad}`);
   else if (p.aislamiento_termico) dato = tr(`evita ${pct(p.aislamiento_termico)} de la pérdida por frío`, `prevents ${pct(p.aislamiento_termico)} of the cold loss`);
   else if (p.radiador) dato = tr('enfría el motor sin aire (radiación)', 'cools the motor without air (radiation)');
   else if (p.auto_rescate) {
@@ -170,8 +183,12 @@ export default class Taller extends Phaser.Scene {
       if (this.textures.exists(`iconos/${id}`)) return { clave: `iconos/${id}`, tinte, escala: 2 };
       return null;
     };
-    if (p.bloqueada) return this.textures.exists(p.icono) ? { clave: p.icono, tinte: null, escala: 2 } : null;
-    const propio = buscar(p.id);
+    // Bloqueadas: su arte propio (p. ej. sellos_polvo), su silueta (#89: orugas, patas, rotor, serpiente, rappel) o el ícono genérico.
+    if (p.bloqueada) {
+      return buscar(p.id) ?? buscar(`silueta_${p.id}`)
+        ?? (this.textures.exists(p.icono) ? { clave: p.icono, tinte: null, escala: 2 } : null);
+    }
+    const propio = buscar(p.id) ?? (ALIAS_ARTE[p.id] ? buscar(ALIAS_ARTE[p.id]) : null);
     if (propio) return propio;
     const r = RESPALDO_ICONO[p.id];
     return r ? buscar(r[0], r[1]) : null;
@@ -181,6 +198,7 @@ export default class Taller extends Phaser.Scene {
     if (this.textures.exists('pantallas/taller_fondo')) {
       this.add.image(480, 270, 'pantallas/taller_fondo').setScale(3).setDepth(-10);
       this.add.rectangle(480, 270, 960, 540, 0x0b0d17, 0.55).setDepth(-9);
+      this.add.rectangle(0, 0, 960, 48, 0x0b0d17, 0.75).setOrigin(0, 0).setDepth(-8); // banda del encabezado: texto legible
     }
     this.input.mouse?.disableContextMenu(); // clic derecho en un socket = quitar
     this.presupuesto = partida.presupuesto ?? PRESUPUESTO_INICIAL;
@@ -223,29 +241,23 @@ export default class Taller extends Phaser.Scene {
 
   // ───────────────────────── encabezado y presupuesto ─────────────────────────
   crearEncabezado() {
-    const titulo = texto(this, 24, 24, tr('Taller', 'Workshop'), { size: 26, origen: [0, 0.5] });
+    const titulo = texto(this, 20, 24, tr('Taller', 'Workshop'), { size: 26, origen: [0, 0.5] });
+    this.btnAyuda = K.boton(this, 945, 22, tr('? Ayuda', '? Help'), () => this.alternarAyuda(),
+      { size: 15, alto: 36, origen: [1, 0.5], color: K.P.dato, pad: 10, reservaFoco: false });
+    // Pintura y nombre (cosméticos) en un panel aparte: el panel de cifras queda solo para lo que cambia la prueba.
+    this.btnPersonalizar = K.boton(this, this.btnAyuda.caja.x - 8, 22, tr('Personalizar', 'Customize'), () => this.alternarPersonalizar(),
+      { size: 15, alto: 36, origen: [1, 0.5], pad: 10, reservaFoco: false });
+    // Sitio de la prueba y destino, en dos líneas (cada una recortada a su ancho).
     const destino = DESTINOS[partida.destino];
     const sitio = partida.sitio;
     const tipos = sitio?.nivel && Array.isArray(sitio.nivel.superficies)
-      ? [...new Set(sitio.nivel.superficies.map((s) => s.tipo))].map(sup).join(', ') : null;
-    const sub = [
-      destino ? trDato(destino, 'nombre') : partida.destino,
-      sitio ? tr('prueba: ', 'test: ') + trDato(sitio, 'nombre') : null,
-      tipos,
-    ].filter(Boolean).join(' · ');
-    const xs = Math.round(titulo.x + titulo.width + 20);
-    texto(this, xs, 24, sub, { size: 15, color: C.suave, origen: [0, 0.5], ancho: 815 - xs });
-    this.btnAyuda = K.boton(this, 945, 24, tr('? Ayuda', '? Help'), () => this.alternarAyuda(), { size: 15, alto: 36, origen: [1, 0.5], color: K.P.dato });
-
-    const y = 62;
-    const etiqueta = texto(this, 24, y, tr('Presupuesto', 'Budget'), { size: 15, color: C.claro, origen: [0, 0.5] });
-    this.barraX = etiqueta.x + etiqueta.width + 12;
-    this.barraW = 250;
-    this.barraPresupuesto = K.barra(this, this.barraX, y - 10, this.barraW, 20, 0, K.P.accion);
-    this.txtCosto = texto(this, this.barraX + this.barraW + 12, y, '', { size: 18, origen: [0, 0.5] });
-    this.txtRestante = texto(this, LADO.x + 4, y, '', { size: 15, color: C.apagado, origen: [0, 0.5] });
-    // «Valores de juego»: precios, masas y agarres no son datos de ingeniería (AGENTS.md §3.4).
-    texto(this, 945, y, tr('(P) valores de juego', '(P) game values'), { size: 14, color: C.apagado, origen: [1, 0.5] });
+      ? [...new Set(sitio.nivel.superficies.map((x) => x.tipo))].map(sup).join(', ') : null;
+    const xs = Math.round(titulo.x + titulo.width + 18);
+    const max = this.btnPersonalizar.caja.x - 12 - xs;
+    const l1 = sitio ? `${tr('Prueba: ', 'Test: ')}${trDato(sitio, 'nombre')}${tipos ? ` · ${tipos}` : ''}` : '';
+    const l2 = `${tr('Destino: ', 'Destination: ')}${destino ? trDato(destino, 'nombre') : (partida.destino ?? '—')}`;
+    texto(this, xs, 0, l1, { size: 14, color: C.claro, max });
+    texto(this, xs, LINEA, l2, { size: 14, color: C.suave, max });
   }
 
   /** Barra y número del presupuesto, animados del costo anterior al nuevo; un «+N»/«−N» flota desde la barra. */
@@ -253,20 +265,21 @@ export default class Taller extends Phaser.Scene {
     const pintar = (c) => {
       const pasado = c > this.presupuesto;
       this.barraPresupuesto.fijar(c / this.presupuesto, pasado ? K.P.riesgo : K.P.accion);
-      this.txtCosto.setText(`${Math.round(c)} / ${this.presupuesto} cr`).setColor(pasado ? C.error : C.texto);
+      // «(P)»: precios, masas y agarres son valores de juego, no datos de ingeniería (AGENTS.md §3.4; lo explica la ayuda).
+      this.txtCosto.setText(`${Math.round(c)} / ${this.presupuesto} cr (P)`).setColor(pasado ? C.error : C.texto);
     };
     const antes = this.costoMostrado;
     this.costoMostrado = costo;
     const restante = this.presupuesto - costo;
-    this.txtRestante.setText(restante < 0 ? tr(`✕ excede ${-restante} cr`, `✕ over by ${-restante} cr`) : tr(`quedan ${restante} cr`, `${restante} cr left`))
+    this.txtRestante.setText(restante < 0 ? tr(`✕ +${-restante} cr`, `✕ +${-restante} cr`) : tr(`quedan ${restante}`, `${restante} left`))
       .setColor(restante < 0 ? C.error : C.ok);
     if (!animar || antes == null || antes === costo) { pintar(costo); return; }
     this.tweenCosto?.stop();
     this.tweenCosto = this.tweens.addCounter({ from: antes, to: costo, duration: 260, ease: 'Quad.Out', onUpdate: (tw) => pintar(tw.getValue()), onComplete: () => pintar(costo) });
     const d = costo - antes;
-    const x = this.barraX + Math.min(1, costo / this.presupuesto) * this.barraW;
-    const f = texto(this, x, 50, `${d > 0 ? '+' : '−'}${Math.abs(d)} cr`, { size: 16, color: d > 0 ? C.acento : C.ok, origen: [0.5, 1], borde: true }).setDepth(30);
-    this.tweens.add({ targets: f, y: 30, alpha: 0, duration: 900, ease: 'Quad.Out', onComplete: () => f.destroy() });
+    const x = Math.min(this.barraX + this.barraW - 40, this.barraX + Math.min(1, costo / this.presupuesto) * this.barraW);
+    const f = texto(this, x, this.barraY, `${d > 0 ? '+' : '−'}${Math.abs(d)} cr`, { size: 16, color: d > 0 ? C.acento : C.ok, origen: [0.5, 1], borde: true }).setDepth(30);
+    this.tweens.add({ targets: f, y: this.barraY - 24, alpha: 0, duration: 900, ease: 'Quad.Out', onComplete: () => f.destroy() });
   }
 
   // ───────────────────────── escenario: robot y sockets ─────────────────────────
@@ -285,12 +298,13 @@ export default class Taller extends Phaser.Scene {
       caja.on('pointerover', () => { this.sobreSocket = r.id; this.pintarSockets(); });
       caja.on('pointerout', () => { if (this.sobreSocket === r.id) this.sobreSocket = null; this.pintarSockets(); });
       const img = this.add.image(x0 + 22, s.y, '__DEFAULT').setScale(2).setDepth(4).setVisible(false);
-      const l1 = texto(this, x0 + 42, y0 + 5, '', { size: 14, color: C.claro }).setDepth(4);
-      const l2 = texto(this, x0 + 42, y0 + 24, '', { size: 15 }).setDepth(4);
-      this.sockets[r.id] = { caja, img, l1, l2, x0, y0 };
+      const l1 = texto(this, x0 + SOCKET_TEXTO, y0 + 1, '', { size: 14, color: C.claro }).setDepth(4);
+      const l2 = texto(this, x0 + SOCKET_TEXTO, y0 + 1 + LINEA, '', { size: 15 }).setDepth(4);
+      this.sockets[r.id] = { caja, img, l1, l2, x0, y0, w: SOCKET_W };
     }
     // Botón «igual en ambos ejes», entre las cajas de los ejes.
-    this.btnEjes = K.boton(this, ROBOT.x, 306, tr('⇄ Igual en ambos ejes', '⇄ Same on both axles'), () => this.igualarEjes(), { size: 15, alto: 36 });
+    this.btnEjes = K.boton(this, ROBOT.x, SOCKETS.rueda_del.y, tr('Igual en ambos ejes', 'Same on both axles'), () => this.igualarEjes(),
+      { size: 15, alto: 36, pad: 8, reservaFoco: false });
     for (const o of [this.btnEjes.obj, this.btnEjes.caja]) o.setDepth(6);
   }
 
@@ -420,9 +434,10 @@ export default class Taller extends Phaser.Scene {
       const ic = pz ? this.icono(pz) : null;
       s.img.setVisible(Boolean(ic));
       if (ic) { s.img.setTexture(ic.clave).setScale(ic.escala); if (ic.tinte != null) s.img.setTint(ic.tinte); else s.img.clearTint(); }
-      s.l1.setText(etiquetaSocket(r.id)).setColor(elegido ? C.acento : C.claro);
-      s.l2.setText(pz ? corto(pz) : (r.obligatoria ? tr('(vacío)', '(empty)') : tr('(opcional)', '(optional)')))
-        .setColor(falta ? C.error : pz ? C.texto : C.apagado);
+      const maxTexto = SOCKET_W - SOCKET_TEXTO - 4;
+      ajustarAncho(s.l1.setText(etiquetaSocket(r.id)).setColor(elegido ? C.acento : C.claro), maxTexto);
+      ajustarAncho(s.l2.setText(pz ? corto(pz) : (r.obligatoria ? tr('(vacío)', '(empty)') : tr('(opcional)', '(optional)')))
+        .setColor(falta ? C.error : pz ? C.texto : C.apagado), maxTexto);
       // Línea punteada de la caja al punto del robot
       const a = this.ancla(r.id);
       const bx = Phaser.Math.Clamp(a.x, s.x0, s.x0 + SOCKET_W);
@@ -446,13 +461,28 @@ export default class Taller extends Phaser.Scene {
   crearLado() {
     K.panel(this, LADO.x, LADO.y, LADO.w, LADO.h, { alfa: 0.85 });
     this.grupoLado = this.add.container(0, 0).setDepth(3);
-    this.crearPersonalizacion();
+    // Presupuesto: costo a la izquierda, lo que queda a la derecha y la barra debajo (fijos; mostrarCosto los actualiza).
+    const x0 = LADO.x + 12;
+    const xr = LADO.x + LADO.w - 12;
+    this.txtCosto = texto(this, x0, LADO.y + 44, '', { size: 18 });
+    this.txtRestante = texto(this, xr, LADO.y + 44, '', { size: 15, color: C.apagado, origen: [1, 0] });
+    this.barraX = x0;
+    this.barraY = LADO.y + 72;
+    this.barraW = xr - x0;
+    this.barraPresupuesto = K.barra(this, this.barraX, this.barraY, this.barraW, 12, 0, K.P.accion);
+    this.paneles = [{ n: 'escenario', ...ESCENARIO }, { n: 'lado', ...LADO }]; // para las revisiones de maquetación
   }
 
+  /**
+   * Panel de cifras, de arriba abajo: validación (chips) · presupuesto · masa, autonomía y efecto del destino (ícono + número
+   * + palabra clave) · agarre en 3 barras · protección y resistencia · lo especial del diseño.
+   */
   refrescarLado(res, errores) {
     const g = this.grupoLado;
     g.removeAll(true);
     const x0 = LADO.x + 12;
+    const xr = LADO.x + LADO.w - 12;
+    const col = (xr - x0) / 3;
     // 1) Validación en una fila de chips
     const chips = [];
     if (!errores.length) {
@@ -466,66 +496,78 @@ export default class Taller extends Phaser.Scene {
       if (!chips.length) chips.push({ texto: `✕ ${errores[0]}`, tipo: 'rojo', size: 15 });
     }
     if (res.ejes_distintos) chips.push({ texto: tr('⚠ Ejes distintos', '⚠ Mixed axles'), color: K.P.accion, size: 15 });
-    g.add(K.filaChips(this, x0, LADO.y + 10, chips, LADO.x + LADO.w - 10).objs);
+    g.add(K.filaChips(this, x0, LADO.y + 8, chips, xr + 2).objs);
 
-    // 2) Tres cifras: masa, autonomía y efecto del destino
+    // 2) Tres cifras con ícono: masa, autonomía y efecto del destino; debajo, su palabra clave
     const destino = DESTINOS[partida.destino];
     const amb = destino ? ambienteDeDestino(destino.id, destino.mundo) : null;
     const e = efectosEn(res, amb);
-    const mundo = destino ? (MUNDO()[destino.mundo] ?? destino.mundo) : '';
     let efecto = { n: '—', k: tr('destino', 'destination'), ico: 'iconos/ico_temperatura' };
     if (e) {
-      if (res.radiador) efecto = { n: pct(e.potencia_caliente), k: tr('motor caliente', 'hot motor'), ico: 'iconos/ico_temperatura' };
-      else if (e.recarga_s) efecto = { n: `+${e.recarga_s.toFixed(2)}/s`, k: tr('panel solar', 'solar panel'), ico: 'iconos/ico_luz' };
-      else efecto = { n: pct(e.bateria), k: tr(`batería ${mundo}`, `battery ${mundo}`), ico: 'iconos/ico_temperatura' };
+      if (res.radiador) efecto = { n: pct(e.potencia_caliente), k: tr('motor', 'motor'), ico: 'iconos/ico_temperatura' };
+      else if (e.recarga_s) efecto = { n: `+${e.recarga_s.toFixed(2)}/s`, k: tr('panel', 'panel'), ico: 'iconos/ico_luz' };
+      else efecto = { n: pct(e.bateria), k: tr('batería', 'battery'), ico: 'iconos/ico_temperatura' };
     }
     const cifras = [
-      { n: `${res.masa} kg`, k: tr(`+${MASA_CARGA_KG} kg carga`, `+${MASA_CARGA_KG} kg cargo`), ico: 'iconos/ico_gravedad', esc: 1, resp: '↓' },
-      { n: res.autonomia_s != null ? `${Math.round(res.autonomia_s)} s` : '—', k: tr('autonomía', 'run time'), ico: 'ui/ui_icono_energia', esc: 2, resp: '⚡' },
+      { n: `${res.masa} kg`, k: tr(`+${MASA_CARGA_KG} carga`, `+${MASA_CARGA_KG} cargo`), ico: 'iconos/ico_gravedad', esc: 1, resp: '↓' },
+      { n: res.autonomia_s != null ? `${Math.round(res.autonomia_s)} s` : '—', k: tr('autonom.', 'run time'), ico: 'ui/ui_icono_energia', esc: 2, resp: '!' },
       { ...efecto, esc: 1, resp: '°' },
     ];
+    const yc = LADO.y + 90;
+    const xc = [0, 110, 214, xr - x0]; // columnas a la medida de sus palabras clave («+10 carga» es la más ancha)
     cifras.forEach((c, i) => {
-      const x = x0 + i * 108;
-      g.add(K.icono(this, x + 8, LADO.y + 54, c.ico, { escala: c.esc, respaldo: c.resp }));
-      g.add(texto(this, x + 20, LADO.y + 44, c.n, { size: 18 }));
-      g.add(texto(this, x, LADO.y + 66, c.k, { size: 14, color: C.apagado }));
+      const x = x0 + xc[i];
+      const w = xc[i + 1] - xc[i];
+      g.add(K.icono(this, x + 8, yc + LINEA / 2, c.ico, { escala: c.esc, respaldo: c.resp }));
+      g.add(texto(this, x + 20, yc, c.n, { size: 18, max: w - 22 }));
+      g.add(texto(this, x, yc + LINEA, c.k, { size: 14, color: C.apagado, max: w - 6 }));
     });
 
-    // 3) Agarre de las ruedas (promedio de los ejes): 3 barras con su número
-    ['arena', 'roca', 'compacto'].forEach((s, i) => {
-      const x = x0 + i * 106;
-      const v = res.agarre[s];
+    // 3) Agarre de las ruedas (promedio de los ejes): superficie arriba, barra y número abajo
+    const ya = LADO.y + 142;
+    ['arena', 'roca', 'compacto'].forEach((sf, i) => {
+      const x = Math.round(x0 + i * col);
+      const v = res.agarre[sf];
       const color = v == null ? K.P.sec : v >= 0.7 ? K.P.bien : v >= 0.5 ? K.P.accion : K.P.riesgo;
-      g.add(texto(this, x, LADO.y + 90, `${s === 'compacto' ? 'comp.' : sup(s)} ${f2(v)}`, { size: 15 }));
-      g.add(K.barra(this, x, LADO.y + 110, 98, 12, v, color).objs);
+      g.add(texto(this, x, ya, sf === 'compacto' ? tr('compacto', 'compact') : sup(sf), { size: 14, color: C.claro, max: col - 4 }));
+      const num = texto(this, x + col - 6, ya + LINEA, f2(v), { size: 15, origen: [1, 0] });
+      g.add(num);
+      g.add(K.barra(this, x, ya + LINEA + 6, Math.max(20, col - 12 - num.width), 12, v, color).objs);
     });
 
-    // 4) Protección y resistencia, y la línea de lo especial del diseño (módulo, llanta o el destino)
+    // 4) Protección y resistencia, y lo especial del diseño (módulo, llanta o el destino)
     const prot = res.proteccion != null ? pct(res.proteccion) : '—';
-    g.add(texto(this, x0, LADO.y + 130, tr(`Protección ${prot} · resistencia ${res.resistencia ?? '—'}`, `Protection ${prot} · durability ${res.resistencia ?? '—'}`), { size: 15 }));
-    g.add(texto(this, x0, LADO.y + 152, this.lineaEspecial(res, e), { size: 14, color: C.ok, ancho: LADO.w - 24 }));
+    g.add(texto(this, x0, LADO.y + 196, tr(`Protec. ${prot} · Resist. ${res.resistencia ?? '—'}`, `Prot. ${prot} · Durab. ${res.resistencia ?? '—'}`), { size: 15, max: xr - x0 }));
+    g.add(texto(this, x0, LADO.y + 222, this.lineaEspecial(res, e), { size: 14, color: C.ok, max: xr - x0 }));
   }
 
-  /** Lo que hace diferente a este diseño: auto-rescate, Nitinol o el efecto del destino (con y sin el módulo). */
+  /** Lo que hace diferente a este diseño (una línea corta): auto-rescate, Nitinol o el otro efecto del destino. */
   lineaEspecial(res, e) {
     if (res.auto_rescate) {
       const a = res.auto_rescate;
-      return tr(`Auto-rescate: atascado ${a.atasco_s} s → +${pct(a.agarre - 1)} agarre`, `Self-rescue: stuck ${a.atasco_s} s → +${pct(a.agarre - 1)} grip`);
+      return tr(`Auto-rescate: +${pct(a.agarre - 1)} agarre`, `Self-rescue: +${pct(a.agarre - 1)} grip`);
     }
-    if (res.amortiguacion) return tr(`Llanta de Nitinol: absorbe ${pct(res.amortiguacion)} de sacudidas`, `Nitinol tire: absorbs ${pct(res.amortiguacion)} of jolts`);
-    return this.lineasDestino(res, e)[0] ?? '';
+    if (res.amortiguacion) return tr(`Nitinol: absorbe ${pct(res.amortiguacion)} de golpes`, `Nitinol: absorbs ${pct(res.amortiguacion)} of jolts`);
+    if (!e) return '';
+    const destino = DESTINOS[partida.destino];
+    const mundo = `${MUNDO()[destino.mundo] ?? destino.mundo}: `;
+    const sinEl = (v) => tr(` (sin él ${pct(v)})`, ` (without ${pct(v)})`);
+    if (res.radiador) return mundo + tr('motor ', 'motor ') + pct(e.potencia_caliente) + sinEl(e.potencia_caliente_sin_modulo);
+    if (res.aislamiento) return mundo + tr('batería ', 'battery ') + pct(e.bateria) + sinEl(e.bateria_sin_modulo);
+    if (e.recarga_s) return mundo + tr(`batería ${pct(e.bateria)}`, `battery ${pct(e.bateria)}`);
+    return mundo + tr(`motor caliente ${pct(e.potencia_caliente)}`, `hot motor ${pct(e.potencia_caliente)}`);
   }
 
   // ───────────────────────── bandeja de piezas ─────────────────────────
   crearBandeja() {
     this.pestanasUI = PESTANAS.map((t, i) => {
-      const w = 148;
+      const w = PESTANA_W;
       const x = 16 + i * (w + 6);
       const caja = this.add.rectangle(x, PESTANA_Y, w, PESTANA_H, 0x141830, 0.95).setOrigin(0, 0).setStrokeStyle(2, BORDE);
       zonaToque(caja, 0, -4, w, PESTANA_H + 6);
       caja.on('pointerdown', () => this.elegirPestana(t.id));
-      const etq = texto(this, x + w / 2 + (t.bloqueadas ? 10 : 0), PESTANA_Y + PESTANA_H / 2, trDato(t, 'nombre'), { size: 15, origen: [0.5, 0.5] });
-      const candado = t.bloqueadas ? this.candado(x + w / 2 - etq.width / 2 - 4, PESTANA_Y + PESTANA_H / 2, 2) : null;
+      const etq = texto(this, x + w / 2 + (t.bloqueadas ? 10 : 0), PESTANA_Y + PESTANA_H / 2, trDato(t, 'nombre'), { size: 15, origen: [0.5, 0.5], max: w - (t.bloqueadas ? 34 : 12) });
+      const candado = t.bloqueadas ? this.candado(x + w / 2 - etq.width / 2 - 2 - 8, PESTANA_Y + PESTANA_H / 2, 2) : null;
       return { t, caja, etq, candado };
     });
     this.lista = this.add.container(0, 0).setDepth(3);
@@ -538,6 +580,12 @@ export default class Taller extends Phaser.Scene {
 
   /** Candado en pixel art (gráficos) centrado en (x, y); escala `e` = px de pantalla por px de arte. */
   candado(x, y, e = 2, contenedor = null) {
+    // Arte del candado (#89, 16 × 16) si está; si no, dibujado con figuras.
+    if (this.textures.exists('iconos/candado')) {
+      const img = this.add.image(x, y, 'iconos/candado');
+      if (contenedor) contenedor.add(img);
+      return img;
+    }
     const g = this.add.graphics({ x: x - 3 * e, y: y - 4 * e });
     g.fillStyle(0xa3abcc, 1);
     g.fillRect(1 * e, 0, 4 * e, e); g.fillRect(0, e, e, 3 * e); g.fillRect(5 * e, e, e, 3 * e); // arco
@@ -602,39 +650,48 @@ export default class Taller extends Phaser.Scene {
       if (ic) {
         const img = this.add.image(x + 22, y + 22, ic.clave).setScale(ic.escala);
         if (ic.tinte != null) img.setTint(ic.tinte);
-        if (p.bloqueada) img.setAlpha(0.45);
+        if (p.bloqueada) img.setAlpha(ic.clave.includes('silueta_') ? 0.9 : 0.45); // las siluetas (#89) ya vienen oscuras
         objs.push(img);
       }
+      // Filas cada 22 px: costo y ranura a la derecha (el ícono ocupa la izquierda), nombre y 2 cifras con barra.
+      const der = x + CARTA_W - 6;
+      const anchoTexto = CARTA_W - 8;
+      const fila = (k) => y + 1 + k * LINEA;
       if (p.bloqueada) {
-        objs.push(texto(this, x + CARTA_W - 6, y + 3, p.excel.split(' · ')[0], { size: 14, color: C.claro, origen: [1, 0] }));
-        objs.push(texto(this, x + CARTA_W - 6, y + 21, p.estado, { size: 14, color: C.apagado, origen: [1, 0] }));
-        objs.push(texto(this, x + 6, y + 38, corto(p), { size: 15, color: C.apagado }));
-        objs.push(texto(this, x + 6, y + 56, RAZONES[p.razon][enIngles() ? 'corto_en' : 'corto'], { size: 14, color: C.error }));
-        objs.push(texto(this, x + 26, y + 73, tr('bloqueada', 'locked'), { size: 14, color: C.apagado }));
+        objs.push(texto(this, der, fila(0), p.excel.split(' · ')[0], { size: 14, color: C.claro, origen: [1, 0] }));
+        objs.push(texto(this, der, fila(1), p.estado, { size: 14, color: C.apagado, origen: [1, 0] }));
+        objs.push(texto(this, x + 6, fila(2), corto(p), { size: 15, color: C.apagado, max: anchoTexto }));
+        objs.push(texto(this, x + 6, fila(3), RAZONES[p.razon][enIngles() ? 'corto_en' : 'corto'], { size: 14, color: C.error, max: anchoTexto }));
+        objs.push(texto(this, x + 26, fila(4), tr('bloqueada', 'locked'), { size: 14, color: C.apagado, max: anchoTexto - 20 }));
       } else {
         const eje = p.sistema === 'movilidad';
-        objs.push(texto(this, x + CARTA_W - 6, y + 3, `${p.costo * (eje ? 2 : 1)} cr`, { size: 15, color: C.acento, origen: [1, 0] }));
+        objs.push(texto(this, der, fila(0), `${p.costo * (eje ? 2 : 1)} cr`, { size: 15, color: C.acento, origen: [1, 0] }));
         const ranura = eje ? tr('eje ×2', 'axle ×2') : etiquetaSocket(socketsPara(p)[0]);
-        objs.push(texto(this, x + CARTA_W - 6, y + 21, ranura, { size: 14, color: C.apagado, origen: [1, 0] }));
-        objs.push(texto(this, x + 6, y + 38, `${puesta ? '✓ ' : ''}${corto(p)}`, { size: 15, color: puesta ? C.ok : C.texto }));
+        objs.push(texto(this, der, fila(1), ranura, { size: 14, color: C.apagado, origen: [1, 0], max: CARTA_W - 50 }));
+        objs.push(texto(this, x + 6, fila(2), `${puesta ? '✓ ' : ''}${corto(p)}`, { size: 15, color: puesta ? C.ok : C.texto, max: anchoTexto }));
         cifrasDe(p).forEach((c, k) => {
-          const cy = y + 56 + k * 17;
-          objs.push(texto(this, x + 6, cy, c.k, { size: 14, color: C.claro }));
-          if (c.v != null) objs.push(...K.barra(this, x + 72, cy + 3, 58, 10, c.v, K.P.dato).objs);
+          const cy = fila(3 + k);
+          const etq = texto(this, x + 6, cy, c.k, { size: 14, color: C.claro, max: c.v != null ? 72 : anchoTexto });
+          objs.push(etq);
+          if (c.v != null) {
+            const bx = Math.max(x + 76, etq.x + etq.width + 6);
+            objs.push(...K.barra(this, bx, cy + 6, x + CARTA_W - 6 - bx, 10, c.v, K.P.dato).objs);
+          }
         });
       }
       this.lista.add(objs);
       if (p.bloqueada) {
         // El candado va dentro del contenedor (se destruye con la página).
-        this.candado(x + 14, y + 81, 1.6, this.lista);
+        this.candado(x + 14, y + 1 + 4 * LINEA + LINEA / 2 - 1, 2, this.lista);
       }
-      this.cartasUI[i] = { x, y, p, marco };
+      this.cartasUI[i] = { x, y, w: CARTA_W, h: CARTA_H, p, marco };
     });
   }
 
   // ───────────────────────── botones de abajo ─────────────────────────
   crearBotones() {
-    const opc = { size: 15, alto: 42, origen: [0, 0.5], zonaExtra: [0, 2] };
+    // Sin la reserva del «▶ » de foco (el Taller no usa foco de botones): así caben los 6 en una fila en es y en.
+    const opc = { size: 15, alto: 42, origen: [0, 0.5], zonaExtra: [0, 2], pad: 10, reservaFoco: false };
     let x = 16;
     const sig = (b) => { x = b.caja.x + b.ancho + 10; return b; };
     this.btnRegresar = sig(K.boton(this, x, BOTONES_Y, tr('← Regresar', '← Back'), () => this.regresar(), opc));
@@ -643,7 +700,7 @@ export default class Taller extends Phaser.Scene {
     this.btnQuitar = sig(K.boton(this, x, BOTONES_Y, tr('Quitar', 'Remove'), () => this.quitarSocket(ORDEN_RANURAS[this.sel]), opc));
     this.btnRestablecer = sig(K.boton(this, x, BOTONES_Y, tr('Restablecer', 'Reset'), () => this.restablecer(), opc));
     this.btnContinuar = K.boton(this, 945, BOTONES_Y, tr('Probar el robot', 'Test the robot'), () => this.continuar(),
-      { size: 18, alto: 42, origen: [1, 0.5], anchoMin: 230, zonaExtra: [0, 2] });
+      { size: 18, alto: 42, origen: [1, 0.5], anchoMin: 200, zonaExtra: [0, 2], pad: 12, reservaFoco: false });
     this.txtAyuda = texto(this, 480, AYUDA_Y, '', { size: 14, color: C.apagado, origen: [0.5, 0.5] });
   }
 
@@ -654,7 +711,7 @@ export default class Taller extends Phaser.Scene {
     this.input.on('pointerupoutside', (pt) => this.alSoltar(pt));
     // Arrastrar desde el robot: tocar un sprite del robot es tocar su socket.
     this.input.on('pointerdown', (pt, objs) => {
-      if (objs.length || this.ayuda) return;
+      if (objs.length || this.ayuda || this.personal) return;
       const id = this.socketEn(pt.x, pt.y);
       if (id) this.alTocarSocket(id, pt);
     });
@@ -686,8 +743,8 @@ export default class Taller extends Phaser.Scene {
     on('keydown-C', (ev) => { if (!conModificador(ev)) this.continuar(); });
     on('keydown-P', (ev) => { if (!conModificador(ev)) this.pintar(siguientePintura(this.mapa[CLAVE_PINTURA], ev.shiftKey ? -1 : 1)); });
     on('keydown-N', (ev) => { if (!conModificador(ev)) { ev.preventDefault(); this.abrirNombre(); } });
-    this.events.once('shutdown', () => this.cerrarNombre());
-    on('keydown-ESC', () => (this.ayuda ? this.alternarAyuda() : this.mano ? this.soltarMano() : this.regresar()));
+    this.events.once('shutdown', () => { this.cerrarNombre(); this.cerrarPersonalizar(); });
+    on('keydown-ESC', () => (this.personal ? this.cerrarPersonalizar() : this.ayuda ? this.alternarAyuda() : this.mano ? this.soltarMano() : this.regresar()));
     on('keydown-H', (ev) => { if (!conModificador(ev)) this.alternarAyuda(); });
     on('keydown', (ev) => {
       if (!(ev.ctrlKey || ev.metaKey) || ev.altKey) return;
@@ -713,7 +770,7 @@ export default class Taller extends Phaser.Scene {
   }
 
   alTocarSocket(id, pt) {
-    if (this.ayuda) return;
+    if (this.ayuda || this.personal) return;
     if (pt?.rightButtonDown?.()) { this.quitarSocket(id); return; } // clic derecho = quitar
     const pieza = piezaPorId[this.mapa[id]] ?? null;
     this.arrastre = { origen: 'socket', ranura: id, pieza, x0: pt.x, y0: pt.y, activo: false, sobre: null };
@@ -874,7 +931,7 @@ export default class Taller extends Phaser.Scene {
     this.sel = ORDEN_RANURAS.indexOf(id);
     this.aplicarCambio(r.mapa, { ranura: id, texto: `${nombreRanura(id)} → ${trDato(p, 'nombre')}` }, { encaja: id });
     if (id.startsWith('rueda') && r.mapa.rueda_del !== r.mapa.rueda_tras && r.mapa.rueda_del && r.mapa.rueda_tras) {
-      this.aviso = tr('Rueda puesta en un eje: «⇄ Igual en ambos ejes» (A) copia la misma al otro.', 'Wheel fitted on one axle: «⇄ Same on both axles» (A) copies it to the other.');
+      this.aviso = tr('Rueda en un eje: «Igual en ambos ejes» (A) la copia al otro.', 'Wheel on one axle: «Same on both axles» (A) copies it to the other.');
       this.refrescarAyuda();
     }
   }
@@ -1035,11 +1092,10 @@ export default class Taller extends Phaser.Scene {
     if (!this.txtAyuda) return;
     const aviso = this.aviso || extra || this.lineaEjes;
     const linea = aviso || this.detalle
-      || tr('Arrastra una pieza a su socket · ←/→ socket · ↑/↓ pieza · Enter poner · Supr quitar · H ayuda',
-        'Drag a part onto its socket · ←/→ socket · ↑/↓ part · Enter fit · Del remove · H help');
+      || tr('Arrastra una pieza a su socket · ←→ ↑↓ Enter · Supr quitar · H ayuda · (P) valor de juego',
+        'Drag a part onto its socket · ←→ ↑↓ Enter · Del remove · H help · (P) game value');
     this.txtAyuda.setText(linea).setColor(aviso ? C.acento : this.detalle ? C.claro : C.apagado);
-    // Si no cabe en una línea (detalle largo), se achica hasta 14 px y se recorta con «…».
-    while (this.txtAyuda.width > 930 && this.txtAyuda.text.length > 10) this.txtAyuda.setText(`${this.txtAyuda.text.slice(0, -2)}…`);
+    ajustarAncho(this.txtAyuda, 930); // si no cabe en una línea, se recorta con «…» (el detalle completo está en la ayuda H)
   }
 
   // ───────────────────────── panel de ayuda (H) ─────────────────────────
@@ -1047,18 +1103,18 @@ export default class Taller extends Phaser.Scene {
     const res = this.res;
     const a = res.agarre;
     const ej = res.agarre_ejes;
+    const tres = (g) => `${f2(g.arena)}/${f2(g.roca)}/${f2(g.compacto)}`;
+    const fm = res.fuerza_por_masa != null ? res.fuerza_por_masa.toFixed(2) : '—';
+    const aut = res.autonomia_s != null ? `${Math.round(res.autonomia_s)} s` : '—';
     return [
-      tr(`Costo ${res.costo} / ${this.presupuesto} cr · Restante ${this.presupuesto - res.costo} · Masa ${res.masa} kg + carga ${MASA_CARGA_KG} kg`,
-        `Cost ${res.costo} / ${this.presupuesto} cr · Left ${this.presupuesto - res.costo} · Mass ${res.masa} kg + cargo ${MASA_CARGA_KG} kg`),
-      tr(`Agarre: arena ${f2(a.arena)} · roca ${f2(a.roca)} · comp. ${f2(a.compacto)} (del. ${f2(ej.del.arena)}/${f2(ej.del.roca)}/${f2(ej.del.compacto)} · tras. ${f2(ej.tras.arena)}/${f2(ej.tras.roca)}/${f2(ej.tras.compacto)})`,
-        `Grip: sand ${f2(a.arena)} · rock ${f2(a.roca)} · compact ${f2(a.compacto)} (front ${f2(ej.del.arena)}/${f2(ej.del.roca)}/${f2(ej.del.compacto)} · rear ${f2(ej.tras.arena)}/${f2(ej.tras.roca)}/${f2(ej.tras.compacto)})`),
+      tr(`Costo ${res.costo} / ${this.presupuesto} cr · quedan ${this.presupuesto - res.costo} · masa ${res.masa} kg + carga ${MASA_CARGA_KG} kg`,
+        `Cost ${res.costo} / ${this.presupuesto} cr · ${this.presupuesto - res.costo} left · mass ${res.masa} kg + cargo ${MASA_CARGA_KG} kg`),
+      tr(`Agarre: arena ${f2(a.arena)} · roca ${f2(a.roca)} · comp. ${f2(a.compacto)} (del. ${tres(ej.del)} · tras. ${tres(ej.tras)})`,
+        `Grip: sand ${f2(a.arena)} · rock ${f2(a.roca)} · compact ${f2(a.compacto)} (front ${tres(ej.del)} · rear ${tres(ej.tras)})`),
       ...this.lineasDestino(res),
-      tr(`Autonomía ≈ ${res.autonomia_s != null ? `${Math.round(res.autonomia_s)} s a fondo` : '—'}, con carga · Fuerza/masa ${res.fuerza_por_masa != null ? res.fuerza_por_masa.toFixed(2) : '—'}`,
-        `Run time ≈ ${res.autonomia_s != null ? `${Math.round(res.autonomia_s)} s at full power` : '—'}, loaded · Force/mass ${res.fuerza_por_masa != null ? res.fuerza_por_masa.toFixed(2) : '—'}`),
-      tr('En la prueba: agarre² × agarre del suelo · cada eje lleva 2 ruedas (2 × costo y masa)',
-        'In the test: grip² × soil grip · each axle takes 2 wheels (2 × cost and mass)'),
-      tr('Bloqueadas: filas del libro de datos sin mecánica en el juego o sin referencia espacial (no se inventa su física).',
-        'Locked: workbook rows with no in-game mechanic or no space reference (their physics is not made up).'),
+      tr(`Autonomía ≈ ${aut} a fondo, con carga · fuerza/masa ${fm}`, `Run time ≈ ${aut} at full power, loaded · force/mass ${fm}`),
+      tr('En la prueba: agarre² × agarre del suelo · cada eje lleva 2 ruedas', 'In the test: grip² × soil grip · each axle takes 2 wheels'),
+      tr('Bloqueadas: filas del libro sin mecánica o sin fuente espacial.', 'Locked: workbook rows with no mechanic or no space source.'),
       ...(this.lineaEjes ? [this.lineaEjes] : []),
       this.errores.length ? `✕ ${this.errores.join(' · ')}` : tr('✓ Diseño válido', '✓ Valid design'),
     ];
@@ -1066,6 +1122,7 @@ export default class Taller extends Phaser.Scene {
 
   alternarAyuda() {
     if (this.ayuda) { this.ayuda.forEach((o) => o.destroy()); this.ayuda = null; return; }
+    this.cerrarPersonalizar();
     this.dibujarAyuda();
   }
 
@@ -1075,25 +1132,24 @@ export default class Taller extends Phaser.Scene {
     capa.on('pointerdown', () => this.alternarAyuda());
     const t = [
       tr('Cómo armar', 'How to build'),
-      tr('Ratón o dedo: arrastra una tarjeta a un socket verde. Arrastra una pieza del robot afuera para quitarla (o clic derecho).',
-        'Mouse or finger: drag a card onto a green socket. Drag a part off the robot to remove it (or right-click).'),
-      tr('Toque: toca una tarjeta y luego el socket. Dos toques en la tarjeta la ponen en su lugar.',
-        'Tap: tap a card, then the socket. Tapping the card twice fits it in place.'),
-      tr('Teclado: ←/→ socket · ↑/↓ pieza · Enter poner · Supr quitar · Tab pestaña · A ambos ejes',
-        'Keyboard: ←/→ socket · ↑/↓ part · Enter fit · Del remove · Tab tab · A both axles'),
-      tr('C probar · R restablecer · P pintura · N nombre · Ctrl+Z deshacer · Ctrl+Y rehacer · Esc regresar',
-        'C test · R reset · P paint · N name · Ctrl+Z undo · Ctrl+Y redo · Esc back'),
+      tr('Arrastra una tarjeta a un socket verde; saca una pieza del robot (o clic derecho) para quitarla.',
+        'Drag a card onto a green socket; drag a part off the robot (or right-click) to remove it.'),
+      tr('Toque: tarjeta y luego socket (dos toques en la tarjeta la ponen).', 'Tap: card, then socket (tap the card twice to fit it).'),
+      tr('←→ socket · ↑↓ pieza · Enter poner · Supr quitar · Tab pestaña · A ambos ejes',
+        '←→ socket · ↑↓ part · Enter fit · Del remove · Tab tab · A both axles'),
+      tr('C probar · R restablecer · P pintura · N nombre · Ctrl+Z/Y deshacer/rehacer · Esc regresar',
+        'C test · R reset · P paint · N name · Ctrl+Z/Y undo/redo · Esc back'),
       '',
-      tr('Detalle del diseño (valores de juego, P)', 'Design detail (game values, P)'),
+      tr('Detalle del diseño · (P) = valor de juego, no dato de ingeniería', 'Design detail · (P) = game value, not engineering data'),
       ...this.lineasDetalle(),
       '',
       tr('H / Esc / clic: cerrar', 'H / Esc / click: close'),
     ].join('\n');
-    const txt = texto(this, 92, 0, t, { size: 15, ancho: 776, interlineado: 4 }).setDepth(62);
-    const alto = txt.height + 44;
-    const y0 = Math.max(10, Math.round(270 - alto / 2));
-    txt.setY(y0 + 22);
-    const marco = K.panel(this, 70, y0, 820, alto).setDepth(61);
+    const txt = texto(this, 58, 0, t, { size: 14, ancho: 844 }).setDepth(62);
+    const alto = txt.height + 28;
+    const y0 = Math.max(4, Math.round(270 - alto / 2));
+    txt.setY(y0 + 14);
+    const marco = K.panel(this, 40, y0, 880, alto).setDepth(61);
     this.ayuda = [capa, marco, txt];
   }
 
@@ -1115,35 +1171,69 @@ export default class Taller extends Phaser.Scene {
   }
 
   // ───────────────────────── personalización (cosmética) ─────────────────────────
-  crearPersonalizacion() {
-    const y1 = LADO.y + 204;
-    const y2 = LADO.y + 232;
-    const etq = texto(this, LADO.x + 12, y1, tr('Pintura', 'Paint'), { size: 15, color: C.claro, origen: [0, 0.5] }).setDepth(4);
-    const x0 = etq.x + etq.width + 18;
+  /**
+   * Panel «Personalizar» (botón arriba, o las teclas P y N directo): pintura del chasis y nombre del robot. Cosmético:
+   * no cambia la prueba. Los cambios entran al historial (Deshacer los revierte). Esc, «Listo» o un clic fuera lo cierran.
+   */
+  alternarPersonalizar() {
+    if (this.personal) { this.cerrarPersonalizar(); return; }
+    if (this.ayuda) this.alternarAyuda();
+    const W = 440;
+    const H = 194;
+    const x0 = 480 - W / 2;
+    const y0 = 270 - H / 2;
+    const capa = this.add.rectangle(480, 270, 960, 540, 0x05060c, 0.75).setDepth(60).setInteractive();
+    capa.on('pointerdown', () => this.cerrarPersonalizar());
+    const marco = K.panel(this, x0, y0, W, H).setDepth(61);
+    marco.setInteractive?.(); // los clics dentro del panel no cierran
+    const objs = [capa, marco];
+    const t = (x, y, s, o) => { const o2 = texto(this, x, y, s, o).setDepth(62); objs.push(o2); return o2; };
+    t(x0 + 18, y0 + 14, tr('Personalizar (cosmético)', 'Customize (cosmetic)'), { size: 18, color: C.acento, max: W - 36 });
+    const yP = y0 + 62;
+    const etq = t(x0 + 18, yP, tr('Pintura (P)', 'Paint (P)'), { size: 15, color: C.claro, origen: [0, 0.5] });
+    const xs = Math.round(Math.max(etq.x + etq.width + 26, x0 + 160));
     this.muestras = PINTURAS.map((pint, i) => {
-      const cuadro = this.add.rectangle(x0 + i * 28, y1, 20, 20, pint.muestra).setStrokeStyle(2, BORDE).setDepth(4);
-      zonaToque(cuadro, -4, -4, 28, 28);
+      const cuadro = this.add.rectangle(xs + i * 40, yP, 26, 26, pint.muestra).setStrokeStyle(2, BORDE).setDepth(62);
+      zonaToque(cuadro, -6, -8, 38, 42);
       cuadro.on('pointerdown', () => this.pintar(pint.id));
+      objs.push(cuadro);
       return { pint, cuadro };
     });
-    this.btnNombre = K.boton(this, LADO.x + LADO.w - 10, y2, tr('Nombre', 'Name'), () => this.abrirNombre(), { size: 14, alto: 30, origen: [1, 0.5], anchoMin: 64 });
-    for (const o of [this.btnNombre.obj, this.btnNombre.caja]) o.setDepth(4);
-    this.txtNombre = texto(this, LADO.x + 12, y2, '', { size: 15, origen: [0, 0.5] }).setDepth(4);
-    this.xNombreMax = this.btnNombre.caja.x - 8;
+    const yN = y0 + 104;
+    t(x0 + 18, yN, tr('Nombre (N)', 'Name (N)'), { size: 15, color: C.claro, origen: [0, 0.5] });
+    this.txtNombre = t(xs - 13, yN, '', { size: 15, origen: [0, 0.5] });
+    this.xNombreMax = x0 + W - 18;
+    const yB = y0 + H - 34;
+    this.btnPNombre = K.boton(this, x0 + 18, yB, tr('Cambiar nombre', 'Rename'), () => this.abrirNombre(),
+      { size: 15, alto: 42, origen: [0, 0.5], pad: 10, reservaFoco: false });
+    this.btnPListo = K.boton(this, x0 + W - 18, yB, tr('Listo', 'Done'), () => this.cerrarPersonalizar(),
+      { size: 15, alto: 42, origen: [1, 0.5], pad: 14, reservaFoco: false, color: K.P.bien });
+    for (const bt of [this.btnPNombre, this.btnPListo]) { K.fijarBoton(bt, 62); objs.push(bt.obj, bt.caja); }
+    this.personal = objs;
+    this.refrescarPersonalizacion();
+  }
+
+  cerrarPersonalizar() {
+    if (!this.personal) return;
+    this.personal.forEach((o) => o.destroy());
+    this.personal = null;
+    this.muestras = [];
+    this.txtNombre = null;
+    this.btnPNombre = null;
+    this.btnPListo = null;
   }
 
   refrescarPersonalizacion() {
     const pintura = pinturaPorId(this.mapa[CLAVE_PINTURA]);
     const nombre = this.mapa[CLAVE_NOMBRE] || null;
     fijarPersonalizacion(partida, { pintura: pintura.id, nombre }); // la usan la prueba y la misión (fisica/aspecto.js)
-    for (const { pint, cuadro } of this.muestras) {
+    for (const { pint, cuadro } of this.muestras ?? []) {
       const elegida = pint.id === pintura.id;
       cuadro.setStrokeStyle(elegida ? 3 : 2, elegida ? ACENTO : BORDE).setScale(elegida ? 1.15 : 1);
     }
+    if (!this.txtNombre) return;
     this.txtNombre.setText(nombre ? `«${nombre}»` : tr('(sin nombre)', '(no name)')).setColor(nombre ? C.texto : C.apagado);
-    while (this.txtNombre.width > 0 && this.txtNombre.x + this.txtNombre.width > this.xNombreMax && this.txtNombre.text.length > 3) {
-      this.txtNombre.setText(`${this.txtNombre.text.slice(0, -2)}…`);
-    }
+    ajustarAncho(this.txtNombre, this.xNombreMax - this.txtNombre.x);
   }
 
   pintar(id) {
