@@ -1,6 +1,6 @@
 # Validación del modelo (frente modelo)
 
-Generado por `model/validate.py` el 2026-11-14. Pesos (P): forma 0.4, oscilacion_termica 0.2, precipitacion 0.15, ndvi 0.1, pendiente 0.15. Umbrales (P): control negativo < 0.1, análogo conocido > 0.4.
+Generado por `model/validate.py` el 2026-11-15. Pesos (P): forma 0.4, oscilacion_termica 0.2, precipitacion 0.15, ndvi 0.1, pendiente 0.15. Umbrales (P): control negativo < 0.1, análogo conocido > 0.4.
 
 Ojo: `oscilacion_termica` vale entre 0.20 y 0.33 en todos los sitios (mediana 0.28), porque los dos destinos (Luna 176 K, Jezero 55 K) superan el máximo terrestre de 40 K y se recortan ahí. Es una dimensión que la Tierra no alcanza: rebaja todos los totales casi por igual y no ordena sitios. No se cambia el peso antes de la entrega (`model/NIVEL2.md` §C).
 
@@ -55,7 +55,9 @@ Las dimensiones complementarias funcionan como un **prefiltro ambiental**: dicen
 
 Con 0.4 (el mismo umbral que usa esta validación para decir que un análogo conocido pasa) los cinco hiperáridos pasan frente a Jezero y ningún control negativo pasa. Frente al polo sur lunar los totales son más bajos por la pendiente: el objetivo lunar es 8.63° y el de Jezero 3.56°, y estos desiertos son más llanos. La oscilación térmica no cambia entre destinos, porque los dos se recortan al máximo terrestre de 40 K. `api/main.py` usa 0.4 (P); como el prefiltro no ordena sitios áridos, una propuesta que lo pasa queda `propuesto_usuario`, pendiente de revisión, no validada.
 
-**Tasa del prefiltro en los sitios del detector.** De los 57 sitios de `data/sites` con un cráter medido (todos de zonas áridas, NDVI p90 < 0.35), 0 quedan vetados y el 58% da 0.4 o más sin la forma (mediana 0.41, percentiles 10–90: 0.32–0.51, máximo 0.60). Es decir: casi todo lo árido pasa y queda en una franja estrecha. El prefiltro **descarta** (selvas, cultivos, nieve) pero **no ordena** sitios áridos entre sí; lo que dice qué es cada sitio es la etiqueta verificada (sección B).
+Errores de medición: Valles Secos de McMurdo, Wright Valley (Antártida): MODIS: ORNL: 400 Client Error: Bad Request for url: https://modis.ornl.gov/rst/api/v1/MOD13Q1/subset?latitude=-77.516667&longitude=161.833333&band=250m_16_days_NDVI&startDate=A2023001&endDate=A2023145&kmAboveBelow=0&kmLeftRight=0 · Cráter de Chicxulub (Yucatán, México), sepultado: MODIS: ORNL: sin dato para el píxel
+
+**Tasa del prefiltro en los sitios del detector.** De los 62 sitios de `data/sites` con un cráter medido (todos de zonas áridas, NDVI p90 < 0.35), 0 quedan vetados y el 58% da 0.4 o más sin la forma (mediana 0.41, percentiles 10–90: 0.32–0.52, máximo 0.60). Es decir: casi todo lo árido pasa y queda en una franja estrecha. El prefiltro **descarta** (selvas, cultivos, nieve) pero **no ordena** sitios áridos entre sí; lo que dice qué es cada sitio es la etiqueta verificada (sección B).
 
 ## B. Forma (dimensión principal)
 
@@ -181,9 +183,9 @@ Qué prueba y qué no: son 8 casos y no son una muestra al azar. Son cráteres d
 | tajo minero | 22 | 0 | — |
 | sin verificar | 28 | 5 | mx0003, mx0017, mx0045, mx0047, mx0121 |
 | cráter natural verificado | 5 | 4 | g00263, g00266, g00281, mx0261 |
-| curado (documentado) | 1 | 1 | pinacate |
+| curado (documentado) | 6 | 6 | meteor_crater, pinacate, pingualuit, roter_kamm, talemzane, tenoumer |
 
-De los 17 tajos mineros con `novedoso: true`, 0 tienen borde levantado. Sin perfil a 80 m (variable en `null`): mx0090.
+Ningún tajo minero se marca como novedoso (`model/scan.py`, regla 5): son minas conocidas y análogos operativos, no hallazgos. Sin perfil a 80 m (variable en `null`): mx0090.
 
 **Cómo se usa.** Es la segunda evidencia de la categoría de cada sitio (`model/scan.py`, regla 6), junto a la etiqueta verificada: la nota dice si la medida apoya a la etiqueta o no. **No entra al puntaje ni cambia ningún total.**
 
