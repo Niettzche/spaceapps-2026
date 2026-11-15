@@ -1,4 +1,6 @@
-"""Genera informe/guia_exposicion_modelo.html: guía para exponer el modelo de análogos (pitch y preguntas de jueces).
+"""Genera informe/exposicion_modelo/guia_exposicion_modelo.html: guía para exponer el modelo de análogos (pitch y preguntas).
+
+La carpeta informe/exposicion_modelo/ reúne lo necesario para exponer: esta guía y los cuadernos que respaldan sus cifras.
 
 Las cifras del borde levantado se calculan aquí con model/borde.py (mismas definiciones que model/validate.py, parte_borde).
 Las demás cifras se copian de model/VALIDATION.md y el script se detiene si ya no aparecen ahí, para que la guía no
@@ -6,7 +8,7 @@ contradiga a la validación.
 
 Uso:  uv run --with pandas --with numpy python informe/generar_guia_exposicion.py
 PDF:  google-chrome-stable --headless --no-pdf-header-footer \\
-        --print-to-pdf=informe/guia_exposicion_modelo.pdf informe/guia_exposicion_modelo.html
+        --print-to-pdf=informe/exposicion_modelo/guia_exposicion_modelo.pdf informe/exposicion_modelo/guia_exposicion_modelo.html
 """
 import html
 import sys
@@ -288,7 +290,7 @@ dónde falla el modelo es lo que más credibilidad da.</p>
 
 </body></html>"""
 
-salida = RAIZ / "informe" / "guia_exposicion_modelo.html"
+salida = RAIZ / "informe" / "exposicion_modelo" / "guia_exposicion_modelo.html"
 salida.write_text(HTML, encoding="utf-8")
 print(f"{salida.relative_to(RAIZ)} · borde: {de(fuente)} conocidos, {de(valle)} valles/presas/dunas, {de(tajo)} tajos · "
       f"referencia lunar {int(ref['luna'].sum())} de {len(ref['luna'])}")

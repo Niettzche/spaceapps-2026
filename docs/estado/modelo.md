@@ -46,9 +46,12 @@
   no por la oscilación térmica, que se recorta igual en los dos destinos. Los tajos someros (mx0088, mx0457) ya no dicen
   "pendientes extremas".
 - Comandos: `python -m model.borde` (todos los sitios) y `python -m model.scan --solo-categoria` (notas); los dos son idempotentes.
-- **Guía para exponer el modelo:** `informe/guia_exposicion_modelo.pdf` (4 páginas; generador `informe/generar_guia_exposicion.py`):
-  guion propuesto de 30 s para el bloque «Evidencia y límites», figura del borde, 12 preguntas de jueces con respuesta y respaldo,
-  y lo que no hay que decir. El generador se detiene si una cifra copiada ya no está en `model/VALIDATION.md`.
+- **Carpeta para exponer el modelo:** `informe/exposicion_modelo/` (con `README.md`). Trae la guía de estudio
+  `guia_exposicion_modelo.pdf` (4 páginas; generador `informe/generar_guia_exposicion.py`): guion propuesto de 30 s para el bloque
+  «Evidencia y límites», figura del borde, 12 preguntas de jueces con respuesta y respaldo, y lo que no hay que decir. Y dos
+  cuadernos ya ejecutados que vuelven a calcular sus cifras sin descargar nada: `01_borde_levantado.ipynb` y
+  `02_cifras_de_la_guia.ipynb`. El generador y la última celda de cada cuaderno fallan si una cifra ya no coincide con
+  `model/VALIDATION.md`.
 
 ## Hecho (auditoría del 14 nov, noche)
 - **Pinacate** ahora usa la misma regla que `scan.py` (destino = cuerpo al que más se parece su forma): `polo_sur_lunar`,
