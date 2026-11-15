@@ -1,0 +1,150 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Cómo exponer el modelo de análogos</title>
+<style>
+@page { size: Letter; margin: 15mm 15mm 16mm 15mm; }
+* { box-sizing: border-box; }
+body { font-family: "IBM Plex Sans", "Inter", "Helvetica Neue", Arial, sans-serif; color: #1d2024; font-size: 10pt; line-height: 1.45; margin: 0; }
+h1 { font-size: 23pt; line-height: 1.1; margin: 0 0 3mm; letter-spacing: -.01em; }
+h2 { font-size: 14pt; margin: 5.5mm 0 2.2mm; padding-top: 2mm; border-top: 1.5px solid #1d2024; break-after: avoid; }
+p, li { max-width: 180mm; }
+ul { margin: 1.5mm 0; padding-left: 5mm; } li { margin: .8mm 0; }
+.sub { color: #555; font-size: 10.5pt; margin-bottom: 4mm; }
+.caja { background: #f1efe9; border-left: 4px solid #1f6f78; padding: 3mm 4mm; margin: 3.5mm 0; break-inside: avoid; }
+.caja.alerta { border-left-color: #b4432a; } .caja.oro { border-left-color: #c7921a; }
+.caja p { margin: 1.2mm 0; }
+table { border-collapse: collapse; width: 100%; font-size: 9pt; margin: 2mm 0 3mm; break-inside: avoid; }
+th, td { text-align: left; padding: 1.2mm 2mm; border-bottom: .6px solid #ccc; vertical-align: top; }
+th { border-bottom: 1.2px solid #1d2024; font-weight: 600; }
+td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+figure { margin: 2mm 0; break-inside: avoid; }
+figcaption { font-size: 8.5pt; color: #444; margin-top: 1mm; max-width: 180mm; }
+.nums { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4mm; margin: 3mm 0 1mm; break-inside: avoid; }
+.num { font-size: 19pt; font-weight: 700; line-height: 1; }
+.nums span { display: block; font-size: 8.5pt; color: #555; margin-top: 1mm; }
+.guion { display: grid; grid-template-columns: 26mm 1fr; gap: 1.5mm 4mm; margin: 2mm 0; break-inside: avoid; }
+.guion b { font-size: 9pt; color: #555; font-weight: 600; padding-top: .4mm; }
+.guion p { margin: 0; font-size: 11pt; line-height: 1.4; }
+.qa { break-inside: avoid; margin: 0 0 3mm; padding-bottom: 2.2mm; border-bottom: .6px solid #ccc; }
+.qa h3 { font-size: 10.5pt; margin: 0 0 .8mm; }
+.qa p { margin: .6mm 0; }
+.qa .resp { color: #555; font-size: 8.5pt; }
+.salto { break-before: page; }
+code { font-size: 8.8pt; }
+</style></head><body>
+
+<h1>Cómo exponer el modelo de análogos</h1>
+<div class="sub">MARSCEPTION · NASA Space Apps 2026 · Guía para el bloque «Evidencia y límites» del pitch y para las preguntas · 14 de noviembre de 2026</div>
+
+<div class="caja">
+<p><b>La idea en una frase.</b> Encontramos lugares de la Tierra con forma de cráter, comprobamos cuáles son cráteres de verdad,
+y decimos qué tan lunares o marcianos son y dónde deja de servir la comparación.</p>
+</div>
+
+<h2>Qué decir en 30 segundos</h2>
+<div class="guion">
+<b>Qué es · 8 s</b><p>«Nuestro modelo es explicable, no una red neuronal: compara la forma de cráteres de la Tierra con la de cráteres reales de la Luna y de Marte, medidos con el mismo código.»</p>
+<b>La prueba · 9 s</b><p>«Lo corrimos en México y en tres desiertos más. Sin decirle dónde buscar, encontró El Pinacate y Colton, donde entrenaron astronautas del Apolo.»</p>
+<b>El filtro · 8 s</b><p>«Para no confundir un cráter con un valle o una mina medimos el borde levantado: lo tienen 10 de 11 cráteres conocidos y casi ningún otro hoyo.»</p>
+<b>El límite · 5 s</b><p>«Y decimos dónde falla: la Tierra no reproduce la gravedad, el vacío ni la radiación.»</p>
+</div>
+<p>Si sobran cinco segundos: «Separa la Luna de Marte con 78 % de exactitud». Si falta tiempo, se quita «El filtro».
+Es una propuesta: el guion oficial es <code>docs/GUION_PITCH.md</code>; si cambias algo, avísale a quien lo lleva.</p>
+
+<h2>Qué mostrar mientras hablas: el mapa con los sitios o esta figura, no los dos</h2>
+
+<div class="nums">
+<div><div class="num">10 de 11</div><span>cráteres conocidos tienen borde levantado</span></div>
+<div><div class="num">3 de 26</div><span>valles, presas y dunas lo tienen</span></div>
+<div><div class="num">4 de 38</div><span>tajos mineros lo tienen</span></div>
+<div><div class="num">78 %</div><span>de exactitud al separar cráteres de la Luna y de Marte</span></div>
+</div>
+
+<figure>
+<svg viewBox="0 0 720 226" width="100%" role="img" aria-label="Perfil mediano de cada grupo en la zona del borde: solo los cráteres conocidos suben por encima del terreno lejano">
+<rect x="141.2" y="32" width="403.3" height="152" fill="#f1efe9"/>
+<line x1="62" x2="706" y1="184.0" y2="184.0" stroke="#e4e2dc" stroke-width="1"/>
+<text x="54" y="187.5" font-size="10" fill="#52514e" text-anchor="end">-80</text>
+<line x1="62" x2="706" y1="153.6" y2="153.6" stroke="#e4e2dc" stroke-width="1"/>
+<text x="54" y="157.1" font-size="10" fill="#52514e" text-anchor="end">-60</text>
+<line x1="62" x2="706" y1="123.2" y2="123.2" stroke="#e4e2dc" stroke-width="1"/>
+<text x="54" y="126.7" font-size="10" fill="#52514e" text-anchor="end">-40</text>
+<line x1="62" x2="706" y1="92.8" y2="92.8" stroke="#e4e2dc" stroke-width="1"/>
+<text x="54" y="96.3" font-size="10" fill="#52514e" text-anchor="end">-20</text>
+<line x1="62" x2="706" y1="62.4" y2="62.4" stroke="#8a8780" stroke-width="1"/>
+<text x="54" y="65.9" font-size="10" fill="#52514e" text-anchor="end">0</text>
+<line x1="62" x2="706" y1="32.0" y2="32.0" stroke="#e4e2dc" stroke-width="1"/>
+<text x="54" y="35.5" font-size="10" fill="#52514e" text-anchor="end">+20</text>
+<text x="100.7" y="200" font-size="10" fill="#52514e" text-anchor="middle">0.75</text>
+<text x="221.8" y="200" font-size="10" fill="#52514e" text-anchor="middle">1</text>
+<text x="342.8" y="200" font-size="10" fill="#52514e" text-anchor="middle">1.25</text>
+<text x="463.9" y="200" font-size="10" fill="#52514e" text-anchor="middle">1.5</text>
+<text x="584.9" y="200" font-size="10" fill="#52514e" text-anchor="middle">1.75</text>
+<text x="706.0" y="200" font-size="10" fill="#52514e" text-anchor="middle">2</text>
+<text x="384.0" y="218" font-size="10.5" fill="#52514e" text-anchor="middle">Distancia al centro, en radios del cráter</text>
+<text transform="translate(14,108.0) rotate(-90)" font-size="10.5" fill="#52514e" text-anchor="middle">Altura (m por km de diámetro)</text>
+<text x="342.8" y="177" font-size="10" fill="#52514e" text-anchor="middle">Zona del borde: aquí medimos</text>
+<text x="625.3" y="177" font-size="10" fill="#52514e" text-anchor="middle">Terreno lejano</text>
+<line x1="62" x2="80" y1="16" y2="16" stroke="#2a78d6" stroke-width="2.5" stroke-linecap="round"/>
+<text x="86" y="19.5" font-size="10.5" fill="#1d2024">Cráteres conocidos (11)</text>
+<line x1="248.29999999999998" x2="266.29999999999995" y1="16" y2="16" stroke="#eb6834" stroke-width="2.5" stroke-linecap="round"/>
+<text x="272.29999999999995" y="19.5" font-size="10.5" fill="#1d2024">Valles, presas y dunas (26)</text>
+<line x1="459.0" x2="477.0" y1="16" y2="16" stroke="#1baf7a" stroke-width="2.5" stroke-linecap="round"/>
+<text x="483.0" y="19.5" font-size="10.5" fill="#1d2024">Tajos mineros (38)</text>
+<polyline points="100.7,160.1 181.6,101.8 262.0,73.5 342.8,58.8 423.7,50.7 504.1,56.2 584.9,60.3 665.8,64.5" fill="none" stroke="#2a78d6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="100.7,106.8 181.6,100.2 262.0,95.8 342.8,84.0 423.7,73.3 504.1,70.0 584.9,63.9 665.8,60.9" fill="none" stroke="#eb6834" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="100.7,172.6 181.6,129.7 262.0,103.7 342.8,83.6 423.7,74.2 504.1,67.9 584.9,63.6 665.8,61.2" fill="none" stroke="#1baf7a" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="423.7" cy="50.7" r="4.5" fill="#2a78d6" stroke="#ffffff" stroke-width="2"/>
+<text x="432.7" y="42.7" font-size="10.5" font-weight="600" fill="#1d2024">Borde: +8 m por km</text>
+</svg>
+<figcaption>Perfil mediano de cada grupo cerca del borde, con el relieve de Copernicus a 80 m; el cero es el terreno lejano. Solo los
+cráteres conocidos suben por encima. Grupos: cráteres con fuente externa; valles, presas y dunas según la IA (confianza de 0.7 o más);
+tajos con cantera de OpenStreetMap a 2 km o menos. La zona del borde va de 0.83 a 1.67 radios.</figcaption>
+</figure>
+
+<div class="caja alerta">
+<p><b>Lo que hay que decir con cuidado.</b> El borde responde «¿es un cráter?», no «¿se parece a la Luna?». Son 11 casos conocidos y uno solo
+es de impacto: alcanza como evidencia, no como prueba. Y el puntaje de similitud del juego no cambió: el borde va junto a cada sitio, no dentro del número.</p>
+</div>
+
+<h2>Preguntas que pueden hacer</h2>
+<div class="qa"><h3>¿Qué modelo es? ¿Es inteligencia artificial?</h3><p>Es un modelo estadístico explicable: una regresión logística y un árbol poco profundo con tres medidas de cada cráter (diámetro, profundidad entre diámetro y borde). No es una red neuronal. Lo entrenamos con 4,288 cráteres de la Luna y 573 de Marte, y los separa con 78 % de exactitud balanceada, validando por zonas para no hacer trampa con cráteres vecinos.</p><p class="resp">Respaldo: model/forma.py · model/VALIDATION.md, sección B</p></div>
+<div class="qa"><h3>¿De dónde salen los números?</h3><p>Del relieve de los tres mundos, medido con el mismo código y a la misma resolución (200 m): LOLA de la sonda LRO de la NASA para la Luna, HRSC+MOLA (ESA y NASA) para Marte y Copernicus (ESA) para la Tierra. La vegetación es de MODIS y el clima de NASA POWER. Cada variable de cada ficha trae su fuente.</p><p class="resp">Respaldo: docs/METODOLOGIA.md</p></div>
+<div class="qa"><h3>¿Su puntaje pone un análogo real por encima de un hoyo cualquiera?</h3><p>Por sí solo, no, y lo publicamos: en nuestra prueba la forma a 200 m no separó un cráter de un valle mejor que el azar. Por eso el puntaje no decide qué es cada sitio. Lo deciden la etiqueta contrastada con fuentes y, como segunda evidencia, el borde levantado que medimos: lo tienen 10 de 11 cráteres conocidos. El puntaje solo dice qué tan lunar o marciano es un cráter ya identificado.</p><p class="resp">Respaldo: model/VALIDATION.md, «¿La forma distingue un cráter…?» y «Borde levantado»</p></div>
+<div class="qa"><h3>¿Qué tiene que ver el borde con los análogos?</h3><p>El polo sur lunar y Jezero son terreno de cráteres. El borde levantado es evidencia de que un hoyo se formó por una explosión o un impacto, como los cráteres de la Luna y de Marte, y no por el agua o por una excavadora. Con eso nuestra lista queda hecha de cráteres. Ojo: dice «esto es un cráter», no «esto se parece a la Luna».</p><p class="resp">Respaldo: model/NIVEL2.md, sección D</p></div>
+<div class="qa"><h3>¿Encontraron algo que nadie conociera?</h3><p>No lo presentamos como descubrimiento. El método encontró por su cuenta sitios ya usados: El Pinacate (Apolo 14) y Colton (Apolo 15), lo que respalda el método. Además propone dos cráteres volcánicos de Arabia Saudita, Al Hutaymah y Jabal Bayda, que no encontramos como análogos en la literatura que revisamos; falta revisar una base de datos de 2024 antes de llamarlos nuevos.</p><p class="resp">Respaldo: model/NIVEL2.md, sección A</p></div>
+<div class="qa"><h3>¿Y las minas?</h3><p>El detector encuentra muchos tajos mineros porque tienen forma de cráter. No son cráteres: ninguno de los 22 de nuestro catálogo tiene borde levantado. Los dejamos como análogo operativo (paredes empinadas, excavación, sombra en el fondo), no geológico, y decimos dónde se rompe: son más hondos que casi cualquier cráter lunar de su tamaño.</p><p class="resp">Respaldo: data/sites (nota de cada tajo) · ciencia_datos/salidas/lista_corta.md</p></div>
+<div class="qa"><h3>¿Marte sale más plano solo porque su mapa es más borroso?</h3><p>En parte sí en cráteres de menos de 1 km. Lo probamos emborronando la Luna a la resolución de Marte: su profundidad relativa baja de 0.058 a 0.043. Pero con cráteres de 2 km o más, donde la resolución ya no importa, el modelo mantiene 77.6 %.</p><p class="resp">Respaldo: model/NIVEL2.md, sección B · model/VALIDATION.md</p></div>
+<div class="qa"><h3>¿Escanearon todo el planeta?</h3><p>No. México es el caso validado, y repetimos la búsqueda en Atacama, Arizona y Arabia: tres de las diez regiones áridas que priorizamos. De ahí salen 296 candidatos áridos.</p><p class="resp">Respaldo: PROYECTO.md, paso 4</p></div>
+<div class="qa"><h3>¿Qué tan bueno es el detector?</h3><p>Detecta depresiones cerradas con forma de cráter, no cráteres. Encuentra 9 de 11 cráteres mexicanos conocidos, pero solo el 40 % de un catálogo más amplio de 62 (los que tienen lago o son someros se le escapan), y de sus candidatos áridos apenas el 9 % son cráteres naturales según las etiquetas. Por eso hace falta el paso de verificación.</p><p class="resp">Respaldo: model/VALIDATION.md, sección B</p></div>
+<div class="qa"><h3>¿Por qué no miran si hay vida?</h3><p>Buscamos análogos de terreno, porque es lo que un rover necesita probar y lo que se puede medir igual en los tres mundos. La vida no se mide desde órbita: se comprueba con muestras en campo. Para Marte, el siguiente paso es comparar los minerales que deja el agua. Varios análogos famosos por su biología están en nuestra lista de conocidos, y decimos que el modelo no los ve.</p><p class="resp">Respaldo: model/VALIDATION.md, sección A (lectura de los análogos conocidos)</p></div>
+<div class="qa"><h3>¿Qué no puede probar la Tierra?</h3><p>La gravedad, el vacío, la radiación y el ciclo térmico: la oscilación de temperatura es de 176 K en el polo sur lunar y 55 K en Jezero, frente a un máximo terrestre que fijamos en 40 K. Por eso la misión del juego usa la gravedad real del destino y la prueba terrestre no.</p><p class="resp">Respaldo: data/targets · model/VALIDATION.md</p></div>
+<div class="qa"><h3>¿Cómo usaron la IA?</h3><p>El modelo de forma no es IA generativa. Usamos Claude para sugerir qué es cada candidato a partir de la imagen de satélite y el relieve, y contrastamos 33 casos con fuentes externas: 29 aciertos. No son verdad geológica y lo decimos. Claude Code y Codex ayudaron con el código y los documentos.</p><p class="resp">Respaldo: ciencia_datos/etiquetado_ia · docs/USO_IA.md</p></div>
+
+<h2>Lo que no hay que decir</h2>
+<table><thead><tr><th style="width:42%">No decir</th><th>Por qué, o qué decir en su lugar</th></tr></thead><tbody>
+<tr><td>«La IA descubrió…», «red neuronal», «deep learning»</td><td>No lo es. Es un modelo estadístico explicable.</td></tr>
+<tr><td>«Escaneamos todo el planeta»</td><td>Fueron México y tres de diez regiones áridas.</td></tr>
+<tr><td>«Encontramos análogos nuevos»</td><td>Los candidatos nuevos son propuestas a revisar; los «novedosos» del catálogo son minas.</td></tr>
+<tr><td>«El puntaje mide qué tan buen análogo es»</td><td>Describe la forma. No ordena análogos reales por encima de otros hoyos.</td></tr>
+<tr><td>«El borde hace que se parezca a la Luna»</td><td>Con la misma medida solo tienen borde 55 de 248 cráteres lunares de referencia.</td></tr>
+<tr><td>«Dos evidencias independientes»</td><td>La etiqueta de IA también vio el relieve. Decir: «la etiqueta sobre la imagen y el borde medido».</td></tr>
+<tr><td>«El detector de cráteres»</td><td>Es un detector de depresiones con forma de cráter.</td></tr>
+<tr><td>Que las regiones de Artemis están en bordes de cráteres</td><td>No está en nuestras fuentes. Confirmarlo en la página de la NASA antes de usarlo.</td></tr>
+</tbody></table>
+
+<h2>De dónde sale cada cifra</h2>
+<table><thead><tr><th style="width:48%">Cifra</th><th>Dónde está</th></tr></thead><tbody>
+<tr><td>10 de 11, 3 de 26 y 4 de 38 con borde levantado</td><td>model/VALIDATION.md, «Borde levantado» (medida: model/borde.py)</td></tr>
+<tr><td>78 % y 77.6 % (cráteres de 2 km o más)</td><td>model/VALIDATION.md, sección B</td></tr>
+<tr><td>9 de 11 cráteres mexicanos; 40 % del catálogo de 62</td><td>informe/validacion_detector.pdf · model/VALIDATION.md</td></tr>
+<tr><td>3 de 3 controles negativos y 9 de 21 análogos conocidos (prefiltro ambiental)</td><td>model/VALIDATION.md, sección A</td></tr>
+<tr><td>29 de 33 etiquetas contrastadas</td><td>ciencia_datos/etiquetado_ia/validacion.txt</td></tr>
+<tr><td>Apolo 14 en El Pinacate; Apolo 15 en Colton</td><td>NASA SP-2015-626 (Phinney 2015); USGS OFR 2005-1190</td></tr>
+</tbody></table>
+
+<div class="caja oro">
+<p><b>Si te quedas en blanco.</b> Tres pasos: qué es (un modelo explicable que compara formas de cráteres), una prueba (encontró por su
+cuenta sitios del Apolo y mide el borde) y un límite (la Tierra no tiene la gravedad, el vacío ni la radiación del destino). Decir
+dónde falla el modelo es lo que más credibilidad da.</p>
+</div>
+
+</body></html>

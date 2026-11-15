@@ -12,6 +12,7 @@ B. Forma (dimensión principal), con resultados ya medidos en ciencia_datos/:
    - la misma validación por grupos espaciales de ciencia_datos/03, solo con cráteres de 2 km o más (objeción del instrumento);
    - tasa base: qué fracción de CUALQUIER depresión cae dentro de la nube (la nube descarta extremos, no confirma cráteres);
    - control negativo de forma: depresiones que la IA etiqueta como presa, valle o duna frente a cráteres naturales;
+   - borde levantado (model/borde.py): la medida que sí separa un cráter de otra depresión, contra cráteres con fuente externa;
    - precisión del detector según la etiqueta de IA.
 
 Uso:  uv run python -m model.validate
@@ -26,7 +27,7 @@ from concurrent.futures import ThreadPoolExecutor
 import numpy as np
 import pandas as pd
 
-from model import features, forma
+from model import borde, features, forma
 from model.score import DIMENSIONES, comparar
 
 RAIZ = pathlib.Path(__file__).resolve().parents[1]
@@ -101,7 +102,7 @@ def parte_prefiltro(targets: dict) -> list[str]:
 UMBRALES_EXPLORADOR = (0.6, 0.5, 0.45, 0.4)   # 0.6 = valor provisional de AGENTS.md §6.4; api/main.py usa 0.4 (P)
 
 
-def parte_umbral(dn: pd.DataFrame, dp: pd.DataFrame) -> list[str]:
+def parte_umbral(dn: pd.DataFrame, dp: pd.DataFrame, targets: dict) -> list[str]:
     """Explorador libre: qué umbral de propuesta deja pasar los análogos conocidos sin dejar pasar los controles negativos.
     Los totales son los mismos que devuelve POST /score (api/main.py llama a features.variables_tierra y score.comparar)."""
     hiper = dp.nombre.str.contains("Yungay|Death Valley|Mojave|Gran Desierto|Mars Desert")
@@ -120,8 +121,10 @@ def parte_umbral(dn: pd.DataFrame, dp: pd.DataFrame) -> list[str]:
             "proponer un sitio. Hiperáridos = Yungay, Death Valley, Mojave, Gran Desierto de Altar y la Mars Desert Research Station.", "",
             tabla_md(t, list(t.columns)), "",
             "Con 0.4 (el mismo umbral que usa esta validación para decir que un análogo conocido pasa) los cinco hiperáridos pasan frente "
-            "a Jezero y ningún control negativo pasa. Frente al polo sur lunar los totales son más bajos (la oscilación térmica de 176 K "
-            "está más lejos del máximo terrestre), así que pasan menos. `api/main.py` usa 0.4 (P); como el prefiltro no ordena sitios "
+            "a Jezero y ningún control negativo pasa. Frente al polo sur lunar los totales son más bajos por la pendiente: el objetivo "
+            f"lunar es {targets['polo_sur_lunar']['variables']['pendiente']['valor']}° y el de Jezero "
+            f"{targets['jezero']['variables']['pendiente']['valor']}°, y estos desiertos son más llanos. La oscilación térmica no cambia "
+            "entre destinos, porque los dos se recortan al máximo terrestre de 40 K. `api/main.py` usa 0.4 (P); como el prefiltro no ordena sitios "
             "áridos, una propuesta que lo pasa queda `propuesto_usuario`, pendiente de revisión, no validada.", ""]
 
 
@@ -206,6 +209,7 @@ def parte_forma() -> list[str]:
                "(radio de 2.5 km; una depresión cuenta una sola vez).")
     out += [""] + parte_2km()
     out += parte_discriminacion()
+    out += parte_borde()
     return out
 
 
@@ -267,7 +271,8 @@ def parte_discriminacion() -> list[str]:
             "valles y dunas puntúan **más** lunar que los cráteres: son más planas; el puntaje de forma las toma por marcianas (en Marte los cráteres son planos) y la diferencia de perfil absoluta premia lo plano (por eso la lista corta usa `dif_rel` = diferencia media / d/D, en `ciencia_datos/salidas/fichas_integradas.csv`).", "",
             "**Límite declarado.** La forma sola (3 medidas a 200 m) no distingue un cráter de otra depresión cerrada de tamaño parecido. "
             "Por eso el catálogo usa la **etiqueta verificada** (IA sobre imagen de satélite y relieve, revisada contra fuentes) para decidir "
-            "qué es un cráter, y la forma solo para decir **qué tan lunar o marciano** es un cráter ya identificado.", ""]
+            "qué es un cráter, y la forma solo para decir **qué tan lunar o marciano** es un cráter ya identificado. La medida que sí "
+            "lo distingue es el borde levantado (apartado siguiente al de la precisión del detector).", ""]
     # 3. Precisión del detector según la IA
     todas = pd.read_csv(RAIZ / "ciencia_datos" / "salidas" / "fichas_integradas.csv")
     vc = todas.etiqueta_ia.value_counts()
@@ -280,6 +285,124 @@ def parte_discriminacion() -> list[str]:
             "valles, presas y dunas no tienen casos validados. El detector es un **detector de depresiones cerradas con forma de cráter**, "
             "no un detector de cráteres.", ""]
     return out
+
+
+def parte_borde() -> list[str]:
+    """Borde levantado (model/borde.py): una medida que sí distingue un cráter de otra depresión, con los perfiles que ya hay."""
+    from model import scan
+    a, b, lejos = borde.limites_ventana()
+    t = borde.tabla_candidatos().dropna(subset=["h", "diam_km", "prof_m", "borde_m"]).reset_index(drop=True)
+    pf = forma.puntuar(t.diam_km, t.prof_m, t.borde_m)
+    t["forma_mejor"] = np.maximum(pf.forma_polo_sur_lunar, pf.forma_jezero).values
+    t["lev"] = t.h > borde.UMBRAL
+    fuente, alta = t.con_fuente.notna(), t.conf_ia >= 0.7
+    nat, neg = alta & t.etiqueta_ia.isin(NATURALES_IA), alta & t.etiqueta_ia.isin(NEGATIVOS_IA)
+    mina = (t.km_mina <= 2.0) & ~fuente
+    frac = lambda m: f"{int(m.sum())} de {len(m)} ({m.mean():.0%})"
+    pv = lambda x: "p < 0.001" if x < 0.001 else f"p = {x:.3f}"
+    cuantos = lambda n, uno, varios: f"{n} {uno if n == 1 else varios}"
+    grupos = [("Cráteres con fuente externa (catálogo de México, impactos, literatura)", t.lev[fuente]),
+              ("Cráter natural según la IA, confianza ≥ 0.7", t.lev[nat]),
+              ("Presa, valle o duna según la IA, confianza ≥ 0.7", t.lev[neg]),
+              ("Tajos con cantera de OpenStreetMap a ≤ 2 km", t.lev[mina]),
+              ("Todos los candidatos áridos con perfil", t.lev)]
+    r, _ = borde.perfiles()
+    for cuerpo, nombre in (("luna", "Referencia: gemelos lunares (LOLA a 80 m)"), ("marte", "Referencia: gemelos marcianos (HRSC+MOLA a 200 m)")):
+        hs = pd.Series([borde.altura(list(pp), r) for pp in borde.perfiles_referencia(cuerpo)], dtype=float)
+        grupos.append((nombre, hs > borde.UMBRAL))
+    tg = pd.DataFrame([{"grupo": g, "con borde levantado": frac(m)} for g, m in grupos])
+    ref_luna, ref_marte = grupos[-2][1], grupos[-1][1]
+
+    # Cráteres con fuente: uno por uno, y en qué puesto quedan con cada criterio
+    t["puesto_borde"] = t.h.rank(ascending=False, method="min").astype(int)
+    t["puesto_forma"] = t.forma_mejor.rank(ascending=False, method="min").astype(int)
+    cf = t[fuente].sort_values("puesto_borde")
+    tf = pd.DataFrame({"id": cf.id, "fuente": cf.con_fuente, "h/D": cf.h.map(lambda x: f"{x:+.4f}"),
+                       "borde (m)": (cf.h * cf.diam_km * 1000).round(1), "levantado": np.where(cf.lev, "sí", "no"),
+                       "puesto por borde": cf.puesto_borde, "puesto por forma": cf.puesto_forma})
+    top = lambda col, k: int((t.loc[fuente, col] <= k).sum())
+    comp = lambda col: (int(t.loc[t[col] <= 25, "etiqueta_ia"].isin(NATURALES_IA).sum()), int((t.loc[t[col] <= 25, "etiqueta_ia"] == "mina_o_cantera").sum()))
+    cb, cfm = comp("puesto_borde"), comp("puesto_forma")
+
+    # Sensibilidad a la ventana y al umbral
+    filas = []
+    for ventana in ((0.9, 1.3), (0.75, 1.6), borde.VENTANA):
+        va, vb, _ = borde.limites_ventana(ventana)
+        h = pd.Series([borde.medir(i, ventana=ventana) for i in t.id], dtype=float)
+        for u in (0.0, 0.002):
+            m = h > u
+            filas.append({"ventana (radios)": f"{va:.2f}–{vb:.2f}" + (" (la usada)" if ventana == borde.VENTANA and u == borde.UMBRAL else ""),
+                          "umbral h/D": u, "cráteres con fuente": f"{int(m[fuente].sum())} de {int(fuente.sum())}",
+                          "presa, valle o duna": f"{int(m[neg].sum())} de {int(neg.sum())}", "tajos OSM": f"{int(m[mina].sum())} de {int(mina.sum())}",
+                          "todos": f"{int(m.sum())} de {len(m)}"})
+    ts = pd.DataFrame(filas)
+
+    # Qué pasa en data/sites
+    etiquetas, cuenta, sin_perfil = scan.etiquetas_ia(), {}, []
+    for f in sorted((RAIZ / "data" / "sites").glob("*.json")):
+        s = json.loads(f.read_text(encoding="utf-8"))
+        cid = borde.crater_de(s)
+        if cid is None:
+            continue
+        lev = borde.levantado(borde.medir(cid))
+        if lev is None:
+            sin_perfil.append(s["id"])
+            continue
+        cat = {"crater_natural": "cráter natural verificado", "tajo_minero": "tajo minero", "sin_verificar": "sin verificar"}[
+            scan.categoria(s, etiquetas)[0]] if s.get("estado") == "candidato_modelo" else "curado (documentado)"
+        c = cuenta.setdefault(cat, [0, 0, []])
+        c[0] += 1; c[1] += lev
+        if lev:
+            c[2].append(s["id"])
+    tsit = pd.DataFrame([{"categoría": k, "sitios": v[0], "con borde levantado": v[1], "cuáles": ", ".join(v[2]) or "—"} for k, v in cuenta.items()])
+    nov_tajos = [s for s in (json.loads(f.read_text(encoding="utf-8")) for f in sorted((RAIZ / "data" / "sites").glob("*.json")))
+                 if s.get("novedoso") is True and scan.categoria(s, etiquetas)[0] == "tajo_minero"]
+    nov_lev = sum(bool(borde.levantado(borde.medir(s["id"]))) for s in nov_tajos)
+
+    sin = [f"{i} ({c.split(',')[0]})" for i, c in zip(t.id[fuente & ~t.lev], t.con_fuente[fuente & ~t.lev])]
+    n_imp = int(t.con_fuente[fuente].str.contains("impacto").sum())
+    return [
+        "### Borde levantado: una medida que sí distingue un cráter de otra depresión", "",
+        "Un impacto o una explosión volcánica apila material alrededor del hoyo: el terreno pegado al cráter queda más alto que el "
+        "terreno lejano. Un valle cerrado, una presa, una hondonada entre dunas o un tajo no tienen eso. **Medida** (`model/borde.py`, "
+        "sin consultar nada: usa los perfiles radiales a 80 m de `analisis/18`): `h/D` = altura máxima del perfil radial promedio "
+        f"entre {a:.2f} y {b:.2f} radios, sobre el terreno lejano ({lejos:.2f} a 2 radios), dividida entre el diámetro. Hay borde levantado "
+        f"si `h/D` > {borde.UMBRAL:g}. Ventana y umbral son provisionales (P).", "",
+        tabla_md(tg, ["grupo", "con borde levantado"]), "",
+        f"**Separación** (AUC; p = prueba de permutación de dos colas, 5,000 repeticiones). Cráter natural frente a presa, valle o duna "
+        f"(IA ≥ 0.7, {int(nat.sum())} contra {int(neg.sum())}, los mismos casos del control negativo de arriba): altura del borde "
+        f"{auc(t.h[nat], t.h[neg]):.2f} ({pv(p_permutacion(t.h[nat], t.h[neg]))}), puntaje de forma {auc(t.forma_mejor[nat], t.forma_mejor[neg]):.2f}. "
+        f"Cráteres con fuente externa frente a tajos con cantera de OpenStreetMap ({int(fuente.sum())} contra {int(mina.sum())}; aquí la IA no "
+        f"interviene en ningún lado): altura del borde {auc(t.h[fuente], t.h[mina]):.2f} ({pv(p_permutacion(t.h[fuente], t.h[mina]))}), "
+        f"puntaje de forma {auc(t.forma_mejor[fuente], t.forma_mejor[mina]):.2f}.", "",
+        f"**¿Pone arriba a los cráteres que ya se conocen?** Al ordenar los {len(t)} candidatos por altura del borde, {top('puesto_borde', 20)} "
+        f"de los {int(fuente.sum())} cráteres con fuente quedan entre los 20 primeros y {top('puesto_borde', 40)} entre los 40; con el puntaje de "
+        f"forma, {top('puesto_forma', 20)} y {top('puesto_forma', 40)}. Entre los 25 primeros por borde hay {cuantos(cb[0], 'cráter natural', 'cráteres naturales')} según la "
+        f"IA y {cuantos(cb[1], 'mina', 'minas')}; entre los 25 primeros por forma, {cuantos(cfm[0], 'cráter natural', 'cráteres naturales')} y "
+        f"{cuantos(cfm[1], 'mina', 'minas')}.", "",
+        tabla_md(tf, list(tf.columns)), "",
+        "**Sensibilidad** a la ventana y al umbral. Ojo: la ventana ancha se eligió después de ver que la estrecha dejaba fuera a "
+        "cráteres con fuente. Con tan pocos casos eso es ajuste a la muestra, y por eso se reportan todas las combinaciones:", "",
+        tabla_md(ts, list(ts.columns)), "",
+        "**En `data/sites`** (sitios con cráter medido; la variable es `variables.borde_levantado`, en metros):", "",
+        tabla_md(tsit, list(tsit.columns)), "",
+        f"De los {len(nov_tajos)} tajos mineros con `novedoso: true`, {nov_lev} tienen borde levantado."
+        + (f" Sin perfil a 80 m (variable en `null`): {', '.join(sin_perfil)}." if sin_perfil else ""), "",
+        "**Cómo se usa.** Es la segunda evidencia de la categoría de cada sitio (`model/scan.py`, regla 6), junto a la etiqueta verificada: "
+        "la nota dice si la medida apoya a la etiqueta o no. **No entra al puntaje ni cambia ningún total.**", "",
+        "**Límites.**",
+        f"- No mide parecido con la Luna ni con Marte: con la misma medida solo tienen borde levantado {frac(ref_luna)} gemelos lunares y "
+        f"{frac(ref_marte)} marcianos. No comprobamos por qué; una explicación posible es que son cráteres viejos y encimados. Es evidencia "
+        "de que una depresión terrestre es un cráter, y nada más.",
+        f"- Muestra chica: {int(fuente.sum())} cráteres con fuente externa, casi todos volcánicos ({n_imp} de impacto). Los otros cráteres de "
+        "impacto del mundo que el detector encuentra (`ciencia_datos/datos/impactos_tierra.csv`) no tienen perfil a 80 m: es la prueba "
+        "independiente que falta.",
+        "- No lo tienen: " + ("; ".join(sin) if sin else "ninguno") + ". El detector mide el diámetro del área inundada, que puede ser "
+        "menor que el del borde; si el borde real cae fuera de la ventana, la medida no lo ve. En Colton es la causa probable: el "
+        "detector mide ~0.75 km y la fuente da ~1.1 km de borde a borde (`model/NIVEL2.md` §A).",
+        "- Las etiquetas de presa, valle y duna vienen de la IA, que vio el mismo relieve: esa comparación no es independiente. La de "
+        "cráteres con fuente frente a canteras de OpenStreetMap sí lo es.",
+        "- Una depresión cerrada en lo alto de una loma también da positivo: es evidencia, no prueba.", ""]
 
 
 def main():
@@ -315,7 +438,7 @@ def main():
                     "microbialitos y cenotes, cuevas, o estructuras sepultadas. Que no pasen es esperable y marca el alcance del "
                     "prefiltro: no reemplaza a la forma ni a la composición. No pasan: " + ", ".join(df.loc[~df.pasa, "nombre"]) + ".", ""]
         if titulo == "Análogos conocidos":
-            out += parte_umbral(dn, df)
+            out += parte_umbral(dn, df, targets)
         if df.errores.str.len().gt(0).any():
             out += ["Errores de medición: " + " · ".join(f"{n}: {e}" for n, e in zip(df.nombre, df.errores) if e), ""]
     out += parte_prefiltro(targets)
