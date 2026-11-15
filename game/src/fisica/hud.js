@@ -2,32 +2,35 @@
 import { tr } from '../i18n.js';
 import { nombreSuperficie } from './suelos.js';
 import { REGLAS } from './ambiente.js';
+import * as K from '../scenes/comun/pixel.js'; // panel, íconos y botones de arte (DISENO.md §2)
 
 const ESTILO = { fontFamily: 'monospace', fontSize: '14px', color: '#cfd6ff' };
 const ANCHO_IZQ = 530;
+const ANCHO_PROGRESO = 900; // franja de progreso; el ⚑ va al final (x ≈ 922)
 
-/** Reduce el tamaño de letra hasta que el texto quepa en `ancho` (sin bajar de `min` px). */
+/** Reduce el tamaño de letra hasta que el texto quepa en `ancho` (sin bajar de 14 px); si aún no cabe, lo recorta con «…». */
 function encoger(t, ancho, min) {
   let px = parseInt(t.style.fontSize, 10);
-  while (t.width > ancho && px > min) t.setFontSize(`${--px}px`);
+  while (t.width > ancho && px > Math.max(14, min)) t.setFontSize(`${--px}px`);
+  let texto = t.text;
+  while (t.width > ancho && texto.length > 10) { texto = texto.slice(0, -2); t.setText(`${texto.trimEnd()}…`); }
   return t;
 }
 
 export class Hud {
-  constructor(scene, { titulo, subtitulo, aviso }) {
+  constructor(scene, { titulo, subtitulo, aviso, nota }) {
     this.scene = scene;
     const fijo = (o) => o.setScrollFactor(0).setDepth(90);
     fijo(scene.add.rectangle(0, 0, 960, 88, 0x0b0d17, 0.78).setOrigin(0));
     // Columna izquierda hasta x = 545: las barras empiezan en x = 560 (nombres de destino largos las tapaban).
-    fijo(encoger(scene.add.text(16, 10, titulo, { ...ESTILO, fontSize: '18px', color: '#ffffff' }), ANCHO_IZQ, 13));
-    fijo(encoger(scene.add.text(16, 34, subtitulo, ESTILO), ANCHO_IZQ, 10));
-    // La nota de datos puede ser larga (fuente, tramo real, recreaciones): se ajusta a la columna izquierda.
-    // maxLines corta en silencio a media frase: si no cabe, la tercera línea termina en "…" para que se note el recorte.
-    // Nota de datos: en el HUD solo una línea (para no distraer al manejar); el texto completo se abre con la tecla I.
+    fijo(encoger(scene.add.text(16, 10, titulo, { ...ESTILO, fontSize: '18px', color: '#ffffff' }), ANCHO_IZQ, 14));
+    fijo(encoger(scene.add.text(16, 34, subtitulo, ESTILO), ANCHO_IZQ, 14));
+    // Nota de datos: en el HUD solo una keyword corta («Suelo: arena · I datos», DISENO.md §3) a 14 px; el texto completo
+    // (fuente, tramo real, recreaciones, ambiente) se abre con la tecla I o tocando la nota.
     if (aviso) {
-      const t = fijo(scene.add.text(16, 56, '', { ...ESTILO, fontSize: '12px', color: '#ffd166' }));
-      const pie = tr(' · [I] datos', ' · [I] data');
-      let corto = aviso;
+      const t = fijo(scene.add.text(16, 56, '', { ...ESTILO, color: '#ffd166' }));
+      const pie = tr(' · I datos', ' · I data');
+      let corto = nota || aviso;
       t.setText(corto + pie);
       while (t.width > ANCHO_IZQ && corto.length > 10) { corto = corto.slice(0, -2); t.setText(`${corto.trimEnd()}…${pie}`); }
       this._panelDatos(aviso);
@@ -43,7 +46,7 @@ export class Hud {
       const y = 12 + i * 18;
       // Ícono de arte (8 × 8 × 2) si existe; si no, el nombre.
       if (hay(icono)) fijo(scene.add.image(x + 8, y + 7, icono).setScale(2));
-      fijo(scene.add.text(x + (hay(icono) ? 22 : 0), y - 1, etiqueta, ESTILO));
+      fijo(scene.add.text(x + (hay(icono) ? 22 : 0), y - 1, etiqueta, ESTILO)); // 14 px
       if (hay('ui/ui_marco_barra')) fijo(scene.add.nineslice(x + 82, y + 7, 'ui/ui_marco_barra', undefined, 76, 7, 2, 2, 2, 2).setOrigin(0, 0.5).setScale(2));
       else fijo(scene.add.rectangle(x + 70, y + 7, 160, 10, 0x2b2d3a).setOrigin(0, 0.5));
       this.barras[clave] = fijo(scene.add.rectangle(x + 86, y + 7, 144, 8, color).setOrigin(0, 0.5));
@@ -52,15 +55,15 @@ export class Hud {
     // Temperatura del motor (ambiente.js, regla b): barra fina bajo las otras; se pone roja cerca del límite.
     const iconoT = hay('ui/ui_icono_temperatura'); // arte 8 × 8 (mismo estilo que los otros íconos); si no, solo texto
     if (iconoT) fijo(scene.add.image(560 + 8, 70, 'ui/ui_icono_temperatura').setScale(2));
-    fijo(scene.add.text(560 + (iconoT ? 22 : 0), 64, tr('Motor', 'Motor'), { ...ESTILO, fontSize: '11px' }));
+    fijo(scene.add.text(560 + (iconoT ? 22 : 0), 64, tr('Motor', 'Motor'), ESTILO)); // 14 px (antes 11)
     fijo(scene.add.rectangle(560 + 70, 70, 160, 5, 0x2b2d3a).setOrigin(0, 0.5));
     this.barraMotor = fijo(scene.add.rectangle(560 + 72, 70, 0, 3, 0x6fb3ff).setOrigin(0, 0.5));
-    this.textoMotor = fijo(scene.add.text(560 + 236, 64, '', { ...ESTILO, fontSize: '11px' }));
+    this.textoMotor = fijo(scene.add.text(560 + 236, 64, '', ESTILO));
 
     // Progreso hacia la meta o la zona de entrega (franja bajo el encabezado).
-    fijo(scene.add.rectangle(16, 92, 928, 4, 0x2b2d3a).setOrigin(0, 0.5));
+    fijo(scene.add.rectangle(16, 92, ANCHO_PROGRESO, 4, 0x2b2d3a).setOrigin(0, 0.5));
     this.progreso = fijo(scene.add.rectangle(16, 92, 0, 4, 0x4cc38a).setOrigin(0, 0.5));
-    fijo(scene.add.text(944, 98, '⚑', { ...ESTILO, fontSize: '12px', color: '#ffffff' }).setOrigin(1, 0));
+    fijo(scene.add.text(16 + ANCHO_PROGRESO + 6, 92, '⚑', { ...ESTILO, color: '#ffffff' }).setOrigin(0, 0.5));
     this.lectura = fijo(scene.add.text(944, 12, '', { ...ESTILO, align: 'right' }).setOrigin(1, 0));
     // Mensaje final grande y con contorno para que se lea sobre cualquier fondo (retro: textos más grandes).
     this.mensaje = fijo(scene.add.text(480, 200, '', { ...ESTILO, fontSize: '44px', fontStyle: 'bold', color: '#ffffff', align: 'center', stroke: '#0b0d17', strokeThickness: 8 }).setOrigin(0.5));
@@ -68,7 +71,7 @@ export class Hud {
 
   actualizar(estado, { distancia_m, meta_m }) {
     for (const [clave, barra] of Object.entries(this.barras)) barra.width = 144 * Math.max(0, Math.min(1, estado[clave]));
-    this.progreso.width = 928 * Math.max(0, Math.min(1, distancia_m / Math.max(1, meta_m)));
+    this.progreso.width = ANCHO_PROGRESO * Math.max(0, Math.min(1, distancia_m / Math.max(1, meta_m)));
     if (estado.tMotor != null) {
       const lim = REGLAS.motor.limite_C;
       const f = Math.max(0, Math.min(1, (estado.tMotor + 60) / (lim + 60))); // escala visual de −60 °C al límite
@@ -89,7 +92,7 @@ export class Hud {
     const t = fijo(s.add.text(480, 270, tr(`Datos de este nivel\n\n${aviso}\n\n[I] cerrar`, `Data for this level\n\n${aviso}\n\n[I] close`), {
       ...ESTILO, fontSize: '15px', color: '#ffffff', align: 'left', wordWrap: { width: 760 }, lineSpacing: 4,
     }).setOrigin(0.5));
-    const fondo = fijo(s.add.rectangle(480, 270, 800, t.height + 32, 0x0b0d17, 0.92).setStrokeStyle(2, 0xffd166, 0.7));
+    const fondo = fijo(K.panel(s, 80, Math.round(270 - (t.height + 36) / 2), 800, t.height + 36, { alfa: 0.96 }));
     t.setDepth(99);
     this.datos = [fondo, t];
   }
@@ -117,21 +120,35 @@ export class Hud {
     this.mensaje.setText(texto);
   }
 
-  /** Panel de instrucciones al empezar (objetivo y controles). Se quita con ocultarInstrucciones() o solo a los 6 s. */
-  instrucciones(titulo, lineas) {
+  /**
+   * Panel de instrucciones al empezar (DISENO.md §3): título + 3 keywords con ícono (objetivo · regla clave del lugar ·
+   * controles) y una pista «I · datos». `filas`: [{ texto, icono, escala, respaldo }] (o cadenas). El detalle del ambiente
+   * sigue en el panel de la tecla I. Se quita con ocultarInstrucciones() o solo a los 6 s.
+   */
+  instrucciones(titulo, filas, pista = null) {
     const s = this.scene;
-    const fijo = (o) => o.setScrollFactor(0).setDepth(96);
-    // Las líneas largas (reglas del ambiente en inglés) se salían por los lados: se ajustan a 880 px y el panel se
-    // coloca justo debajo de la barra del HUD (y = 88) para no encimarse al crecer.
-    const texto = fijo(s.add.text(480, 0, [titulo, '', ...lineas].join('\n'), {
-      fontFamily: 'monospace', fontSize: '17px', color: '#ffffff', align: 'center', lineSpacing: 6,
-      wordWrap: { width: 880, useAdvancedWrap: true },
-    }).setOrigin(0.5));
-    const y = Math.max(175, 88 + 12 + 16 + texto.height / 2);
-    texto.setY(y);
-    const fondo = fijo(s.add.rectangle(480, y, texto.width + 48, texto.height + 32, 0x0b0d17, 0.85).setStrokeStyle(2, 0xffd166, 0.8));
-    texto.setDepth(97);
-    this.panel = [fondo, texto];
+    const prof = 96;
+    const fijo = (o, d = prof + 1) => o.setScrollFactor(0).setDepth(d);
+    const X0 = 170; const ANCHO = 620;
+    const y0 = 104;
+    const objs = [];
+    const tTitulo = fijo(K.txt(s, 480, y0 + 20, titulo, { size: 22, estilo: 'bold', origen: [0.5, 0] }));
+    objs.push(tTitulo);
+    let y = tTitulo.y + tTitulo.height + 14;
+    for (const f of filas.map((x) => (typeof x === 'string' ? { texto: x } : x))) {
+      const t = fijo(K.txt(s, X0 + 72, y, f.texto, { size: 18, ancho: ANCHO - 72 - 28, interlineado: 2 }));
+      const alto = Math.max(36, t.height);
+      t.setY(y + (alto - t.height) / 2);
+      objs.push(t, fijo(K.icono(s, X0 + 44, y + alto / 2, f.icono, { escala: f.escala ?? 2, respaldo: f.respaldo ?? '•', color: '#ffd166', size: 20 })));
+      y += alto + 8;
+    }
+    if (pista) {
+      const t = fijo(K.txt(s, 480, y + 2, pista, { size: 14, color: K.P.sec, origen: [0.5, 0] }));
+      objs.push(t);
+      y = t.y + t.height;
+    }
+    const fondo = fijo(K.panel(s, X0, y0, ANCHO, y - y0 + 18, { alfa: 0.94 }), prof);
+    this.panel = [fondo, ...objs];
     s.time.delayedCall(6000, () => this.ocultarInstrucciones());
   }
 
