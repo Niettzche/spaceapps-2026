@@ -51,3 +51,9 @@ Responsable: Alan · Agente: Codex · Actualización: 2026-11-14
 - Crédito exacto de pixelfx añadido a docs/ENTREGA_EN.md.
 - Verificación: inspección visual de entrada/centro/cierre, decodificación completa del MP4, duración y dimensiones comprobadas, diff --check limpio. Sin cambios a física, piezas ni carpetas de juego.
 - Rama: feat/video-marsception-creditos; pendiente de revisión e integración por PR.
+
+## Ajuste de tiempos del video
+- Entrada: 0–5.00 s (150 fotogramas). Contenido central: 5.00–24.90 s. Cierre: 24.90–29.90 s (150 fotogramas). Total 897 fotogramas a 30 fps.
+- Sin escalar las imágenes de título. WebVTT resincronizado; texto de los cinco subtítulos conservado.
+- Verificados los fotogramas 149/150 y 746/747, el último fotograma 896 y la decodificación completa del MP4. Cada pantalla de título dura exactamente 5 s.
+- Rama fix/video-entrada-cierre-5s, sin cambios a gameplay, piezas o física.
