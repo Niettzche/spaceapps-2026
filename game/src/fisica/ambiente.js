@@ -121,6 +121,8 @@ export const REGLAS = {
   // entre −40 y +50 °C, ver PIEZAS.md §5), así que el frío cuesta poco. Antes 0.2 %/°C y piso 85 %: dejaba las misiones
   // del camino dorado sin energía a 12 m de la meta. Se usa la temperatura MÍNIMA del nivel.
   frio: { desde_C: 0, perdida_por_C: 0.0003, piso: 0.97 },
+  // El módulo `calentador_bateria` (parts.json, `aislamiento_termico`, P) evita una fracción de esa pérdida. Sin fuente
+  // primaria para el calentador (PIEZAS.md §5: Gap).
   // b) Motor. dT/dt = CALOR × |acelerador| × consumo − k × (T − T_ambiente), k = RADIACION + AIRE × ρ / ρ_Tierra. (P)
   // Con el motor eficiente a fondo, la Tierra lo deja ~25–30 °C sobre el ambiente; sin aire, el equilibrio pasa de 500 °C.
   motor: { calor: 4, radiacion: 0.004, aire: 0.1, limite_C: 100, histeresis_C: 5, potencia_minima: 0.2, aviso_C: 10 },
@@ -128,11 +130,15 @@ export const REGLAS = {
   luz: { recarga_por_capacidad: 0.0025, rasante: 0.2 },
 };
 
-/** a) Fracción de la batería utilizable con la temperatura mínima del nivel (1 = sin pérdida). */
-export function factorFrio(tMinC, reglas = REGLAS.frio) {
+/**
+ * a) Fracción de la batería utilizable con la temperatura mínima del nivel (1 = sin pérdida).
+ * `aislamiento` (0..1) = fracción de la pérdida por frío que evita el calentador de la batería (módulo, P).
+ */
+export function factorFrio(tMinC, reglas = REGLAS.frio, aislamiento = 0) {
   if (tMinC == null) return 1;
+  const a = Math.min(1, Math.max(0, aislamiento || 0));
   const perdida = Math.max(0, reglas.desde_C - tMinC) * reglas.perdida_por_C;
-  return Math.max(reglas.piso, 1 - perdida);
+  return 1 - (1 - Math.max(reglas.piso, 1 - perdida)) * (1 - a);
 }
 
 /** Temperatura del ambiente que ve el motor: la media del lugar (si falta, media de mín. y máx., o la mínima). */
@@ -144,31 +150,35 @@ export function temperaturaAmbienteMotor(amb) {
   return a ?? b ?? 20;
 }
 
-/** b) Coeficiente de enfriamiento del motor (1/s): radiación + aire (∝ densidad). */
-export function enfriamientoMotor(amb, reglas = REGLAS.motor) {
+/**
+ * b) Coeficiente de enfriamiento del motor (1/s): radiación + aire (∝ densidad).
+ * `radiador` (1/s) = enfriamiento por radiación que agrega el módulo `radiador` (parts.json, P). No depende del aire:
+ * en el vacío el calor solo sale por radiación, así que ahí es donde más se nota.
+ */
+export function enfriamientoMotor(amb, reglas = REGLAS.motor, radiador = 0) {
   const rho = amb?.densidad_aire_kg_m3 ?? DENSIDAD_AIRE_TIERRA;
-  return reglas.radiacion + reglas.aire * (rho / DENSIDAD_AIRE_TIERRA);
+  return reglas.radiacion + (radiador || 0) + reglas.aire * (rho / DENSIDAD_AIRE_TIERRA);
 }
 
 /** Nueva temperatura del motor tras dt segundos con el acelerador efectivo `a` y el `consumo` del motor. */
-export function pasoTemperaturaMotor(T, { a, consumo, dt, amb, reglas = REGLAS.motor }) {
-  const k = enfriamientoMotor(amb, reglas);
+export function pasoTemperaturaMotor(T, { a, consumo, dt, amb, reglas = REGLAS.motor, radiador = 0 }) {
+  const k = enfriamientoMotor(amb, reglas, radiador);
   const tAmb = temperaturaAmbienteMotor(amb);
   return T + (reglas.calor * Math.abs(a) * consumo - k * (T - tAmb)) * dt;
 }
 
 /** Temperatura de equilibrio del motor con acelerador `a` constante. */
-export function temperaturaEquilibrio(a, consumo, amb, reglas = REGLAS.motor) {
-  return temperaturaAmbienteMotor(amb) + (reglas.calor * Math.abs(a) * consumo) / enfriamientoMotor(amb, reglas);
+export function temperaturaEquilibrio(a, consumo, amb, reglas = REGLAS.motor, radiador = 0) {
+  return temperaturaAmbienteMotor(amb) + (reglas.calor * Math.abs(a) * consumo) / enfriamientoMotor(amb, reglas, radiador);
 }
 
 /**
  * Potencia permitida (0..1) cuando el motor está sobrecalentado: la que el ambiente alcanza a enfriar
  * (calor = enfriamiento), con un mínimo para no dejar al robot inmóvil.
  */
-export function potenciaPermitida(T, consumo, amb, reglas = REGLAS.motor) {
+export function potenciaPermitida(T, consumo, amb, reglas = REGLAS.motor, radiador = 0) {
   if (T < reglas.limite_C) return 1;
-  const enfria = enfriamientoMotor(amb, reglas) * (T - temperaturaAmbienteMotor(amb));
+  const enfria = enfriamientoMotor(amb, reglas, radiador) * (T - temperaturaAmbienteMotor(amb));
   return Math.min(1, Math.max(reglas.potencia_minima, enfria / (reglas.calor * Math.max(consumo, 1e-6))));
 }
 
