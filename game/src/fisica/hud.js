@@ -94,18 +94,34 @@ export class Hud {
   _panelDatos(aviso) {
     const s = this.scene;
     const fijo = (o) => o.setScrollFactor(0).setDepth(102).setVisible(false); // encima de las flechas táctiles (101)
-    const t = fijo(TXT(s, 480, 270, tr(`Datos de este nivel\n\n${aviso}\n\n[I] cerrar`, `Data for this level\n\n${aviso}\n\n[I] close`), {
-      color: '#ffffff', ancho: 840, origen: [0.5, 0.5],
-    }));
-    const fondo = fijo(K.panel(s, 40, Math.round(270 - (t.height + 36) / 2), 880, t.height + 36, { alfa: 0.96 }));
-    t.setDepth(103);
-    this.datos = [fondo, t];
+    // El texto completo no cabe en 540 px en los niveles con más datos (lo reportó Mauricio): se parte en páginas por
+    // frases y la tecla I pasa a la siguiente; después de la última, cierra.
+    const partes = String(aviso).split(/(?<=\. )|(?<= • )/);
+    const medir = (txt) => { const t = TXT(s, -2000, -2000, txt, { ancho: 840 }); const h = t.getBounds().height; t.destroy(); return h; };
+    const paginas = [];
+    let actual = '';
+    for (const p of partes) {
+      if (actual && medir(actual + p) > 400) { paginas.push(actual.trim()); actual = p; } else actual += p;
+    }
+    if (actual.trim()) paginas.push(actual.trim());
+    const n = paginas.length;
+    this.datosPaginas = paginas.map((pag, k) => {
+      const pie = k < n - 1 ? tr(`[I] siguiente (${k + 1}/${n})`, `[I] next (${k + 1}/${n})`) : tr(n > 1 ? `[I] cerrar (${n}/${n})` : '[I] cerrar', n > 1 ? `[I] close (${n}/${n})` : '[I] close');
+      const t = fijo(TXT(s, 480, 270, tr(`Datos de este nivel\n\n${pag}\n\n${pie}`, `Data for this level\n\n${pag}\n\n${pie}`), {
+        color: '#ffffff', ancho: 840, origen: [0.5, 0.5],
+      }));
+      const fondo = fijo(K.panel(s, 40, Math.round(270 - (t.height + 36) / 2), 880, t.height + 36, { alfa: 0.96 }));
+      t.setDepth(103);
+      return [fondo, t];
+    });
+    this.paginaDatos = -1; // -1 = cerrado
   }
 
   alternarDatos() {
-    if (!this.datos) return;
-    const ver = !this.datos[0].visible;
-    this.datos.forEach((o) => o.setVisible(ver));
+    if (!this.datosPaginas?.length) return;
+    this.datosPaginas[this.paginaDatos]?.forEach((o) => o.setVisible(false));
+    this.paginaDatos = this.paginaDatos + 1 >= this.datosPaginas.length ? -1 : this.paginaDatos + 1;
+    this.datosPaginas[this.paginaDatos]?.forEach((o) => o.setVisible(true));
   }
 
   /** Overlay de pausa. Devuelve los objetos para destruirlos al reanudar. */
