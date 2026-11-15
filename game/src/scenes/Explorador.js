@@ -3,7 +3,7 @@ import { irA } from './ui.js';
 import { SITIOS, DESTINOS } from '../data.js';
 import { partida } from '../main.js';
 import { ORDEN_DESTINOS, DESTINO_POR_DEFECTO, UMBRAL_PROPUESTA } from './expediente/config.js';
-import { consultarPunto, proponerSitio, API_URL } from './expediente/api.js';
+import { consultarPunto, proponerSitio, apiDisponible, API_URL } from './expediente/api.js';
 import { validarCoordenadasHemisferio, aHemisferio, formatoCoordenada, formatoValor, formatoPorcentaje, puedeProponer, validarNombrePropuesta, sinDato } from './expediente/logica.js';
 import { MUNDOS, etiquetaVariable, etiquetaLimite } from './expediente/textos.js';
 import { crearCapa, el, ESTILOS } from './expediente/capa.js';
@@ -22,16 +22,55 @@ export default class Explorador extends Phaser.Scene {
     this.capa = crearCapa('mc-explorador', ESTILOS);
     this.capa.setAttribute('lang', idioma());
     this.events.once('shutdown', () => this.cerrar());
-    this.armarFormulario();
+    this.capa.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Escape') this.volver();
+      else if (ev.key === 'Tab') this.mantenerFoco(ev);
+    });
+    this.capa.append(this.encabezado());
+    this.comprobarApi();
   }
 
   cerrar() {
+    this.sondeo?.abort();
     this.consulta?.abort();
     this.capa?.remove();
     this.capa = null;
   }
 
   volver() { irA(this, 'Menu'); }
+
+  encabezado() {
+    const volver = el('button', { type: 'button', class: 'secundario' }, tr('← Menú', '← Menu'));
+    volver.addEventListener('click', () => this.volver());
+    return el('header', {}, [el('h1', {}, tr('Explorador libre', 'Free explorer')), volver]);
+  }
+
+  // En la demo pública la API del modelo no está publicada: se detecta enseguida (o en ≤ 4 s) en vez de dejar al
+  // jugador esperando una consulta que nunca contesta.
+  async comprobarApi() {
+    const aviso = el('p', { class: 'estado', 'aria-live': 'polite' }, tr('Comprobando la API del modelo…', 'Checking the model API…'));
+    const capa = this.capa;
+    capa.append(aviso);
+    this.sondeo = new AbortController();
+    const r = await apiDisponible({ senal: this.sondeo.signal });
+    if (this.capa !== capa || r.tipo === 'cancelado') return; // la escena se cerró (o se volvió a abrir) mientras esperaba
+    aviso.remove();
+    if (r.ok) this.armarFormulario();
+    else this.mostrarSinApi(r);
+  }
+
+  mostrarSinApi(r) {
+    const ir = el('button', { type: 'button', class: 'primario' }, tr('Volver al menú', 'Back to menu'));
+    ir.addEventListener('click', () => this.volver());
+    this.capa.append(el('div', { class: 'aviso', role: 'alert' }, [
+      el('strong', {}, tr('Consulta en vivo no disponible', 'Live lookup not available')),
+      el('p', {}, tr('La consulta en vivo necesita la API del modelo, que no está publicada en esta demo. Mira los sitios ya calculados en el Expediente.',
+        'The live lookup needs the model API, which is not published in this demo. See the sites already computed in the Site File.')),
+      r.tipo === 'no_publicada' ? null : el('p', { class: 'nota' }, tr(`(${API_URL} no respondió a /health en 4 s)`, `(${API_URL} did not answer /health within 4 s)`)),
+      ir,
+    ]));
+    ir.focus();
+  }
 
   armarFormulario() {
     const ids = [...ORDEN_DESTINOS.filter((id) => DESTINOS[id]), ...Object.keys(DESTINOS).filter((id) => !ORDEN_DESTINOS.includes(id))];
@@ -77,18 +116,7 @@ export default class Explorador extends Phaser.Scene {
     ]);
     form.addEventListener('submit', (ev) => { ev.preventDefault(); this.consultar(); });
 
-    const volver = el('button', { type: 'button', class: 'secundario' }, tr('← Menú', '← Menu'));
-    volver.addEventListener('click', () => this.volver());
-    this.capa.addEventListener('keydown', (ev) => {
-      if (ev.key === 'Escape') this.volver();
-      else if (ev.key === 'Tab') this.mantenerFoco(ev);
-    });
-
     this.capa.append(
-      el('header', {}, [
-        el('h1', {}, tr('Explorador libre', 'Free explorer')),
-        volver,
-      ]),
       el('p', { class: 'ayuda' }, tr('Escribe una coordenada de la Tierra en grados decimales, sin signo, y elige N/S y E/O. La API del modelo descarga sus variables '
         + '(NASA POWER, MODIS, relieve) y las compara con el destino. Si la similitud llega a '
         + `${Math.round(UMBRAL_PROPUESTA * 100)} %, puedes proponer el sitio.`,
