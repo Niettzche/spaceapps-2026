@@ -19,6 +19,16 @@ export function reiniciarPartida() {
   return partida;
 }
 
+// Texto nítido: Phaser dibuja cada texto a resolución 1 (si no se indica) y luego el lienzo se agranda para llenar la
+// pantalla (Scale.FIT), así que las letras se ven borrosas. Se dibujan al doble (o según la densidad de la pantalla).
+const RESOLUCION_TEXTO = Math.min(3, Math.max(2, Math.ceil(globalThis.devicePixelRatio || 1)));
+const setStyleOriginal = Phaser.GameObjects.TextStyle.prototype.setStyle;
+Phaser.GameObjects.TextStyle.prototype.setStyle = function (style, updateText, setDefaults) {
+  const r = setStyleOriginal.call(this, style, updateText, setDefaults);
+  if (!this.resolution) this.resolution = RESOLUCION_TEXTO;
+  return r;
+};
+
 new Phaser.Game({
   type: Phaser.AUTO,
   parent: 'app',
