@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="es" class="general">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Control" />
+  <meta name="theme-color" content="#0b0d17" />
+  <meta name="format-detection" content="telephone=no" />
+  <title>MARSCEPTION · Control</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icono.png" />
+  <link rel="apple-touch-icon" href="icono.png" />
+  <link rel="stylesheet" href="pad.css" />
+</head>
+<body>
+  <!-- Fondo con manchas de color: es lo que el vidrio deja ver borroso (solo en la piel "glass"). -->
+  <div id="fondo" aria-hidden="true"><i class="m1"></i><i class="m2"></i><i class="m3"></i><i class="m4"></i></div>
+
+  <header id="barra">
+    <span id="punto" class="punto"></span>
+    <span id="estado" data-t="conectando"></span>
+    <span id="escena" class="escena"></span>
+    <span class="relleno"></span>
+    <span id="ping" class="ping"></span>
+    <button id="bModo" class="chip" type="button"></button>
+    <button id="bPiel" class="chip" type="button"></button>
+    <button id="bPantalla" class="chip" type="button" aria-label="Pantalla completa">⛶</button>
+  </header>
+
+  <main id="pad" data-modo="navegar">
+    <!-- Conducir (Prueba y Misión): dos mitades grandes; al centro, pausa y extras. -->
+    <section class="vista conducir">
+      <div class="btn grande" data-k="ArrowLeft" data-r="0"><span class="ico">◀</span><span class="txt" data-t="frenar"></span></div>
+      <div class="centro">
+        <div class="normal">
+          <div class="btn mediano" data-k="Escape"><span class="ico">❚❚</span><span class="txt" data-t="pausa"></span></div>
+          <div class="fila">
+            <div class="btn chico" data-k="i"><span class="ico">ⓘ</span><span class="txt" data-t="datos"></span></div>
+            <div class="btn chico" data-k="m"><span class="ico">♪</span><span class="txt" data-t="sonido"></span></div>
+          </div>
+        </div>
+        <div class="enpausa">
+          <div class="btn mediano verde" data-k="Enter"><span class="ico">▶</span><span class="txt" data-t="reanudar"></span></div>
+          <div class="btn chico rojo" data-k="x"><span class="ico">✕</span><span class="txt" data-t="abandonar"></span></div>
+        </div>
+      </div>
+      <div class="btn grande" data-k="ArrowRight" data-r="0"><span class="ico">▶</span><span class="txt" data-t="acelerar"></span></div>
+    </section>
+
+    <!-- Navegar (menús, Expediente, Taller, Resultados): cruceta + OK / Atrás + atajos según la escena. -->
+    <section class="vista navegar">
+      <div class="cruz">
+        <div class="btn flecha arriba" data-k="ArrowUp" data-r="1"><span class="ico">▲</span></div>
+        <div class="btn flecha izq" data-k="ArrowLeft" data-r="1"><span class="ico">◀</span></div>
+        <div class="btn flecha der" data-k="ArrowRight" data-r="1"><span class="ico">▶</span></div>
+        <div class="btn flecha abajo" data-k="ArrowDown" data-r="1"><span class="ico">▼</span></div>
+      </div>
+      <div id="contexto" class="contexto"></div>
+      <div class="ab">
+        <div class="btn redondo a" data-k="Enter"><span class="ico">OK</span></div>
+        <div class="btn redondo b" data-k="Escape"><span class="txt" data-t="atras"></span></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Primer toque: activa pantalla completa (Android), la vibración y quita este velo. -->
+  <div id="inicio" class="velo">
+    <div class="tarjeta">
+      <div class="logo">MARSCEPTION</div>
+      <div class="sub" data-t="control"></div>
+      <div class="grandote" data-t="tocar"></div>
+      <div id="consejoIOS" class="consejo" data-t="consejoIOS"></div>
+    </div>
+  </div>
+
+  <!-- Sin código de sala válido (se abrió la página sin el QR). -->
+  <div id="sinSala" class="velo oculto">
+    <form class="tarjeta" id="formSala">
+      <div class="logo">MARSCEPTION</div>
+      <div class="sub" data-t="pideSala"></div>
+      <input id="campoSala" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off" placeholder="0000" />
+      <button type="submit" class="chip grande-chip" data-t="entrar"></button>
+    </form>
+  </div>
+
+  <div id="girar" class="velo"><div class="tarjeta"><div class="ico-girar">⟳</div><div data-t="girar"></div></div></div>
+
+  <!-- Truco para vibración háptica en iOS 18+: tocar un interruptor nativo produce un "tic". -->
+  <label id="haptico" aria-hidden="true"><input type="checkbox" switch tabindex="-1" /></label>
+
+  <script src="pad.js"></script>
+  <script src="vidrio.js"></script>
+</body>
+</html>
