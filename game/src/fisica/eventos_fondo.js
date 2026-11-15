@@ -121,9 +121,18 @@ export class EventosFondo {
       this.gMundo = scene.add.graphics().setDepth(4);
     }
     if (this.programa.some((e) => e.tipo === 'tierra')) {
-      const s = sprite?.(scene, 'evento_tierra', { x: 760, y: 150, origen: [0.5, 0.5], profundidad: -25 });
-      s?.setScrollFactor(0);
-      if (!s) this.g.fillStyle(0x4f86c6, 1).fillCircle(760, 150, 22);
+      // La Tierra desde el polo sur lunar: baja sobre el horizonte y a media luz (arte de Mauricio, 18 × 18). Su lado de
+      // noche es azul muy oscuro y sobre el cielo negro solo se veía una tajada: se dibuja el disco completo detrás (lado
+      // nocturno con luz de la Luna llena terrestre, «earthshine» inverso) y un halo de atmósfera para que se lea como
+      // planeta. Más grande (×4) para que se reconozca.
+      const X = 680, Y = 165, R = 36; // lejos del botón «Abandonar» (arriba a la derecha)
+      const disco = scene.add.graphics().setScrollFactor(0).setDepth(-25.2);
+      disco.fillStyle(0x6fb7ff, 0.18).fillCircle(X, Y, R + 7);
+      disco.fillStyle(0x6fb7ff, 0.28).fillCircle(X, Y, R + 3);
+      disco.fillStyle(0x1d2b4f, 1).fillCircle(X, Y, R);
+      const s = sprite?.(scene, 'evento_tierra', { x: X, y: Y, origen: [0.5, 0.5], profundidad: -25 });
+      s?.setScrollFactor(0).setScale(4);
+      if (!s) this.g.fillStyle(0x4f86c6, 1).fillCircle(X, Y, R - 2);
     }
   }
 
