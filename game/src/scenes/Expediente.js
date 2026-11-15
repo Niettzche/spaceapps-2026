@@ -36,8 +36,9 @@ const XB = 826; // barra de similitud de la fila (50 px) y su % a la derecha (XP
 const XP = 930;
 const ALTO_FILA = 30;
 // Fuente pixel ×2 (renglón de 22 px): lista de 5 sitios de 56 px, panel de 62 a 422, tickets debajo y el pie en una fila.
-const LISTA = { y0: 100, paso: 56, panelY: 62, panelAlto: 360, yPag: 398 };
-const Y_PIE = 514; // fila de botones del pie (Regresar · Menú · Datos · Condiciones · Ficha … Probar)
+const LISTA = { y0: 100, paso: 56, panelY: 62, panelAlto: 354, yPag: 392 };
+const Y_PIE = 514; // fila de botones del pie (Datos · Condiciones · Ficha … Probar); Regresar · Menú van arriba, a la izquierda
+const Y_NAV = 470;
 // Panel de detalle (encima de la tabla y lo de abajo). Renglones de 22 px + 2; se pagina solo si no cabe.
 const DET = { x0: 300, y0: 98, x1: 951, y1: 492, letra: 14, lineas: 11 };
 // Vista "Condiciones" (aire, luz y qué hacen en el juego): panel a todo lo ancho, dos columnas a 16 px.
@@ -162,9 +163,9 @@ export default class Expediente extends Phaser.Scene {
 
     const total = s.similitud?.total;
     const hayTotal = typeof total === 'number';
-    add(txt(this, 715, 10, tr('SIMILITUD', 'SIMILARITY'), { size: 14, color: P.sec }));
+    add(txt(this, 740, 10, tr('SIMILITUD', 'SIMILARITY'), { size: 14, color: P.sec }));
     add(txt(this, X1, hayTotal ? 2 : 10, formatoPorcentaje(total), { size: hayTotal ? 32 : 16, color: hayTotal ? colorSimilitud(total) : P.sec, origen: [1, 0], estilo: 'bold' }));
-    addTodos(barra(this, 715, 38, X1 - 715, 10, hayTotal ? total : null, colorSimilitud(total)));
+    addTodos(barra(this, 740, 38, X1 - 740, 10, hayTotal ? total : null, colorSimilitud(total)));
     add(txt(this, X1, 52, `${tr('confianza', 'confidence')} ${formatoPorcentaje(s.similitud?.confianza)}`, { size: 14, color: P.sec, origen: [1, 0] }));
 
     const est = estadoDe(s);
@@ -174,7 +175,7 @@ export default class Expediente extends Phaser.Scene {
     chips.push({ texto: `${tr('Gemelo', 'Twin')}: ${mundo}`, color: P.dato });
     if (s.novedoso === true) chips.push({ texto: tr('NOVEDOSO', 'NOVEL'), color: P.bien });
     if (s.prueba_util) chips.push({ texto: `${tr('Prueba', 'Test')}: ${PRUEBAS[s.prueba_util] || s.prueba_util}`, color: P.sec });
-    addTodos(filaChips(this, X0, 40, chips, 705).objs);
+    addTodos(filaChips(this, X0, 40, chips, 732).objs);
 
     const clave = palabrasClave(s);
     ajustarAncho(add(txt(this, X0, 78, clave ?? `${tr('Proceso', 'Process')}: ${sinDato()}`, { size: 16, color: clave ? P.texto : P.sec })), X1 - X0);
@@ -282,18 +283,19 @@ export default class Expediente extends Phaser.Scene {
     // Pie en UNA fila (fuente ×2): ← Regresar · Menú · I Datos · C Condiciones · Ficha ↗ … y el botón principal a la derecha.
     // Regresar = paso anterior (elegir destino); Menú = menú principal.
     const sec = { size: 14, origen: [0, 0.5], padX: 8 };
-    let x = 10;
-    const enFila = (etiqueta, accion, extra = {}) => {
-      const b = add(boton(this, x, Y_PIE, etiqueta, accion, { ...sec, ...extra }));
-      x += Math.max(64, b.medidas().w) + 8;
+    const x = { [Y_NAV]: 10, [Y_PIE]: 10 };
+    // Cada botón deja lugar para el «▶ » del foco de teclado (la caja crece hacia la derecha sin encimarse).
+    const enFila = (etiqueta, accion, extra = {}, y = Y_PIE) => {
+      const b = add(boton(this, x[y], y, etiqueta, accion, { ...sec, ...extra }));
+      x[y] += Math.max(64, b.medidas().w) + 18 + 8;
       return b;
     };
-    const regresar = enFila(tr('← Regresar', '← Back'), () => this.regresar());
-    const volver = enFila(tr('Menú', 'Menu'), () => irA(this, 'Menu'));
+    const regresar = enFila(tr('← Regresar', '← Back'), () => this.regresar(), {}, Y_NAV);
+    const volver = enFila(tr('Menú', 'Menu'), () => irA(this, 'Menu'), {}, Y_NAV);
     // Tickets (AGENTS.md §4): 3 por partida, sin reposición; volver a probar un sitio ya pagado no cuesta.
     const n = Math.max(0, partida.tickets | 0);
     const totalT = Math.max(TICKETS_POR_PARTIDA, n);
-    const yT = LISTA.panelY + LISTA.panelAlto + 14;
+    const yT = LISTA.panelY + LISTA.panelAlto + 8;
     const tT = add(txt(this, 20, yT + 2, 'TICKETS', { size: 14, color: P.sec }));
     const xi = 20 + Math.ceil(tT.width) + 12;
     const ic = iconosTickets(this, xi, yT + 13, n, totalT, { color: n ? P.accion : P.riesgo });

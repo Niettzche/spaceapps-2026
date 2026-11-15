@@ -5,6 +5,7 @@
 // - Se indexan por nombre de archivo sin extensión (`rueda_ancha.png` → 'rueda_ancha'), en cualquier subcarpeta de /assets.
 // - PNG solo = imagen o tira horizontal de cuadros; PNG + JSON con el mismo nombre = exportación de Aseprite.
 // - Todo se dibuja a 1 px de arte y se escala × ZOOM_ARTE.
+import { textoPixel } from '../scenes/comun/fuente.js';
 import { ZOOM_ARTE } from './escala.js';
 import { UMBRAL_INTEGRIDAD } from '../config/world.js';
 import { personalizacionActual, pinturaPorId } from '../scenes/Taller/personalizacion.js'; // cosmética (frente taller)
@@ -203,8 +204,7 @@ export class AspectoRobot {
     robot.colorChasis = color.figura; // figura de respaldo (robot.dibujar)
     if (this.chasis && this.claveChasis === p.chasis.id && color.tinte !== 0xffffff) this.chasis.setTint(color.tinte);
     this.nombre = nombre
-      ? scene.add.text(0, 0, nombre, { fontFamily: 'monospace', fontSize: '13px', color: '#ffffff', stroke: '#0b0d17', strokeThickness: 4 })
-        .setOrigin(0.5, 1).setDepth(12).setAlpha(0.9)
+      ? textoPixel(scene, 0, 0, nombre, { size: 14, color: '#ffffff', borde: true, origen: [0.5, 1] }).setDepth(12).setAlpha(0.9)
       : null;
     this.soporte = sprite(scene, p.carga.id, { profundidad: 11.2 }); // la ranura `carga` lleva el soporte
     this.carga = sprite(scene, 'carga', { profundidad: 11.4 });
