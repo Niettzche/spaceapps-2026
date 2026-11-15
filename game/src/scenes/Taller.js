@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { boton, irA } from './ui.js';
+import { irA } from './ui.js';
+import * as K from './comun/pixel.js'; // botones, chips, barras e íconos de arte (DISENO.md §2)
 import { PIEZAS, DESTINOS } from '../data.js';
 import { PRESUPUESTO_INICIAL } from '../config/world.js';
 import { partida } from '../main.js';
@@ -36,7 +37,9 @@ const TXT_MEDIO = 17; // nombres de pieza, encabezado del catálogo y presupuest
 // Posición de cada ranura en el esquema lateral (el robot avanza hacia la derecha). Columna izquierda: x 25–465;
 // termina antes de la fila de Regresar / Deshacer / Rehacer (y = BOTONES_Y).
 const ESQUEMA = {
-  modulo: { x: 395, y: 142, w: 140, h: 56 }, // 3 renglones: "Módulo" + "Panel solar (opcional)" en 2
+  // 3 renglones: "Módulo" + "Panel solar grande" en 2. Más ancha hacia la izquierda (x 292–465): a 140 px el nombre
+  // con ícono ocupaba 3 renglones y la caja se salía hacia la fila del presupuesto.
+  modulo: { x: 378, y: 142, w: 174, h: 56 },
   // Fila de arriba alta (86) para que quepan ícono + etiqueta + nombre de la pieza en 2–3 líneas a 16 px.
   motor: { x: 95, y: 216, w: 140, h: 86 },
   bateria: { x: 245, y: 216, w: 140, h: 86 },
@@ -79,11 +82,14 @@ const ICONOS = import.meta.glob('../../../assets/iconos/*.png', { eager: true, q
 const URL_ICONO = Object.fromEntries(Object.entries(ICONOS).map(([ruta, url]) => [ruta.split('/').pop().replace(/\.png$/, ''), url]));
 const claveIcono = (id) => `iconos/${id}`;
 
-// Columna derecha: la validación empieza bajo la tercera pieza y nunca baja de aquí (los botones están en y = BOTONES_Y).
-const VALIDACION_Y = FILA_Y + 3 * FILA_PASO + 4;
-const VALIDACION_MAX_Y = 462;
-// Fila de botones de abajo: 2 px más arriba que el 485 original para no rozar la nota de teclado (2 líneas desde y ≈ 495).
-const BOTONES_Y = 483;
+// Columna derecha bajo el catálogo (DISENO.md §3 Taller): fila de validación con keywords, agarre como 3 barras y
+// 3 números grandes (autonomía, masa, efecto del módulo en el destino). El detalle completo va al panel de ayuda (H / «?»).
+const VALIDACION_Y = FILA_Y + 3 * FILA_PASO + 2; // 358
+const AGARRE_Y = VALIDACION_Y + 30;               // 388
+const CIFRAS_Y = AGARRE_Y + 32;                   // 420
+// Fila de botones de abajo (cajas de arte de 42 px: y 469–511) y una sola línea de ayuda debajo (y ≈ 529).
+const BOTONES_Y = 490;
+const AYUDA_Y = 529;
 
 // Nombre de superficie para mostrar (los datos usan arena/roca/compacto).
 const SUPERFICIE_EN = { arena: 'sand', roca: 'rock', compacto: 'compact' };
@@ -127,12 +133,6 @@ function zonaToque(obj, x, y, w, h) {
     return obj;
   }
   return obj.setInteractive({ hitArea: zona, hitAreaCallback: Phaser.Geom.Rectangle.Contains, useHandCursor: true });
-}
-/** Zona centrada en el objeto, de al menos `ancho` × `alto`. */
-function zonaCentrada(obj, ancho, alto) {
-  const w = Math.max(obj.width, ancho);
-  const h = Math.max(obj.height, alto);
-  return zonaToque(obj, (obj.width - w) / 2, (obj.height - h) / 2, w, h);
 }
 
 export default class Taller extends Phaser.Scene {
@@ -191,7 +191,7 @@ export default class Taller extends Phaser.Scene {
     this.add.text(480, 42, sub, {
       fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.suave, align: 'center', wordWrap: { width: 930 },
     }).setOrigin(0.5, 0);
-    this.txtPresupuesto = this.add.text(480, 98, '', { fontFamily: FUENTE, fontSize: `${TXT_MEDIO}px`, color: C.claro }).setOrigin(0.5);
+    this.crearPresupuesto();
 
     this.crearPersonalizacion();
     this.crearEsquema();
@@ -211,44 +211,30 @@ export default class Taller extends Phaser.Scene {
     this.input.on('wheel', (puntero, _objs, _dx, dy) => {
       if (puntero.x >= CAT_X && puntero.y >= FILA_Y && puntero.y <= FILA_Y + FILAS_VISIBLES * FILA_PASO) this.desplazar(Math.sign(dy));
     });
-    this.btnQuitar = this.add.text(945, CAT_Y, tr('[ Quitar ]', '[ Remove ]'), { fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.acento })
+    this.btnQuitar = this.add.text(937, CAT_Y, tr('Quitar', 'Remove'), { fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.acento })
       .setOrigin(1, 0.5).on('pointerdown', () => this.quitar());
+    this.cajaQuitar = this.cajaTexto(this.btnQuitar);
     // Crece hacia arriba y a la izquierda; abajo empieza la primera fila del catálogo (y >= 150).
     zonaToque(this.btnQuitar, this.btnQuitar.width - 130, -14, 135, this.btnQuitar.height + 18);
-    this.txtEstado = this.add.text(CAT_X, VALIDACION_Y, '', {
-      fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.ok, wordWrap: { width: 452 }, lineSpacing: 2,
-    });
-    this.txtValidacion = this.add.text(CAT_X, VALIDACION_Y, '', {
-      fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.claro, wordWrap: { width: 452 }, lineSpacing: 2,
-    });
+    this.crearResumen();
 
-    // Abajo a la izquierda (y BOTONES_Y, bajo el esquema): Regresar, Deshacer y Rehacer, en fila con 24 px entre botones.
-    // Zonas de toque de 62 px de alto y 10 px de más a cada lado: no se tocan entre sí ni con Restablecer (x ≥ 467).
-    const fila = [
-      this.btnRegresar = boton(this, 0, BOTONES_Y, tr('← Regresar', '← Back'), () => this.regresar()),
-      this.btnDeshacer = boton(this, 0, BOTONES_Y, tr('Deshacer', 'Undo'), () => this.deshacer()),
-      this.btnRehacer = boton(this, 0, BOTONES_Y, tr('Rehacer', 'Redo'), () => this.rehacer()),
-    ];
-    let x = 18;
-    for (const b of fila) {
-      b.setFontSize(16).setOrigin(0, 0.5).setX(x);
-      zonaToque(b, -10, (b.height - 62) / 2, b.width + 20, 62);
-      x += b.width + 24;
-    }
+    // Abajo a la izquierda (y BOTONES_Y, bajo el esquema): Regresar, Deshacer y Rehacer con caja de arte (DISENO.md §2.6).
+    // Zona táctil = la caja (≥ 64 × 44) + 6 px arriba y abajo; no se tocan entre sí ni con Restablecer.
+    const opc = { size: TXT, alto: 42, origen: [0, 0.5], zonaExtra: [0, 4] };
+    this.btnRegresar = K.boton(this, 18, BOTONES_Y, tr('← Regresar', '← Back'), () => this.regresar(), opc);
+    this.btnDeshacer = K.boton(this, 0, BOTONES_Y, tr('Deshacer', 'Undo'), () => this.deshacer(), opc);
+    this.btnRehacer = K.boton(this, 0, BOTONES_Y, tr('Rehacer', 'Redo'), () => this.rehacer(), opc);
+    this.btnDeshacer.mover(18 + this.btnRegresar.ancho + 12);
+    this.btnRehacer.mover(this.btnDeshacer.caja.x + this.btnDeshacer.ancho + 12);
 
-    // Botones de abajo (y BOTONES_Y): zona de 62 px de alto (y 452–514) y 12 px de más a cada lado; no toca la columna del catálogo.
-    const btnRestablecer = boton(this, 560, BOTONES_Y, tr('Restablecer', 'Reset'), () => this.restablecer());
-    zonaCentrada(btnRestablecer, btnRestablecer.width + 24, 62);
-    this.btnContinuar = boton(this, 790, BOTONES_Y, tr('Probar el robot', 'Test the robot'), () => this.continuar());
-    zonaCentrada(this.btnContinuar, this.btnContinuar.width + 24, 62);
-    // Ayuda de teclado en 2 líneas a 16 px (antes nota() de ui.js a 12 px). "Valores de juego" va en la línea del
-    // presupuesto y "cada eje lleva 2 ruedas" en el precio de las ruedas ("× 2") y al final de la validación.
-    this.add.text(480, 499, tr(
-      '←/→ ranura · ↑/↓ pieza · Enter equipar · Supr quitar · R restablecer\n'
-        + 'C probar · P pintura · N nombre · Ctrl+Z deshacer · Ctrl+Y rehacer · Esc regresar',
-      '←/→ slot · ↑/↓ part · Enter equip · Del remove · R reset\n'
-        + 'C test · P paint · N name · Ctrl+Z undo · Ctrl+Y redo · Esc back',
-    ), { fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.apagado, align: 'center' }).setOrigin(0.5, 0);
+    // Restablecer y Probar (el botón principal, más ancho), a la derecha bajo la columna del catálogo.
+    this.btnRestablecer = K.boton(this, 590, BOTONES_Y, tr('Restablecer', 'Reset'), () => this.restablecer(), { size: TXT, alto: 42, zonaExtra: [0, 4] });
+    this.btnContinuar = K.boton(this, 945, BOTONES_Y, tr('Probar el robot', 'Test the robot'), () => this.continuar(),
+      { size: 18, alto: 42, origen: [1, 0.5], anchoMin: 240, zonaExtra: [0, 4] });
+    // Ayuda de teclado en 1 línea; el resto (y el detalle de los números) en el panel «?» / H (DISENO.md §3 Taller).
+    // La misma línea muestra los avisos (recomendación aplicada, deshacer, ejes distintos) mientras haya uno.
+    this.txtAyuda = this.add.text(480, AYUDA_Y, '', { fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.apagado, align: 'center' }).setOrigin(0.5);
+    this.btnAyuda = K.boton(this, 945, 22, tr('? Ayuda', '? Help'), () => this.alternarAyuda(), { size: TXT, alto: 39, origen: [1, 0.5], color: K.P.dato });
 
     const k = this.input.keyboard;
     // A veces Phaser entrega el mismo keydown nativo dos veces (dos updates del plugin antes de vaciar la cola): con P eso
@@ -274,7 +260,8 @@ export default class Taller extends Phaser.Scene {
     // preventDefault: si no, la propia "n" se escribe en el campo de texto que se enfoca durante este mismo keydown.
     on('keydown-N', (ev) => { if (!conModificador(ev)) { ev.preventDefault(); this.abrirNombre(); } });
     this.events.once('shutdown', () => this.cerrarNombre());
-    on('keydown-ESC', () => this.regresar());
+    on('keydown-ESC', () => (this.ayuda ? this.alternarAyuda() : this.regresar()));
+    on('keydown-H', (ev) => { if (!conModificador(ev)) this.alternarAyuda(); });
     // Ctrl+Z deshacer · Ctrl+Y o Ctrl+Shift+Z rehacer (Cmd en Mac).
     on('keydown', (ev) => {
       if (!(ev.ctrlKey || ev.metaKey) || ev.altKey) return;
@@ -438,10 +425,8 @@ export default class Taller extends Phaser.Scene {
   rehacer() { this.aplicarPaso(this.hist.rehacer(), 'Rehecho', 'Redone'); }
 
   refrescarHistorial() {
-    for (const [b, activo] of [[this.btnDeshacer, this.hist.puedeDeshacer], [this.btnRehacer, this.hist.puedeRehacer]]) {
-      b.setColor(activo ? C.acento : C.apagado).setAlpha(activo ? 1 : 0.6);
-      if (b.input) b.input.cursor = activo ? 'pointer' : 'default';
-    }
+    this.btnDeshacer.setHabilitado(this.hist.puedeDeshacer);
+    this.btnRehacer.setHabilitado(this.hist.puedeRehacer);
   }
 
   refrescarCatalogo() {
@@ -505,64 +490,175 @@ export default class Taller extends Phaser.Scene {
     const diseno = comoDiseno(this.mapa);
     const res = resumen(diseno, PIEZAS, { masaCarga: MASA_CARGA_KG });
     const errores = validar(diseno, PIEZAS, this.presupuesto, { en: enIngles() });
+    this.res = res;
+    this.errores = errores;
     const restante = this.presupuesto - res.costo;
-    this.txtPresupuesto.setText(tr(
-      `Costo ${res.costo} / ${this.presupuesto} cr · Restante ${restante} · Masa ${res.masa} kg + carga ${MASA_CARGA_KG} kg (valores de juego)`,
-      `Cost ${res.costo} / ${this.presupuesto} cr · Left ${restante} · Mass ${res.masa} kg + cargo ${MASA_CARGA_KG} kg (game values)`,
-    ));
-    this.txtPresupuesto.setColor(restante < 0 ? C.error : C.claro);
+    // Presupuesto: barra + número (DISENO.md §2.4); en rojo si se pasa.
+    const pasado = restante < 0;
+    this.barraPresupuesto.fijar(res.costo / this.presupuesto, pasado ? K.P.riesgo : K.P.accion);
+    this.txtCosto.setText(`${res.costo} / ${this.presupuesto} cr`).setColor(pasado ? C.error : C.texto);
+    this.txtRestante.setText(pasado ? tr(`excede ${-restante}`, `over by ${-restante}`) : tr(`quedan ${restante}`, `${restante} left`))
+      .setX(this.txtCosto.x + this.txtCosto.width + 12).setColor(pasado ? C.error : C.apagado);
 
-    // 1) Estado (✓ / ✗ con errores). Si los errores no caben en 2 líneas, se resumen con "(+N más)".
-    const estado = (n) => (errores.length
-      ? `✗ ${errores.slice(0, n).join(' · ')}${errores.length > n ? tr(` · (+${errores.length - n} más)`, ` · (+${errores.length - n} more)`) : ''}`
-      : tr('✓ Diseño válido', '✓ Valid design'));
-    let n = errores.length;
-    this.txtEstado.setText(estado(n)).setColor(errores.length ? C.error : C.ok);
-    while (n > 1 && this.txtEstado.height > 42) { n -= 1; this.txtEstado.setText(estado(n)); }
-
-    // 2) Aviso y resumen debajo; si no caben antes de los botones, se quitan líneas de resumen desde el final.
-    const a = res.agarre;
-    const lineas = [
-      ...(this.aviso ? [this.aviso] : []),
-      ...(res.ejes_distintos
-        ? [[this.mapa.rueda_del, this.mapa.rueda_tras].includes('rueda_ancha')
-          ? tr('Ejes distintos: con las dos anchas es más seguro.', 'Mixed axles: two wide axles are safer.')
-          : tr('Ejes distintos: con las dos ruedas iguales es más seguro.', 'Mixed axles: matching wheels on both are safer.')]
-        : []),
-      // Mismos datos que antes, en renglones cortos para 16 px; si no caben antes de los botones, se quitan desde el final.
-      // El agarre que muestra el taller es el de la PIEZA (promedio de ejes); en la física se multiplica por el del suelo.
-      tr(
-        `Agarre ejes: arena ${f2(a.arena)} · roca ${f2(a.roca)} · comp. ${f2(a.compacto)}`,
-        `Axle grip: sand ${f2(a.arena)} · rock ${f2(a.roca)} · compact ${f2(a.compacto)}`,
-      ),
-      ...this.lineasDestino(res), // efecto del módulo en el destino: segunda línea, para que no se pierda
-      tr(
-        `Autonomía ≈ ${res.autonomia_s != null ? Math.round(res.autonomia_s) + ' s a fondo' : '—'}, con carga (P)`,
-        `Battery ≈ ${res.autonomia_s != null ? Math.round(res.autonomia_s) + ' s at full power' : '—'}, loaded (P)`,
-      ),
-      tr(
-        `Protección de carga ${res.proteccion != null ? Math.round(res.proteccion * 100) + ' %' : '—'} · Resistencia ${res.resistencia ?? '—'}`,
-        `Cargo protection ${res.proteccion != null ? Math.round(res.proteccion * 100) + ' %' : '—'} · Durability ${res.resistencia ?? '—'}`,
-      ),
-      tr(
-        `Fuerza/masa ${res.fuerza_por_masa != null ? res.fuerza_por_masa.toFixed(2) : '—'}`,
-        `Force/mass ${res.fuerza_por_masa != null ? res.fuerza_por_masa.toFixed(2) : '—'}`,
-      ),
-      tr('En la prueba: agarre² × agarre del suelo (P)', 'In the test: grip² × soil grip (P)'), // fisica/robot.js: friccionDeAgarre = agarre²
-      tr('Cada eje lleva 2 ruedas (2 × costo y masa)', 'Each axle takes 2 wheels (2 × cost and mass)'),
-    ];
-    this.txtValidacion.setY(VALIDACION_Y + this.txtEstado.height + 4);
-    this.txtValidacion.setText(lineas.join('\n'));
-    while (lineas.length && this.txtValidacion.y + this.txtValidacion.height > VALIDACION_MAX_Y) {
-      lineas.pop();
-      this.txtValidacion.setText(lineas.join('\n'));
-    }
+    // Ejes distintos: chip en la validación y la frase completa en la línea de abajo (y en el panel H).
+    this.lineaEjes = res.ejes_distintos
+      ? ([this.mapa.rueda_del, this.mapa.rueda_tras].includes('rueda_ancha')
+        ? tr('Ejes distintos: con las dos anchas es más seguro.', 'Mixed axles: two wide axles are safer.')
+        : tr('Ejes distintos: con las dos ruedas iguales es más seguro.', 'Mixed axles: matching wheels on both are safer.'))
+      : null;
+    this.refrescarResumen(res, errores);
     this.btnContinuar.setColor(errores.length ? C.apagado : C.acento);
     this.refrescarHistorial();
     this.refrescarPersonalizacion();
 
     this.refrescarEsquema();
     this.refrescarCatalogo();
+    this.cajaQuitar.ajustar();
+    // Una línea abajo: el aviso del momento (recomendación aplicada, deshacer, corregir) o, si no hay, la ayuda corta.
+    const aviso = this.aviso || this.lineaEjes;
+    this.txtAyuda.setText(aviso || tr('←/→ ranura · ↑/↓ pieza · Enter equipar · C probar · H ayuda',
+      '←/→ slot · ↑/↓ part · Enter equip · C test · H help')).setColor(aviso ? C.acento : C.apagado);
+    if (this.ayuda) this.dibujarAyuda();
+  }
+
+  // ---------- presupuesto, validación y cifras (vista principal) ----------
+  crearPresupuesto() {
+    const y = 98;
+    const etiqueta = this.add.text(25, y, tr('Presupuesto', 'Budget'), { fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.claro }).setOrigin(0, 0.5);
+    const x = etiqueta.x + etiqueta.width + 12;
+    this.barraPresupuesto = K.barra(this, x, y - 9, 252, 18, 0, K.P.accion);
+    this.txtCosto = this.add.text(x + 264, y, '', { fontFamily: FUENTE, fontSize: '20px', color: C.texto }).setOrigin(0, 0.5);
+    this.txtRestante = this.add.text(0, y, '', { fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.apagado }).setOrigin(0, 0.5);
+    // «Valores de juego»: los precios, masas y agarres no son datos de ingeniería (AGENTS.md §3.4).
+    this.add.text(945, y, tr('(P) valores de juego', '(P) game values'), { fontFamily: FUENTE, fontSize: '14px', color: C.apagado }).setOrigin(1, 0.5);
+  }
+
+  crearResumen() {
+    this.grupoResumen = this.add.container(0, 0);
+  }
+
+  /** Keywords de validación, agarre como 3 barras y 3 números grandes con ícono. */
+  refrescarResumen(res, errores) {
+    const g = this.grupoResumen;
+    g.removeAll(true);
+    // 1) Validación en keywords: «✓ Listo» o «✕ Falta batería» (la lista completa de errores está en el panel H).
+    const chips = [];
+    if (!errores.length) chips.push({ texto: tr('✓ Listo para probar', '✓ Ready to test'), color: K.P.bien, size: TXT });
+    else {
+      const faltan = RANURAS.filter((r) => r.obligatoria && !this.mapa[r.id]);
+      for (const r of faltan) chips.push({ texto: tr(`✕ Falta ${r.nombre.toLowerCase()}`, `✕ Missing ${String(trDato(r, 'nombre')).toLowerCase()}`), tipo: 'rojo', size: TXT });
+      if (res.costo > this.presupuesto) chips.push({ texto: tr(`✕ Excede ${res.costo - this.presupuesto} cr`, `✕ Over by ${res.costo - this.presupuesto} cr`), tipo: 'rojo', size: TXT });
+      if (!chips.length) chips.push({ texto: `✕ ${errores[0]}`, tipo: 'rojo', size: TXT });
+    }
+    if (res.ejes_distintos) chips.push({ texto: tr('⚠ Ejes distintos', '⚠ Mixed axles'), color: K.P.accion, size: TXT });
+    g.add(K.filaChips(this, CAT_X, VALIDACION_Y, chips, 945).objs);
+
+    // 2) Agarre de las ruedas (promedio de los ejes): 3 barras con su número; color = bien/regular/riesgo y siempre el número.
+    const a = res.agarre;
+    g.add(this.add.text(CAT_X, AGARRE_Y + 15, tr('Agarre', 'Grip'), { fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.claro }).setOrigin(0, 0.5));
+    ['arena', 'roca', 'compacto'].forEach((s, i) => {
+      const x0 = CAT_X + 72 + i * 128;
+      const v = a[s];
+      const color = v == null ? K.P.sec : v >= 0.7 ? K.P.bien : v >= 0.5 ? K.P.accion : K.P.riesgo;
+      const nombre = s === 'compacto' ? 'comp.' : sup(s);
+      g.add(this.add.text(x0, AGARRE_Y - 1, `${nombre} ${f2(v)}`, { fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.texto }));
+      g.add(K.barra(this, x0, AGARRE_Y + 19, 116, 12, v, color).objs);
+    });
+
+    // 3) Tres cifras grandes con ícono: autonomía, masa y lo que el destino le hace a este diseño (efecto del módulo).
+    const destino = DESTINOS[partida.destino];
+    const amb = destino ? ambienteDeDestino(destino.id, destino.mundo) : null;
+    const e = efectosEn(res, amb);
+    const mundo = destino ? (MUNDO()[destino.mundo] ?? destino.mundo) : '';
+    let efecto = null;
+    if (e) {
+      if (res.radiador) efecto = { n: pct(e.potencia_caliente), k: tr('motor caliente', 'hot motor'), ico: 'iconos/ico_temperatura' };
+      else if (res.aislamiento) efecto = { n: pct(e.bateria), k: tr(`batería · ${mundo}`, `battery · ${mundo}`), ico: 'iconos/ico_temperatura' };
+      else if (e.recarga_s) efecto = { n: `+${e.recarga_s.toFixed(2)}/s`, k: tr('panel solar', 'solar panel'), ico: 'iconos/ico_luz' };
+      else efecto = { n: pct(e.bateria), k: tr(`batería · ${mundo}`, `battery · ${mundo}`), ico: 'iconos/ico_temperatura' };
+    }
+    const cifras = [
+      { n: res.autonomia_s != null ? `${Math.round(res.autonomia_s)} s` : '—', k: tr('autonomía (P)', 'run time (P)'), ico: 'ui/ui_icono_energia', esc: 2, resp: '⚡' },
+      { n: `${res.masa} kg`, k: tr(`+${MASA_CARGA_KG} kg de carga`, `+${MASA_CARGA_KG} kg payload`), ico: 'iconos/ico_gravedad', esc: 1, resp: '↓' },
+      ...(efecto ? [{ ...efecto, esc: 1, resp: '°' }] : []),
+    ];
+    cifras.forEach((c, i) => {
+      const x0 = CAT_X + i * 154;
+      g.add(K.icono(this, x0 + 9, CIFRAS_Y + 13, c.ico, { escala: c.esc, respaldo: c.resp }));
+      g.add(this.add.text(x0 + 22, CIFRAS_Y, c.n, { fontFamily: FUENTE, fontSize: '22px', color: C.texto }));
+      g.add(this.add.text(x0, CIFRAS_Y + 27, c.k, { fontFamily: FUENTE, fontSize: '14px', color: C.apagado }));
+    });
+  }
+
+  /** Líneas del detalle (panel H): todo lo que antes estaba escrito en la columna, con unidades y (P). */
+  lineasDetalle() {
+    const res = this.res;
+    const a = res.agarre;
+    const ej = res.agarre_ejes;
+    return [
+      tr(`Costo ${res.costo} / ${this.presupuesto} cr · Restante ${this.presupuesto - res.costo} · Masa ${res.masa} kg + carga ${MASA_CARGA_KG} kg`,
+        `Cost ${res.costo} / ${this.presupuesto} cr · Left ${this.presupuesto - res.costo} · Mass ${res.masa} kg + cargo ${MASA_CARGA_KG} kg`),
+      tr(`Agarre ejes: arena ${f2(a.arena)} · roca ${f2(a.roca)} · comp. ${f2(a.compacto)} (promedio de los dos ejes)`,
+        `Axle grip: sand ${f2(a.arena)} · rock ${f2(a.roca)} · compact ${f2(a.compacto)} (average of both axles)`),
+      tr(`  delantero ${f2(ej.del.arena)} / ${f2(ej.del.roca)} / ${f2(ej.del.compacto)} · trasero ${f2(ej.tras.arena)} / ${f2(ej.tras.roca)} / ${f2(ej.tras.compacto)}`,
+        `  front ${f2(ej.del.arena)} / ${f2(ej.del.roca)} / ${f2(ej.del.compacto)} · rear ${f2(ej.tras.arena)} / ${f2(ej.tras.roca)} / ${f2(ej.tras.compacto)}`),
+      ...this.lineasDestino(res),
+      tr(`Autonomía ≈ ${res.autonomia_s != null ? Math.round(res.autonomia_s) + ' s a fondo' : '—'}, con carga (P)`,
+        `Battery ≈ ${res.autonomia_s != null ? Math.round(res.autonomia_s) + ' s at full power' : '—'}, loaded (P)`),
+      tr(`Protección de carga ${res.proteccion != null ? Math.round(res.proteccion * 100) + ' %' : '—'} · Resistencia ${res.resistencia ?? '—'} · Fuerza/masa ${res.fuerza_por_masa != null ? res.fuerza_por_masa.toFixed(2) : '—'}`,
+        `Cargo protection ${res.proteccion != null ? Math.round(res.proteccion * 100) + ' %' : '—'} · Durability ${res.resistencia ?? '—'} · Force/mass ${res.fuerza_por_masa != null ? res.fuerza_por_masa.toFixed(2) : '—'}`),
+      tr('En la prueba: agarre² × agarre del suelo (P) · Cada eje lleva 2 ruedas (2 × costo y masa)',
+        'In the test: grip² × soil grip (P) · Each axle takes 2 wheels (2 × cost and mass)'),
+      ...(this.lineaEjes ? [this.lineaEjes] : []),
+      this.errores.length ? `✕ ${this.errores.join(' · ')}` : tr('✓ Diseño válido', '✓ Valid design'),
+    ];
+  }
+
+  alternarAyuda() {
+    if (this.ayuda) { this.ayuda.forEach((o) => o.destroy()); this.ayuda = null; return; }
+    this.dibujarAyuda();
+  }
+
+  /** Panel de ayuda (tecla H o «? Ayuda»): teclado completo + detalle de los números del diseño. */
+  dibujarAyuda() {
+    this.ayuda?.forEach((o) => o.destroy());
+    const capa = this.add.rectangle(480, 270, 960, 540, 0x05060c, 0.72).setDepth(40).setInteractive();
+    capa.on('pointerdown', () => this.alternarAyuda());
+    const texto = [
+      tr('Teclado', 'Keyboard'),
+      tr('←/→ ranura · ↑/↓ pieza · Enter equipar · Supr quitar · R restablecer',
+        '←/→ slot · ↑/↓ part · Enter equip · Del remove · R reset'),
+      tr('C probar · P pintura · N nombre · Ctrl+Z deshacer · Ctrl+Y rehacer · Esc regresar',
+        'C test · P paint · N name · Ctrl+Z undo · Ctrl+Y redo · Esc back'),
+      '',
+      tr('Detalle del diseño (valores de juego, P)', 'Design detail (game values, P)'),
+      ...this.lineasDetalle(),
+      '',
+      tr('H / Esc / clic: cerrar', 'H / Esc / click: close'),
+    ].join('\n');
+    const t = this.add.text(96, 0, texto, {
+      fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.texto, lineSpacing: 5, wordWrap: { width: 768, useAdvancedWrap: true },
+    }).setDepth(42);
+    const alto = t.height + 48;
+    const y0 = Math.max(12, Math.round(270 - alto / 2));
+    t.setY(y0 + 24);
+    const marco = K.panel(this, 72, y0, 816, alto).setDepth(41);
+    this.ayuda = [capa, marco, t];
+  }
+
+  /** Caja de arte detrás de un botón de texto pequeño (Quitar, Nombre); sigue su posición y visibilidad. */
+  cajaTexto(t) {
+    const caja = { obj: null };
+    caja.ajustar = () => {
+      caja.obj?.destroy();
+      const b = t.getBounds();
+      caja.obj = K.nueve(this, 'ui/ui_boton', Math.round(b.x - 9), Math.round(b.centerY - 15), b.width + 18, 30, 4, 3)
+        ?? this.add.rectangle(b.x - 9, b.centerY - 15, b.width + 18, 30, 0x262d4a).setOrigin(0, 0).setStrokeStyle(1, ACENTO);
+      caja.obj.setVisible(t.visible);
+      this.children.moveBelow(caja.obj, t);
+    };
+    caja.ajustar();
+    return caja;
   }
 
   /**
@@ -599,10 +695,11 @@ export default class Taller extends Phaser.Scene {
       return { pint, cuadro };
     });
     this.txtNombre = this.add.text(PERS_X, PERS_Y2, '', { fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.texto }).setOrigin(0, 0.5);
-    this.btnNombre = this.add.text(0, PERS_Y2, tr('[ Nombre ]', '[ Name ]'), { fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.acento })
+    this.btnNombre = this.add.text(0, PERS_Y2, tr('Nombre', 'Name'), { fontFamily: FUENTE, fontSize: `${TXT}px`, color: C.acento })
       .setOrigin(0, 0.5).on('pointerdown', () => this.abrirNombre());
     // Zona y 144–172: no toca las muestras (hasta y 143) ni la fila del motor (desde y 173).
     zonaToque(this.btnNombre, -8, (this.btnNombre.height - 28) / 2, this.btnNombre.width + 16, 28);
+    this.cajaNombre = this.cajaTexto(this.btnNombre);
   }
 
   refrescarPersonalizacion() {
@@ -615,7 +712,8 @@ export default class Taller extends Phaser.Scene {
       cuadro.setStrokeStyle(elegida ? 3 : 2, elegida ? ACENTO : BORDE).setScale(elegida ? 1.15 : 1);
     }
     this.txtNombre.setText(nombre ? `«${nombre}»` : tr('(sin nombre)', '(no name)')).setColor(nombre ? C.texto : C.apagado);
-    this.btnNombre.setX(PERS_X + this.txtNombre.width + 12);
+    this.btnNombre.setX(PERS_X + this.txtNombre.width + 18);
+    this.cajaNombre?.ajustar();
     // Vista previa en el esquema: el chasis toma la pintura (solo color, como en la prueba).
     const base = pintura.id === PINTURAS[0].id;
     this.ranurasUI?.chasis?.forma.setFillStyle(base ? RELLENO : pintura.figura, base ? 1 : 0.35);

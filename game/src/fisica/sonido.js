@@ -195,9 +195,9 @@ export class Sonido {
     this.ultimo = new Map(); // tipo → tiempo del último golpe (s de audio)
     this.tActualizado = 0;
 
-    // Botón "♪" bajo [ Abandonar ] y tecla M.
-    this.boton = scene.add.text(944, 70, '', { fontFamily: 'monospace', fontSize: '12px', color: '#9aa4c7' })
-      .setOrigin(1, 0).setScrollFactor(0).setDepth(95).setInteractive({ useHandCursor: true });
+    // Botón "♪" (18 px, DISENO.md §2.1) y tecla M. Recorrido lo coloca debajo de «Abandonar».
+    this.boton = scene.add.text(944, 70, '', { fontFamily: 'monospace', fontSize: '18px', color: '#a3abcc' })
+      .setOrigin(1, 0.5).setScrollFactor(0).setDepth(95).setPadding(10, 8).setInteractive({ useHandCursor: true });
     this.boton.on('pointerdown', () => alternarSilencio());
     this.alTecla = () => alternarSilencio();
     scene.input.keyboard?.on('keydown-M', this.alTecla);
