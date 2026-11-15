@@ -30,6 +30,9 @@ const TABLA = {
   rueda_tacos: { ancho: 7, cuadros: [1, 4] },
   rueda_malla: { ancho: 8, cuadros: [1, 4] }, // malla tipo LRV (Mauricio, #72)
   rueda_grousers: { ancho: 7, cuadros: [1, 4] }, // arte de #72; hoy ninguna pieza usa este id
+  rueda_nitinol: { ancho: 7, cuadros: [1, 4] }, // pendiente de arte (SPRITES_PENDIENTES.md): hoy usa RESPALDO_ARTE
+  chasis_titanio: { ancho: 24, cuadros: [1, 2] }, // pendiente de arte: hoy usa RESPALDO_ARTE
+  chasis_carbono: { ancho: 24, cuadros: [1, 2] }, // pendiente de arte: hoy usa RESPALDO_ARTE
   soporte_basico: { ancho: 10, cuadros: [1] },
   soporte_correas: { ancho: 10, cuadros: [1] }, // pendiente de arte (docs/arte/SPRITES_PENDIENTES.md): hoy usa la figura
   soporte_amortiguado: { ancho: 10, cuadros: [1] },
@@ -44,6 +47,23 @@ const TABLA = {
 for (const chasis of ['chasis_ligero', 'chasis_reforzado']) {
   for (const color of ['rojo', 'azul', 'verde', 'amarillo', 'morado']) TABLA[`${chasis}_${color}`] = { ancho: 24, cuadros: [1, 2] };
 }
+/**
+ * Piezas sin sprite propio todavía (docs/arte/SPRITES_PENDIENTES.md): usan el sprite de otra pieza teñido, para que en
+ * el Taller y en la prueba se vean distintas de la original. Cuando llegue el arte propio, se usa ese y esto se ignora.
+ */
+export const RESPALDO_ARTE = {
+  chasis_titanio: { base: 'chasis_ligero', tinte: 0xb4c0d4 }, // gris titanio
+  chasis_carbono: { base: 'chasis_ligero', tinte: 0x5c6274 }, // gris carbón
+  rueda_nitinol: { base: 'rueda_malla', tinte: 0xc8dcff }, // plateado
+};
+
+/** Arte de una pieza: { nombre, tinte } con su sprite propio o el de respaldo; null si no hay ninguno. */
+export function arteDePieza(scene, id) {
+  if (hayArte(scene, id)) return { nombre: id, tinte: null };
+  const r = RESPALDO_ARTE[id];
+  return r && hayArte(scene, r.base) ? { nombre: r.base, tinte: r.tinte } : null;
+}
+
 const SUPERFICIES = ['arena', 'roca', 'compacto'];
 const ES_TILE = /^(tierra|marte|luna)_(arena|roca|compacto)(_borde)?$/;
 const ES_FONDO = /^fondo_[a-z0-9_]+_[123]$/;
@@ -198,17 +218,29 @@ export class AspectoRobot {
     // Con la variante de arte (chasis_<id>_<color>) se usa ese sprite; si no, el sprite base teñido; sin arte, la figura.
     const { pintura, nombre } = personalizacionActual();
     const color = pinturaPorId(pintura);
-    this.claveChasis = hayArte(scene, `${p.chasis.id}_${color.id}`) ? `${p.chasis.id}_${color.id}` : p.chasis.id;
+    // Chasis sin sprite propio (titanio, carbono): el de respaldo teñido (RESPALDO_ARTE); la pintura manda si hay una.
+    const arteChasis = arteDePieza(scene, p.chasis.id);
+    const baseChasis = arteChasis?.nombre ?? p.chasis.id;
+    this.claveChasis = hayArte(scene, `${p.chasis.id}_${color.id}`) ? `${p.chasis.id}_${color.id}` : baseChasis;
     this.chasis = sprite(scene, this.claveChasis, { profundidad: 11 });
     robot.colorChasis = color.figura; // figura de respaldo (robot.dibujar)
-    if (this.chasis && this.claveChasis === p.chasis.id && color.tinte !== 0xffffff) this.chasis.setTint(color.tinte);
+    if (this.chasis && this.claveChasis === baseChasis) {
+      const tinte = color.tinte !== 0xffffff ? color.tinte : arteChasis?.tinte;
+      if (tinte != null) this.chasis.setTint(tinte);
+    }
     this.nombre = nombre
       ? scene.add.text(0, 0, nombre, { fontFamily: 'monospace', fontSize: '13px', color: '#ffffff', stroke: '#0b0d17', strokeThickness: 4 })
         .setOrigin(0.5, 1).setDepth(12).setAlpha(0.9)
       : null;
     this.soporte = sprite(scene, p.carga.id, { profundidad: 11.2 }); // la ranura `carga` lleva el soporte
     this.carga = sprite(scene, 'carga', { profundidad: 11.4 });
-    this.ruedas = robot.ruedas.map((w) => sprite(scene, w.pieza.id, { profundidad: 11.6 }));
+    // Ruedas: sprite propio o el de respaldo teñido (rueda de Nitinol → malla plateada).
+    this.clavesRueda = robot.ruedas.map((w) => arteDePieza(scene, w.pieza.id));
+    this.ruedas = this.clavesRueda.map((a) => {
+      const s = a ? sprite(scene, a.nombre, { profundidad: 11.6 }) : null;
+      if (s && a.tinte != null) s.setTint(a.tinte);
+      return s;
+    });
     this.omitir = { chasis: !!this.chasis, soporte: !!this.soporte, carga: !!this.carga, ruedas: this.ruedas.map(Boolean) };
     // Calcomanías de motor, batería y módulo (si el arte existe), encima del chasis.
     this.decos = Object.entries(POS_DECO)
@@ -253,7 +285,7 @@ export class AspectoRobot {
     r.ruedas.forEach((w, i) => {
       const s = this.ruedas[i];
       if (!s) return;
-      const n = cuadros(this.scene, w.pieza.id);
+      const n = cuadros(this.scene, this.clavesRueda[i].nombre);
       s.setPosition(w.cuerpo.position.x, w.cuerpo.position.y).setFrame(n[cuadroDeRueda(w.cuerpo.angle, n.length)]);
     });
   }
