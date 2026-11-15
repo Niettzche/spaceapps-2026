@@ -74,7 +74,7 @@ test('porQueModelo: filas con valores de data/sites; «sin dato» o «no aplica�
   // Mina con borde negativo y novedoso.
   const mina = Object.fromEntries(porQueModelo(sitio('mx0019')).map((x) => [x.clave, x]));
   assert.match(mina.borde.valor, /^no \(−2\.7 m\)/);
-  assert.match(mina.novedoso.valor, /^SÍ/);
+  assert.equal(mina.novedoso.valor, 'sin verificar'); // #100 (Mario): los tajos mineros ya no se marcan como novedosos
   setIdioma('en');
   const en = Object.fromEntries(porQueModelo(sitio('g00266')).map((x) => [x.clave, x]));
   assert.match(en.forma.valor, /twin: Gale crater \(Mars\)/);
@@ -84,7 +84,7 @@ test('porQueModelo: filas con valores de data/sites; «sin dato» o «no aplica�
 
 test('chipsPorQue: solo lo que hay', () => {
   setIdioma('es');
-  assert.deepEqual(chipsPorQue(sitio('mx0019')).map((c) => c.texto), ['d/D 0.12', 'SIN BORDE', 'ÁRIDO ✓', 'NOVEDOSO']);
+  assert.deepEqual(chipsPorQue(sitio('mx0019')).map((c) => c.texto), ['d/D 0.12', 'SIN BORDE', 'ÁRIDO ✓']); // #100: tajo, no novedoso
   assert.deepEqual(chipsPorQue(sitio('samalayuca')), []);
 });
 
