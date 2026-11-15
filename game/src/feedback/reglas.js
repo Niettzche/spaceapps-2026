@@ -45,6 +45,16 @@ export function recomendar(resultado, motivo) {
   const contar = (tipo, detalle) => ev.filter((e) => e.tipo === tipo && (detalle === undefined || e.detalle === detalle)).length;
   const d = resultado.diseno ?? [];
   const recs = [];
+  // Atasco en reversa o sin salir del inicio (recorrido.js, `atasco_reversa`): el robot no probó el terreno; no se culpa a
+  // las piezas. Se recomienda avanzar. Respaldo si falta el evento: atascado a menos de 3 m del inicio.
+  if (motivo === 'atascado' && (contar('atasco_reversa') > 0 || (resultado.distancia_m ?? Infinity) < 3)) {
+    return [{
+      id: 'avanzar',
+      texto: tr('Acelera hacia adelante (→ o D): el robot se quedó en el inicio.', 'Drive forward (→ or D): the rover stayed at the start.'),
+      evidencia: tr(`Avanzó ${Math.round(resultado.distancia_m ?? 0)} m; el atasco fue en reversa o contra la pared del inicio, no por las piezas.`,
+        `It moved ${Math.round(resultado.distancia_m ?? 0)} m; it got stuck in reverse or against the start wall, not because of its parts.`),
+    }];
+  }
 
   const patinaArena = contar('patinaje', 'arena');
   if (patinaArena > 0 && !usaPieza(d, 'rueda_ancha')) {

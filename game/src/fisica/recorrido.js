@@ -26,6 +26,7 @@ const SEG_QUIETO_ENTREGA = 2; // la entrega exige 2 s detenido en la zona
 // Atasco: si el robot no gana 1.5 m de avance en 15 s, la prueba termina (evita esperar a que se agote la batería). (P)
 const SEG_ATASCO = 15;
 const M_AVANCE_ATASCO = 1.5;
+const M_INICIO_ATASCO = 3; // atasco a menos de 3 m del inicio = no avanzó (reversa contra la pared) (P)
 const SEG_SIN_ENERGIA_FIN = 5; // sin energía, la partida termina al detenerse o a los 5 s (atascado contra el borde del nivel) (P)
 const ESPERA_FIN_MS = 1400;
 
@@ -225,9 +226,16 @@ export class Recorrido {
     this.tSinEnergia = r.sinEnergia ? this.tSinEnergia + delta / 1000 : 0;
     if (r.sinEnergia && (r.quieto(0.4) || this.tSinEnergia >= SEG_SIN_ENERGIA_FIN)) return this._terminar(false, 'energia_agotada');
     // Atasco: sin avanzar a pesar de seguir en marcha (p. ej. patinando contra una duna).
-    if (x_m > this.mejorX + M_AVANCE_ATASCO) { this.mejorX = x_m; this.tMejorX = r.t; }
+    if (x_m > this.mejorX + M_AVANCE_ATASCO) { this.mejorX = x_m; this.tMejorX = r.t; this.tReversa = 0; }
+    else if (acelerador < 0) this.tReversa = (this.tReversa ?? 0) + delta / 1000; // reversa contra la pared del inicio
     else if (acelerador === 0) this.tMejorX += delta / 1000; // quieto a propósito no cuenta como atasco
-    if (!this.enZona(r, x_m) && r.t - this.tMejorX > SEG_ATASCO) return this._terminar(false, 'atascado');
+    if (!this.enZona(r, x_m) && r.t - this.tMejorX > SEG_ATASCO) {
+      // Atasco en reversa o sin salir del inicio: no es culpa de las piezas (feedback/reglas.js, diagnostico.js).
+      if ((this.tReversa ?? 0) > SEG_ATASCO / 3 || r.distancia_m < M_INICIO_ATASCO) {
+        this.telemetria.registrar(r.t, 'atasco_reversa', `${Math.round(r.distancia_m)} m`);
+      }
+      return this._terminar(false, 'atascado');
+    }
 
     if (this.o.modo === 'prueba') {
       if (x_m >= this.meta_m) this._terminar(true, 'meta');

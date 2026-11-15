@@ -3,6 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { recomendar, leerHundimiento, textoHundimiento } from './reglas.js';
 import { compararAnalogia } from './analogia.js';
+import { diagnosticar } from './diagnostico.js';
 import { setIdioma } from '../i18n.js';
 
 setIdioma('es');
@@ -33,6 +34,18 @@ test('hundimiento sin patinaje también recomienda ruedas anchas; empuje insufic
 test('sin eventos de física 2 nada cambia', () => {
   const recs = recomendar({ diseno: estandar, eventos: [ev('patinaje', 'arena')] }, 'atascado');
   assert.equal(recs[0].evidencia, 'Tus ruedas patinaron 1 vez en arena.');
+});
+
+test('atasco en reversa o en el inicio: recomienda avanzar, no cambiar piezas (bug de Leo)', () => {
+  const base = { diseno: estandar, distancia_m: 0.4, eventos: [ev('patinaje', 'arena'), ev('atasco_reversa', '0 m')] };
+  const recs = recomendar(base, 'atascado');
+  assert.equal(recs.length, 1);
+  assert.equal(recs[0].id, 'avanzar');
+  assert.ok(!recs[0].cambio);
+  assert.match(diagnosticar({ motivo: 'atascado', exito: false, resultado: base }).detalle, /no salió del inicio/);
+  // Sin el evento pero a menos de 3 m: mismo caso. Atascado lejos del inicio: las reglas de siempre.
+  assert.equal(recomendar({ ...base, eventos: [ev('patinaje', 'arena')] }, 'atascado')[0].id, 'avanzar');
+  assert.equal(recomendar({ ...base, distancia_m: 40, eventos: [ev('patinaje', 'arena')] }, 'atascado')[0].id, 'rueda_ancha');
 });
 
 test('dónde se rompe la analogía: hundimiento en la prueba y en la misión', () => {
