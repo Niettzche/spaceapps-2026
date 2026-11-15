@@ -3,7 +3,21 @@
 > Lo actualiza SOLO este frente. Rama: `feat/modelo`.
 
 **Responsable:** Mario  ·  **Agente:** Claude Code / Codex
-**Última actualización:** 15 nov 2026, madrugada (demo publicada en https://v1.marsception.us/)
+**Última actualización:** 15 nov 2026 (landing con divulgación científica en `informe/divulgacion/`)
+
+## Hecho (landing con divulgación científica, 15 nov)
+- **`informe/divulgacion/`: landing del juego con la ciencia explicada** (Vite, bilingüe con `?lang=en`, tema oscuro y claro).
+  Portada inspirada en la pantalla de inicio del juego (pixel art animado, con el rover del juego), cómo se juega con capturas
+  reales, los dos destinos, la ciencia como **infografía de museo en pixel art** (medimos, comparamos, revisamos el borde, y lo que
+  la Tierra no puede imitar; imprimible como cartel), «Lo que encontramos y lo que aportamos» (cifras en dígitos de píxel sobre el
+  cielo de la portada), detalles técnicos plegables, Marsception for Business y fuentes. Scroll suave con Lenis.
+- Cifras: `informe/divulgacion/preparar_datos.py` genera `public/datos/` y comprueba cada cifra del texto contra
+  `model/VALIDATION.md`, `model/NIVEL2.md`, `docs/METODOLOGIA.md` y `data/sites/pinacate.json` (hoy coinciden todas). Incluye la
+  prueba fuera de muestra del borde (7 de 8) y el orden por borde contra forma (11 cráteres y 1 mina contra 3 y 14).
+- Probada en Firefox sin ventana (escritorio de 1280 a 1920, teléfono de 390 px, inglés): sin errores ni desbordamiento horizontal.
+- Pendiente: **correo de ventas** (`data-correo` en `#boton-ventas`), decidir dónde publicarla (la raíz de v1.marsception.us con el
+  juego en `/play/`, o `/ciencia/`) y verificar dos datos que no vienen del repo, ambos solo en los detalles técnicos: Pike (1977) y
+  la presión de Marte (menos del 1 %).
 
 ## Hecho (publicación de la demo, 15 nov, madrugada)
 - **Demo pública: https://v1.marsception.us/**, en inglés con https://v1.marsception.us/?lang=en. Este frente es el
