@@ -1,6 +1,6 @@
 # MARSCEPTION · Space Apps submission draft
 
-Status: copy-ready English draft. Not yet saved in the official platform; Space Apps login is required. Do not submit until public links are verified.
+Status: English submission draft. The platform is logged in, but saving remains pending the user's acceptance of its terms and original-work declaration. No final submission has been made. Verify English gameplay and public source access before submission.
 
 ## Project title
 
@@ -18,15 +18,15 @@ The web explorer combines site sheets, a map and transparent comparisons of terr
 
 The detector compares the three bodies at 200 m resolution. Mexico is the validated case study; Atacama, Arizona and Arabia represent 3 of 10 prioritized arid regions. We do not claim full planetary coverage or that every candidate is novel. Real DEM windows underpin game terrain, while added dune faces, loose rocks and robot balance are declared game approximations. A score does not certify geological origin, field access or mission readiness.
 
-Distinct component evaluations include 9/11 documented Mexican craters in the original detector validation, about 78% spatially grouped balanced accuracy for Moon/Mars shape classification, 3/3 negative and 9/20 known-analog controls for the complementary comparator, and 29/33 correct externally checked AI-assisted labels from a non-random sample. These figures are not interchangeable and are not accuracy estimates for every candidate.
+Distinct component evaluations include 9/11 documented Mexican craters in the original detector validation, about 78% spatially grouped balanced accuracy for Moon/Mars shape classification, 3/3 negative and 9/21 known-analog controls for the complementary comparator, and 29/33 correct externally checked AI-assisted labels from a non-random sample. These figures are not interchangeable and are not accuracy estimates for every candidate.
 
-## Links · replace pending entries only after public-access checks
+## Links · deployment supplied by the team
 
 | Field | Value / status |
 |---|---|
-| Demo | PENDING — completar con el VPS |
-| Rover game | Same verified demo domain, `/game/` |
-| Video | Same verified demo domain, `/media/mision-cero-30s-en.mp4` (25.00 s, English captions) |
+| Demo | https://v1.marsception.us/ |
+| Rover game | https://v1.marsception.us/game/?lang=en — deployed English-language check pending; still showed Spanish |
+| Video | https://v1.marsception.us/media/mision-cero-30s-en.mp4 — captioned explainer, not a gameplay recording |
 | Source code | https://github.com/Niettzche/spaceapps-2026 — owner must make public |
 | Methodology | `docs/METODOLOGIA.md` in the public source repository |
 
