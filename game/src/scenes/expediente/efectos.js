@@ -25,8 +25,9 @@ const MARTE_FONDO = { x: 480, y: 324, r: 228 + 14 };
  * Estrellas pequeñas sobre el fondo del Menú (debajo de todo, profundidad -8). Pixel art: cuadros de 3 px (un pixel
  * del fondo ×3). No caen sobre el Marte del fondo ni cerca de ningún texto ya dibujado (se llama al final de la vista).
  */
-export function estrellas(scene, { cantidad = 26, semilla = 7, margen = 10 } = {}) {
-  const evitar = scene.children.list.filter((o) => o.type === 'Text' && o.visible).map((o) => o.getBounds());
+export function estrellas(scene, { cantidad = 26, semilla = 7, margen = 10, planeta = MARTE_FONDO, zonas = [] } = {}) {
+  // `zonas`: rectángulos extra a evitar ({ x, y, right, bottom }), p. ej. la nave del menú de opciones.
+  const evitar = [...scene.children.list.filter((o) => o.type === 'Text' && o.visible).map((o) => o.getBounds()), ...zonas];
   const libre = (x, y) => evitar.every((b) => x < b.x - margen || x > b.right + margen || y < b.y - margen || y > b.bottom + margen);
   const r = aleatorio(semilla);
   const quieto = movimientoReducido();
@@ -34,7 +35,7 @@ export function estrellas(scene, { cantidad = 26, semilla = 7, margen = 10 } = {
   let intentos = 0;
   while (lista.length < cantidad && intentos++ < 500) {
     const x = Math.round((8 + r() * 944) / 3) * 3, y = Math.round((8 + r() * 524) / 3) * 3;
-    if (Math.hypot(x - MARTE_FONDO.x, y - MARTE_FONDO.y) < MARTE_FONDO.r || !libre(x, y)) continue;
+    if ((planeta && Math.hypot(x - planeta.x, y - planeta.y) < planeta.r) || !libre(x, y)) continue;
     const grande = r() < 0.2;
     const color = r() < 0.5 ? 0xffffff : 0xcfc4ff;
     let e;

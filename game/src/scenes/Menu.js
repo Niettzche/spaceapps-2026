@@ -13,21 +13,32 @@ import { prepararIngles } from './expediente/datos_en.js';
 import { tr, trDato, idioma, alternarIdioma } from '../i18n.js';
 import { debeMostrarComoJugar } from './expediente/como_jugar.js';
 import { vistaComoJugar, reiniciarPaginaComoJugar } from './expediente/como_jugar_vista.js';
-import { estrellas, planetaGirando } from './expediente/efectos.js';
+import { estrellas, planetaGirando, movimientoReducido } from './expediente/efectos.js';
 import { FondoMenu } from './expediente/fondo_menu.js';
+import { marteGrande, logoBrillo, lineaPixel, fondoNave, zoomANave, restaurarCamara } from './expediente/inicio.js';
 
 // A dónde ir al terminar o saltar "Cómo jugar" (se conserva si el Menú se reinicia al cambiar de idioma).
 let trasComoJugar = 'principal';
 
-// Dueño: frente expediente. Menú: nueva partida (con elección de destino), continuar, explorador,
-// "¿De dónde salen los números?". Es una sola escena con varias vistas (no requiere registrar escenas en main.js).
+// Dueño: frente expediente. Menú: pantalla de inicio (Marte grande, logo y «Presiona Enter»; la abre el Boot), menú de
+// opciones sobre la nave (al elegir, la cámara hace zoom a su escotilla), nueva partida (con elección de destino), continuar,
+// explorador, "¿De dónde salen los números?". Es una sola escena con varias vistas (no requiere registrar escenas en main.js).
+// Al volver de otra escena sin vista pedida se abre el menú de opciones ('principal'), no la pantalla de inicio.
 export default class Menu extends Phaser.Scene {
   constructor() { super('Menu'); }
 
-  init(datos) { this.vistaInicial = datos?.vista || 'principal'; }
+  init(datos) {
+    this.vistaInicial = datos?.vista || 'principal';
+    // Phaser conserva los datos del último start si el siguiente no trae: sin esto, volver al Menú desde otra escena
+    // abriría otra vez la pantalla de inicio que pidió el Boot.
+    this.sys.settings.data = {};
+  }
 
   create() {
     prepararIngles();
+    restaurarCamara(this); // por si la escena se reinicia a media animación (cambio de idioma)
+    this.oscuro = false;
+    this.zoomando = false;
     // Al volver de una partida en curso, el guardado se pone al día (diseño, resultados, tickets) antes de leerlo:
     // así "Continuar" y su resumen muestran lo mismo que había en memoria, no lo último escrito al gastar un ticket.
     if (partidaActiva()) guardar(partida);
@@ -60,18 +71,35 @@ export default class Menu extends Phaser.Scene {
 
   mostrar(vista) {
     limpiar(this);
+    this.vista = vista;
+    if (this.alTocarInicio) { this.input.off('pointerdown', this.alTocarInicio); this.alTocarInicio = null; }
+    // Después del zoom a la nave (o de un fundido) la pantalla quedó en negro: se aclara con la vista nueva.
+    if (this.oscuro) { this.oscuro = false; restaurarCamara(this, { aclarar: true }); }
+    this.input.enabled = true;
+    this.zoomando = false;
     // Fondo de arte (sin texto) oscurecido para que se lean los botones. «Nueva partida» usa el de Mauricio (#77) con la
-    // Tierra, la Luna y Marte (centro libre); el resto, el de título, donde el fondo vivo pasa planetas detrás de Marte.
-    const fondo = vista === 'destino' && this.textures.exists('pantallas/menu_fondo') ? 'pantallas/menu_fondo' : 'titulo/titulo_fondo';
-    if (this.textures.exists(fondo)) {
-      this.add.image(480, 270, fondo).setScale(3).setDepth(-10);
-      this.add.rectangle(480, 270, 960, 540, 0x0b0d17, 0.6).setDepth(-9);
+    // Tierra, la Luna y Marte (centro libre); el menú de opciones, la nave; el resto (inicio, números, cómo jugar), el de
+    // título, donde el fondo vivo pasa planetas detrás de Marte.
+    let nave = null;
+    if (vista === 'principal') {
+      nave = this.nave = fondoNave(this);
+      this.add.rectangle(480, 270, 960, 540, 0x0b0d17, 0.15).setDepth(-9);
+    } else {
+      const fondo = vista === 'destino' && this.textures.exists('pantallas/menu_fondo') ? 'pantallas/menu_fondo' : 'titulo/titulo_fondo';
+      if (this.textures.exists(fondo)) {
+        this.add.image(480, 270, fondo).setScale(3).setDepth(-10);
+        // En la pantalla de inicio el Marte grande va encima (sin oscurecer), como en el GIF de título.
+        this.add.rectangle(480, 270, 960, 540, 0x0b0d17, vista === 'inicio' ? 0.3 : 0.6).setDepth(-9);
+      }
     }
     this.eligiendo = false;
     const idiomaTecla = () => this.cambiarIdioma(vista);
     this.teclado.extra = { l: idiomaTecla, L: idiomaTecla };
-    this.teclado.alEscape = vista === 'principal' ? null : () => this.mostrar('principal');
-    if (vista === 'destino') this.vistaDestino();
+    // Esc: de las opciones a la pantalla de inicio; de las demás vistas, a las opciones.
+    this.teclado.alEscape = vista === 'inicio' ? null
+      : vista === 'principal' ? () => this.fundido(() => this.mostrar('inicio')) : () => this.mostrar('principal');
+    if (vista === 'inicio') this.vistaInicio();
+    else if (vista === 'destino') this.vistaDestino();
     else if (vista === 'como_jugar') {
       vistaComoJugar(this, {
         presupuesto: PRESUPUESTO_INICIAL,
@@ -87,33 +115,96 @@ export default class Menu extends Phaser.Scene {
       });
     }
     else this.vistaPrincipal();
-    estrellas(this); // titilan detrás de todo y lejos del texto (quietas con prefers-reduced-motion)
+    // Estrellas que titilan detrás de todo y lejos del texto (quietas con prefers-reduced-motion); en las opciones, lejos
+    // también de la nave y del Marte que asoma abajo.
+    estrellas(this, nave ? { planeta: { ...nave.planeta, r: nave.planeta.r + 14 }, zonas: [nave.zona] } : {});
     // Fondo vivo de Leo (#76): asteroides, cometa, planetas detrás de Marte, galaxia, destellos y agujero negro al volver.
-    // En «Nueva partida» con el fondo de Mauricio no va: su máscara supone el Marte del fondo de título al centro.
+    // En «Nueva partida» con el fondo de Mauricio no va: no tiene un Marte al centro para su máscara.
     this.fondoMenu?.destruir();
-    this.fondoMenu = fondo === 'titulo/titulo_fondo' ? new FondoMenu(this, { resultados: partida.resultados?.length ?? 0 }) : null;
+    this.fondoMenu = vista === 'destino' ? null
+      : new FondoMenu(this, { resultados: partida.resultados?.length ?? 0, ...(nave ? { marte: nave.planeta } : {}) });
+  }
+
+  /** Fundido corto a negro y `luego` (la vista siguiente se aclara sola en mostrar()). */
+  fundido(luego) {
+    if (this.zoomando) return;
+    this.zoomando = true;
+    this.input.enabled = false;
+    const cam = this.cameras.main;
+    cam.once('camerafadeoutcomplete', () => { this.oscuro = true; luego(); });
+    cam.fadeOut(200, 0, 0, 0);
+  }
+
+  /**
+   * Opción elegida en el menú de opciones: la cámara hace zoom a la escotilla de la nave y entonces se ejecuta la acción
+   * (otra vista del Menú o salir a otra escena). Con prefers-reduced-motion, solo fundido. Una sola vez aunque se pulse más.
+   */
+  alNave(accion) {
+    if (this.zoomando) return;
+    this.zoomando = true;
+    this.input.enabled = false;
+    this.teclado.items = []; this.teclado.atajos = []; this.teclado.extra = {}; this.teclado.alEscape = null;
+    zoomANave(this, this.nave?.escotilla ?? { x: 480, y: 270 }, () => { this.oscuro = true; accion(); });
+  }
+
+  /** Ir a otra escena: si la pantalla ya está en negro (tras el zoom) se entra directo; si no, con el fundido de irA. */
+  salirA(escena) {
+    if (this.oscuro) this.scene.start(escena);
+    else irA(this, escena);
+  }
+
+  /**
+   * Pantalla de inicio (GIF de título de Mauricio): Marte grande que gira, logo con brillo, lema con colores y
+   * «Presiona Enter». Enter, Espacio, clic o toque → menú de opciones. L cambia el idioma.
+   */
+  vistaInicio() {
+    marteGrande(this);
+    logoBrillo(this, 480, 172, 9);
+    const T = '#ffffff', TIERRA = '#80e0dc', LUNA = '#c8c8d4', MARTE = '#ff8a7a', LEJOS = '#c9a7ff';
+    const lineas = idioma() === 'en'
+      ? [[['TRAIN ON ', T], ['EARTH', TIERRA], ['.', T]], [['LAND ON THE ', T], ['MOON', LUNA], [' / ', T], ['MARS', MARTE], ['.', T]],
+        [['RUN IT ', T], ['ANYWHERE', LEJOS], ['.', T]]]
+      : [[['ENTRENA EN LA ', T], ['TIERRA', TIERRA], ['.', T]], [['ATERRIZA EN LA ', T], ['LUNA', LUNA], [' / ', T], ['MARTE', MARTE], ['.', T]],
+        [['JUEGA ', T], ['DONDE SEA', LEJOS], ['.', T]]];
+    const hechas = lineas.map((l, i) => lineaPixel(this, 480, 330 + i * 36, l, { escala: 3 }));
+    // Franja oscura detrás del lema (contraste ≥ 4.5:1 sobre la cara iluminada de Marte), con borde morado de arte.
+    const ancho = Math.max(...hechas.map((h) => h.ancho)) + 48;
+    this.add.rectangle(480, 366, ancho, 3 * 36 + 18, 0x0d0a24, 0.82).setStrokeStyle(3, 0x7a4cff, 0.9).setDepth(1);
+
+    const aviso = lineaPixel(this, 480, 34, [[tr('PRESIONA ENTER · TOCA PARA JUGAR', 'PRESS ENTER · TAP TO PLAY'), '#ffffff']], { escala: 2 });
+    this.add.rectangle(480, 34, aviso.ancho + 32, 38, 0x0d0a24, 0.82).setDepth(1);
+    if (!movimientoReducido()) this.tweens.add({ targets: aviso.objs, alpha: 0.45, duration: 650, yoyo: true, repeat: -1 });
+    this.botonIdioma('inicio');
+
+    const entrar = () => this.fundido(() => this.mostrar('principal'));
+    this.teclado.extra = { ...this.teclado.extra, Enter: entrar, ' ': entrar };
+    // Clic o toque en cualquier lugar que no sea un botón (el de idioma tiene su propia acción).
+    this.alTocarInicio = (_p, sobre) => { if (!sobre?.length) entrar(); };
+    this.input.on('pointerdown', this.alTocarInicio);
   }
 
   vistaPrincipal() {
-    texto(this, 480, 66, 'MARSCEPTION', { size: 40, origen: [0.5, 0.5] });
-    conFondo(this, texto(this, 480, 108, tr('Entrena en la Tierra. Aterriza en la Luna o Marte.', 'Train on Earth. Land on the Moon or Mars.'),
-      { size: 16, color: COLOR.tenue, origen: [0.5, 0.5] }));
+    // Menú de opciones a la izquierda; a la derecha, la nave (fondo). Al elegir, zoom a su escotilla (alNave).
+    const X = 250;
+    logoBrillo(this, X, 58, 5);
+    conFondo(this, texto(this, X, 104, tr('Entrena en la Tierra. Aterriza en la Luna o Marte.', 'Train on Earth. Land on the Moon or Mars.'),
+      { size: 14, color: COLOR.tenue, origen: [0.5, 0.5] }));
 
     // Ayuda de 1 línea en un lugar fijo: aparece al enfocar o pasar el ratón por un botón (antes, una frase bajo cada uno).
-    const ayuda = ayudaFija(this, 480, 452);
+    const ayuda = ayudaFija(this, X, 448, { ancho: 460 });
     const g = guardadoDisponible(DESTINOS);
     const opciones = [
       [tr('Nueva partida', 'New game'), () => this.alNuevaPartida(), tr('Elige destino: la Luna o Marte', 'Choose a destination: the Moon or Mars')],
       [tr('Continuar', 'Continue'), () => this.continuar(),
         g ? this.resumenGuardado(g) : tr('No hay partida guardada en este navegador', 'No saved game in this browser'), !!g],
-      [tr('Explorador libre', 'Free explorer'), () => irA(this, 'Explorador'), tr('Consulta cualquier coordenada de la Tierra', 'Check any coordinate on Earth')],
+      [tr('Explorador libre', 'Free explorer'), () => this.salirA('Explorador'), tr('Consulta cualquier coordenada de la Tierra', 'Check any coordinate on Earth')],
       [tr('¿De dónde salen los números?', 'Where do the numbers come from?'), () => this.mostrar('numeros'),
         tr('Datos NASA · modelo · validación', 'NASA data · model · validation')],
       [tr('Cómo jugar', 'How to play'), () => this.verComoJugar('principal'), tr('4 pasos, menos de 1 minuto', '4 steps, under a minute')],
     ];
     const botones = opciones.map(([etiqueta, accion, pista, habilitado = true], i) => {
-      const b = boton(this, 480, 164 + i * 54, etiqueta, accion, {
-        size: 18, anchoCaja: 420, habilitado, alEnfocar: (v) => ayuda.mostrar(v ? pista : '', b),
+      const b = boton(this, X, 158 + i * 54, etiqueta, () => this.alNave(accion), {
+        size: 18, anchoCaja: 400, habilitado, alEnfocar: (v) => ayuda.mostrar(v ? pista : '', b),
       });
       // Deshabilitado no recibe foco: su razón («No hay partida guardada») se ve al pasar el ratón.
       if (!habilitado) b.obj.on('pointerover', () => ayuda.mostrar(pista, b)).on('pointerout', () => ayuda.mostrar('', b));
@@ -122,7 +213,7 @@ export default class Menu extends Phaser.Scene {
     const [nueva, continuar] = botones;
     const idiomaBoton = this.botonIdioma('principal');
 
-    conFondo(this, texto(this, 480, 512, tr('↑↓ Tab: mover · 1–5 / Enter: elegir · L: idioma', '↑↓ Tab: move · 1–5 / Enter: choose · L: language'),
+    conFondo(this, texto(this, X, 512, tr('↑↓ Tab: mover · 1–5 / Enter: elegir · Esc: inicio', '↑↓ Tab: move · 1–5 / Enter: choose · Esc: title'),
       { size: 14, color: COLOR.muyTenue, origen: [0.5, 0.5] }));
     // Atajos 1–5 y opción sugerida (⏎), igual que Resultados.js. "Cómo jugar" va al final para no mover los atajos 1–4.
     this.teclado.numerar(botones);
@@ -152,7 +243,7 @@ export default class Menu extends Phaser.Scene {
 
   continuar() {
     if (!restaurar(partida, SITIOS, DESTINOS)) { this.mostrar('principal'); return; }
-    irA(this, partida.sitio ? 'Taller' : 'Expediente');
+    this.salirA(partida.sitio ? 'Taller' : 'Expediente');
   }
 
   vistaDestino() {

@@ -19,7 +19,7 @@ const LUZ_BORDE = norm([0.9, -0.2, 0.2]);
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const rgb = (h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
 
-function hash(ix, iy, semilla) {
+export function hash(ix, iy, semilla) {
   let h = Math.imul(ix, 374761393) + Math.imul(iy, 668265263) + Math.imul(semilla, 982451653);
   h = Math.imul(h ^ (h >>> 13), 1274126177);
   return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
@@ -35,7 +35,7 @@ function ruido(x, y, periodo, semilla) {
   return (v00 + (v10 - v00) * sx) * (1 - sy) + (v01 + (v11 - v01) * sx) * sy - 0.5;
 }
 
-function fbm(u, v, periodo, semilla, octavas = 4) {
+export function fbm(u, v, periodo, semilla, octavas = 4) {
   let s = 0, amp = 0.5, f = 1;
   for (let o = 0; o < octavas; o++) { s += amp * ruido(u * periodo * f, v * periodo * f * 0.5, periodo * f, semilla + o); amp *= 0.5; f *= 2; }
   return s;

@@ -4,7 +4,8 @@
 // efecto, emite 'pointerdown' sobre el objeto y lo anota como "respaldo" (eso también es un hallazgo).
 //
 // Recorrido, una vez para Marte (jezero → Samalayuca) y otra para la Luna (polo_sur_lunar → maar Al Wahbah, g00281):
-//   Boot → Menú → Nueva partida → destino → Expediente (sitio) → gastar ticket → Taller (ruedas estándar) → Prueba
+//   Boot → pantalla de inicio (Enter) → menú de opciones → Nueva partida (zoom a la nave) → destino → Expediente (sitio)
+//   → gastar ticket → Taller (ruedas estándar) → Prueba
 //   → Resultados (en Samalayuca y Al Wahbah: falla y recomienda rueda ancha) → Volver al taller → ruedas anchas en ambos ejes
 //   → Prueba → Resultados → Lanzar misión → Misión (acelera; frena en la zona de entrega) → Resultados (puntos y estrellas)
 //   → Menú (para empezar la siguiente corrida).
@@ -75,7 +76,7 @@ async function captura(nombre) {
 const escenaLista = (k) => page.waitForFunction((k) => {
   const g = window.__mc?.Prueba?.game;
   const s = g?.scene.getScene(k);
-  return !!s && g.scene.isActive(k) && !s.cameras.main.fadeEffect.isRunning && s.children.list.length > 0;
+  return !!s && g.scene.isActive(k) && !s.cameras.main.fadeEffect.isRunning && !s.zoomando && s.children.list.length > 0;
 }, k, { timeout: 20000, polling: 50 });
 
 const activas = () => page.evaluate(() => window.__mc.Prueba.game.scene.getScenes(true).map((s) => s.scene.key));
@@ -251,10 +252,23 @@ async function corrida(c) {
   const marca = { t: 0 };
   await paso('menu', async () => {
     await escenaLista('Menu');
+    // Al abrir el juego, el Boot deja la pantalla de inicio (Marte grande, «Presiona Enter»): Enter → menú de opciones.
+    // Al volver de Resultados se llega directo a las opciones.
+    const vista = () => page.evaluate(() => window.__mc.Prueba.game.scene.getScene('Menu').vista);
+    let desdeInicio = false;
+    if ((await vista()) === 'inicio') {
+      desdeInicio = true;
+      await captura('inicio');
+      await page.keyboard.press('Enter');
+      if (!(await esperar(async () => (await vista()) === 'principal', 3000))) return 'FALLA: Enter en la pantalla de inicio no abrió las opciones';
+      await escenaLista('Menu');
+    }
     await captura('menu');
-    await clic('Menu', 'Nueva partida', async () => !!(await ubicar('Menu', c.boton)));
+    // «Nueva partida» hace zoom a la nave (~0.8 s) y luego muestra los destinos; se espera a que la cámara termine.
+    await clic('Menu', 'Nueva partida', async () => (await vista()) === 'destino' && !!(await ubicar('Menu', c.boton)), { espera: 4000 });
+    await escenaLista('Menu');
     await captura('menu_destino');
-    return 'Nueva partida → vista de destino';
+    return `${desdeInicio ? 'inicio → Enter → ' : ''}Nueva partida → zoom a la nave → vista de destino`;
   });
   await paso('destino', async () => {
     await clic('Menu', c.boton, activa('Expediente'));
