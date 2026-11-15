@@ -32,21 +32,21 @@ export function _reiniciarSesionTutorialTaller() { vistoEnSesion = false; }
  */
 export function pasosTutorialTaller(suelo = null) {
   const lugar = suelo
-    ? tr(`Aquí el suelo es ${nombreSuelo(suelo)}: mira esa barra.`, `Here the ground is ${nombreSuelo(suelo)}: watch that bar.`)
+    ? tr(`Aquí casi todo es ${nombreSuelo(suelo)}: fíjate en esa barra.`, `Here it's mostly ${nombreSuelo(suelo)}: watch that bar.`)
     : tr('Mira la barra del suelo de tu lugar.', "Watch the bar for your place's ground.");
   return [
     {
       zona: 'armar',
       espera: 'rueda',
       titulo: tr('Arrastra una rueda a su eje', 'Drag a wheel onto its axle'),
-      texto: tr('Toma una tarjeta de rueda y suéltala en un eje. Con teclado: Enter sigue.',
-        'Grab a wheel card and drop it on an axle. Keyboard: Enter continues.'),
+      texto: tr('Suelta una rueda en un eje: se pone en los dos. Para mezclar, Mayús al soltar. Con teclado: Enter sigue.',
+        'Drop a wheel on an axle: it goes on both. To mix, hold Shift as you drop. Keyboard: Enter continues.'),
     },
     {
       zona: 'presupuesto',
       titulo: tr('Este es tu presupuesto', 'This is your budget'),
-      texto: tr('Cada pieza cuesta créditos. Si te pasas, no puedes probar.',
-        'Each part costs credits. Go over and you cannot test.'),
+      texto: tr('Cada pieza cuesta créditos. Si te pasas del presupuesto, no puedes probar.',
+        "Each part costs credits. Go over budget and you can't test."),
     },
     {
       zona: 'agarre',
@@ -56,8 +56,8 @@ export function pasosTutorialTaller(suelo = null) {
     {
       zona: 'probar',
       titulo: tr('Prueba el robot', 'Test the robot'),
-      texto: tr('Con ✓ Listo, pruébalo en la Tierra. Luego puedes volver a ajustar. ? repite esta guía.',
-        'With ✓ Ready, test it on Earth. You can come back and adjust. ? repeats this guide.'),
+      texto: tr('Necesitas chasis, rueda en los 2 ejes, motor, batería y carga (el módulo es opcional). Con ✓ Listo para probar, pulsa «Probar el robot». ? repite esta guía.',
+        'You need a chassis, a wheel on both axles, motor, battery and payload (the module is optional). When you see ✓ Ready to test, press Test the robot. ? repeats this guide.'),
     },
   ];
 }

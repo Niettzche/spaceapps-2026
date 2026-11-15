@@ -2,10 +2,13 @@
 // (ambiente_plan.js, PR #76). Todo es ILUSTRACIÓN (sin valor científico): asteroides, un cometa, planetas o el Sol pasando
 // detrás de Marte, una galaxia lejana, destellos sobre Marte y el agujero negro al volver de un nivel.
 // Con `prefers-reduced-motion: reduce` solo queda una galaxia quieta.
+// Retro de Leo (15 nov): nada aparece ni desaparece a media pantalla. Las trayectorias salen de ambiente_plan.js (puras,
+// probadas): todo nace fuera de la pantalla; planetas y galaxias se dibujan DETRÁS de Marte (máscara) y de la estación.
 import Phaser from 'phaser';
 import {
   crearRng, entre, esperaMs, elegirEvento, elegirGalaxia, elegirDestello, posicionAgujero, evaluarRegreso,
-  variantesAsteroide, MAXIMO, DURACION_EVENTO_S, DURACION_GALAXIA_S, DESTELLOS,
+  variantesAsteroide, MAXIMO, DESTELLOS, FUNDIDO_GALAXIA_S,
+  trayectoriaEvento, trayectoriaGalaxia, trayectoriaCometa, nacimientoAsteroide,
 } from './ambiente_plan.js';
 
 // Marte del fondo de título (assets/titulo/titulo_fondo.png: centro 160,108 y radio 76 en 320×180, dibujado ×3).
@@ -57,13 +60,21 @@ export class FondoMenu {
     this.destellos = [];
     this.agujero = null;
     this.t = 0;
+    // Registro de nacimientos (tipo, x, y, t en ms) para las pruebas en el navegador: nada nace dentro de la pantalla.
+    this.nacimientos = [];
     this.prox = { asteroide: 800, cometa: esperaMs(this.rng, 'cometa') / 3, evento: esperaMs(this.rng, 'evento') / 6, galaxia: 0, destello: 1500 };
 
     // Agujero negro: solo al volver de un nivel con más resultados que al salir (regla de Leo).
     if (evaluarRegreso(resultadosAlSalir, resultados)) this.crearAgujero();
     resultadosAlSalir = resultados;
 
-    if (reducido()) { this.nuevaGalaxia(); this.dibujar(); return; }
+    if (reducido()) {
+      // Sin movimiento: una galaxia quieta, ya entrada (no se materializa: no hay animación).
+      this.nuevaGalaxia();
+      this.galaxia.t = this.galaxia.dur * 0.45;
+      this.dibujar();
+      return;
+    }
     this.reloj = scene.time.addEvent({ delay: PASO_MS, loop: true, callback: () => this.paso(PASO_MS) });
     scene.events.once('shutdown', () => this.destruir());
   }
@@ -107,6 +118,7 @@ export class FondoMenu {
     }
     const s = dt / 1000;
     this.asteroides = this.asteroides.filter((a) => { a.x += a.vx * s; a.y += a.vy * s; a.ang += a.va * s; return a.x > -60 && a.x < 1020 && a.y > -60 && a.y < 600; });
+    // Cometa, planeta y galaxia terminan cuando ya salieron de la pantalla (su duración sale de la trayectoria).
     if (this.cometa) { this.cometa.t += s; if (this.cometa.t > this.cometa.dur) this.cometa = null; }
     if (this.evento) { this.evento.t += s; if (this.evento.t > this.evento.dur) this.evento = null; }
     if (this.galaxia) { this.galaxia.t += s; if (this.galaxia.t > this.galaxia.dur) this.galaxia = null; }
@@ -115,37 +127,35 @@ export class FondoMenu {
     this.dibujar();
   }
 
+  nacio(tipo, x, y) {
+    if (this.nacimientos.length < 200) this.nacimientos.push({ tipo, x: Math.round(x), y: Math.round(y), t: Math.round(this.t) });
+  }
+
   nuevoAsteroide() {
     const r = this.rng;
-    const izq = r() < 0.5;
-    this.asteroides.push({
-      x: izq ? -40 : 1000, y: entre(r, [40, 500]), vx: (izq ? 1 : -1) * entre(r, [25, 60]), vy: entre(r, [-12, 12]),
-      ang: r() * 6.28, va: entre(r, [-1, 1]), tam: entre(r, [7, 13]), forma: this.formas[Math.floor(r() * this.formas.length)],
-    });
+    const a = { ...nacimientoAsteroide(r), forma: this.formas[Math.floor(r() * this.formas.length)] };
+    this.asteroides.push(a);
+    this.nacio('asteroide', a.x, a.y);
   }
 
   nuevoCometa() {
-    const r = this.rng;
-    const x0 = entre(r, [100, 860]);
-    this.cometa = { x0, y0: entre(r, [30, 140]), dx: (r() < 0.5 ? -1 : 1) * entre(r, [220, 380]), dy: entre(r, [60, 140]), t: 0, dur: entre(r, [2.5, 4]) };
+    this.cometa = { ...trayectoriaCometa(this.rng), t: 0 };
+    this.nacio('cometa', this.cometa.x0, this.cometa.y0);
   }
 
   nuevoEvento() {
-    const r = this.rng;
-    const MARTE = this.marte;
-    const id = elegirEvento(r);
-    const dur = entre(r, DURACION_EVENTO_S);
-    const izq = r() < 0.5;
-    const radio = id === 'sol' ? 26 : id === 'jupiter' || id === 'saturno' ? 18 : 11;
-    // Cruza detrás de Marte, a la altura de su mitad superior.
-    this.evento = { id, t: 0, dur, x0: izq ? MARTE.x - MARTE.r - 80 : MARTE.x + MARTE.r + 80, x1: izq ? MARTE.x + MARTE.r + 80 : MARTE.x - MARTE.r - 80, y: entre(r, [MARTE.y - MARTE.r * 0.9, MARTE.y - MARTE.r * 0.2]), radio };
+    const id = elegirEvento(this.rng);
+    // Entra por un borde, cruza detrás de Marte (a la altura de su mitad superior) y sale por el otro borde.
+    this.evento = { id, t: 0, ...trayectoriaEvento(this.rng, this.marte, id) };
+    this.nacio(id, this.evento.x0, this.evento.y);
   }
 
   nuevaGalaxia() {
     const r = this.rng;
-    const lado = r() < 0.5 ? entre(r, [80, 220]) : entre(r, [740, 880]);
-    this.galaxia = { id: elegirGalaxia(r, this.galaxia?.id ?? this.ultimaGalaxia ?? null), x: lado, y: entre(r, [70, 200]), t: 0, dur: entre(r, DURACION_GALAXIA_S), ang: entre(r, [-0.6, 0.6]) };
-    this.ultimaGalaxia = this.galaxia.id;
+    const id = elegirGalaxia(r, this.galaxia?.id ?? this.ultimaGalaxia ?? null);
+    this.galaxia = { id, t: 0, ...trayectoriaGalaxia(r) };
+    this.ultimaGalaxia = id;
+    this.nacio('galaxia', this.galaxia.x0, this.galaxia.y0);
     // Puntos de la galaxia (fijos durante su vida).
     this.galaxia.puntos = Array.from({ length: 70 }, () => {
       const a = r() * 6.28; const d = Math.pow(r(), 1.6);
@@ -171,13 +181,16 @@ export class FondoMenu {
     if (!g) return;
     g.clear(); gd.clear();
     const px = (x) => Math.round(x / P) * P;
-    // Galaxia: nube de puntos que aparece y se desvanece.
+    // Galaxia: nube de puntos que entra por un borde fundiéndose muy lento y sale por arriba. Va en la capa de "detrás"
+    // (recortada por Marte): nunca se dibuja encima del planeta.
     if (this.galaxia) {
-      const G = this.galaxia; const vida = Math.min(1, G.t / 8, (G.dur - G.t) / 8) || 0.6;
+      const G = this.galaxia;
+      const vida = Math.max(0, Math.min(1, G.t / FUNDIDO_GALAXIA_S, (G.dur - G.t) / FUNDIDO_GALAXIA_S));
+      const gx = G.x0 + G.vx * G.t, gy = G.y0 + G.vy * G.t;
       const c = Math.cos(G.ang), s = Math.sin(G.ang);
       for (const [x, y, k] of G.puntos) {
-        g.fillStyle(k > 0.85 ? 0xffffff : 0xc9a7ff, Math.max(0.12, vida * (0.25 + k * 0.4)));
-        g.fillRect(px(G.x + x * c - y * s), px(G.y + x * s + y * c), P, P);
+        gd.fillStyle(k > 0.85 ? 0xffffff : 0xc9a7ff, vida * (0.25 + k * 0.4));
+        gd.fillRect(px(gx + x * c - y * s), px(gy + x * s + y * c), P, P);
       }
     }
     // Planeta o Sol detrás de Marte (recortado por la máscara).
@@ -197,12 +210,12 @@ export class FondoMenu {
     }
     // Cometa: cabeza y cola.
     if (this.cometa) {
-      const C = this.cometa; const k = C.t / C.dur;
-      const hx = C.x0 + C.dx * k; const hy = C.y0 + C.dy * k;
+      const C = this.cometa;
+      const hx = C.x0 + C.vx * C.t; const hy = C.y0 + C.vy * C.t;
       for (let i = 0; i < 14; i++) {
         const f = i / 14;
-        g.fillStyle(0xbfe9ff, (1 - f) * 0.7 * Math.min(1, (1 - k) * 4));
-        g.fillRect(px(hx - C.dx * 0.12 * f), px(hy - C.dy * 0.12 * f), P, P);
+        g.fillStyle(0xbfe9ff, (1 - f) * 0.7);
+        g.fillRect(px(hx - C.vx * 0.3 * f), px(hy - C.vy * 0.3 * f), P, P);
       }
       g.fillStyle(0xffffff, 1); g.fillRect(px(hx), px(hy), P * 2, P * 2);
     }

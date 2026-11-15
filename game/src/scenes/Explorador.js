@@ -178,8 +178,8 @@ export default class Explorador extends Phaser.Scene {
       irA(this, 'Expediente');
     });
     return el('div', { class: 'jugar' }, [
-      el('p', {}, tr(`${trDato(s, 'nombre') || s.id} (a ${formatoDistancia(km)}) ya tiene nivel con su relieve real. Se abre su Expediente; el ticket se gasta solo si confirmas allá.`,
-        `${trDato(s, 'nombre') || s.id} (${formatoDistancia(km)} away) already has a level with its real terrain. Its site file opens; the ticket is spent only if you confirm there.`)),
+      el('p', {}, tr(`${trDato(s, 'nombre') || s.id} (a ${formatoDistancia(km)}) ya tiene nivel con su relieve real. Se abre su Expediente; el ticket solo se gasta si confirmas ahí.`,
+        `${trDato(s, 'nombre') || s.id} (${formatoDistancia(km)} away) already has a level with its real terrain. Opens its site file; a ticket is spent only if you confirm there.`)),
       abrir,
     ]);
   }
@@ -341,12 +341,12 @@ export default class Explorador extends Phaser.Scene {
       el('p', {}, [el('strong', {}, tr('Lo que la Tierra no puede probar: ', 'What Earth cannot test: ')),
         noReproducible.length ? noReproducible.map((l) => l.etiqueta).join(' · ') : sinDato()]),
       ...notas.map((n) => el('p', { class: 'nota' }, `${tr('Límite del cálculo', 'Calculation limit')}: ${enIdioma(n)}`)),
-      jugable ? null : el('p', { class: 'nota' }, tr('Este lugar aún no tiene nivel: la API del modelo lo puede generar con el perfil real del DEM (aún no publicada en esta demo).',
-        'This place has no level yet: the model API can generate one from the real DEM profile (not yet published in this demo).')),
+      jugable ? null : el('p', { class: 'nota' }, tr('Este sitio aún no tiene nivel: la API del modelo podría generarlo con el perfil real del DEM (la API no está publicada en esta demo).',
+        'This site has no level yet: the model API could make one from the real DEM profile (the API isn\'t live in this demo).')),
     ];
     const derecha = [
       this.tarjetaPorQue(porQueModelo(s, { entrena: NIVELES_DESTACADOS[s.id]?.entrena ?? null }),
-        tr('¿Por qué el modelo eligió este lugar?', 'Why did the model pick this place?')),
+        tr('¿Por qué el modelo eligió este sitio?', 'Why did the model pick this site?')),
       // 3 columnas para que quepa sin desplazarse: la similitud va debajo del nombre de la dimensión.
       el('table', { class: 'compacta' }, [
         el('thead', {}, el('tr', {}, [el('th', {}, tr('Dimensión · similitud', 'Dimension · similarity')),

@@ -65,8 +65,8 @@ export function posicionBurbuja(zona, burbuja, pantalla = { w: 960, h: 540 }, { 
   return { x, y, abajo };
 }
 
-/** «Marte» / «la Luna» (es) o «Mars» / «the Moon» (en) para usar dentro de una frase. */
-function destinoEnFrase(mundo) {
+/** «Marte» / «la Luna» (es) o «Mars» / «the Moon» (en) para usar dentro de una frase (MUNDOS da «Luna» / «Moon», para etiquetas). */
+export function destinoEnFrase(mundo) {
   if (mundo === 'luna') return tr('la Luna', 'the Moon');
   if (mundo === 'marte') return tr('Marte', 'Mars');
   return tr('la Luna o Marte', 'the Moon or Mars');
@@ -79,10 +79,10 @@ function destinoEnFrase(mundo) {
 export function pasosResumen(mundo) {
   const destino = destinoEnFrase(mundo);
   return [
-    { imagen: 'tutorial/tutorial_1', texto: tr(`Elige un lugar de la Tierra parecido a ${destino}`, `Pick a place on Earth that is like ${destino}`) },
+    { imagen: 'tutorial/tutorial_1', texto: tr(`Elige un lugar de la Tierra parecido a ${destino}`, `Pick a site on Earth that is like ${destino}`) },
     { imagen: 'tutorial/tutorial_2', texto: tr('Arma tu robot con tu presupuesto', 'Build your robot on a budget') },
-    { imagen: 'tutorial/tutorial_3', texto: tr('Pruébalo en ese lugar de la Tierra', 'Test it at that place on Earth') },
-    { imagen: 'tutorial/tutorial_4', texto: tr(`Llévalo a ${destino} y entrega el suministro`, `Take it to ${destino} and deliver the supply`) },
+    { imagen: 'tutorial/tutorial_3', texto: tr('Pruébalo ahí, en la Tierra', 'Test it there, on Earth') },
+    { imagen: 'tutorial/tutorial_4', texto: tr(`Llévalo a ${destino} y entrega la carga`, `Take it to ${destino} and deliver the payload`) },
   ];
 }
 
@@ -92,13 +92,13 @@ export function pasosPrueba() {
     {
       zona: 'controles',
       titulo: tr('Así se maneja', 'How to drive'),
-      texto: tr('Mantén → (o D) para avanzar y ← (o A) para frenar. En pantalla táctil, usa estos dos botones.',
-        'Hold → (or D) to drive and ← (or A) to brake. On a touch screen, use these two buttons.'),
+      texto: tr('Mantén → (o D) para acelerar y ← (o A) para frenar. En pantalla táctil, usa estos dos botones.',
+        'Hold → (or D) to accelerate and ← (or A) to brake. On a touch screen, use these two buttons.'),
     },
     {
       zona: 'meta',
-      titulo: tr('Tu META', 'Your FINISH'),
-      texto: tr('Esta barra es tu avance: la META está al final, a la derecha. Llega con la carga entera. ¡Acelera para empezar!',
+      titulo: tr('La META', 'The FINISH line'),
+      texto: tr('Esta barra es tu avance: la META está al final, a la derecha. Llega con la carga completa. ¡Acelera para empezar!',
         'This bar is your progress: the FINISH is at its right end. Get there with the payload in one piece. Accelerate to start!'),
     },
   ];
@@ -122,8 +122,8 @@ export function pasosMision({ mundo, gravedad, gravedadTierra = 9.81, segundosEn
     {
       zona: 'entrega',
       titulo: tr('La ZONA DE ENTREGA', 'The DELIVERY ZONE'),
-      texto: tr(`Está al final de esta barra, a la derecha. Al llegar, frena y quédate quieto ${segundosEntrega} s para entregar.`,
-        `It is at the right end of this bar. When you get there, brake and stay still for ${segundosEntrega} s to deliver.`),
+      texto: tr(`Está al final de esta barra, a la derecha. Al llegar, frena y quédate quieto ${segundosEntrega} segundos para entregar.`,
+        `It is at the right end of this bar. When you get there, brake and stay still for ${segundosEntrega} seconds to deliver.`),
     },
   ];
 }
