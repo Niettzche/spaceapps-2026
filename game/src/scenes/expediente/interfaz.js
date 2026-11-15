@@ -18,28 +18,14 @@ export const COLOR = {
   fondoSobre: '#2a3160', // fondo del texto bajo el ratón
 };
 export const FUENTE = 'monospace';
-// Fuente de los textos de interfaz: sans de sistema (sin CDN ni archivos: funciona sin conexión). Ver docs/estado/expediente.md.
-export const FUENTE_TEXTO = 'system-ui, "Segoe UI", Roboto, Arial, sans-serif';
 // Zona táctil mínima (px del juego). En horizontal en un teléfono (escala ≈ 0.72) 44 px del juego ≈ 32 px reales.
 export const ZONA_MIN = { ancho: 64, alto: 44 };
 
-/** Ancho en px de un texto con la fuente de interfaz (para alinear resaltados sobre texto proporcional). */
-export function anchoTexto(scene, contenido, size = 14) {
-  const m = scene.add.text(0, 0, contenido, { fontFamily: FUENTE_TEXTO, fontSize: `${size}px` });
-  const w = m.width;
-  m.destroy();
-  return w;
-}
-
-/** Texto suavizado: filtro lineal en la textura (pixelArt:true lo deja nítido y pixelado). */
-const suavizar = (t) => t.texture?.setFilter(Phaser.Textures.FilterMode.LINEAR);
-
 export function texto(scene, x, y, contenido, { size = 14, color = COLOR.texto, origen = [0, 0], ancho, alinear = 'left', estilo = 'normal' } = {}) {
   const t = scene.add.text(x, y, contenido, {
-    fontFamily: FUENTE_TEXTO, fontSize: `${size}px`, color, align: alinear, fontStyle: estilo,
+    fontFamily: FUENTE, fontSize: `${size}px`, color, align: alinear, fontStyle: estilo,
     wordWrap: ancho ? { width: ancho, useAdvancedWrap: true } : undefined,
   });
-  suavizar(t);
   return t.setOrigin(origen[0], origen[1]);
 }
 
@@ -84,7 +70,6 @@ export function boton(scene, x, y, etiqueta, alPulsar, {
       t.setColor(c);
       t.setBackgroundColor(sobre ? COLOR.fondoSobre : null);
       t.setText((foco ? '▶ ' : '') + b.rotulo());
-      suavizar(t);
       b.ajustarZona();
     },
     // La zona táctil crece desde el punto de origen del texto (centrada, o hacia la derecha/abajo si el origen es 0).
@@ -212,7 +197,6 @@ export class Teclado {
 /** Borra todo lo dibujado por la escena (para escenas con varias vistas). */
 export function limpiar(scene) {
   // DisplayList.removeAll() no destruye: se destruye cada objeto para no dejar texturas huérfanas.
-  // Los objetos marcados con setData('ambiente', true) (fondo animado del Menú) sobreviven al cambiar de vista.
-  scene.children.list.slice().filter((o) => !o.getData?.('ambiente')).forEach((o) => o.destroy());
+  scene.children.list.slice().forEach((o) => o.destroy());
   if (scene.teclado) { scene.teclado.items = []; scene.teclado.actual = null; scene.teclado.atajos = []; }
 }
