@@ -7,6 +7,8 @@ const veces = (n) => tr(`${n} ${n === 1 ? 'vez' : 'veces'}`, `${n} ${n === 1 ? '
 
 // Por encima de esta integridad final, los golpes a la carga no generan recomendación (valor de juego, P).
 export const INTEGRIDAD_SIN_AVISO = 0.9;
+/** Patinajes a partir de los cuales una batería agotada se atribuye primero al agarre (valor de juego, P). */
+export const PATINAJES_CAUSA_ENERGIA = 5;
 
 /**
  * @param {object} resultado  Result (eventos, diseno, integridad_carga, ...)
@@ -88,12 +90,16 @@ export function recomendar(resultado, motivo) {
     recs.push({ id: 'manejo', texto: tr('Baja la velocidad antes de las bajadas y los saltos.', 'Slow down before descents and jumps.'), evidencia: tr('El robot volcó.', 'The robot flipped over.') });
   }
   // La condición que terminó el intento tiene prioridad sobre problemas secundarios.
+  // Excepción: si se acabó la energía patinando mucho, la causa de fondo es el agarre (patinar gasta batería sin avanzar):
+  // primero las ruedas, luego la batería. Así «Aplicar y al taller» cambia las ruedas (camino dorado lunar).
+  const patinoMucho = patinaArena + patinaRoca >= PATINAJES_CAUSA_ENERGIA;
   const prioridad = {
-    energia_agotada: ['bateria_grande', 'motor_eficiente'],
+    energia_agotada: patinoMucho ? ['rueda_ancha', 'rueda_tacos', 'bateria_grande', 'motor_eficiente'] : ['bateria_grande', 'motor_eficiente'],
     chasis_destruido: ['chasis_reforzado'],
     carga_perdida: ['soporte_amortiguado'],
     carga_danada: ['soporte_amortiguado'],
     volcado: ['manejo'],
   }[motivo] ?? [];
-  return recs.sort((a, b) => Number(prioridad.includes(b.id)) - Number(prioridad.includes(a.id)));
+  const rango = (r) => (prioridad.includes(r.id) ? prioridad.indexOf(r.id) : prioridad.length);
+  return recs.sort((x, y) => rango(x) - rango(y));
 }
