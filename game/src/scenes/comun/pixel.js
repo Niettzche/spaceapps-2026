@@ -119,7 +119,7 @@ export function icono(scene, x, y, clave, { escala = 2, respaldo = '•', color 
  */
 export function boton(scene, x, y, etiqueta, alPulsar, {
   size = 16, color = P.accion, numero = null, sugerido = false, habilitado = true, origen = [0.5, 0.5],
-  anchoMin = 64, alto = 45, pad = 14, zonaExtra = [0, 0], sonar = true,
+  anchoMin = 64, alto = 45, pad = 14, zonaExtra = [0, 0], sonar = true, reservaFoco = true,
 } = {}) {
   const t = txt(scene, 0, 0, '', { size, color, origen: [0.5, 0.5] });
   const conArte = hay9(scene, 'ui/ui_boton');
@@ -147,7 +147,7 @@ export function boton(scene, x, y, etiqueta, alPulsar, {
       t.setText(b.rotulo());
       t.setColor(!b.habilitado ? P.sec : b.foco ? P.bien : b.sobre ? P.texto : b.sugerido ? VERDE_SUGERIDO : b.color);
       // Ancho fijo con el espacio de «▶ » reservado: la caja no salta al recibir el foco.
-      const anchoTexto = Math.ceil(t.width + (b.foco ? 0 : size * 1.2));
+      const anchoTexto = Math.ceil(t.width + (b.foco || !reservaFoco ? 0 : size * 1.2));
       const w = Math.max(anchoMin, anchoTexto + 2 * pad);
       const ancho = conArte ? Math.ceil(w / ESCALA_BOTON) * ESCALA_BOTON : w;
       const h = conArte ? Math.ceil(alto / ESCALA_BOTON) * ESCALA_BOTON : alto;

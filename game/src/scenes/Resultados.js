@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { titulo, boton, nota, irA } from './ui.js';
+import { titulo, nota, irA } from './ui.js';
+import * as K from './comun/pixel.js'; // botones, chips, panel e íconos de arte (DISENO.md §2)
 import { PRESUPUESTO_INICIAL } from '../config/world.js';
 import { DESTINOS, PIEZAS } from '../data.js';
 import { partida } from '../main.js';
@@ -50,7 +51,7 @@ export default class Resultados extends Phaser.Scene {
     const registro = partida.resultados[partida.resultados.length - 1];
     if (!registro) {
       titulo(this, tr('Resultados', 'Results'), tr('Todavía no hay pruebas ni misiones.', 'No tests or missions yet.'));
-      boton(this, 480, 440, tr('Menú', 'Menu'), () => { sonarBoton(); irA(this, 'Menu'); });
+      K.boton(this, 480, 440, tr('Menú', 'Menu'), () => irA(this, 'Menu'));
       return;
     }
     const { tipo, exito, motivo, resultado, ilustrativo } = registro;
@@ -60,30 +61,32 @@ export default class Resultados extends Phaser.Scene {
       : (exito ? tr('Prueba superada', 'Test passed') : tr('La prueba falló', 'Test failed'));
     titulo(this, encabezado, MOTIVOS()[motivo] ?? motivo);
 
-    // Fondo sólido: el arte del marco nunca determina el contraste del texto.
-    this.add.rectangle(480, 284, 864, 228, 0x101827, 0.98).setStrokeStyle(2, 0x526782);
-    // Viñeta del final (Mauricio, #77): 96 × 64 ×2 a la derecha de las tarjetas; el texto se angosta para dejarle lugar.
-    const claveVineta = `pantallas/resultado_${motivo}`;
-    const conVineta = this.textures.exists(claveVineta);
-    if (conVineta) this.add.image(790, 284, claveVineta).setScale(2);
-    const anchoTexto = conVineta ? 590 : 820;
+    // Datos del intento como chips de dato (cian) en una fila (DISENO.md §2.3: keywords, no frases).
     const carga = Math.round(resultado.integridad_carga * 100);
     const energia = Math.round(resultado.energia_restante * 100);
-    const robot = personalizacionActual().nombre ? ` · «${personalizacionActual().nombre}»` : '';
-    this.add.text(64, 126, tr(
-      `Distancia ${resultado.distancia_m} m · carga ${carga} % · energía ${energia} %\nCosto ${resultado.costo} créditos · intento ${resultado.intentos}${robot}`,
-      `Distance ${resultado.distancia_m} m · payload ${carga} % · energy ${energia} %\nCost ${resultado.costo} credits · attempt ${resultado.intentos}${robot}`),
-    { ...ESTILO, wordWrap: { width: 600 }, lineSpacing: 4 });
+    const nombreRobot = personalizacionActual().nombre;
+    K.filaChips(this, 40, 120, [
+      { texto: `${resultado.distancia_m} m`, tipo: 'cian' },
+      { texto: tr(`carga ${carga} %`, `payload ${carga} %`), tipo: 'cian' },
+      { texto: tr(`energía ${energia} %`, `energy ${energia} %`), tipo: 'cian' },
+      { texto: tr(`${resultado.costo} créditos`, `${resultado.costo} credits`), tipo: 'cian' },
+      { texto: tr(`intento ${resultado.intentos}`, `attempt ${resultado.intentos}`), tipo: 'cian' },
+      ...(nombreRobot ? [{ texto: `«${nombreRobot}»`, color: K.P.texto }] : []),
+    ], 630);
+
+    // Columna derecha: puntuación grande con estrellas (misión) y la viñeta del final (Mauricio, #77).
+    const COL = 790;
+    const p = esMision ? puntuar(resultado, PRESUPUESTO_INICIAL) : null;
     if (esMision) {
-      const p = puntuar(resultado, PRESUPUESTO_INICIAL);
-      // Puntuación arriba a la derecha: número + estrellas de arte (assets/ui/ui_estrella_*.png, 16 × 16 × 2); si no hay arte, texto.
-      this.add.text(896, 118, `${p.total} / 1000`, { ...ESTILO, fontSize: '22px', color: '#ffd166' }).setOrigin(1, 0);
+      this.add.text(COL + 4, 142, `${p.total}`, { ...ESTILO, fontSize: '44px', fontStyle: 'bold', color: '#ffd166' }).setOrigin(1, 0.5);
+      this.add.text(COL + 10, 150, '/ 1000', { ...ESTILO, fontSize: '18px', color: K.P.sec }).setOrigin(0, 0.5);
+      // Estrellas de arte (assets/ui/ui_estrella_*.png, 16 × 16 × 3); si no hay arte, texto ★/☆ (la e2e acepta los dos).
       if (this.textures.exists('ui/ui_estrella_llena') && this.textures.exists('ui/ui_estrella_vacia')) {
         for (let i = 0; i < 3; i++) {
-          this.add.image(896 - (2 - i) * 38, 160, i < p.estrellas ? 'ui/ui_estrella_llena' : 'ui/ui_estrella_vacia').setOrigin(1, 0.5).setScale(2);
+          this.add.image(COL + (i - 1) * 56, 196, i < p.estrellas ? 'ui/ui_estrella_llena' : 'ui/ui_estrella_vacia').setScale(3);
         }
       } else {
-        this.add.text(896, 146, '★'.repeat(p.estrellas) + '☆'.repeat(3 - p.estrellas), { ...ESTILO, fontSize: '22px', color: '#ffd166' }).setOrigin(1, 0);
+        this.add.text(COL, 196, '★'.repeat(p.estrellas) + '☆'.repeat(3 - p.estrellas), { ...ESTILO, fontSize: '36px', color: '#ffd166' }).setOrigin(0.5);
       }
       // Mejor marca por destino (guardada en el navegador) y cuánto falta para la siguiente estrella.
       if (resultado.entrega) {
@@ -93,16 +96,23 @@ export default class Resultados extends Phaser.Scene {
         if (previa == null || p.total > previa) {
           marcas[resultado.destino] = p.total;
           guardarMarcas(marcas);
-          txt = previa == null ? tr('Primera marca en este destino', 'First record for this destination') : tr(`¡Nueva marca! (antes ${previa})`, `New record! (was ${previa})`);
+          txt = previa == null ? tr('Primera marca en este destino', 'First record here') : tr(`¡Nueva marca! (antes ${previa})`, `New record! (was ${previa})`);
         } else {
           txt = tr(`Tu marca: ${previa}`, `Your record: ${previa}`);
         }
         const meta = p.estrellas < 2 ? ESTRELLAS.dos : p.estrellas < 3 ? ESTRELLAS.tres : null;
-        if (meta) txt += tr(` · faltan ${meta - p.total} para ${'★'.repeat(p.estrellas + 1)}`, ` · ${meta - p.total} to ${'★'.repeat(p.estrellas + 1)}`);
-        this.add.text(818, 158, txt, { ...ESTILO, fontSize: '12px', color: '#4cc38a', align: 'right' }).setOrigin(1, 0.5);
+        if (meta) txt += tr(`\nfaltan ${meta - p.total} para ${'★'.repeat(p.estrellas + 1)}`, `\n${meta - p.total} to ${'★'.repeat(p.estrellas + 1)}`);
+        this.add.text(COL, 224, txt, { ...ESTILO, fontSize: '14px', color: '#4cc38a', align: 'center' }).setOrigin(0.5, 0);
       }
     }
+    const claveVineta = `pantallas/resultado_${motivo}`;
+    if (this.textures.exists(claveVineta)) {
+      // 96 × 64 de arte: × 2 bajo la puntuación (misión) o × 3 sola (prueba).
+      if (esMision) this.add.image(COL, 320, claveVineta).setScale(2);
+      else this.add.image(COL, 266, claveVineta).setScale(3);
+    }
 
+    // Tarjetas (diagnóstico, consejos, puntuación, dónde se rompe la analogía) en el panel de la izquierda.
     const diagnostico = diagnosticar(registro);
     const recs = recomendar(resultado, motivo);
     this.recs = recs; // para la e2e: las recomendaciones van en tarjetas, no en líneas sueltas
@@ -116,7 +126,6 @@ export default class Resultados extends Phaser.Scene {
     }))];
     let indiceAnalogia = -1;
     if (esMision) {
-      const p = puntuar(resultado, PRESUPUESTO_INICIAL);
       if (resultado.entrega) {
         const d = p.desglose;
         paginas.push({ titulo: tr('Cómo se calculó la puntuación', 'How the score was calculated'),
@@ -131,39 +140,36 @@ export default class Resultados extends Phaser.Scene {
         titulo: tr('Dónde se rompe la analogía', 'Where the analogy breaks down'), texto: l,
       });
     }
+    const PX = 40, PY = 156, PW = 590, PH = 226;
+    K.panel(this, PX, PY, PW, PH);
+    const anchoTexto = PW - 48;
     let pagina = 0;
     const contenido = this.add.container(0, 0);
-    const contador = this.add.text(480, 418, '', { ...ESTILO, fontSize: '16px' }).setOrigin(0.5);
+    const contador = this.add.text(PX + PW / 2, 402, '', { ...ESTILO, fontSize: '16px' }).setOrigin(0.5);
     const mostrar = (indice) => {
       pagina = (indice + paginas.length) % paginas.length;
       contenido.removeAll(true);
-      const p = paginas[pagina];
-      const encabezado = this.add.text(68, 186, p.titulo, { ...ESTILO, fontSize: '18px', color: '#ffffff', wordWrap: { width: anchoTexto } });
-      const texto = this.add.text(68, encabezado.y + encabezado.height + 14, p.texto, {
+      const pg = paginas[pagina];
+      const enc = this.add.text(PX + 24, PY + 22, pg.titulo, { ...ESTILO, fontSize: '18px', color: '#ffffff', wordWrap: { width: anchoTexto } });
+      const texto = this.add.text(PX + 24, enc.y + enc.height + 12, pg.texto, {
         ...ESTILO, fontSize: '16px', color: '#ffd166', lineSpacing: 5, wordWrap: { width: anchoTexto },
       });
-      contenido.add([encabezado, texto]);
-      if (p.evidencia) contenido.add(this.add.text(68, texto.y + texto.height + 14, p.evidencia, {
+      contenido.add([enc, texto]);
+      if (pg.evidencia) contenido.add(this.add.text(PX + 24, texto.y + texto.height + 12, pg.evidencia, {
         ...ESTILO, fontSize: '16px', color: '#e1e8f0', lineSpacing: 5, wordWrap: { width: anchoTexto },
       }));
       contador.setText(`${pagina + 1} / ${paginas.length}`);
     };
-    const navegar = (x, texto, accion) => {
-      this.add.rectangle(x, 421, 232, 38, 0x20314a).setStrokeStyle(1, 0x526782)
-        .setInteractive({ useHandCursor: true }).on('pointerdown', () => { sonarBoton(); accion(); });
-      this.add.text(x, 421, texto, { ...ESTILO, color: '#ffffff' }).setOrigin(0.5);
-    };
-    navegar(186, tr('← Consejo anterior', '← Previous advice'), () => mostrar(pagina - 1));
-    navegar(774, tr('Siguiente consejo →', 'Next advice →'), () => mostrar(pagina + 1));
+    const nav = { size: 15, alto: 36, reservaFoco: false, color: '#ffffff' };
+    K.boton(this, PX, 402, tr('← Consejo anterior', '← Previous advice'), () => mostrar(pagina - 1), { ...nav, origen: [0, 0.5] });
+    K.boton(this, PX + PW, 402, tr('Siguiente consejo →', 'Next advice →'), () => mostrar(pagina + 1), { ...nav, origen: [1, 0.5] });
     if (indiceAnalogia >= 0) {
-      this.add.text(480, 443, tr('A · Ver límites de la analogía', 'A · View analogy limits'), { ...ESTILO, color: '#80e0dc' })
-        .setOrigin(0.5).setInteractive({ useHandCursor: true })
-        .on('pointerdown', () => mostrar(indiceAnalogia));
+      K.boton(this, COL, 402, tr('A · Límites de la analogía', 'A · Analogy limits'), () => mostrar(indiceAnalogia), { ...nav, size: 14, color: K.P.dato });
     }
     mostrar(0);
 
     // Botones con atajo de teclado (1, 2, 3) y Enter = siguiente paso sugerido del camino dorado.
-    const yb = 470;
+    const yb = 490;
     const opciones = esMision
       ? [[tr('Reintentar misión', 'Retry mission'), 'Mision'], [tr('Volver al taller', 'Back to workshop'), 'Taller'], [tr('Menú', 'Menu'), 'Menu']]
       : [[tr('Volver al taller', 'Back to workshop'), 'Taller'], [tr('Probar otra vez', 'Test again'), 'Prueba'],
@@ -171,6 +177,7 @@ export default class Resultados extends Phaser.Scene {
     let sugerida = esMision ? (exito ? 2 : 0) : (exito ? 2 : 0);
     // "Aplicar y al taller": la primera recomendación con cambio de pieza se aplica al diseño y se abre el taller.
     const aplicable = recs.find((r) => r.cambio);
+    let aplica = null;
     if (aplicable) {
       const pieza = PIEZAS.find((x) => x.id === aplicable.cambio.pieza);
       const nombre = pieza ? trDato(pieza, 'nombre') : aplicable.cambio.pieza;
@@ -178,29 +185,40 @@ export default class Resultados extends Phaser.Scene {
       const i = opciones.findIndex(([, escena]) => escena === 'Taller');
       opciones[i] = [tr('Aplicar y al taller', 'Apply & to workshop'), 'Taller', () => aplicarCambio(aplicable.cambio)];
       if (!exito) sugerida = i;
-      this.add.text(xs0(i), yb + 23, tr(`aplica: ${nombre}${ejes}`, `applies: ${nombre}${ejes}`), { ...ESTILO, fontSize: '14px', color: '#4cc38a' }).setOrigin(0.5);
+      aplica = tr(`aplica: ${nombre}${ejes}`, `applies: ${nombre}${ejes}`);
     }
-    const xs = [190, 480, 770];
-    const ir = (escena, antes) => { sonarBoton(); antes?.(); irA(this, escena); };
-    opciones.forEach(([texto, escena, antes], i) => {
-      const b = boton(this, xs[i], yb, `${i + 1} · ${texto}${i === sugerida ? ' ⏎' : ''}`, () => ir(escena, antes)).setFontSize(15);
-      if (i === sugerida) b.setColor('#4cc38a');
-    });
+    // Un consejo visible (DISENO.md §3 Resultados): el que se puede aplicar o, si no hay, el primero; el resto en las tarjetas.
+    const consejo = aplicable ?? recs[0] ?? null;
+    const textoConsejo = consejo ? consejo.texto : diagnostico.consejo;
+    const iconoConsejo = consejo?.cambio ? `iconos/${consejo.cambio.pieza}` : null;
+    K.icono(this, PX + 16, 446, iconoConsejo, { escala: 2, respaldo: '▸', color: '#ffd166', size: 22 });
+    const tConsejo = this.add.text(PX + 40, 446, textoConsejo, {
+      ...ESTILO, fontSize: consejo ? '18px' : '16px', color: '#ffd166', wordWrap: { width: 880 - 40 },
+    }).setOrigin(0, 0.5);
+    if (aplica) {
+      const x = tConsejo.x + tConsejo.width + 14;
+      if (x + aplica.length * 8.4 + 16 <= 920) K.chip(this, x, 446 - 13, aplica, { tipo: 'cian' });
+      else tConsejo.setText(`${textoConsejo} (${aplica})`);
+    }
+
+    const xs = [170, 480, 795];
+    const ir = (escena, antes) => { antes?.(); irA(this, escena); };
+    this.botones = opciones.map(([texto, escena, antes], i) => K.boton(this, xs[i], yb, texto, () => ir(escena, antes), {
+      size: 16, alto: 42, numero: i + 1, sugerido: i === sugerida, reservaFoco: false,
+    }));
     this.input.keyboard.on('keydown', (ev) => {
       if (ev.key === 'ArrowLeft') { ev.preventDefault(); mostrar(pagina - 1); return; }
       if (ev.key === 'ArrowRight') { ev.preventDefault(); mostrar(pagina + 1); return; }
       if (ev.key.toLowerCase() === 'a' && indiceAnalogia >= 0) { mostrar(indiceAnalogia); return; }
       const n = Number(ev.key);
-      if (n >= 1 && n <= opciones.length) ir(opciones[n - 1][1], opciones[n - 1][2]);
-      else if (ev.key === 'Enter') ir(opciones[sugerida][1], opciones[sugerida][2]);
+      if (n >= 1 && n <= opciones.length) { sonarBoton(); ir(opciones[n - 1][1], opciones[n - 1][2]); }
+      else if (ev.key === 'Enter') { sonarBoton(); ir(opciones[sugerida][1], opciones[sugerida][2]); }
     });
     const avisos = [tr('La puntuación es de juego, no evidencia científica.', 'The score is a game value, not scientific evidence.')];
     if (ilustrativo) avisos.push(tr('Terreno ilustrativo: no es un perfil medido.', 'Illustrative terrain: not a measured profile.'));
     nota(this, avisos.join(' '));
   }
 }
-
-const xs0 = (i) => [190, 480, 770][i];
 
 /** Pone la pieza recomendada en las ranuras indicadas del diseño actual (el taller valida presupuesto al abrir). */
 function aplicarCambio(cambio) {
