@@ -315,6 +315,14 @@ export function generarObstaculos() {
     ];
     tira(`${O}obstaculo_arena_blanda${sufijo}.png`, 16, 4, 1, (p) => filas(p, rows, 0, 0, pal), { contorno: false });
   }
+  // lodo del lago seco (Rincón de Parangueo) donde la costra de sal se rompe: placas blancas en las orillas, lodo gris pardo
+  // húmedo con brillos; se repite a lo ancho (periodo 16)
+  {
+    const L = PALETAS.tierra.lodo, S = PALETAS.tierra.sal_costra;
+    const pal = { s: S[4], t: S[2], a: L[0], b: L[1], c: L[2], d: L[3], e: L[4] };
+    const rows = ['st.dccdccdcdc.ts', 'tbccbcecbccbcbbt', 'bbabbbbcbbabbbcb', 'abbabbabbbbabbab'];
+    tira(`${O}obstaculo_lodo.png`, 16, 4, 1, (p) => filas(p, rows, 0, 0, pal), { contorno: false });
+  }
 }
 
 // ---------------------------------------------------------------- pintura del chasis
