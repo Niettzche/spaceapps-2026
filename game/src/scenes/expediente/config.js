@@ -5,7 +5,8 @@ const env = import.meta.env || {};
 
 // API del modelo (FastAPI en el VPS). El juego funciona sin ella: el Explorador avisa si no responde.
 export const API_URL = String(env.VITE_API_URL || 'http://localhost:8000').replace(/\/+$/, '');
-// true si el build trae VITE_API_URL. Sin ella, la API por defecto (localhost:8000) solo existe en una máquina de desarrollo.
+// true si el build trae VITE_API_URL. Sin ella el juego NO sondea ninguna API (ni en localhost): modo sin API.
+// Demo pública: VITE_API_URL=/api (web/scripts/build-demo.mjs). Local con API: VITE_API_URL=http://localhost:8000 en .env.local.
 export const API_CONFIGURADA = !!env.VITE_API_URL;
 // Sondeo GET /health al abrir el Explorador: si no contesta en este tiempo, se avisa que la consulta en vivo no está.
 export const ESPERA_SONDEO_API_MS = 4000;

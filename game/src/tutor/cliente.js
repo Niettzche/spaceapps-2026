@@ -5,8 +5,8 @@ import { apiSinPublicar } from '../scenes/expediente/logica.js';
 
 export const ESPERA_TUTOR_MS = 30000;
 
-/** ¿Vale la pena intentar la API? (sin VITE_API_URL y fuera de localhost: no, la demo pública no la tiene). */
-export const tutorPublicado = (host = globalThis.location?.hostname) => !apiSinPublicar({ configurada: API_CONFIGURADA, host });
+/** ¿Vale la pena intentar la API? Solo si se configuró VITE_API_URL (la demo pública usa /api); sin ella, ni en localhost. */
+export const tutorPublicado = (host = globalThis.location?.hostname, configurada = API_CONFIGURADA) => !apiSinPublicar({ configurada, host });
 
 /**
  * Pregunta libre a la tutora. `cuerpo`: { pregunta, sitio, destino, pantalla, idioma, historial }.

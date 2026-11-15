@@ -7,7 +7,7 @@ import { ORDEN_DESTINOS, DESTINO_POR_DEFECTO, UMBRAL_PROPUESTA, RADIO_CATALOGO_K
 import { consultarPunto, proponerSitio, apiDisponible, climaPower, API_URL } from './expediente/api.js';
 import {
   validarCoordenadasHemisferio, aHemisferio, formatoCoordenada, formatoValor, formatoPorcentaje, puedeProponer, validarNombrePropuesta, sinDato,
-  filasComparacion, limitesDe, esDemostracion, esMina, unidadVisible, formatoNumero, recortar } from './expediente/logica.js';
+  filasComparacion, limitesDe, esDemostracion, esMina, unidadVisible, formatoNumero, recortar, esHostLocal } from './expediente/logica.js';
 import { buscarEnCatalogo, formatoDistancia, similitudClima, DIMENSIONES_CLIMA } from './expediente/catalogo.js';
 import { visitarSitio } from './expediente/guardado.js';
 import { MUNDOS, ESTADOS, etiquetaVariable, etiquetaLimite } from './expediente/textos.js';
@@ -85,8 +85,11 @@ export default class Explorador extends Phaser.Scene {
         + 'por el modelo (búsqueda en zonas áridas, no todo el planeta) y, si NASA POWER responde, se muestra su clima en vivo.',
       `The model API is not published in this demo. Your coordinate is looked up among the ${n} sites already computed `
         + 'by the model (a search of arid regions, not the whole planet) and, if NASA POWER answers, its live climate is shown.')),
-      r.tipo === 'no_publicada' ? null
-        : el('p', { class: 'nota' }, tr(`(${API_URL} no respondió a /health en 4 s)`, `(${API_URL} did not answer /health within 4 s)`)),
+      r.tipo !== 'no_publicada' ? el('p', { class: 'nota' }, tr(`(${API_URL} no respondió a /health en 4 s)`, `(${API_URL} did not answer /health within 4 s)`))
+        // En una máquina de desarrollo: sin VITE_API_URL el juego no sondea ninguna API (config.js).
+        : esHostLocal(globalThis.location?.hostname) ? el('p', { class: 'nota' }, tr('(Local: para consultar la API, define VITE_API_URL en game/.env.local.)',
+          '(Local: to query the API, set VITE_API_URL in game/.env.local.)'))
+          : null,
     ]);
   }
 

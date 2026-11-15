@@ -210,15 +210,20 @@ export function leerGuardado(texto, { destinos = null, maxTickets = null } = {})
 
 // ---------- Explorador ----------
 
-/** Página servida desde la máquina local (desarrollo): ahí sí puede existir la API por defecto en localhost:8000. */
+/** Página servida desde la máquina local (desarrollo). Solo decide el texto del aviso: la API se sondea si se configuró. */
 export function esHostLocal(host) {
   const h = String(host ?? '').toLowerCase().replace(/^\[|\]$/g, '');
   return h === '' || h === 'localhost' || h.endsWith('.localhost') || h === '::1' || /^127\./.test(h) || h === '0.0.0.0';
 }
 
-/** Sin VITE_API_URL y fuera de localhost (la demo pública) la API no existe: no vale la pena esperar a que conteste. */
-export function apiSinPublicar({ configurada, host }) {
-  return !configurada && !esHostLocal(host);
+/**
+ * ¿Falta la API? Solo se usa si el build o `game/.env.local` traen VITE_API_URL (la demo pública se construye con
+ * VITE_API_URL=/api, mismo origen). Sin ella no se sondea nada, tampoco en localhost: antes se probaba
+ * http://localhost:8000 y, sin API corriendo, la consola marcaba ERR_CONNECTION_REFUSED (playtest de Leo, B7).
+ * En local con API: `VITE_API_URL=http://localhost:8000` en game/.env.local. `host` queda por compatibilidad.
+ */
+export function apiSinPublicar({ configurada, host } = {}) {
+  return !configurada;
 }
 
 function numero(txt) {

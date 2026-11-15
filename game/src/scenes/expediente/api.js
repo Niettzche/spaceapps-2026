@@ -40,11 +40,12 @@ export const proponerSitio = ({ lat, lon, destino, nombre, autor }, opciones) =>
   post('/submit', { lat, lon, destino, nombre, ...(autor ? { autor } : {}) }, opciones);
 
 /**
- * ¿Hay API del modelo? Sin VITE_API_URL y fuera de localhost responde al instante que no (demo pública); si no,
- * GET /health con espera corta. Devuelve { ok: true } o { ok: false, tipo: 'no_publicada' | 'espera' | 'red' | 'http' | 'cancelado' }.
+ * ¿Hay API del modelo? Sin VITE_API_URL responde al instante que no, sin red (también en localhost: así no queda
+ * ERR_CONNECTION_REFUSED en la consola); con ella, GET /health con espera corta.
+ * Devuelve { ok: true } o { ok: false, tipo: 'no_publicada' | 'espera' | 'red' | 'http' | 'cancelado' }.
  */
-export async function apiDisponible({ espera = ESPERA_SONDEO_API_MS, senal, host = globalThis.location?.hostname } = {}) {
-  if (apiSinPublicar({ configurada: API_CONFIGURADA, host })) return { ok: false, tipo: 'no_publicada' };
+export async function apiDisponible({ espera = ESPERA_SONDEO_API_MS, senal, configurada = API_CONFIGURADA, host = globalThis.location?.hostname } = {}) {
+  if (apiSinPublicar({ configurada, host })) return { ok: false, tipo: 'no_publicada' };
   const ctrl = new AbortController();
   const reloj = setTimeout(() => ctrl.abort('espera'), espera);
   if (senal) senal.addEventListener('abort', () => ctrl.abort('cancelado'), { once: true });
