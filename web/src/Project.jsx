@@ -1,11 +1,12 @@
-const hero = import.meta.env.BASE_URL + 'data/img/j_tierra_MX0261.png'
+import hero from './assets/web_portada_960x960.png'
 
 const copy = {
   en: {
     title: 'Find Earth’s next training ground.',
     intro: 'Compare terrestrial terrain with the Moon and Mars. Explore crater-like landforms, inspect the evidence, and discover what a rover could test before leaving Earth.',
     explore: 'Explore the evidence', quiz: 'Try the terrain quiz',
-    caption: 'Rincón de Parangueo, Mexico · elevation-derived relief from Copernicus DEM (ESA), rendered with synthetic light; not a photograph. 12.8 km across, source resolution 200 m.',
+    caption: 'MARSCEPTION game art: original pixel art, illustrative scene (not a real place).',
+    heroAlt: 'Pixel art of a rover arriving at a base on Mars.',
     scope: 'Mexico is our validated case study. The global search has covered Atacama, Arizona and Arabia: 3 of 10 prioritized arid regions, not the entire planet.',
     steps: [
       ['01 / DISCOVER', 'Start with terrain', 'One detector measures crater-like depressions on Earth (Mexico + 3 arid regions), at the lunar south pole and on Mars at a shared resolution of 200 m per pixel.'],
@@ -23,7 +24,8 @@ const copy = {
     title: 'La próxima misión empieza en la Tierra.',
     intro: 'Compara el terreno terrestre con la Luna y Marte. Explora formas tipo cráter, revisa la evidencia y descubre qué podría probar un rover antes de salir de la Tierra.',
     explore: 'Explorar la evidencia', quiz: 'Probar el quiz de terrenos',
-    caption: 'Rincón de Parangueo, México · relieve del DEM Copernicus (ESA), con iluminación sintética; no es una fotografía. Ventana de 12.8 km, resolución de origen 200 m.',
+    caption: 'Arte del juego MARSCEPTION: pixel art original, escena ilustrativa (no es un lugar real).',
+    heroAlt: 'Pixel art de un rover llegando a una base en Marte.',
     scope: 'México es nuestro caso validado. La búsqueda global cubre Atacama, Arizona y Arabia: 3 de 10 regiones áridas priorizadas, no todo el planeta.',
     steps: [
       ['01 / DESCUBRIR', 'Comenzar por el terreno', 'El mismo detector mide depresiones tipo cráter en la Tierra (México + 3 regiones áridas), el polo sur lunar y Marte a una resolución común de 200 m por píxel.'],
@@ -60,7 +62,7 @@ export function ProjectHero({ lang }) {
         <div className="row"><a className="primary" href="#mapa">{c.explore} ↗</a><a className="ghost" href="#juego">{c.quiz}</a></div>
         <p className="scope-note">{c.scope}</p>
       </div>
-      <figure className="hero-visual"><img src={hero} alt="" fetchPriority="high" /><figcaption>{c.caption}</figcaption></figure>
+      <figure className="hero-visual"><img src={hero} alt={c.heroAlt} fetchPriority="high" /><figcaption>{c.caption}</figcaption></figure>
     </section>
     <section className="project-steps" aria-label={lang === 'en' ? 'How to explore' : 'Cómo explorar'}>
       {c.steps.map(([number, title, text]) => <article key={number}><p className="eyebrow">{number}</p><h2>{title}</h2><p>{text}</p></article>)}
