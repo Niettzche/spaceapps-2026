@@ -3,10 +3,11 @@
 > Lo actualiza SOLO este frente. Rama: `feat/modelo`.
 
 **Responsable:** Mario  ·  **Agente:** Claude Code / Codex
-**Última actualización:** 15 nov 2026, mañana (ANA, la tutora de análogos; demo en https://v1.marsception.us/)
+**Última actualización:** 15 nov 2026, mediodía (ANA también en el menú principal y con gpt-5.4-mini; demo en https://v1.marsception.us/)
 
 ## Hecho (ANA, la tutora de análogos, 15 nov, mañana; rama `feat/modelo-tutor`)
-- **Qué es:** una tutora en el juego (Expediente: botón «A · Tutora» o tecla A) que explica qué es un análogo, por qué el
+- **Qué es:** una tutora en el juego (Expediente: botón «A · Tutora» o tecla A; menú principal: botón «Tutora ANA» arriba a la
+  izquierda o tecla A) que explica qué es un análogo, por qué el
   sitio se parece a su destino, dónde se rompe la analogía y de dónde sale cada dato. Es un extra (AGENTS.md §15): el juego
   funciona igual sin ella.
 - **Preguntas sugeridas = reglas, sin IA ni red** (`game/src/tutor/conocimiento.js`): leen solo campos de data/sites y
@@ -14,7 +15,8 @@
   (METODOLOGIA.md + VALIDATION.md). Probado con los 58 sitios en es/en (`node --test src/tutor/`).
 - **Preguntas libres = `POST /tutor`** (`api/tutor.py`). El servidor arma el contexto con METODOLOGIA.md, VALIDATION.md,
   un catálogo de una línea por sitio y el JSON del sitio y del destino; el navegador solo manda la pregunta. Usa OpenAI
-  Chat Completions con `requests`, sin dependencias nuevas. Modelo por defecto `gpt-4.1-mini` (`OPENAI_MODEL`). Sin llave → 503 y el
+  Chat Completions con `requests`, sin dependencias nuevas. Modelo por defecto `gpt-5.4-mini` (`OPENAI_MODEL`; razonamiento `low` con `OPENAI_REASONING`, `none` es más rápido). No existe
+  `gpt-5.1-mini` y `gpt-5-mini` está marcado como obsoleto (páginas de modelos de OpenAI, 15 nov). Sin llave → 503 y el
   panel lo dice. Unos 14 k tokens de entrada por pregunta, con el bloque fijo al inicio para la caché del proveedor.
 - **Defensa contra prompt injection, por capas.** La tutora no tiene herramientas ni secretos en su contexto:
   - historial firmado con HMAC (un turno «tutor» inventado se descarta);
@@ -30,7 +32,8 @@
   `ALLOWED_ORIGINS` (la landing llama a v1.marsception.us/api). Agregar `docs/METODOLOGIA.md` al `git archive` de la API:
   si no, la tutora pierde la metodología y solo le queda VALIDATION.md. Poner un tope de gasto en el panel de OpenAI.
 - **Pendientes de otros frentes:**
-  - el frente expediente revisa el botón del pie de Expediente.js (2 líneas + método `abrirTutora`);
+  - el frente expediente revisa el botón del pie de Expediente.js (2 líneas + método `abrirTutora`) y el de Menu.js
+    (botón «Tutora ANA» arriba a la izquierda, tecla A, en el recorrido de Tab y ←→ pero no en la rejilla de ↑↓ de la consola);
   - el integrador agrega la tutora a `docs/USO_IA.md`;
   - discrepancia: METODOLOGIA.md dice 9/20 análogos conocidos y VALIDATION.md, 9 de 21.
 
