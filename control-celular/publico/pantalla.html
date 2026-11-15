@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MARSCEPTION · Conectar celular</title>
+  <style>
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #0b0d17; color: #e8eaf6;
+      font: 15px/1.5 ui-monospace, Menlo, Consolas, monospace; }
+    .t { display: grid; grid-template-columns: auto 1fr; gap: 28px; align-items: center; padding: 24px; max-width: 900px; }
+    img { width: 340px; height: 340px; background: #fff; border-radius: 14px; padding: 8px; image-rendering: pixelated; }
+    h1 { color: #ffd166; margin: 0 0 10px; font-size: 24px; }
+    .sala { font-size: 40px; letter-spacing: 8px; color: #ffd166; }
+    .url { color: #9fb3ff; word-break: break-all; }
+    button { background: #1f2440; color: #e8eaf6; border: 1px solid #3a4170; border-radius: 8px; padding: 6px 10px; margin: 3px; cursor: pointer; font: inherit; font-size: 12px; }
+    button.act { border-color: #ffd166; color: #ffd166; }
+  </style>
+</head>
+<body>
+  <div class="t">
+    <img id="qr" alt="QR para conectar el celular" />
+    <div>
+      <h1>📱 Conecta tu celular</h1>
+      <p>Celular y compu en la misma red (Wi-Fi o hotspot del celular). Escanea el QR con la cámara.</p>
+      <p>Sala: <span class="sala" id="sala">····</span></p>
+      <p class="url" id="url"></p>
+      <div id="redes"></div>
+    </div>
+  </div>
+  <script>
+    let elegida = 0;
+    async function pintar() {
+      const info = await (await fetch('/info', { cache: 'no-store' })).json();
+      document.getElementById('sala').textContent = info.sala;
+      const dirs = info.direcciones;
+      if (!dirs.length) { document.getElementById('url').textContent = 'Sin red: conecta la compu al Wi-Fi o al hotspot.'; return; }
+      elegida = Math.min(elegida, dirs.length - 1);
+      document.getElementById('qr').src = '/qr.svg?u=' + encodeURIComponent(dirs[elegida].url);
+      document.getElementById('url').textContent = dirs[elegida].url;
+      const r = document.getElementById('redes');
+      r.innerHTML = '';
+      if (dirs.length > 1) dirs.forEach((d, i) => {
+        const b = document.createElement('button');
+        b.textContent = d.nombre + ' · ' + d.ip;
+        if (i === elegida) b.className = 'act';
+        b.onclick = () => { elegida = i; pintar(); };
+        r.append(b);
+      });
+    }
+    pintar();
+    setInterval(pintar, 4000);
+  </script>
+</body>
+</html>

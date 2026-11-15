@@ -1,0 +1,226 @@
+// Puente de la pantalla: corre dentro de la página del juego (en la compu) y convierte los botones del celular en
+// teclas. El juego no se modifica: Phaser lee event.keyCode y la clase Teclado del juego lee event.key, así que cada
+// botón se emite como un KeyboardEvent con ambos.
+//
+// Además: muestra un panel con el QR para emparejar, avisa cuando entra o sale un celular, y le cuenta al celular en
+// qué escena está el juego para que cambie solo entre "conducir" y "navegar".
+(() => {
+  if (window.__controlCelular) return;
+  window.__controlCelular = { version: 1 };
+
+  const ORIGEN = new URL(document.currentScript?.src ?? 'http://localhost:8787/puente.js').origin;
+  const WS_URL = ORIGEN.replace(/^http/, 'ws') + '/ws?rol=pantalla';
+
+  // tecla → [keyCode, code]
+  const TECLAS = {
+    ArrowLeft: [37, 'ArrowLeft'], ArrowUp: [38, 'ArrowUp'], ArrowRight: [39, 'ArrowRight'], ArrowDown: [40, 'ArrowDown'],
+    Enter: [13, 'Enter'], Escape: [27, 'Escape'], ' ': [32, 'Space'], Tab: [9, 'Tab'], Delete: [46, 'Delete'],
+    Backspace: [8, 'Backspace'],
+  };
+  for (const c of 'achilmnprx') TECLAS[c] = [c.toUpperCase().charCodeAt(0), `Key${c.toUpperCase()}`];
+  for (let n = 1; n <= 9; n++) TECLAS[String(n)] = [48 + n, `Digit${n}`];
+
+  // ------------------------------------------------------------ teclas sintéticas
+  function emitir(tipo, k, repeat = false) {
+    const t = TECLAS[k];
+    if (!t) return;
+    const ev = new KeyboardEvent(tipo, { key: k, code: t[1], bubbles: true, cancelable: true, repeat });
+    Object.defineProperty(ev, 'keyCode', { get: () => t[0] });
+    Object.defineProperty(ev, 'which', { get: () => t[0] });
+    const el = document.activeElement;
+    (el && el !== document.documentElement ? el : document.body).dispatchEvent(ev);
+  }
+
+  // Como un teclado real: al mantener una flecha para navegar, se repite. Para conducir no (r = 0).
+  // La espera es más larga que en un teclado (520 ms): un toque lento en la pantalla no debe contar doble.
+  const repeticion = new Map();
+  function abajo(k, repetir) {
+    soltarRepeticion(k);
+    emitir('keydown', k);
+    if (repetir) {
+      const t = setTimeout(function rep() {
+        emitir('keydown', k, true);
+        repeticion.set(k, setTimeout(rep, 120));
+      }, 520);
+      repeticion.set(k, t);
+    }
+  }
+  function soltarRepeticion(k) { clearTimeout(repeticion.get(k)); repeticion.delete(k); }
+  const presionadas = new Set();
+  function tecla(k, d, r) {
+    if (d) { presionadas.add(k); abajo(k, r); }
+    else { presionadas.delete(k); soltarRepeticion(k); emitir('keyup', k); }
+  }
+  function soltarTodo() { [...presionadas].forEach((k) => tecla(k, 0)); }
+
+  // ------------------------------------------------------------ escena actual (para el modo automático)
+  // Phaser deja window.Phaser global; se toma el juego la primera vez que el SceneManager se actualiza.
+  let juego = null;
+  (function engancharPhaser() {
+    const P = window.Phaser;
+    if (!P?.Scenes?.SceneManager) return setTimeout(engancharPhaser, 200);
+    const proto = P.Scenes.SceneManager.prototype;
+    const original = proto.update;
+    proto.update = function (...a) {
+      if (!juego) { juego = this.game; proto.update = original; }
+      return original.apply(this, a);
+    };
+  })();
+
+  let ultima = '';
+  window.__controlCelular.escena = () => escenaActual(); // para pruebas automáticas
+  window.__controlCelular.juego = () => juego;
+  function escenaActual() {
+    if (!juego) return null;
+    const activas = juego.scene.getScenes(true).filter((s) => s.sys.settings.key !== 'Boot');
+    const s = activas[activas.length - 1];
+    if (!s) return null;
+    return { clave: s.sys.settings.key, pausado: !!s.recorrido?.pausado };
+  }
+  setInterval(() => {
+    const e = escenaActual();
+    const f = JSON.stringify(e);
+    if (e && f !== ultima && ws?.readyState === 1) { ultima = f; ws.send(JSON.stringify({ t: 'escena', ...e })); }
+  }, 200);
+
+  // ------------------------------------------------------------ conexión
+  let ws = null;
+  let espera = 500;
+  let pads = 0;
+  function conectar() {
+    ws = new WebSocket(WS_URL);
+    ws.onopen = () => { espera = 500; ultima = ''; ui.estado(true); };
+    ws.onmessage = (e) => {
+      let m; try { m = JSON.parse(e.data); } catch { return; }
+      if (m.t === 'k') tecla(m.k, m.d, m.r);
+      else if (m.t === 'pads') {
+        if (m.n > pads) { ui.aviso('📱 Control conectado'); ui.cerrar(); }
+        else if (m.n < pads) ui.aviso('📱 Control desconectado');
+        pads = m.n;
+        ui.pads(pads);
+      }
+    };
+    ws.onclose = () => {
+      soltarTodo();
+      ui.estado(false);
+      setTimeout(conectar, espera);
+      espera = Math.min(espera * 2, 4000);
+    };
+  }
+
+  // ------------------------------------------------------------ interfaz (Shadow DOM: no toca los estilos del juego)
+  const ui = (() => {
+    const host = document.createElement('div');
+    host.id = 'control-celular';
+    const raiz = host.attachShadow({ mode: 'open' });
+    raiz.innerHTML = `
+      <style>
+        :host { all: initial; }
+        * { box-sizing: border-box; font-family: ui-monospace, Menlo, Consolas, monospace; }
+        .pastilla { position: fixed; right: 6px; top: 6px; z-index: 2147483000;
+          background: rgba(11,13,23,.78); color: #e8eaf6; border: 1px solid rgba(255,209,102,.5); border-radius: 999px;
+          padding: 3px 9px; font-size: 11px; cursor: pointer; opacity: .9; transition: opacity .4s; user-select: none; }
+        .pastilla.tenue { opacity: .25; }
+        .pastilla:hover { opacity: 1; }
+        .pastilla .p { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #ef476f; margin-right: 6px; }
+        .pastilla .p.ok { background: #06d6a0; }
+        .velo { position: fixed; inset: 0; z-index: 2147483001; display: none; align-items: center; justify-content: center;
+          background: rgba(5,6,12,.72); }
+        .velo.abierto { display: flex; }
+        .tarjeta { background: #12152a; color: #e8eaf6; border: 2px solid #ffd166; border-radius: 16px; padding: 20px 24px;
+          display: grid; grid-template-columns: auto 1fr; gap: 20px; align-items: center; max-width: min(720px, 94vw); }
+        .qr { width: 220px; height: 220px; background: #fff; border-radius: 10px; padding: 6px; }
+        .qr img { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+        h2 { margin: 0 0 8px; color: #ffd166; font-size: 18px; }
+        p { margin: 6px 0; font-size: 13px; line-height: 1.45; }
+        .sala { font-size: 28px; letter-spacing: 6px; color: #ffd166; }
+        .url { font-size: 12px; word-break: break-all; color: #9fb3ff; }
+        .redes { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+        button { background: #1f2440; color: #e8eaf6; border: 1px solid #3a4170; border-radius: 8px; padding: 5px 9px;
+          font-size: 11px; cursor: pointer; }
+        button.act { border-color: #ffd166; color: #ffd166; }
+        .cerrar { margin-top: 12px; background: #ffd166; color: #12152a; border: 0; font-weight: bold; font-size: 13px; padding: 7px 14px; }
+        .aviso { position: fixed; top: 12px; left: 50%; transform: translate(-50%, -80px); z-index: 2147483002;
+          background: rgba(11,13,23,.9); color: #e8eaf6; border: 1px solid #06d6a0; border-radius: 10px; padding: 8px 14px;
+          font-size: 13px; transition: transform .3s; }
+        .aviso.ver { transform: translate(-50%, 0); }
+      </style>
+      <div class="pastilla" title="Control de celular"><span class="p"></span><span class="t">Conectar celular</span></div>
+      <div class="velo"><div class="tarjeta">
+        <div class="qr"><img alt="QR para conectar el celular"></div>
+        <div>
+          <h2>📱 Usa tu celular como control</h2>
+          <p>1. Celular y compu en la <b>misma red</b> (Wi-Fi o hotspot del celular).</p>
+          <p>2. Escanea el QR con la cámara y gira el celular.</p>
+          <p>Código de sala: <span class="sala">····</span></p>
+          <p class="url"></p>
+          <div class="redes"></div>
+          <button class="cerrar">Listo · jugar</button>
+        </div>
+      </div></div>
+      <div class="aviso"></div>`;
+    const $ = (s) => raiz.querySelector(s);
+    const pastilla = $('.pastilla'), velo = $('.velo');
+    let info = null, elegida = 0, tenue;
+
+    async function cargarInfo() {
+      try { info = await (await fetch(ORIGEN + '/info', { cache: 'no-store' })).json(); } catch { info = null; }
+      pintar();
+    }
+    function pintar() {
+      if (!info) { $('.url').textContent = 'No se pudo leer la red del relay.'; return; }
+      $('.sala').textContent = info.sala;
+      const dirs = info.direcciones;
+      if (!dirs.length) {
+        $('.url').textContent = 'Esta compu no tiene red: conéctala al Wi-Fi o al hotspot del celular.';
+        $('.qr img').removeAttribute('src');
+        $('.redes').innerHTML = '';
+        return;
+      }
+      elegida = Math.min(elegida, dirs.length - 1);
+      const d = dirs[elegida];
+      $('.qr img').src = `${ORIGEN}/qr.svg?u=${encodeURIComponent(d.url)}`;
+      $('.url').textContent = d.url;
+      $('.redes').innerHTML = '';
+      if (dirs.length > 1) {
+        dirs.forEach((x, i) => {
+          const b = document.createElement('button');
+          b.textContent = `${x.nombre} · ${x.ip}`;
+          if (i === elegida) b.className = 'act';
+          b.onclick = () => { elegida = i; pintar(); };
+          $('.redes').append(b);
+        });
+      }
+    }
+    const abrir = () => { velo.classList.add('abierto'); cargarInfo(); };
+    const cerrar = () => velo.classList.remove('abierto');
+    pastilla.onclick = () => (velo.classList.contains('abierto') ? cerrar() : abrir());
+    $('.cerrar').onclick = cerrar;
+    velo.onclick = (e) => { if (e.target === velo) cerrar(); };
+    // Si la red cambia con el panel abierto, el QR se actualiza.
+    setInterval(() => { if (velo.classList.contains('abierto')) cargarInfo(); }, 4000);
+
+    let tAviso;
+    return {
+      montar() { document.body.append(host); abrir(); },
+      cerrar,
+      estado(ok) { $('.pastilla .p').classList.toggle('ok', ok); if (!ok) this.pads(0); },
+      pads(n) {
+        $('.pastilla .t').textContent = n ? `Control · ${n} conectado${n > 1 ? 's' : ''}` : 'Conectar celular';
+        pastilla.classList.remove('tenue');
+        clearTimeout(tenue);
+        tenue = setTimeout(() => pastilla.classList.add('tenue'), n ? 4000 : 10000);
+      },
+      aviso(texto) {
+        const a = $('.aviso');
+        a.textContent = texto;
+        a.classList.add('ver');
+        clearTimeout(tAviso);
+        tAviso = setTimeout(() => a.classList.remove('ver'), 2200);
+      },
+    };
+  })();
+
+  const iniciar = () => { ui.montar(); conectar(); };
+  if (document.body) iniciar(); else document.addEventListener('DOMContentLoaded', iniciar);
+})();
