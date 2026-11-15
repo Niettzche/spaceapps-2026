@@ -1,7 +1,7 @@
 # Fuentes para la física del manejo (v2)
 
 > 15 nov 2026 · Leo (con Claude Code) · para el frente juego (Edmundo) y `docs/juego/FISICA_V2.md`.
-> Cada dato tiene su fila en `docs/taller/Space_Apps_Game_Data.xlsx` (hojas **Moon**, **Mars** y **Biomes**; fuentes S79–S102).
+> Cada dato tiene su fila en `docs/taller/Space_Apps_Game_Data.xlsx` (hojas **Moon**, **Mars** y **Biomes**; fuentes S79–S105; veredictos en Review Log RV-164…172).
 > Verified = leído en la fuente primaria · Draft = solo fuente secundaria o dudosa · Gap = no hay fuente.
 > No cambié código ni `FISICA_V2.md`: aquí van los veredictos y los valores que propongo.
 
@@ -15,8 +15,11 @@
 | Luna: φ 33° (diapositiva de S62) | **Gap** | La tabla 9.14 y Costes dan 35° (φ_b) | — |
 | Marte, drift: c 1.85 kPa (punto medio de 0–3.7, S20) | ✗ **no es un valor publicado** | Moore 1991 (S82): **1.6 ± 1.2 kPa** (0–3.7) y φ 18 ± 2.4°. Moore et al. 1987 (USGS PP 1389, S81): "0.7 a 3.0 kPa" en el resumen y **1–3 kPa como valor de diseño** (p. 130). El 0–3.7 de Oravec 2020 sí coincide con Moore | Usar **c 1.6 kPa**, φ 18°. Las dos fuentes advierten que son estimaciones de ingeniería y que la cohesión puede estar sobrestimada |
 | Marte, drift: Bekker del simulante M90 (S63, preprint) | ✓ **Verified como simulante** | Oravec et al. 2020 (NTRS 20200003046, ya es S20) tabla 3, p. 9: M90 suelto n 1.3, k_c 572.1, k_φ 4915.3 (además φ_b 32°, c_b 0.27 kPa, K 25.4 mm). **No existen parámetros de Bekker del suelo real de Marte** | Citar S20 (primaria) en vez de S63. Declararlo como "simulante M90". GRC-3 (n 1.0, k_c 23.2, k_φ 606.7) es la otra opción publicada y es mucho más blanda. Ojo: la tabla 3 puede traer las unidades de k_c y k_φ invertidas |
-| Ceniza volcánica (BM-003): c 0, φ 28.5° | **Pendiente** (se agrega en el siguiente commit de este PR) | | |
-| Roca y suelo firme de la Tierra: φ 45 y 40, c 0 (sin fuente) | **Pendiente** (se agrega en el siguiente commit de este PR) | | |
+| Marte, M90: c 2000 Pa, φ 35°, ρ 1520 (S63) | ✗ **no son los del ensayo** | El mismo ensayo de Bekker de M90 da **c_b 0.27 kPa, φ_b 32.0°**, K 25.4 mm (S20 tabla 3). 2.0 kPa / 35° / 1520 solo caen dentro de los rangos de laboratorio (1.4–2.8 kPa, 29–37°, 1.32–1.52 g/cc; tabla 2) | Si se usa el Bekker de M90, usar **c 0.27 kPa y φ 32°** del mismo ensayo (MR-094, MR-095). Ojo: el φ de M90 (29–37°) es mayor que el del drift estimado (15.6–25°), así que la tracción en Marte sale optimista |
+| Ceniza volcánica (BM-003): c 0 | ✓ **Verified** | La escoria seca es "granular, sin cohesión" (Agustian & Goto 2008, S103) | Mantener c 0 |
+| Ceniza volcánica (BM-003): φ 28.5° | ✓ **como valor suelto** | 25–32° es el ángulo de reposo (NPS, S61) ≈ φ en estado suelto. El φ **pico** medido en tefra seca a 3–35 kPa (rango de una rueda) es **35.8–36.5°** (Osman et al. 2022, S104) y 38–44° a 10–80 kPa (S103) | Mantener 28.5° y declararlo "suelto, conservador", o subir a **36°** (S104) |
+| Suelo compacto / talud de mina (Tierra): φ 40, c 0 | ✓ aproximado (un poco alto) | Suelos compactados limpios (arena y grava): **φ 37–38°, c 0** (NAVFAC DM-7.02, S105, tabla 1 p. 7.2-39). Ningún suelo firme de la tabla de Wong pasa de 38° | Usar **φ 38°, c 0** (BM-023) |
+| Roca (Tierra): φ 45, c 0 | **Gap** | No encontré fuente para 45°. En roca no hay hundimiento y la tracción es ≈ μ·W (S59 pp. 19–21). Fricción roca–roca y concreto–roca: **tan 0.55–0.70 (29–35°)** (DM-7.02, S105, p. 7.2-63). Simulación de rover: μ rueda–roca 0.5–0.9 (S63) | Usar **μ ≈ 0.7 (φ ≈ 35°)** y declarar c 0 como simplificación (la cohesión real de la roca es enorme) (BM-024). μ medido llanta–basalto: Gap |
 
 **Dato que llena un hueco de la física v2:** el módulo de deformación cortante **K = 1.8 cm** para la Luna (tabla 9.14; Costes:
 0.7 ± 0.3 in) y **K = 25.4 mm** para el simulante M90 (S20). FISICA_V2.md §7 omite `K` (EQ-017) por ser Gap.
