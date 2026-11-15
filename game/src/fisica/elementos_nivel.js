@@ -145,7 +145,7 @@ export function crearElementos(scene, perfil, { xMundo, yMundo }, lista, { mundo
         const vis = Math.min(H, Math.max(3, Math.round(alto / PX) + 1));
         s.setScale(PX, PX).setCrop(0, 0, s.frame.width, vis);
         s.y = ySuelo + PX + (H - vis) * PX;
-        contornear(scene, s, { recorte: [0, 0, s.frame.width, vis] });
+        contornear(scene, s, { recorte: [0, 0, s.frame.width, vis], luz: o.clase === 'lava_aa' ? 0x8a8078 : mundo === 'luna' ? 0xe4e4ec : 0xf2e6d0, aclarar: o.clase === 'lava_aa' ? 0.25 : 0 });
       } else {
         g.fillStyle(o.clase === 'lava_aa' ? 0x2b2324 : 0x6a5a50, 1).fillCircle(x, ySuelo + rpx - alto, rpx);
       }

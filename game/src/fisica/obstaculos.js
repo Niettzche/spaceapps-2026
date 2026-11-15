@@ -267,15 +267,20 @@ const COLOR_ARENA_BLANDA_BORDE = { tierra: 0xf3d79a, marte: 0xe09a6a, luna: 0xd0
  * Contorno oscuro de 1 px de arte y sombra (copias teñidas del sprite, detrás) para que un obstáculo se lea sobre el suelo.
  * `recorte` = [x, y, ancho, alto] en px de arte si el sprite está recortado.
  */
-export function contornear(scene, s, { color = 0x120c0a, recorte = null, sombra = true } = {}) {
+export function contornear(scene, s, { color = 0x120c0a, luz = 0xf2e6d0, recorte = null, sombra = true, aclarar = 0 } = {}) {
   const PX = 3;
-  const offs = [[-PX, 0], [PX, 0], [0, -PX]];
-  if (sombra) offs.push([2 * PX, PX]);
-  return offs.map(([dx, dy], i) => {
-    const c = scene.add.image(s.x + dx, s.y + dy, s.texture.key, s.frame.name).setOrigin(s.originX, s.originY)
-      .setScale(s.scaleX, s.scaleY).setDepth(s.depth - 0.01).setTintFill(color).setAlpha(i === 3 ? 0.35 : 0.9);
-    if (recorte) c.setCrop(...recorte);
-    return c;
+  // Lados oscuros, borde de arriba claro (la luz viene de arriba) y sombra abajo a la derecha: el arte de roca tiene casi el
+  // mismo color que el suelo de Marte y de la Luna, y sin esto solo se veía el contorno.
+  const offs = [[-PX, 0, color, 0.9], [PX, 0, color, 0.9], [0, -PX, luz, 0.95]];
+  if (sombra) offs.push([2 * PX, PX, 0x000000, 0.35]);
+  // aclarar = velo claro encima del arte (0–1): las rocas de Marte y la Luna son del color del suelo; las rocas frescas se ven
+  // más claras que el polvo que las rodea, así que se aclaran un poco para que se distingan.
+  if (aclarar > 0) offs.push([0, 0, luz, aclarar, 0.01]);
+  return offs.map(([dx, dy, c, a, dz = -0.01]) => {
+    const copia = scene.add.image(s.x + dx, s.y + dy, s.texture.key, s.frame.name).setOrigin(s.originX, s.originY)
+      .setScale(s.scaleX, s.scaleY).setDepth(s.depth + dz).setTintFill(c).setAlpha(a);
+    if (recorte) copia.setCrop(...recorte);
+    return copia;
   });
 }
 
@@ -297,7 +302,8 @@ export function bordeParche(g, perfil, { xMundo, yMundo }, desde, hasta, color, 
 
 const COLOR_RIZADURA = { luz: 0xf6dfa6, sombra: 0xa47e4a };
 const COLOR_MATORRAL = [0x6b5a35, 0x8a7a48, 0x4a3f28];
-const COLOR_CRATER = { luna: [0xb8b8c0, 0x3a3a42], marte: [0xc98a66, 0x5a3022], tierra: [0xbfb3a0, 0x4a4036] };
+const COLOR_CRATER = { luna: [0xe4e4ec, 0x000000], marte: [0xe8b08a, 0x2a140e], tierra: [0xe8dcc8, 0x2a2018] };
+const LUZ_ROCA = { luna: 0xe4e4ec, marte: 0xf0b890, tierra: 0xf2e6d0 };
 
 /**
  * Crea los cuerpos (rocas estáticas, label 'suelo' para que cuenten como suelo en contactos y golpes) y el dibujo.
@@ -339,7 +345,7 @@ export function crearObstaculos(scene, perfil, { xMundo, yMundo }, lista, { mund
         s.setCrop(0, 0, s.frame.width, vis);
         s.y = ySuelo + PX + (H - vis) * PX;
         if (o.clase === 'toba') s.setTint(0xe6d6b8);
-        contornear(scene, s, { recorte: [0, 0, s.frame.width, vis] });
+        contornear(scene, s, { recorte: [0, 0, s.frame.width, vis], luz: LUZ_ROCA[mundo] ?? LUZ_ROCA.tierra, aclarar: mundo === 'tierra' ? 0 : 0.35 });
       } else {
         // Roca de píxeles (1 px de arte = 1/8 m): mínimo 3 × 2 px para que se vea; tapa más angosta, brillo y sombra.
         const ancho = 2 * Math.sqrt(Math.max(0, rpx * rpx - (rpx - alto) * (rpx - alto))); // cuerda a ras del suelo
@@ -366,7 +372,9 @@ export function crearObstaculos(scene, perfil, { xMundo, yMundo }, lista, { mund
       for (let xm = o.x_m - R; xm <= o.x_m + R; xm += 0.125) {
         const y = Math.round(yMundo(alturaEn(perfil, xm)) / PX) * PX;
         const d = Math.abs(xm - o.x_m) / R;
-        g.fillStyle(d > 0.75 ? luz : sombra, d > 0.75 ? 0.95 : 0.55).fillRect(Math.round(xMundo(xm) / PX) * PX, y, PX, PX * (d > 0.75 ? 1 : 2));
+        // Borde iluminado (2 px de arte) en el último cuarto del radio; fondo en sombra.
+        if (d > 0.7) g.fillStyle(luz, 0.95).fillRect(Math.round(xMundo(xm) / PX) * PX, y - PX, PX, PX * 2);
+        else g.fillStyle(sombra, 0.45).fillRect(Math.round(xMundo(xm) / PX) * PX, y, PX, PX * 3);
       }
       g.fillStyle(luz, 0.9);
       for (const lado of [-1, 1]) { // guijarros de eyecta junto al borde (solo dibujo)
