@@ -9,6 +9,7 @@ import { exponerParaPruebas } from '../fisica/depuracion.js';
 import { cargarArte } from '../fisica/aspecto.js';
 import { tr } from '../i18n.js';
 import { nombreDestino } from '../fisica/nombres_en.js';
+import { tocarMusica, pistaDeMundo } from '../audio/musica.js';
 
 // Dueño: frente juego. Misión en el destino elegido (Luna o Marte) con su gravedad real: entregar el suministro.
 // Victoria: carga en la zona con integridad ≥ UMBRAL_INTEGRIDAD y robot detenido 2 s. Ver ESPECIFICACION.md §10.
@@ -24,6 +25,7 @@ export default class Mision extends Phaser.Scene {
 
   create() {
     const destino = DESTINOS[partida.destino] ?? DESTINOS.jezero;
+    tocarMusica(pistaDeMundo(destino.mundo)); // misión: música de la Luna o de Marte (audio/musica.js)
     const diseno = partida.diseno?.length ? partida.diseno : DISENO_POR_DEFECTO;
     const intentos = partida.resultados.filter((r) => r.tipo === 'mision' && r.resultado.destino === destino.id).length + 1;
 

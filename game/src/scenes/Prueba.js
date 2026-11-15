@@ -9,6 +9,7 @@ import { exponerParaPruebas } from '../fisica/depuracion.js';
 import { cargarArte } from '../fisica/aspecto.js';
 import { tr } from '../i18n.js';
 import { nombreSitio } from '../fisica/nombres_en.js';
+import { tocarMusica } from '../audio/musica.js';
 
 // Dueño: frente juego. Prueba terrestre: perfil del sitio (real o ilustrativo declarado) con gravedad de la Tierra.
 // El análogo nunca simula la gravedad del destino. Pasa si llega a la meta con chasis y carga. Ver ESPECIFICACION.md §9.
@@ -24,6 +25,7 @@ export default class Prueba extends Phaser.Scene {
   }
 
   create() {
+    tocarMusica('tierra'); // prueba terrestre: música de la Tierra (audio/musica.js)
     const sitio = partida.sitio;
     const diseno = partida.diseno?.length ? partida.diseno : DISENO_POR_DEFECTO;
     const sitioId = sitio?.id ?? null;
