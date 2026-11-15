@@ -32,7 +32,7 @@ y los cuadernos que vuelven a calcular sus cifras, por si alguien pide verlas.
 | 29 de 33 etiquetas contrastadas | `02_cifras_de_la_guia.ipynb`, sección 5 |
 | 176 K y 55 K; lo que la Tierra no reproduce | `02_cifras_de_la_guia.ipynb`, sección 6 |
 | 3 de 3 controles negativos y 9 de 21 análogos conocidos | `model/VALIDATION.md`, sección A (necesita Earth Engine; el cuaderno 02 solo lo cita) |
-| Qué significa el porcentaje (8 de cada 10 sitios áridos entre 0.32 y 0.51) | `model/VALIDATION.md`, sección A, «Tasa del prefiltro en los sitios del detector» |
+| Qué significa el porcentaje (8 de cada 10 sitios áridos entre 0.32 y 0.52) | `model/VALIDATION.md`, sección A, «Tasa del prefiltro en los sitios del detector» |
 | 9 de 11 cráteres mexicanos conocidos | `informe/validacion_detector.pdf` |
 | La Luna emborronada (0.058 → 0.043) | `model/NIVEL2.md`, sección B |
 | El modelo Luna contra Marte paso a paso | `ciencia_datos/06_modelo_luna_marte.ipynb` |
