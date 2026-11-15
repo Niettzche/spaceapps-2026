@@ -18,6 +18,7 @@ import { estrellas, planetaGirando, movimientoReducido } from './expediente/efec
 import { sonarBoton } from '../fisica/sonido.js';
 import { FondoMenu } from './expediente/fondo_menu.js';
 import { marteGrande, logoBrillo, lineaPixel, restaurarCamara, precargarInicio, videoInicio, warp, textoPx } from './expediente/inicio.js';
+import { vozTitulo } from './expediente/voz_titulo.js';
 import { escenarioNave, consolaMenu, flechasRejilla, entradaInterfaz, zoomEscotilla, detenerZoom } from './expediente/menu_nave.js';
 
 // A dónde ir al terminar o saltar "Cómo jugar" (se conserva si el Menú se reinicia al cambiar de idioma).
@@ -184,6 +185,7 @@ export default class Menu extends Phaser.Scene {
    */
   vistaInicio() {
     const v = videoInicio(this);
+    vozTitulo(); // «MARSCEPTION» con la voz de Mauricio, una vez por visita
     if (!v) this.inicioRespaldo();
     const quieto = movimientoReducido();
     if (idioma() !== 'en') {
