@@ -6,17 +6,19 @@ import { createFrame, painterFor, guardar, tileFbm, rampa, tramado, clamp, hex }
 import { PALETAS } from './paletas.mjs';
 import { glifos } from './fuentes.mjs';
 
-const N = 48, S = 48, C = S / 2, R = 21;
+const N = 48;
 const norm = (v) => { const l = Math.hypot(...v); return v.map((a) => a / l); };
 const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 const L = norm([-0.6, -0.5, 0.62]), RD = norm([0.9, -0.2, 0.2]);
 const TAU = Math.PI * 2;
 
 /** Dibuja la tira: textura(lon 0..1, lat -1..1, x, y) → { t (0..1 de luz base), color? } */
-function tira(ruta, pal, textura) {
-  const f = createFrame(S * N, S), RAMPA = rampa(pal), RIM = rampa(PALETAS.titulo.borde_luz);
-  painterFor(f).shade(0, 0, S * N, S, (px, py) => {
-    const X = Math.floor(px), y = Math.floor(py), i = Math.floor(X / S), x = X - i * S;
+function tira(ruta, pal, textura, { S = 48, R = 21, cols = N } = {}) {
+  const C = S / 2, filas = Math.ceil(N / cols);
+  const f = createFrame(S * cols, S * filas), RAMPA = rampa(pal), RIM = rampa(PALETAS.titulo.borde_luz);
+  painterFor(f).shade(0, 0, S * cols, S * filas, (px, py) => {
+    const X = Math.floor(px), Y = Math.floor(py), col = Math.floor(X / S), fila = Math.floor(Y / S), i = fila * cols + col, x = X - col * S, y = Y - fila * S;
+    if (i >= N) return 0;
     const nx = (x + 0.5 - C) / R, ny = (y + 0.5 - C) / R, d2 = nx * nx + ny * ny;
     if (d2 > 1) {
       const d = Math.sqrt(d2);
@@ -26,8 +28,8 @@ function tira(ruta, pal, textura) {
     const lon = ((Math.atan2(nx, nz) / TAU + i / N) % 1 + 1) % 1, lat = -Math.asin(clamp(ny, -1, 1)) / (Math.PI / 2);
     const lam = clamp(dot(n, L), 0, 1);
     const tex = textura(lon, lat, nx, ny);
-    if (tex.color && lam > 0.08) return tex.color(lam, x, y);
-    let c = tramado(RAMPA, clamp(0.06 + lam * 0.88 + tex.t, 0, 1), X, y);
+    if (tex.color && lam > 0.08) return tex.color(lam, X, Y);
+    let c = tramado(RAMPA, clamp(0.06 + lam * 0.88 + tex.t, 0, 1), X, Y);
     const rim = clamp(dot(n, RD), 0, 1) * Math.pow(1 - nz, 1.5);
     if (rim > 0.22 + ((x * 7 + y * 3) % 4) * 0.04) c = rim > 0.42 ? RIM[1] : RIM[0];
     return c;
@@ -91,7 +93,7 @@ export function generar() {
   // Marte: óxido con mares oscuros, un cañón largo, cráteres pequeños y casquetes polares blancos
   const HIELO = PALETAS.titulo.logo.slice(0, 3).map(hex);
   const crateresM = [[0.12, 0.2, 0.12], [0.41, -0.35, 0.09], [0.63, 0.1, 0.1], [0.85, -0.15, 0.08], [0.3, 0.5, 0.07]];
-  tira('menu/planeta_marte.png', PALETAS.titulo.marte, (lon, lat) => {
+  const texturaMarte = (lon, lat) => {
     if (Math.abs(lat) > 0.6 + ruido(lon, lat, 6, 401, 2) * 0.12) {
       return { t: 0, color: (lam, x, y) => tramado(HIELO.slice().reverse(), clamp(lam * 1.1, 0, 1), x, y) };
     }
@@ -99,7 +101,11 @@ export function generar() {
     const canon = Math.abs(lat + 0.08 - Math.sin(lon * TAU) * 0.05) < 0.035 && lon > 0.2 && lon < 0.55 ? -0.3 : 0;   // gran cañón
     const k = crater(lon, lat, crateresM);
     return { t: ruido(lon, lat, 10, 403, 3) * 0.25 + mar + canon + (k < 0 ? -0.15 : k > 0 ? 0.12 : 0) };
-  });
+  };
+  tira('menu/planeta_marte.png', PALETAS.titulo.marte, texturaMarte);
+  // Marte grande para la pantalla de inicio: 48 cuadros de 152 × 152 en cuadrícula de 8 × 6 (1216 × 912). Una tira de 48
+  // cuadros mediría 7296 px de ancho y muchos teléfonos solo aceptan texturas de hasta 4096 px.
+  tira('menu/marte_grande.png', PALETAS.titulo.marte, texturaMarte, { S: 152, R: 68, cols: 8 });
 
   // Luna: grises con mares oscuros y muchos cráteres de borde claro
   const crateresL = [];
