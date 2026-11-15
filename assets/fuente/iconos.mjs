@@ -21,8 +21,30 @@ function rueda(p, { grosor, tacos = false, ancha = false }) {
     }
     if (r < 1.3) return 'o';                                                                          // cubo
     if (r < 2.2) return 'h';
-    if (Math.abs(Math.sin(a * 2)) < 0.28) return luz ? 'l' : 'm';                                     // rayos
-    return 'd';
+    if (Math.abs(Math.sin(a * 2)) < 0.28) return luz ? 'h' : 'l';                                     // rayos plateados
+    return luz ? 'l' : 'm';
+  });
+}
+
+/**
+ * Rueda ancha en vista de 3/4: se ve el ancho de la banda de rodadura con sus tacos detrás de la cara,
+ * llanta negra gruesa y cubo amarillo arena (el mismo código de color que el sprite del robot).
+ */
+function ruedaAncha(p) {
+  const fx = 6.2, fy = 7.5, rx = 5.4, ry = 6.6, fondo = 3.6;                    // cara y desplazamiento de la banda
+  const enElipse = (x, y, cx) => ((x - cx) / rx) ** 2 + ((y - fy) / ry) ** 2;
+  pinta(p, (x, y) => {
+    const px = x + 0.5, py = y + 0.5, e = enElipse(px, py, fx);
+    if (e <= 1) {
+      const r = Math.sqrt(e), a = Math.atan2((py - fy) / ry, (px - fx) / rx), luz = px - fx + py - fy < 0;
+      if (r > 0.55) return luz ? 'T' : 't';                                      // llanta gruesa
+      if (r > 0.5) return 'g';
+      if (r < 0.2) return Math.abs(a + 2.2) < 0.6 && r > 0.08 ? 'k' : 'O';       // centro del cubo y marca
+      return luz ? 'Y' : 'y';                                                    // cubo amarillo
+    }
+    // banda de rodadura (entre la cara y su copia desplazada): tacos alternos
+    for (let k = 0.5; k <= fondo; k += 0.5) if (enElipse(px - k, py, fx) <= 1) return Math.floor(py) % 3 === 0 ? 'g' : (py < fy ? 'T' : 't');
+    return null;
   });
 }
 
@@ -117,8 +139,8 @@ function panel(p) {
 
 export function generar() {
   const lista = {
-    rueda_estandar: (p) => rueda(p, { grosor: 2 }),
-    rueda_ancha: (p) => rueda(p, { grosor: 3.2, ancha: true }),
+    rueda_estandar: (p) => rueda(p, { grosor: 1.6 }),
+    rueda_ancha: (p) => ruedaAncha(p),
     rueda_tacos: (p) => rueda(p, { grosor: 2, tacos: true }),
     chasis_ligero: (p) => chasis(p, false),
     chasis_reforzado: (p) => chasis(p, true),

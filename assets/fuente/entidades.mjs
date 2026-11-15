@@ -32,14 +32,15 @@ export function generar() {
   tira(D + 'chasis_ligero.png', 24, 6, 2, (p, i) => filas(p, chasis[i]));
 
   // ---- rueda_estandar: 7 × 7, 4 cuadros en orden de giro horario (marca naranja que avanza 90° por cuadro).
+  // Se distingue de la ancha por el tono: llanta delgada y rin plateado brillante (se lee "metálica").
   const marcas7 = [[3, 2], [4, 3], [3, 4], [2, 3]]; // arriba, derecha, abajo, izquierda
   tira(D + 'rueda_estandar.png', 7, 7, 4, (p, i) => {
     const r = [
       '.......',
       '..TTT..',
-      '.TdmdT.',
-      '.TmhmT.',
-      '.tdmdt.',
+      '.ThhlT.',
+      '.ThklT.',
+      '.tllmt.',
       '..ttt..',
       '.......',
     ].map((s) => [...s]);
@@ -48,7 +49,8 @@ export function generar() {
     filas(p, r.map((a) => a.join('')));
   });
 
-  // ---- rueda_ancha: 8 × 8, 4 cuadros. Llanta doble (gruesa, "para arena") con surcos; cubo con marca que gira.
+  // ---- rueda_ancha: 8 × 8, 4 cuadros. Llanta negra doble (gruesa, "para arena") con surcos y cubo amarillo arena:
+  // de un vistazo es "de goma oscura con centro amarillo", frente a la estándar "plateada".
   const marcas8 = [[3, 3], [4, 3], [4, 4], [3, 4]]; // horario en el cubo 2 × 2
   const surcos = [[[3, 1], [6, 3], [4, 6], [1, 4]], [[4, 1], [6, 4], [3, 6], [1, 3]]];
   tira(D + 'rueda_ancha.png', 8, 8, 4, (p, i) => {
@@ -56,15 +58,15 @@ export function generar() {
       '........',
       '..TTTT..',
       '.TggggT.',
-      '.Tgmmgt.',
-      '.Tgmmgt.',
+      '.TgYygt.',
+      '.TgyOgt.',
       '.tggggt.',
       '..tttt..',
       '........',
     ].map((s) => [...s]);
     for (const [x, y] of surcos[i % 2]) r[y][x] = 'k';
     const [mx, my] = marcas8[i];
-    r[my][mx] = 'o';
+    r[my][mx] = 'k';                                                        // marca oscura sobre el cubo amarillo
     filas(p, r.map((a) => a.join('')));
   });
 
@@ -143,6 +145,7 @@ export function generar() {
 
   // ---- zona_entrega: 16 × 4, repetible a lo ancho (franjas de peligro sobre una placa).
   generarB();
+  generarDeco();
 
   tira(D + 'zona_entrega.png', 16, 4, 1, (p) => {
     const rows = [0, 1, 2].map((y) => Array.from({ length: 16 }, (_, x) => ((x + y) % 8 < 4 ? 'y' : 'k')).join(''));
@@ -229,4 +232,18 @@ export function generarB() {
   // ---- baliza: 4 × 8, 4 cuadros (parpadea). Origen: centro inferior.
   const luz = ['Y', 'y', 'O', 'O'];
   tira(D + 'baliza.png', 4, 8, 4, (p, i) => filas(p, ['....', '.' + luz[i] + luz[i] + '.', '.' + (i === 0 ? 'Y' : luz[i]) + (i < 2 ? 'o' : 'O') + '.', '.ml.', '.ml.', '.ml.', '.dd.', '....']));
+}
+
+// ---------------------------------------------------------------- calcomanías de piezas sobre el chasis
+// docs/arte/SPRITES_PENDIENTES.md §5: deco_<id de pieza>, origen al centro, 1 cuadro, contorno de 1 px. Giran con el chasis.
+// Motor atrás (x −8), batería adelante (x +6), panel encima (x +5, y −4). Cada una usa el color de acento de su ícono del taller.
+export function generarDeco() {
+  const decos = {
+    deco_motor_eficiente: ['.....', '.hcl.', '.mCd.', '.....'],   // motor con acento turquesa (eficiente)
+    deco_motor_potente: ['.....', '.hyr.', '.mOd.', '.....'],     // motor con rayo naranja y rojo (potente)
+    deco_bateria_chica: ['....', '.he.', '.dE.', '....'],          // celda chica verde
+    deco_bateria_grande: ['.....', '.hee.', '.dEE.', '.....'],     // bloque más ancho
+    deco_panel_solar: ['..........', '.SsSsSsSs.', '..........'],  // panel delgado encima
+  };
+  for (const [nombre, rows] of Object.entries(decos)) tira(D + nombre + '.png', rows[0].length, rows.length, 1, (p) => filas(p, rows));
 }
