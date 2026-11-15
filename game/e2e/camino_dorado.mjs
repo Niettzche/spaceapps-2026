@@ -60,7 +60,7 @@ const page = await browser.newPage({ viewport: { width: 960, height: 540 } });
 await page.addInitScript(() => {
   try {
     localStorage.setItem('marsception.como_jugar.visto', '1');
-    for (const t of ['resumen', 'expediente', 'taller', 'prueba', 'mision']) localStorage.setItem(`marsception.tutorial_${t}.visto`, '1');
+    for (const t of ['resumen', 'expediente', 'expediente_simple', 'taller', 'prueba', 'mision']) localStorage.setItem(`marsception.tutorial_${t}.visto`, '1');
   } catch { /* sin almacenamiento */ }
 });
 const errores = [];

@@ -29,6 +29,8 @@ import {
   porQueModelo, chipsPorQue, filtrarDescubrir, resumenDescubrir, siguienteTipo, nombreTipo, tipoDeSitio, textoOrigen, nombreCorto } from './expediente/descubrir.js';
 import { cajaMapa, dibujarMapa } from './expediente/mapa_vista.js';
 import { abrirTutora } from '../tutor/panel.js';
+import {
+  leerVista, guardarVista, fraseSimple, iconosSimples, pasosTutorialSimple, debeMostrarTutorialSimple, marcaTutorialSimple } from './expediente/vista_simple.js';
 
 // Dueño: frente expediente. Comparación 1 a 1: sitio terrestre vs destino, misma variable y unidad.
 // Diseño (docs/juego/DISENO.md §2–§3): se entiende en 3 segundos. Arriba el sitio y su similitud total (barra + %);
@@ -59,6 +61,9 @@ const COND = { x0: 10, x1: 950, y0: 76, y1: 492, col: 445, letra: 16 };
 const PQ = { x0: 10, x1: 950, y0: 62, y1: 496, xTit: 66, xVal: 318, paso: 40 };
 // Modo «Descubrir»: filtros, minimapa (160 × 60 celdas de 4 px = 640 × 240) y ficha del sitio elegido debajo.
 const DESC = { yFiltros: 64, yMapa: 92, yFicha: 340 };
+// Vista SIMPLE (por defecto, vista_simple.js): postales ×2 (192 × 128), «Se parece X %», una frase, 3 íconos, límites,
+// botones pequeños (Ver detalles · Tutora · Descubrir) y el botón grande de probar.
+const SIM = { yPostal: 46, yFrase: 210, yIconos: 240, altoIcono: 84, yLimites: 340, yBotones: 412, yProbar: 496 };
 const color = (k) => ({ bien: P.bien, riesgo: P.riesgo, dato: P.dato, sec: P.sec, texto: P.texto, accion: P.accion }[k] ?? P.texto);
 // Lo que se recuerda entre visitas a la escena (volver del Explorador a Descubrir con los mismos filtros).
 const recuerdo = { modo: 'sugeridos', filtros: { jugables: false, novedosos: false, tipo: 'todos' }, sel: null };
@@ -72,6 +77,9 @@ export default class Expediente extends Phaser.Scene {
     // La instancia de la escena se reutiliza entre visitas: reinicia el estado propio.
     this.botonesDetalle = null; this.botonesLista = []; this.foco = null; this.filaActual = null; this.filas = null;
     this.capaCondiciones = null; this.detalle = null; this.tutorial = null; this.zonas = {}; this.capaPorQue = null; this.tutora = null;
+    this.botonVista = null; this.botonTutora = null; this.botonDescubrir = null;
+    // Vista simple (por defecto, para todo público) o completa (tabla y fuentes); se recuerda en localStorage.
+    this.vista = leerVista();
     if (!DESTINOS[partida.destino]) partida.destino = DESTINOS[DESTINO_POR_DEFECTO] ? DESTINO_POR_DEFECTO : Object.keys(DESTINOS)[0];
     this.destino = DESTINOS[partida.destino] || null;
     this.sitios = sitiosParaDestino(SITIOS, partida.destino);
@@ -97,8 +105,10 @@ export default class Expediente extends Phaser.Scene {
     this.capaInfo = this.add.container(0, 0).setDepth(5); // panel de detalle (tecla I), encima de todo lo demás
     this.dibujarLista();
     this.dibujarDetalle();
-    // Tutorial rápido la primera vez (se repite con «?»). Sin sitio elegido no hay nada que señalar.
-    if (this.seleccion && this.destino && debeMostrarTutorial()) this.abrirTutorial();
+    // Tutorial rápido la primera vez (se repite con «?»): el corto de la vista simple o el de 7 pasos de la completa.
+    // Sin sitio elegido no hay nada que señalar.
+    const pendiente = this.vista === 'simple' ? debeMostrarTutorialSimple() : debeMostrarTutorial();
+    if (this.seleccion && this.destino && pendiente) this.abrirTutorial();
   }
 
   // ---------- Tutorial rápido (coach marks): tutorial_expediente.js + tutorial_vista.js ----------
@@ -110,9 +120,11 @@ export default class Expediente extends Phaser.Scene {
     this.cerrarDetalle(false);
     if (this.capaCondiciones) { this.capaCondiciones.destroy(true); this.capaCondiciones = null; this.textosCondiciones = null; }
     const mundo = MUNDOS[this.destino.mundo] || this.destino.mundo;
+    const simple = this.vista === 'simple';
     this.tutorial = abrirTutorial(this, {
       // Dentro de una frase va con artículo: «la Luna» / «the Moon» (MUNDOS da «Luna» / «Moon», para etiquetas).
-      pasos: pasosTutorial(mundo, destinoEnFrase(this.destino.mundo)),
+      pasos: simple ? pasosTutorialSimple(destinoEnFrase(this.destino.mundo)) : pasosTutorial(mundo, destinoEnFrase(this.destino.mundo)),
+      ...(simple ? { marca: marcaTutorialSimple() } : {}),
       zonas: (nombre) => this.zonaTutorial(nombre),
       alCerrar: () => { this.tutorial = null; this.foco = 'probar'; this.registrarTeclado(); },
     });
@@ -127,6 +139,7 @@ export default class Expediente extends Phaser.Scene {
     };
     if (nombre === 'datos') return deBoton(this.botonesDetalle?.[2]);
     if (nombre === 'probar') return deBoton(this.botonesDetalle?.[0]);
+    if (nombre === 'detalles') return deBoton(this.botonVista);
     if (nombre === 'descubrir') {
       // La pestaña «Descubrir» y el botón «¿Por qué aquí?»: se resalta la pestaña (el texto del paso nombra los dos).
       return deBoton(this.tabDescubrir);
@@ -412,6 +425,7 @@ export default class Expediente extends Phaser.Scene {
     this.botonCondiciones = null;
     this.botonPorQue = null;
     this.filtroJugables = null; this.filtroNovedosos = null; this.filtroTipo = null;
+    this.botonVista = null; this.botonTutora = null; this.botonDescubrir = null;
     if (this.modo === 'descubrir' && this.destino) { this.dibujarDescubrir(add, addTodos); return; }
     const s = this.seleccion;
     const d = this.destino;
@@ -420,6 +434,7 @@ export default class Expediente extends Phaser.Scene {
       this.dibujarAcciones(add);
       return;
     }
+    if (this.vista === 'simple') { this.dibujarSimple(add, addTodos, s, d); return; }
     const mundo = MUNDOS[d.mundo] || d.mundo;
 
     // Cabecera: nombre grande + medidor de similitud total (barra + % grande) + chips.
@@ -526,6 +541,112 @@ export default class Expediente extends Phaser.Scene {
     this.dibujarAcciones(add);
   }
 
+  // ---------- Vista SIMPLE (por defecto): se entiende sin leer (vista_simple.js) ----------
+  // Postal de la Tierra junto a la del destino, «Se parece X %» con barra, una frase de qué entrena, 3 íconos con una
+  // palabra (del recorrido real y del clima del sitio), lo que la Tierra no puede probar y el botón grande de probar.
+  // Todo lo demás (tabla, fuentes, condiciones, ¿por qué aquí?) está en «Ver detalles (V)».
+
+  dibujarSimple(add, addTodos, s, d) {
+    const mundo = MUNDOS[d.mundo] || d.mundo;
+    const enFrase = destinoEnFrase(d.mundo);
+    const tNombre = add(txt(this, X0, 4, trDato(s, 'nombre') || s.id, { size: 28 }));
+    if (tNombre.width > X1 - X0) tNombre.setTamano(16);
+    ajustarAncho(tNombre, X1 - X0);
+
+    // Postales (96 × 64, ×2): la Tierra a la izquierda, el destino a la derecha; sin arte, un recuadro con el nombre.
+    const yP = SIM.yPostal;
+    const postal = (x, claves, nombre) => {
+      const k = claves.find((c) => this.textures.exists(c));
+      if (k) add(this.add.image(x, yP, k).setOrigin(0, 0).setScale(2));
+      else {
+        add(this.add.rectangle(x, yP, 192, 128, P.fila).setOrigin(0, 0).setStrokeStyle(2, P.borde));
+        add(txt(this, x + 96, yP + 56, nombre, { size: 16, color: P.sec, origen: [0.5, 0] }));
+      }
+    };
+    postal(X0, [`pantallas/sitio_${s.id}`, 'pantallas/sitio_generico'], tr('Tierra', 'Earth'));
+    const xDest = X1 - 192;
+    postal(xDest, [`pantallas/destino_${d.id}`], mundo);
+    add(txt(this, X0, yP + 134, tr('TIERRA', 'EARTH'), { size: 14, color: P.dato }));
+    add(txt(this, xDest, yP + 134, String(mundo).toUpperCase(), { size: 14, color: P.dato }));
+
+    // Entre las dos postales, «Se parece a Marte X %» con su barra (100 % = igual al destino).
+    const total = s.similitud?.total;
+    const hay = typeof total === 'number';
+    const xa = X0 + 192 + 14;
+    const anchoC = xDest - 14 - xa;
+    const xc = xa + anchoC / 2;
+    ajustarAncho(add(txt(this, xc, yP + 2, tr(`SE PARECE A ${String(enFrase).toUpperCase()}`, `LIKE ${String(enFrase).toUpperCase()}`),
+      { size: 16, color: P.texto, origen: [0.5, 0] })), anchoC);
+    add(txt(this, xc, yP + 28, hay ? formatoPorcentaje(total) : sinDato(), { size: hay ? 48 : 22, color: hay ? colorSimilitud(total) : P.sec, origen: [0.5, 0] }));
+    addTodos(barra(this, xa, yP + 92, anchoC, 16, hay ? total : null, colorSimilitud(total)));
+    if (esDemostracion(s)) {
+      addTodos(filaChips(this, xa, yP + 116, [{ texto: tr('ILUSTRATIVO · DEMO', 'ILLUSTRATIVE · DEMO'), color: P.riesgo, relleno: 0x4a1020 }], xa + anchoC).objs);
+    } else {
+      ajustarAncho(add(txt(this, xc, yP + 118, tr('100 % = igual', '100 % = the same'), { size: 14, color: P.sec, origen: [0.5, 0] })), anchoC);
+    }
+    this.zonas = { parecido: { x: xa - 6, y: yP - 4, w: anchoC + 12, h: 144 } };
+
+    // Una frase: qué entrena (niveles destacados) o proceso → uso.
+    const frase = fraseSimple(s, NIVELES_DESTACADOS[s.id]);
+    add(icono(this, X0 + 16, SIM.yFrase + 11, ['iconos/ico_prueba'], 'mision', { escala: 2 }));
+    ajustarAncho(add(txt(this, X0 + 40, SIM.yFrase, frase
+      ? (frase.entrena ? `${tr('Entrena', 'Trains')}: ${frase.texto}` : frase.texto)
+      : `${tr('Qué entrena', 'What it trains')}: ${sinDato()}`, { size: 18, color: frase ? P.bien : P.sec })), X1 - X0 - 40);
+
+    // 3 íconos grandes con una palabra: el mismo tramo que arma la prueba (fisica/perfil.js) y el clima del sitio.
+    let rec = null;
+    try { rec = resumenRecorrido(perfilDeSitio(s)); } catch { rec = null; }
+    const iconos = iconosSimples(rec, ambienteDeSitio(s.id));
+    const gap = 12;
+    const w = Math.floor((X1 - X0 - 2 * gap) / 3);
+    iconos.forEach((it, k) => {
+      const x = X0 + k * (w + gap);
+      const y = SIM.yIconos;
+      add(this.add.rectangle(x, y, w, SIM.altoIcono, P.fila, 0.8).setOrigin(0, 0));
+      add(icono(this, x + 34, y + SIM.altoIcono / 2, it.iconos, it.glifo, { escala: 3 }));
+      ajustarAncho(add(txt(this, x + 64, y + 16, it.valor, { size: 18, color: P.dato })), w - 72);
+      ajustarAncho(add(txt(this, x + 64, y + 46, it.etiqueta, { size: 14, color: P.sec })), w - 72);
+    });
+    if (!iconos.length) add(txt(this, X0, SIM.yIconos + 30, `${tr('Recorrido', 'Route')}: ${sinDato()}`, { size: 16, color: P.sec }));
+    this.zonas.entrena = { x: X0 - 6, y: SIM.yFrase - 6, w: X1 - X0 + 12, h: SIM.yIconos + SIM.altoIcono - SIM.yFrase + 12 };
+
+    // Lo que la Tierra no puede probar, en chips rojos (la frase larga, en «Ver detalles»).
+    const { noReproducible } = limitesDe(s, d);
+    const et = add(txt(this, X0, SIM.yLimites + 6, tr('LA TIERRA NO PUEDE:', 'EARTH CANNOT TEST:'), { size: 14, color: P.riesgo }));
+    const chips = chipsLimites(noReproducible, d.gravedad_ms2, GRAVEDAD.tierra).map((c) => ({ texto: `✕ ${c.texto}`, color: P.riesgo }));
+    if (!chips.length) chips.push({ texto: tr('sin dato', 'no data'), color: P.sec });
+    const fila = filaChips(this, X0 + Math.ceil(et.width) + 12, SIM.yLimites, chips, X1 - 56);
+    addTodos(fila.objs);
+    if (fila.omitidos.length) add(txt(this, X1, SIM.yLimites + 6, `+${fila.omitidos.length}`, { size: 14, color: P.sec, origen: [1, 0] }));
+    this.zonas.limites = { x: X0 - 4, y: SIM.yLimites - 4, w: X1 - X0 + 8, h: Math.max(28, fila.alto) + 8 };
+    this.dibujarAcciones(add);
+  }
+
+  /** Pie de la vista simple: Ver detalles (V) · Tutora (A) · Descubrir (D) y el botón grande «Gastar 1 ticket y probar». */
+  dibujarAccionesSimple(add, n, regresar, volver) {
+    const s = this.seleccion;
+    const pagado = sitioPagado(partida, s.id);
+    let etiqueta = tr('Gastar 1 ticket y probar', 'Spend 1 ticket and test');
+    if (pagado) etiqueta = tr('Probar de nuevo (gratis)', 'Test again (free)');
+    else if (!n) etiqueta = tr('Sin tickets', 'No tickets');
+    const puede = pagado || n > 0;
+    let x = X0;
+    const pequeno = (et, accion, extra = {}) => {
+      const b = add(boton(this, x, SIM.yBotones, et, accion, { size: 16, origen: [0, 0.5], padX: 10, ...extra }));
+      x += Math.max(64, b.medidas().w) + 26;
+      return b;
+    };
+    this.botonVista = pequeno(tr('Ver detalles (V)', 'See details (V)'), () => this.cambiarVista('completa'), { color: P.dato });
+    this.botonTutora = pequeno(tr('A · Tutora', 'A · Tutor'), () => this.abrirTutora());
+    this.botonDescubrir = pequeno(tr('D · Descubrir', 'D · Discover'), () => this.cambiarModo('descubrir'));
+    const probar = add(boton(this, X1, SIM.yProbar, etiqueta, () => this.probar(),
+      { size: 28, origen: [1, 0.5], habilitado: puede, sugerido: puede, anchoMin: 360, altoMin: 56 }));
+    this.botonesDetalle = [probar, this.botonVista, null, this.botonDescubrir];
+    this.botonVolver = volver;
+    this.botonRegresar = regresar;
+    this.registrarTeclado();
+  }
+
   /** Franja de ayuda bajo la tabla: la pregunta de la fila bajo el ratón (blanco) y su nombre técnico (gris), o la leyenda. */
   ayudaFila(f, info) {
     if (!this.textoAyuda?.active) return;
@@ -548,10 +669,14 @@ export default class Expediente extends Phaser.Scene {
     const chips = chipsLimites(noReproducible, d.gravedad_ms2, GRAVEDAD.tierra)
       .map((c) => ({ texto: `✕ ${c.texto}`, color: P.riesgo }));
     if (!chips.length) chips.push({ texto: tr('sin dato', 'no data'), color: P.sec });
-    const reserva = 64; // lugar para «+N · I» si no caben todos
-    const fila = filaChips(this, xc, y + 6, chips, X1 - reserva, { gap: 8 });
+    // A la derecha de la fila: «Vista simple (V)» vuelve a la vista por defecto (el pie ya no tiene lugar).
+    this.botonVista = add(boton(this, X1, y + 20, tr('Vista simple (V)', 'Simple view (V)'), () => this.cambiarVista('simple'),
+      { size: 14, origen: [1, 0.5], padX: 8, color: P.dato }));
+    const xFin = this.botonVista.medidas().x0 - 10;
+    const reserva = 56; // lugar para «+N · I» si no caben todos
+    const fila = filaChips(this, xc, y + 6, chips, xFin - reserva, { gap: 8 });
     addTodos(fila.objs);
-    if (fila.omitidos.length) add(txt(this, X1, y + 11, `+${fila.omitidos.length} · I`, { size: 14, color: P.sec, origen: [1, 0] }));
+    if (fila.omitidos.length) add(txt(this, xFin, y + 11, `+${fila.omitidos.length} · I`, { size: 14, color: P.sec, origen: [1, 0] }));
     const alto = Math.max(etiqueta.height, 6 + fila.alto);
     this.zonas.limites = { x: X0 - 4, y: y - 2, w: X1 - X0 + 8, h: alto + 4 };
     return y + alto;
@@ -629,6 +754,10 @@ export default class Expediente extends Phaser.Scene {
     ic.objs.forEach((o) => add(o));
     add(txt(this, xi + ic.ancho + 12, yT + 2, `${n}/${totalT}`, { size: 18, color: n ? P.accion : P.riesgo, estilo: 'bold' }));
 
+    if (this.modo !== 'descubrir' && this.vista === 'simple' && this.seleccion && this.destino) {
+      this.dibujarAccionesSimple(add, n, regresar, volver);
+      return;
+    }
     if (this.modo === 'descubrir') {
       // Descubrir: «¿Por qué aquí?» · ficha web · y el botón principal: abrir su Expediente (con nivel) o el Explorador.
       const sd = this.selD;
@@ -671,6 +800,20 @@ export default class Expediente extends Phaser.Scene {
 
   regresar() { irA(this, 'Menu', { vista: 'destino' }); }
 
+  /** Cambia entre la vista simple y la completa; la primera vez que se abre la completa sale su tutorial de 7 pasos. */
+  cambiarVista(v) {
+    if (this.tutorial || this.vista === v) return;
+    this.cerrarDetalle(false);
+    this.cerrarPorQue(false);
+    if (this.capaCondiciones) { this.capaCondiciones.destroy(true); this.capaCondiciones = null; this.textosCondiciones = null; }
+    this.vista = v;
+    guardarVista(v);
+    if (this.modo === 'descubrir') { this.modo = 'sugeridos'; this.dibujarLista(); }
+    this.foco = 'vista';
+    this.dibujarDetalle();
+    if (v === 'completa' && this.seleccion && this.destino && debeMostrarTutorial()) this.abrirTutorial();
+  }
+
   abrirTutora() {
     if (this.tutora || this.tutorial) return;
     this.tutora = abrirTutora(this, { sitio: this.seleccion, destino: this.destino, pantalla: 'expediente',
@@ -698,6 +841,8 @@ export default class Expediente extends Phaser.Scene {
     this.teclado.alEscape = () => this.regresar(); // Esc = «← Regresar» (elegir destino), como en create()
     const desc = this.modo === 'descubrir';
     const alternarModo = () => this.cambiarModo(desc ? 'sugeridos' : 'descubrir');
+    const simple = !desc && this.vista === 'simple';
+    const alternarVista = () => this.cambiarVista(this.vista === 'simple' ? 'completa' : 'simple');
     this.teclado.extra = {
       '?': () => this.abrirTutorial(),
       l: () => this.cambiarIdioma(), L: () => this.cambiarIdioma(),
@@ -705,7 +850,8 @@ export default class Expediente extends Phaser.Scene {
       d: alternarModo, D: alternarModo,
       a: () => this.abrirTutora(), A: () => this.abrirTutora(),
       PageDown: () => this.cambiarPagina(1), PageUp: () => this.cambiarPagina(-1),
-      ...(desc ? {
+      v: alternarVista, V: alternarVista,
+      ...(simple ? {} : desc ? {
         j: () => this.filtroJugables?.activar(), J: () => this.filtroJugables?.activar(),
         n: () => this.filtroNovedosos?.activar(), N: () => this.filtroNovedosos?.activar(),
         t: () => this.filtroTipo?.activar(), T: () => this.filtroTipo?.activar(),
@@ -731,13 +877,15 @@ export default class Expediente extends Phaser.Scene {
       novedosos: this.filtroNovedosos,
       tipo: this.filtroTipo,
       idioma: this.botonIdioma,
+      vista: this.botonVista,
     }[this.foco] || this.botonesLista.find((b) => b.sitioId === elegidoId);
     // Atajos 1–5: eligen el sitio de esa posición en la página (igual que los números de Resultados.js).
     this.teclado.numerar(this.botonesLista);
     const filtros = desc ? [this.filtroJugables, this.filtroNovedosos, this.filtroTipo] : [];
     const porque = desc ? [] : [this.botonPorQue];
     this.teclado.poner([this.tabSugeridos, this.tabDescubrir, ...this.botonesLista, this.botonAnterior, this.botonSiguiente, ...filtros, ...porque,
-      ...this.botonesDetalle, this.botonRegresar, this.botonVolver, this.botonAyuda, this.botonIdioma, this.botonTutora].filter((b) => b?.obj?.active), preferido);
+      ...this.botonesDetalle, this.botonRegresar, this.botonVolver, this.botonAyuda, this.botonIdioma, this.botonTutora, this.botonVista]
+      .filter((b, k, l) => b?.obj?.active && l.indexOf(b) === k), preferido);
   }
 
   // ---------- Panel de detalle (tecla I, botón «Datos» o clic en una fila) ----------
