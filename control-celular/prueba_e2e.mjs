@@ -9,7 +9,7 @@ import { chromium } from 'playwright-core';
 import { puenteDePrueba } from './prueba_comun.mjs';
 
 const NAVEGADOR = process.env.NAVEGADOR ?? 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
-const JUEGO = process.env.JUEGO ?? 'http://localhost:5174/?lang=es';
+const JUEGO = process.env.JUEGO ?? 'http://localhost:5174/?lang=es&mando';
 const RELAY = process.env.RELAY ?? 'http://localhost:8787';
 mkdirSync('capturas', { recursive: true });
 
@@ -41,7 +41,11 @@ const escena = () => compu.evaluate(() => window.__controlCelular.escena());
 await compu.waitForFunction(() => window.__controlCelular.escena()?.clave === 'Menu', null, { timeout: 30000 });
 await esperar(4000); // animación introductoria del menú
 const panelAbierto = () => compu.evaluate(() => document.getElementById('control-celular').shadowRoot.querySelector('.velo').classList.contains('abierto'));
-paso(await panelAbierto(), 'panel con QR abierto al inicio');
+// El panel ya no se abre solo (tapaba el título): se abre al tocar la pastilla «Conectar celular».
+paso(!(await panelAbierto()), 'el panel del QR no tapa el juego al cargar');
+await compu.evaluate(() => document.getElementById('control-celular').shadowRoot.querySelector('.pastilla').click());
+await esperar(300);
+paso(await panelAbierto(), 'tocar la pastilla abre el panel con el QR');
 await compu.screenshot({ path: 'capturas/1_compu_qr.png' });
 
 // ---- celular (iPhone horizontal emulado)

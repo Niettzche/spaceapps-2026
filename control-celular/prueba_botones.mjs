@@ -8,7 +8,7 @@ import { chromium } from 'playwright-core';
 import { puenteDePrueba } from './prueba_comun.mjs';
 
 const NAVEGADOR = process.env.NAVEGADOR ?? 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
-const JUEGO = process.env.JUEGO ?? 'http://localhost:5174/?lang=es';
+const JUEGO = process.env.JUEGO ?? 'http://localhost:5174/?lang=es&mando';
 const RELAY = process.env.RELAY ?? 'http://localhost:8787';
 const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
 const info = await (await fetch(`${RELAY}/info`)).json();
