@@ -41,7 +41,8 @@ const ES_TILE = /^(tierra|marte|luna)_(arena|roca|compacto)(_borde)?$/;
 const ES_FONDO = /^fondo_[a-z0-9_]+_[123]$/;
 
 /** Fondo por sitio terrestre; Marte y Luna usan el del mundo. Sin fondo propio → 'desierto'. */
-const FONDO_POR_SITIO = { samalayuca: 'dunas', pinacate: 'lava' };
+// Fondo propio por sitio (si falta el arte, crearFondo usa 'desierto'). mx0207 = tajo minero; g00281 = maar Al Wahbah.
+const FONDO_POR_SITIO = { samalayuca: 'dunas', pinacate: 'lava', mx0207: 'mina', g00281: 'maar' };
 const PARALAJE = [0, 0.2, 0.5]; // capas 1 (cielo fijo), 2 (lejana), 3 (cercana)
 
 // Índice nombre → { png, json } (URLs que resuelve Vite).
