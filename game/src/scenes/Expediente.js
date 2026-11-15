@@ -63,7 +63,8 @@ export default class Expediente extends Phaser.Scene {
       const y = 112 + k * 42;
       const marca = s.id === this.seleccion?.id ? '● ' : '';
       const b = add(boton(this, 20, y, `${marca}${recortar(s.nombre, 25)}`, () => this.seleccionar(s),
-        { size: 13, origen: [0, 0], marco: false, color: s.id === this.seleccion?.id ? COLOR.texto : COLOR.acento }));
+        // Zona táctil: toda la fila (nombre y subtítulo), sin encimarse con la siguiente (filas cada 42 px).
+        { size: 13, origen: [0, 0], marco: false, color: s.id === this.seleccion?.id ? COLOR.texto : COLOR.acento, anchoMin: 262, altoMin: 40 }));
       const est = (esMina(s) && ESTADOS.mina) || ESTADOS[s.estado] || { texto: s.estado, color: COLOR.tenue };
       const total = typeof s.similitud?.total === 'number' ? formatoPorcentaje(s.similitud.total) : null;
       const sub = [est.texto, s.prueba_util ? `prueba: ${PRUEBAS[s.prueba_util] || s.prueba_util}` : null, total].filter(Boolean).join(' · ');

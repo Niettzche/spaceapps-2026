@@ -1,3 +1,5 @@
+import Phaser from 'phaser';
+
 // Dueño: frente expediente. Kit de interfaz de MIS escenas (Boot, Menú, Expediente, Explorador).
 // No reemplaza ui.js (del integrador): agrega foco visible y navegación por teclado (AGENTS.md §12: accesible).
 
@@ -14,6 +16,8 @@ export const COLOR = {
   sugerido: '#4cc38a', // mismo verde que la opción sugerida de Resultados.js
 };
 export const FUENTE = 'monospace';
+// Zona táctil mínima (px del juego). En horizontal en un teléfono (escala ≈ 0.72) 44 px del juego ≈ 32 px reales.
+export const ZONA_MIN = { ancho: 64, alto: 44 };
 
 export function texto(scene, x, y, contenido, { size = 14, color = COLOR.texto, origen = [0, 0], ancho, alinear = 'left', estilo = 'normal' } = {}) {
   const t = scene.add.text(x, y, contenido, {
@@ -32,9 +36,11 @@ export function panel(scene, x, y, w, h, { relleno = COLOR.panel, borde = COLOR.
  * `marco`: true para formato "[ texto ]" (como ui.js); false para elementos de lista.
  * `numero`: atajo de teclado; se muestra como "1 · texto" (igual que Resultados.js).
  * `sugerido`: opción que ejecuta Enter si nada tiene foco; se marca con " ⏎" en verde (igual que Resultados.js).
+ * `anchoMin` / `altoMin`: tamaño mínimo de la zona táctil en px del juego (más grande que el texto, sin cambiar cómo se ve).
  */
 export function boton(scene, x, y, etiqueta, alPulsar, {
   size = 16, origen = [0.5, 0.5], habilitado = true, marco = true, color = COLOR.acento, ancho, numero = null, sugerido = false,
+  anchoMin = ZONA_MIN.ancho, altoMin = ZONA_MIN.alto,
 } = {}) {
   const t = texto(scene, x, y, '', { size, color, origen, ancho });
   const b = {
@@ -54,9 +60,17 @@ export function boton(scene, x, y, etiqueta, alPulsar, {
       const c = !b.habilitado ? COLOR.muyTenue : b.enfocado ? COLOR.foco : b.sugerido ? COLOR.sugerido : b.color;
       t.setColor(c);
       t.setText((b.enfocado ? '▶ ' : '') + b.rotulo());
+      b.ajustarZona();
+    },
+    // La zona táctil crece desde el punto de origen del texto (centrada, o hacia la derecha/abajo si el origen es 0).
+    ajustarZona() {
+      if (!t.input) return;
+      const w = Math.max(t.width, anchoMin);
+      const h = Math.max(t.height, altoMin);
+      t.input.hitArea.setTo(-(w - t.width) * t.originX, -(h - t.height) * t.originY, w, h);
     },
   };
-  t.setInteractive({ useHandCursor: true });
+  t.setInteractive({ hitArea: new Phaser.Geom.Rectangle(0, 0, 1, 1), hitAreaCallback: Phaser.Geom.Rectangle.Contains, useHandCursor: true });
   t.on('pointerdown', () => b.activar());
   t.on('pointerover', () => { if (b.habilitado && scene.teclado) scene.teclado.enfocar(b); });
   b.pintar();
