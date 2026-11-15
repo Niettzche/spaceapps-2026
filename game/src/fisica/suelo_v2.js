@@ -8,11 +8,23 @@
 import { tr } from '../i18n.js';
 
 const FUENTE_ARENA = 'Wong (2001), arena seca, en NASA/TM-20250006958 tabla 1 (S59); genérica, no medida en el sitio';
-const FUENTE_LUNA_PHI = 'Connolly y Carrier, regolito lunar (Apolo), NASA NTRS 20220014634 (S19)';
-const FUENTE_LUNA_BEKKER = 'valores canónicos del regolito lunar, apuntes UMD ENAE 788X (S62, Draft): no hay Bekker real del regolito (S59)';
-const FUENTE_MARTE = 'Viking, NASA NTRS 20200003046 tabla 1 (S20)';
-const FUENTE_M90 = 'simulante marciano M90 (Bouton et al. 2026, S63, de Oravec et al. 2021): simulante, no drift real';
-const FUENTE_CENIZA = 'ángulo de reposo de ceniza y escoria, U.S. National Park Service (S61), como aproximación';
+// Veredictos de las fuentes: docs/taller/FUENTES_FISICA.md (Leo, 15 nov; libro de datos, Review Log RV-164…172).
+const FUENTE_LUNA = 'Lunar Sourcebook (Carrier et al. 1991, S79): c 0.52 kPa y φ 42° del regolito en los primeros 15 cm (tabla 9.12, p. 510); '
+  + 'n 1, k_c 1.4, k_φ 820 (tabla 9.14, p. 529, de Costes et al. 1972, NASA TR R-401, S80): valores de diseño del LRV, no medidos (S59)';
+const FUENTE_DRIFT = 'drift de Viking: c 1.6 ± 1.2 kPa, φ 18 ± 2.4° (Moore 1991, S82)';
+const FUENTE_M90 = 'simulante marciano M90 suelto, Oravec et al. 2020, NASA NTRS 20200003046 tabla 3 (S20): simulante, no drift real';
+const FUENTE_COSTRA = 'Viking, NASA NTRS 20200003046 tabla 1 (S20)';
+const FUENTE_CENIZA = 'escoria seca sin cohesión (Agustian y Goto 2008, S103); φ suelto ≈ ángulo de reposo 25–32° (NPS, S61), conservador';
+const FUENTE_FIRME = 'suelos compactados de arena y grava: φ 37–38°, c 0 (NAVFAC DM-7.02, S105, tabla 1 p. 7.2-39; BM-023)';
+const FUENTE_ROCA = 'fricción roca–roca y concreto–roca tan φ 0.55–0.70 (NAVFAC DM-7.02, S105, p. 7.2-63; BM-024); μ llanta–roca medido: Gap';
+
+/**
+ * Simulante M90 suelto (S20, tabla 3; MR-094, MR-095): parámetros de un mismo ensayo. El drift usa su Bekker (no hay Bekker
+ * del suelo real de Marte); su c_b y φ_b quedan como referencia: la cohesión y la fricción del drift son las de Viking (S82),
+ * porque el φ de M90 (29–37°) es mayor que el del drift estimado (15.6–25°) y daría una tracción optimista.
+ * K = módulo de deformación cortante (Janosi–Hanamoto): no se usa (ver FISICA_V2.md §7).
+ */
+export const M90 = { n: 1.3, kc: 572.1, kphi: 4915.3, c_kPa: 0.27, phi: 32, K_m: 0.0254, fuente: FUENTE_M90 };
 
 /**
  * Suelos de física 2. `bekker: null` = suelo que no se hunde a esta escala (roca o costra): solo Mohr–Coulomb.
@@ -24,43 +36,45 @@ export const SUELOS_V2 = {
     phi: 28, c_kPa: 1.04, bekker: { n: 1.1, kc: 0.99, kphi: 1528.43 }, fuente: FUENTE_ARENA, p: [],
   },
   ceniza_volcanica: {
-    // φ = punto medio del ángulo de reposo de ceniza y escoria (25–32°). Cohesión y Bekker sin dato: c = 0 (material suelto
-    // sin cementar) y sin hundimiento, ambos (P).
+    // c = 0 verificado (escoria seca, granular, S103). φ 28.5° = punto medio del ángulo de reposo (S61), valor suelto y
+    // conservador: el φ pico de tefra seca a 3–35 kPa es 35.8–36.5° (S104). Sin Bekker con fuente: no se hunde (P).
     bioma: 'BM-003', nombre: 'ceniza y escoria volcánica', nombre_en: 'volcanic ash and cinder',
-    phi: 28.5, c_kPa: 0, bekker: null, fuente: FUENTE_CENIZA, p: ['c_kPa', 'bekker'],
+    phi: 28.5, c_kPa: 0, bekker: null, fuente: FUENTE_CENIZA, p: ['bekker'],
   },
   suelo_firme: {
-    // Sin dato con fuente (suelo compacto genérico, talud de mina): valores de juego declarados.
-    bioma: null, nombre: 'suelo compacto (sin dato)', nombre_en: 'compact ground (no data)',
-    phi: 40, c_kPa: 0, bekker: null, fuente: null, p: ['phi', 'c_kPa', 'bekker'],
+    // Suelo compacto o talud de mina: φ 38°, c 0 (S105, BM-023). Sin hundimiento a esta escala (P).
+    bioma: 'BM-023', nombre: 'suelo compacto', nombre_en: 'compact ground',
+    phi: 38, c_kPa: 0, bekker: null, fuente: FUENTE_FIRME, p: ['bekker'],
   },
   roca_tierra: {
-    bioma: null, nombre: 'roca (sin dato)', nombre_en: 'rock (no data)',
-    phi: 45, c_kPa: 0, bekker: null, fuente: null, p: ['phi', 'c_kPa', 'bekker'],
+    // En roca la tracción es ≈ μ·W (S59 pp. 19–21). μ ≈ 0.7 → φ = atan 0.7 ≈ 35° (cota alta de S105). c 0 es una
+    // simplificación (la cohesión de la roca es enorme, pero la rueda no la corta). μ llanta–roca medido: Gap → (P).
+    bioma: 'BM-024', nombre: 'roca (μ ≈ 0.7)', nombre_en: 'rock (μ ≈ 0.7)',
+    phi: 35, c_kPa: 0, bekker: null, fuente: FUENTE_ROCA, p: ['phi', 'c_kPa', 'bekker'],
   },
   regolito_lunar: {
-    // φ: punto medio de Apolo 30–50° (S19, Verified). c 0.17 kPa y Bekker: valores canónicos (S62, Draft).
+    // c y φ del suelo (no c_b 0.17 kPa ni φ_b 35°, que son suelo–rueda, FUENTES_FISICA.md §1). Bekker: diseño del LRV.
     bioma: 'BM-008', nombre: 'regolito lunar suelto', nombre_en: 'loose lunar regolith',
-    phi: 40, c_kPa: 0.17, bekker: { n: 1, kc: 1.4, kphi: 820 }, fuente: `${FUENTE_LUNA_PHI}; ${FUENTE_LUNA_BEKKER}`, p: [],
+    phi: 42, c_kPa: 0.52, bekker: { n: 1, kc: 1.4, kphi: 820 }, fuente: FUENTE_LUNA, p: [],
   },
   roca_lunar: {
     bioma: null, nombre: 'roca lunar (sin dato)', nombre_en: 'lunar rock (no data)',
     phi: 45, c_kPa: 0, bekker: null, fuente: null, p: ['phi', 'c_kPa', 'bekker'],
   },
   drift_marciano: {
-    // φ y c: puntos medios de Viking drift (15.6–20.4°, 0–3.7 kPa). Bekker: simulante M90 (no hay constantes del drift real).
+    // c y φ: Viking drift (Moore 1991, S82; Moore et al. 1987 da 1–3 kPa de diseño, S81). Bekker: simulante M90 (S20).
     bioma: 'BM-013', nombre: 'polvo y arena suelta (drift)', nombre_en: 'loose dust and sand (drift)',
-    phi: 18, c_kPa: 1.85, bekker: { n: 1.3, kc: 572.1, kphi: 4915.3 }, fuente: `${FUENTE_MARTE}; Bekker: ${FUENTE_M90}`, p: [],
+    phi: 18, c_kPa: 1.6, bekker: { n: M90.n, kc: M90.kc, kphi: M90.kphi }, fuente: `${FUENTE_DRIFT}; Bekker: ${FUENTE_M90}`, p: [],
     simulante: true,
   },
   costra_marciana: {
     bioma: 'BM-015', nombre: 'suelo con costra (crusty/cloddy)', nombre_en: 'crusty/cloddy soil',
-    phi: 34.5, c_kPa: 1.6, bekker: null, fuente: FUENTE_MARTE, p: ['bekker'],
+    phi: 34.5, c_kPa: 1.6, bekker: null, fuente: FUENTE_COSTRA, p: ['bekker'],
   },
   roca_marciana: {
     // Cota superior (40–60°): el agarre de roca contra rueda no es la fricción del suelo (nota de BM-016). c = 0 (P).
     bioma: 'BM-016', nombre: 'roca o afloramiento (cota superior)', nombre_en: 'rock or outcrop (upper bound)',
-    phi: 50, c_kPa: 0, bekker: null, fuente: FUENTE_MARTE, p: ['c_kPa'],
+    phi: 50, c_kPa: 0, bekker: null, fuente: FUENTE_COSTRA, p: ['c_kPa'],
   },
 };
 // Nieve o hielo como análogo de suelo blando: NO se agrega. El libro de datos no tiene c, φ ni Bekker de nieve con fuente.
