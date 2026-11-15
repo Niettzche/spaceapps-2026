@@ -23,3 +23,9 @@
 - 14 nov · Marte conserva 3.71 m/s², gravedad ecuatorial de NASA JPL (https://ssd.jpl.nasa.gov/planets/phys_par.html, consultada 2026-11-14). La Mars Fact Sheet (https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html) usa 3.73 como gravedad media. Son convenciones distintas; la demo usa 3.71 uniformemente, no una medición local de Jezero.
 
 - 14 nov · Precio por pieza para el MVP (presupuesto 1,000, robot mínimo 730); el precio por kilo del libro de datos de taller queda como mejora posterior · el camino dorado está calibrado con este modelo.
+
+## 15 nov 2026 · Física 2 por defecto y camino dorado lunar en Al Hutaymah (Edmundo)
+- **Física 2 por defecto** (`game/src/fisica/version.js`, `?fisica=1` vuelve a la anterior): tracción por Mohr–Coulomb (H = A·c + W·tan φ) y hundimiento de Bekker–Wong; ver `docs/juego/FISICA_V2.md`. Parámetros con fuente donde existen; kc, kφ, n del regolito y la calibración con Matter son (P). El drift de Marte usa el simulante M90 (preprint, S63): reemplaza la decisión del 14 nov de no simular hundimiento en Marte.
+- **Camino dorado lunar:** de maar Al Wahbah (g00281) a **maar Al Hutaymah (g00263, 54 % de parecido)**. Motivo: con la regla de superficies v2 de Mario (paredes > 15° = roca, más realista), en g00281 la rueda estándar pasa y la ancha se queda sin energía. En g00263 con física 2 la estándar se hunde y se atasca y la ancha pasa (E 38 %); la misión lunar entrega con la ancha.
+- **Orden de sitios en el Expediente:** se respeta el orden del modelo por similitud (opción A); el camino dorado de Marte (Samalayuca) queda en la página 2.
+- **5 niveles destacados** (todos distintos): Jabal Bayda (toba), Tenoumer (impacto en desierto), Cananea (mina), Pinacate (lava), Pingualuit (impacto helado). Ver `docs/juego/NIVELES_DESTACADOS.md`.

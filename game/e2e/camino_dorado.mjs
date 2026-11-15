@@ -3,7 +3,7 @@
 // Scale.FIT sobre el lienzo de 960 × 540) y maneja con las flechas del teclado. Solo si un clic real no surte
 // efecto, emite 'pointerdown' sobre el objeto y lo anota como "respaldo" (eso también es un hallazgo).
 //
-// Recorrido, una vez para Marte (jezero → Samalayuca) y otra para la Luna (polo_sur_lunar → maar Al Wahbah, g00281):
+// Recorrido, una vez para Marte (jezero → Samalayuca) y otra para la Luna (polo_sur_lunar → maar Al Hutaymah, g00263; decisión del 15 nov con física 2):
 //   Boot → pantalla de inicio (Enter) → menú de opciones → Nueva partida (zoom a la nave) → destino → Expediente (sitio)
 //   → gastar ticket → Taller (ruedas estándar) → Prueba
 //   → Resultados (en Samalayuca y Al Wahbah: falla y recomienda rueda ancha) → Volver al taller → ruedas anchas en ambos ejes
@@ -47,7 +47,7 @@ const CORRIDAS = {
   marte: { id: 'marte', boton: 'Elegir Marte', destino: 'jezero', sitio: 'Médanos de Samalayuca', sitioId: 'samalayuca', esperaFalla: true },
   // La mina de Real de Ángeles (mx0207) ya no es camino dorado: su tramo es la pared del tajo, de roca, y la rueda ancha no la
   // sube (pieza clave: tacos o estándar; perfil.js, VENTANAS_JUEGO). El maar Al Wahbah sí: salir del cráter por regolito.
-  luna: { id: 'luna', boton: 'Elegir Luna', destino: 'polo_sur_lunar', sitio: 'Maar Al Wahbah', sitioId: 'g00281', esperaFalla: true },
+  luna: { id: 'luna', boton: 'Elegir Luna', destino: 'polo_sur_lunar', sitio: 'Maar Al Hutaymah', sitioId: 'g00263', esperaFalla: true },
 };
 const pedidas = (process.argv[2] ?? 'ambos') === 'ambos' ? ['marte', 'luna'] : [process.argv[2]];
 
