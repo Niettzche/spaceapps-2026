@@ -159,6 +159,19 @@ export function usarTicket({ tickets, desbloqueados = [] }, sitioId) {
   return { ok: true, gastado: true, tickets: tickets - 1, desbloqueados: [...desbloqueados, sitioId] };
 }
 
+/**
+ * Repara tickets y sitios pagados leídos de un guardado. En una partida cada ticket gastado paga exactamente un
+ * sitio y nunca se reponen, así que siempre tickets + pagados ≤ `max`. Además, el sitio en juego ya fue pagado
+ * (solo `elegirSitio` lo fija). Corrige guardados viejos (sin `desbloqueados`), editados a mano o con valores no
+ * enteros, negativos o mayores que `max`, que antes se mostraban tal cual (p. ej. "5/5" o un sitio que se volvía a cobrar).
+ */
+export function conciliarTickets({ tickets, desbloqueados = [], sitio = null }, max) {
+  const pagados = [...new Set((Array.isArray(desbloqueados) ? desbloqueados : []).filter((x) => typeof x === 'string' && x))];
+  if (typeof sitio === 'string' && sitio && !pagados.includes(sitio)) pagados.push(sitio);
+  const t = Number.isFinite(tickets) ? Math.trunc(tickets) : 0;
+  return { tickets: Math.max(0, Math.min(t, max - pagados.length)), desbloqueados: pagados };
+}
+
 // ---------- Guardado (formato del localStorage) ----------
 
 export const VERSION_GUARDADO = 1;
@@ -178,22 +191,35 @@ export function serializarPartida(partida, desbloqueados = [], fecha = new Date(
 }
 
 /** Valida un guardado; devuelve null si está corrupto o es de otra versión. */
-export function leerGuardado(texto, { destinos = null } = {}) {
+export function leerGuardado(texto, { destinos = null, maxTickets = null } = {}) {
   let g;
   try { g = JSON.parse(texto); } catch { return null; }
   if (!g || g.version !== VERSION_GUARDADO || typeof g.destino !== 'string') return null;
   if (destinos && !destinos[g.destino]) return null;
   if (typeof g.tickets !== 'number' || typeof g.presupuesto !== 'number') return null;
+  const sitio = typeof g.sitio === 'string' && g.sitio ? g.sitio : null;
+  const desbloqueados = Array.isArray(g.desbloqueados) ? g.desbloqueados.filter((x) => typeof x === 'string') : [];
   return {
     ...g,
     diseno: Array.isArray(g.diseno) ? g.diseno : [],
     resultados: Array.isArray(g.resultados) ? g.resultados : [],
-    desbloqueados: Array.isArray(g.desbloqueados) ? g.desbloqueados.filter((x) => typeof x === 'string') : [],
-    sitio: typeof g.sitio === 'string' ? g.sitio : null,
+    sitio,
+    ...(typeof maxTickets === 'number' ? conciliarTickets({ tickets: g.tickets, desbloqueados, sitio }, maxTickets) : { desbloqueados }),
   };
 }
 
 // ---------- Explorador ----------
+
+/** Página servida desde la máquina local (desarrollo): ahí sí puede existir la API por defecto en localhost:8000. */
+export function esHostLocal(host) {
+  const h = String(host ?? '').toLowerCase().replace(/^\[|\]$/g, '');
+  return h === '' || h === 'localhost' || h.endsWith('.localhost') || h === '::1' || /^127\./.test(h) || h === '0.0.0.0';
+}
+
+/** Sin VITE_API_URL y fuera de localhost (la demo pública) la API no existe: no vale la pena esperar a que conteste. */
+export function apiSinPublicar({ configurada, host }) {
+  return !configurada && !esHostLocal(host);
+}
 
 function numero(txt) {
   const s = String(txt ?? '').trim().replace(',', '.');

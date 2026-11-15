@@ -5,7 +5,7 @@ import { partida } from '../main.js';
 import { PRESUPUESTO_INICIAL, TICKETS_POR_PARTIDA, GRAVEDAD } from '../config/world.js';
 import { COLOR, texto, boton, panel, Teclado, limpiar } from './expediente/interfaz.js';
 import { DESTINO_POR_DEFECTO, ORDEN_DESTINOS } from './expediente/config.js';
-import { guardadoDisponible, restaurar, nuevaPartida } from './expediente/guardado.js';
+import { guardadoDisponible, restaurar, nuevaPartida, guardar, partidaActiva } from './expediente/guardado.js';
 import { sitiosParaDestino } from './expediente/logica.js';
 import { MUNDOS } from './expediente/textos.js';
 import { vistaNumeros } from './expediente/numeros.js';
@@ -21,6 +21,9 @@ export default class Menu extends Phaser.Scene {
 
   create() {
     prepararIngles();
+    // Al volver de una partida en curso, el guardado se pone al día (diseño, resultados, tickets) antes de leerlo:
+    // así "Continuar" y su resumen muestran lo mismo que había en memoria, no lo último escrito al gastar un ticket.
+    if (partidaActiva()) guardar(partida);
     this.teclado = new Teclado(this);
     this.mostrar(this.vistaInicial);
   }
@@ -130,14 +133,9 @@ export default class Menu extends Phaser.Scene {
       return boton(this, x + ancho / 2, 350, `${tr('Elegir', 'Choose')} ${MUNDOS[d.mundo] || trDato(d, 'nombre')}`, () => this.empezar(id));
     });
 
-    const hayGuardado = !!guardadoDisponible(DESTINOS);
     texto(this, 480, 410, tr(`Empiezas con ${TICKETS_POR_PARTIDA} tickets de prueba y ${PRESUPUESTO_INICIAL} créditos (valores de juego).`,
       `You start with ${TICKETS_POR_PARTIDA} test tickets and ${PRESUPUESTO_INICIAL} credits (game values).`),
       { size: 12, color: COLOR.tenue, origen: [0.5, 0.5] });
-    if (hayGuardado) {
-      texto(this, 480, 432, tr('Ojo: una partida nueva reemplaza la partida guardada.', 'Heads up: a new game replaces the saved game.'),
-        { size: 12, color: COLOR.alerta, origen: [0.5, 0.5] });
-    }
     const volver = boton(this, 480, 480, tr('Volver', 'Back'), () => this.mostrar('principal'));
     const preferido = botones[ids.indexOf(partida.destino)] || botones[ids.indexOf(DESTINO_POR_DEFECTO)] || botones[0];
     // Atajos: 1 = Marte, 2 = Luna (orden de ORDEN_DESTINOS); el último número vuelve al menú.
