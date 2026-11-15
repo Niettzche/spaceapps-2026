@@ -7,12 +7,14 @@ import { histograma, perfil, barrasTermicas } from './graficas.js';
 import { montarInfografia } from './infografia.js';
 import { pixelarCifras } from './pixelnum.js';
 import { montarCielo } from './cielo.js';
+import { montarTutora } from './tutora.js';
 import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
 
 const raiz = document.documentElement;
 const inicio = document.getElementById('inicio');
 raiz.classList.add('js');
+montarTutora(); // ANA, la tutora de análogos (botón flotante; tutora.js)
 
 /* ── Idioma ───────────────────────────────────────────────────────────── */
 const ES = new Map();
