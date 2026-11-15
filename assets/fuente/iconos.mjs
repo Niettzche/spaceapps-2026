@@ -458,6 +458,44 @@ const PIEZAS_NUEVAS = {
 };
 // siluetas grises de los robots bloqueados (orugas, patas, rotor, serpiente, rappel): sin detalle, para "próximamente"
 const GRIS = (x, y) => ((x + y) % 2 ? 'm' : 'd');
+const PIEZAS_RONDA2 = {
+  // suspensión blanda: resorte largo de espiras abiertas (amarillo) entre dos soportes
+  suspension_blanda: (p) => pinta(p, (x, y) => {
+    if (y >= 1 && y <= 2 && x >= 4 && x <= 11) return y === 1 ? 'h' : 'm';
+    if (y >= 13 && y <= 14 && x >= 4 && x <= 11) return y === 13 ? 'l' : 'd';
+    if (y >= 3 && y <= 12) { const fase = (y - 3) % 3; if ((fase === 0 && x >= 4 && x <= 11) || (fase === 1 && (x === 4 || x === 11))) return x < 8 ? 'Y' : 'y'; }
+    if (x >= 7 && x <= 8 && y >= 3 && y <= 12) return 'l';                                   // vástago
+    return null;
+  }),
+  // suspensión dura: resorte corto y apretado (rojo) con amortiguador grueso
+  suspension_dura: (p) => pinta(p, (x, y) => {
+    if (y >= 2 && y <= 3 && x >= 3 && x <= 12) return y === 2 ? 'h' : 'm';
+    if (y >= 12 && y <= 13 && x >= 3 && x <= 12) return y === 12 ? 'l' : 'd';
+    if (y >= 4 && y <= 11 && x >= 6 && x <= 9) return x === 6 ? 'h' : 'l';                  // amortiguador grueso
+    if (y >= 4 && y <= 11 && (x === 4 || x === 5 || x === 10 || x === 11)) return y % 2 ? 'r' : 'R';   // espiras apretadas
+    return null;
+  }),
+  // faro: carcasa con lente amarilla y haz de luz hacia la derecha
+  faro: (p) => pinta(p, (x, y) => {
+    const d = Math.hypot(x - 5.5, y - 7.5);
+    if (d <= 4.6) return d > 3.6 ? (x < 6 ? 'h' : 'm') : d < 1.6 ? 'w' : x + y < 13 ? 'Y' : 'y';
+    if (x >= 10 && x <= 15 && Math.abs(y - 7.5) <= (x - 8) * 0.55 && (x + y) % 2 === 0) return 'Y';   // haz punteado
+    if (x >= 3 && x <= 8 && y >= 12 && y <= 14) return y === 12 ? 'l' : 'd';                         // base
+    return null;
+  }),
+  // chasis rocker-bogie de 6 ruedas (como Curiosity): caja arriba, balancín en V invertida y 6 ruedas
+  chasis_rocker_bogie: (p) => {
+    pinta(p, (x, y) => (y >= 2 && y <= 5 && x >= 3 && x <= 12 ? (y === 2 ? 'h' : y === 5 ? 'd' : x === 3 ? 'c' : 'l') : null));
+    const linea = (x0, y0, x1, y1, k) => { const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)); for (let i = 0; i <= n; i++) p.px(Math.round(x0 + ((x1 - x0) * i) / n), Math.round(y0 + ((y1 - y0) * i) / n), C[k]); };
+    linea(7, 6, 2, 11, 'm'); linea(7, 6, 10, 9, 'm'); linea(10, 9, 8, 11, 'm'); linea(10, 9, 13, 11, 'm');   // rocker y bogie
+    p.px(7, 6, C.y); p.px(10, 9, C.y);                                                                   // pivotes
+    for (const cx of [2, 8, 13]) for (let y = 11; y <= 14; y++) for (let x = cx - 1; x <= cx + 2; x++) {
+      const d = Math.hypot(x - cx - 0.5, y - 12.5);
+      if (d <= 1.9) p.px(x, y, d < 0.8 ? C.l : (x + y) % 2 ? C.T : C.t);
+    }
+  },
+};
+
 const SILUETAS = {
   silueta_orugas: (p) => pinta(p, (x, y) => (y >= 5 && y <= 7 && x >= 3 && x <= 12) || (y >= 9 && y <= 13 && x >= 1 && x <= 14 && Math.hypot(Math.max(0, Math.abs(x - 7.5) - 4.5), y - 11) <= 2.5) ? GRIS(x, y) : null),
   silueta_patas: (p) => pinta(p, (x, y) => (y >= 4 && y <= 7 && x >= 3 && x <= 12) || ([2, 6, 9, 13].some((lx, i) => Math.abs(x - (lx + (y - 8) * (i < 2 ? -0.4 : 0.4))) < 0.8 && y >= 8 && y <= 14)) ? GRIS(x, y) : null),
@@ -491,5 +529,5 @@ export function generar() {
   };
   for (const [id, f] of Object.entries(lista)) tira(D + id + '.png', 16, 16, 1, (p) => f(p));
   for (const [id, f] of Object.entries(KEYWORDS)) tira(D + id + '.png', 16, 16, 1, (p) => f(p));
-  for (const [id, f] of Object.entries({ ...VARIABLES, ...PIEZAS_NUEVAS, ...SILUETAS })) tira(D + id + '.png', 16, 16, 1, (p) => f(p));
+  for (const [id, f] of Object.entries({ ...VARIABLES, ...PIEZAS_NUEVAS, ...PIEZAS_RONDA2, ...SILUETAS })) tira(D + id + '.png', 16, 16, 1, (p) => f(p));
 }

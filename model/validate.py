@@ -337,6 +337,38 @@ def parte_borde() -> list[str]:
                           "todos": f"{int(m.sum())} de {len(m)}"})
     ts = pd.DataFrame(filas)
 
+    # Prueba fuera de muestra: cráteres de impacto que no intervinieron al fijar la ventana ni el umbral
+    ti = borde.tabla_impactos()
+    ti["lev"] = ti.h > borde.UMBRAL
+    nuevos, vistos = ti[~ti.visto], ti[ti.visto]
+    ea, eb, _ = borde.limites_ventana((0.9, 1.3))
+    h_estrecha = pd.Series([borde.altura(pp, None, (0.9, 1.3)) for pp in nuevos.perfil], index=nuevos.index, dtype=float)
+    solo_ancha = nuevos.nombre[nuevos.lev & ~(h_estrecha > borde.UMBRAL)].tolist()
+    timp = pd.DataFrame({"cráter de impacto": ti.nombre, "diámetro del detector (km)": ti.diam_km.round(2),
+                         "diámetro esperado (km)": ti.diam_esperado_km, "h/D": ti.h.map(lambda x: f"{x:+.4f}"),
+                         "borde (m)": (ti.h * ti.diam_km * 1000).round(1), "levantado": np.where(ti.lev, "sí", "no"),
+                         "¿nuevo para la regla?": np.where(ti.visto, "no: ya era el candidato " + ti.candidato.fillna(""), "sí")})
+    fallan = "; ".join(
+        f"{c.nombre} (el detector le mide {c.diam_km:.2f} km y el diámetro esperado es {c.diam_esperado_km:g} km"
+        + (": el borde real queda probablemente fuera de la zona medida, como en Colton" if c.diam_km < 0.75 * c.diam_esperado_km else "") + ")"
+        for c in nuevos[~nuevos.lev].itertuples())
+    parte_impactos = [
+        "**Prueba fuera de muestra: cráteres de impacto que la regla no había visto.** La ventana y el umbral se fijaron con los "
+        f"candidatos de México, Atacama, Arizona y Arabia. Después, sin cambiar nada, se midieron con el mismo método los {len(ti)} "
+        "cráteres de impacto de `ciencia_datos/datos/impactos_tierra.csv` que el detector encuentra (`analisis/25_perfiles_impactos.py`; "
+        "centro y diámetro del detector, igual que en los candidatos). "
+        + (f"{', '.join(vistos.nombre)} ya estaba entre los candidatos y no cuenta como nuevo. " if len(vistos) else "")
+        + f"**De los {len(nuevos)} que la regla no había visto, {int(nuevos.lev.sum())} tienen borde levantado.**", "",
+        tabla_md(timp, list(timp.columns)), "",
+        (f"No lo tiene: {fallan}. " if fallan else "")
+        + f"Sensibilidad en los {len(nuevos)} nuevos: con la ventana estrecha ({ea:.2f}–{eb:.2f}) pasan {int((h_estrecha > borde.UMBRAL).sum())}; "
+        f"con la usada y umbral 0.002, {int((nuevos.h > 0.002).sum())}."
+        + (f" Pasan solo con la ventana ancha: {', '.join(solo_ancha)}." if solo_ancha else ""), "",
+        f"Qué prueba y qué no: son {len(nuevos)} casos y no son una muestra al azar. Son cráteres de impacto conocidos, elegidos antes como "
+        "control positivo del detector (`analisis/15_referencias_extra.py`); los que el detector no encuentra (Brent, erosionado) no "
+        "entran, así que no dice nada de estructuras de impacto erosionadas o sepultadas. Sí responde a la objeción de que la ventana "
+        "se ajustó a la muestra: en estos cráteres no se ajustó nada.", ""]
+
     # Qué pasa en data/sites
     etiquetas, cuenta, sin_perfil = scan.etiquetas_ia(), {}, []
     for f in sorted((RAIZ / "data" / "sites").glob("*.json")):
@@ -384,6 +416,7 @@ def parte_borde() -> list[str]:
         "**Sensibilidad** a la ventana y al umbral. Ojo: la ventana ancha se eligió después de ver que la estrecha dejaba fuera a "
         "cráteres con fuente. Con tan pocos casos eso es ajuste a la muestra, y por eso se reportan todas las combinaciones:", "",
         tabla_md(ts, list(ts.columns)), "",
+        *parte_impactos,
         "**En `data/sites`** (sitios con cráter medido; la variable es `variables.borde_levantado`, en metros):", "",
         tabla_md(tsit, list(tsit.columns)), "",
         f"De los {len(nov_tajos)} tajos mineros con `novedoso: true`, {nov_lev} tienen borde levantado."
@@ -394,9 +427,8 @@ def parte_borde() -> list[str]:
         f"- No mide parecido con la Luna ni con Marte: con la misma medida solo tienen borde levantado {frac(ref_luna)} gemelos lunares y "
         f"{frac(ref_marte)} marcianos. No comprobamos por qué; una explicación posible es que son cráteres viejos y encimados. Es evidencia "
         "de que una depresión terrestre es un cráter, y nada más.",
-        f"- Muestra chica: {int(fuente.sum())} cráteres con fuente externa, casi todos volcánicos ({n_imp} de impacto). Los otros cráteres de "
-        "impacto del mundo que el detector encuentra (`ciencia_datos/datos/impactos_tierra.csv`) no tienen perfil a 80 m: es la prueba "
-        "independiente que falta.",
+        f"- Muestra chica: la regla se fijó con {int(fuente.sum())} cráteres con fuente externa, casi todos volcánicos ({n_imp} de impacto), y "
+        f"la prueba fuera de muestra son {len(nuevos)} cráteres de impacto más. Siguen siendo pocos casos.",
         "- No lo tienen: " + ("; ".join(sin) if sin else "ninguno") + ". El detector mide el diámetro del área inundada, que puede ser "
         "menor que el del borde; si el borde real cae fuera de la ventana, la medida no lo ve. En Colton es la causa probable: el "
         "detector mide ~0.75 km y la fuente da ~1.1 km de borde a borde (`model/NIVEL2.md` §A).",

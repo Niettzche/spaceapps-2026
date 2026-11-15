@@ -1,9 +1,9 @@
 # Estado — Arte
 
-> Lo actualiza SOLO este frente. Ramas: `feat/arte` (#26) y `feat/arte-b` (#37), `feat/arte-c` (#49), `feat/arte-d` (#58), `feat/arte-e` (#64), `feat/arte-f` (#67), `feat/arte-g` (#72), `feat/arte-h` (#77), `feat/arte-i` (#79), `feat/arte-j` (#80), `feat/arte-k` (#84), mergeadas; `feat/arte-m` (nave del menú, piezas de 32 px y Marte grande). `feat/arte-l` (#86), mergeadas; `feat/arte-n` (guía de tutoriales, íconos de variables, piezas nuevas y candado).
+> Lo actualiza SOLO este frente. Ramas: `feat/arte` (#26) y `feat/arte-b` (#37), `feat/arte-c` (#49), `feat/arte-d` (#58), `feat/arte-e` (#64), `feat/arte-f` (#67), `feat/arte-g` (#72), `feat/arte-h` (#77), `feat/arte-i` (#79), `feat/arte-j` (#80), `feat/arte-k` (#84), mergeadas; `feat/arte-m` (nave del menú, piezas de 32 px y Marte grande). `feat/arte-l` (#86), mergeadas; `feat/arte-n` (#89), mergeadas; `feat/arte-o` (obstáculos por geología, eventos de fondo, más piezas).
 
 **Responsable:** Mauricio  ·  **Agente:** Claude Code / Codex
-**Última actualización:** 15 nov 2026, 12:00
+**Última actualización:** 15 nov 2026, 14:00
 
 ## Hecho
 - **Prioridad A y B completas** (#26 y #37, en `main`):
@@ -129,6 +129,13 @@
   - **Variables del Expediente** (16 × 16): `ico_forma`, `ico_oscilacion`, `ico_precipitacion`, `ico_vegetacion`, `ico_confianza`, `ico_novedoso`, `ico_mision` y `ico_prueba`.
   - **Piezas nuevas** (ícono de 16 y pieza de 32, ids provisionales): `chasis_titanio`, `chasis_fibra_carbono`, `rueda_nitinol`, `modulo_autorescate`, `sellos_polvo` y `candado`.
   - **Siluetas** `silueta_<orugas|patas|rotor|serpiente|rappel>`.
+- **Geología, eventos y piezas (`feat/arte-o`):**
+  - **Obstáculos** en `assets/obstaculos/`:
+    - Bloques de eyecta en 3 tamaños, para la Tierra, Marte y la Luna.
+    - Talud de roca suelta y bloques de lava aa.
+    - Tiles de toba, sal y hielo.
+  - **Eventos de fondo** en `assets/eventos/`: remolino de polvo (animado), Fobos, la Tierra vista desde la Luna y destello de micrometeorito.
+  - **Piezas** (ícono de 16 y pieza de 32): `suspension_blanda`, `suspension_dura`, `faro` y `chasis_rocker_bogie`.
 - `node assets/fuente/fx/exportar.mjs` regenera con pixelfx las 22 hojas de efectos.
 
 ## En curso

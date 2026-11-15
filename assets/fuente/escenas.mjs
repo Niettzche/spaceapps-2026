@@ -741,7 +741,7 @@ function menuNave() {
 function piezasGrandes() {
   const partes = JSON.parse(readFileSync(join(ASSETS, '../game/src/content/parts.json'), 'utf8'));
   // las de parts.json, las nuevas del Taller (ids provisionales), el candado y las siluetas de las bloqueadas
-  const EXTRA = ['chasis_titanio', 'chasis_fibra_carbono', 'rueda_nitinol', 'modulo_autorescate', 'sellos_polvo', 'candado',
+  const EXTRA = ['chasis_titanio', 'chasis_fibra_carbono', 'rueda_nitinol', 'modulo_autorescate', 'sellos_polvo', 'candado', 'suspension_blanda', 'suspension_dura', 'faro', 'chasis_rocker_bogie',
     'silueta_orugas', 'silueta_patas', 'silueta_rotor', 'silueta_serpiente', 'silueta_rappel'];
   for (const id of [...(partes.piezas ?? partes).map((x) => x.id), ...EXTRA]) {
     const img = leer(`iconos/${id}.png`), f = createFrame(img.w, img.h);

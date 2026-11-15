@@ -149,6 +149,7 @@ export function generar() {
   generarB();
   generarDeco();
   generarObstaculos();
+  generarGeologia();
   generarPiezasNuevas();
 
   tira(D + 'zona_entrega.png', 16, 4, 1, (p) => {
@@ -332,4 +333,51 @@ export function generarPiezasNuevas() {
     r[ch[1]][ch[0]] = 'c';                                                   // chevrón de titanio, turquesa (marca de giro)
     filas(p, r.map((a) => a.join('')));
   });
+}
+
+// ---------------------------------------------------------------- obstáculos por geología (recreación de juego)
+// Bloques (sprite, la fila de abajo toca el suelo, contorno automático) y tiles de superficie de 16 × 4 (se repiten a lo ancho).
+export function generarGeologia() {
+  const O = 'obstaculos/';
+  const pal = (t) => ({ 1: t[0], 2: t[1], 3: t[2], 4: t[3] });
+  // bloques de eyecta (cráteres de impacto): angulosos, con caras planas; 3 tamaños, con variante por mundo
+  const EYECTA = [
+    ['.44.', '4432', '3321'],                                                 // chico (4 px de alto con contorno)
+    ['..443.', '.44432', '443321', '332211'],                                 // mediano (5 px)
+    ['...44...', '..4443..', '.444332.', '4433321.', '33322111', '32221111'], // grande (7 px)
+  ];
+  const tonosEyecta = {
+    '': PALETAS.tierra.roca.slice(2, 6), marte_: PALETAS.marte.roca.slice(2, 6),
+    luna_: [PALETAS.luna.roca[1], PALETAS.luna.roca[3], PALETAS.luna.roca[5], PALETAS.luna.roca[6]],
+  };
+  for (const [mundo, t] of Object.entries(tonosEyecta)) EYECTA.forEach((rows, i) => {
+    tira(`${O}obstaculo_eyecta_${mundo}${i + 1}.png`, rows[0].length + 2, rows.length + 1, 1, (q) => filas(q, rows, 1, 1, pal(t)));
+  });
+
+  // talud de roca suelta (minas): montón en cuña de piedras sueltas de tepetate, 24 × 8
+  const B = PALETAS.tierra.banco;
+  tira(O + 'obstaculo_talud.png', 24, 8, 1, (q) => {
+    for (let y = 1; y < 8; y++) for (let x = 1; x < 23; x++) {
+      const alto = 7 - Math.abs(x - 9) * (x < 9 ? 0.75 : 0.42);                // cuña: sube rápido y baja largo
+      if (8 - y > alto) continue;
+      const h = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453, r = h - Math.floor(h);   // piedras sueltas al azar
+      const piedra = r > 0.86 ? B[5] : r < 0.1 ? B[1] : null;
+      q.px(x, y, hex(piedra ?? (y < 4 ? B[4] : x + y < 14 ? B[3] : B[2])));
+    }
+  });
+
+  // bloques de lava aa: escoria áspera, casi negra con brillos rojizos y cresta dentada; 2 tamaños
+  const AA = ['#140e10', '#2a1c1c', '#4a2c26', '#7a3a2a'];
+  const lavaAA = [['.4.4..', '434342', '332321'], ['.4..4.4.', '4344343.', '33433322', '32322211']];
+  lavaAA.forEach((rows, i) => tira(`${O}obstaculo_lava_aa_${i + 1}.png`, rows[0].length + 2, rows.length + 1, 1, (q) => filas(q, rows, 1, 1, pal(AA))));
+
+  // tiles de superficie (16 × 4, sin contorno, se repiten a lo ancho)
+  const tile = (nombre, fn) => tira(O + nombre + '.png', 16, 4, 1, (q) => { for (let y = 0; y < 4; y++) for (let x = 0; x < 16; x++) { const c = fn(x, y); if (c) q.px(x, y, hex(c)); } }, { contorno: false });
+  const TOBA = PALETAS.tierra.toba, SAL = PALETAS.tierra.salar;
+  // toba o ceniza (maar): capas finas claras y oscuras, suelta
+  tile('obstaculo_toba', (x, y) => (y === 0 ? ((x * 5) % 7 < 2 ? TOBA[5] : TOBA[4]) : y === 1 ? TOBA[3] : y === 2 ? ((x + 3) % 6 === 0 ? TOBA[4] : TOBA[2]) : TOBA[1]));
+  // costra de sal: blanca con grietas poligonales
+  tile('obstaculo_sal', (x, y) => ((x === 5 || x === 12) && y > 0 ? SAL[1] : y === 0 ? ((x % 7 === 3) ? SAL[2] : SAL[3]) : (x + y) % 9 === 0 ? SAL[1] : SAL[2]));
+  // nieve o hielo: blanco azulado con brillos, hielo más azul abajo
+  tile('obstaculo_hielo', (x, y) => (y === 0 ? ((x * 3) % 8 === 1 ? '#ffffff' : '#e6f2ff') : y === 1 ? ((x % 5 === 2) ? '#ffffff' : '#c4dcf4') : y === 2 ? '#9cc4ec' : '#6a9ad0'));
 }
