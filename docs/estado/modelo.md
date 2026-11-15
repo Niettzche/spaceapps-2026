@@ -3,7 +3,36 @@
 > Lo actualiza SOLO este frente. Rama: `feat/modelo`.
 
 **Responsable:** Mario  ·  **Agente:** Claude Code / Codex
-**Última actualización:** 15 nov 2026, madrugada (demo publicada en https://v1.marsception.us/)
+**Última actualización:** 15 nov 2026, mañana (ANA, la tutora de análogos; demo en https://v1.marsception.us/)
+
+## Hecho (ANA, la tutora de análogos, 15 nov, mañana; rama `feat/modelo-tutor`)
+- **Qué es:** una tutora en el juego (Expediente: botón «A · Tutora» o tecla A) que explica qué es un análogo, por qué el
+  sitio se parece a su destino, dónde se rompe la analogía y de dónde sale cada dato. Es un extra (AGENTS.md §15): el juego
+  funciona igual sin ella.
+- **Preguntas sugeridas = reglas, sin IA ni red** (`game/src/tutor/conocimiento.js`): leen solo campos de data/sites y
+  data/targets con las funciones del Expediente (filasComparacion, limitesDe). Las cifras fijas son las de numeros.js
+  (METODOLOGIA.md + VALIDATION.md). Probado con los 58 sitios en es/en (`node --test src/tutor/`).
+- **Preguntas libres = `POST /tutor`** (`api/tutor.py`). El servidor arma el contexto con METODOLOGIA.md, VALIDATION.md,
+  un catálogo de una línea por sitio y el JSON del sitio y del destino; el navegador solo manda la pregunta. Usa OpenAI
+  Chat Completions con `requests`, sin dependencias nuevas. Modelo por defecto `gpt-4.1-mini` (`OPENAI_MODEL`). Sin llave → 503 y el
+  panel lo dice. Unos 14 k tokens de entrada por pregunta, con el bloque fijo al inicio para la caché del proveedor.
+- **Defensa contra prompt injection, por capas.** La tutora no tiene herramientas ni secretos en su contexto:
+  - historial firmado con HMAC (un turno «tutor» inventado se descarta);
+  - entrada saneada (invisibles, bidi, etiquetas Unicode) y pregunta entre `<pregunta_jugador>`;
+  - filtro de patrones es/en antes del modelo;
+  - moderación del proveedor (falla abierta);
+  - canario + filtro de salida;
+  - límites de 15 preguntas por IP cada 5 min y 1500 por día, pregunta ≤ 400 caracteres y texto plano (textContent).
+  12 pruebas en `api/tests/test_tutor.py`.
+- **Landing** (`informe/divulgacion/src/tutora.js`, rama `feat/modelo`): misma ANA como botón flotante, con 4 preguntas
+  del método y pregunta libre con `pantalla: "landing"`.
+- **Para publicar:** `OPENAI_API_KEY` en el entorno del servicio `marsception-api`. Agregar `https://marsception.us` a
+  `ALLOWED_ORIGINS` (la landing llama a v1.marsception.us/api). Agregar `docs/METODOLOGIA.md` al `git archive` de la API:
+  si no, la tutora pierde la metodología y solo le queda VALIDATION.md. Poner un tope de gasto en el panel de OpenAI.
+- **Pendientes de otros frentes:**
+  - el frente expediente revisa el botón del pie de Expediente.js (2 líneas + método `abrirTutora`);
+  - el integrador agrega la tutora a `docs/USO_IA.md`;
+  - discrepancia: METODOLOGIA.md dice 9/20 análogos conocidos y VALIDATION.md, 9 de 21.
 
 ## Hecho (15 niveles jugables, 15 nov, madrugada; rama `feat/modelo-niveles-15`)
 - **11 niveles nuevos con relieve real** (antes 4: samalayuca, pinacate, g00281, mx0207). Cráteres con fuente: g00266,
