@@ -54,6 +54,7 @@
   Samalayuca: 3 parches de arena blanda en los valles + rizaduras y matorral (dibujo); Al Hutaymah: 5 bloques de toba bajos.
 - Rocas, bloques y parches visibles (mínimo 3 px de arte, contorno, borde de luz); avisos la primera vez de cada tipo (`fisica/avisos.js`).
 - Camino dorado 5/5 en el simulador por pasos (FISICA_V2.md §5.3). Detalle: NIVELES_DESTACADOS.md «Obstáculos v2».
+- Playtest de Leo B4/B1 (15 nov): el HUD acorta título y subtítulo por pasos antes de «…» (sin paréntesis, «Polo sur lunar · Artemis», «g 1.62 m/s² · carga ≥ 60 %»); los 5 niveles caben en es/en. Mando de celular: pastilla y panel del QR en inglés según el idioma del juego; Enter/Esc cierran el QR sin llegar al juego.
 
 ## En curso
 - Niveles críticos: el tramo más exigente que siga siendo superable, en la dirección correcta (subir la pared del maar, bancos de la mina,

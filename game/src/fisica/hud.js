@@ -12,6 +12,32 @@ const XB = 440; // columna de las barras
 const ANCHO_PROGRESO = 900; // franja de progreso; la marca de meta va al final (x ≈ 922)
 const TXT = (scene, x, y, s, o = {}) => K.txt(scene, x, y, s, { size: 14, color: '#cfd6ff', ...o });
 
+// Títulos que no caben en la columna izquierda (playtest de Leo, B4: «Misión · Región candidata de Artemis, po…»).
+// Antes de recortar con «…» se prueban versiones cada vez más cortas del mismo texto, acumulando pasos; se queda la
+// primera que cabe. Lo importante (nombre del lugar, gravedad, umbral de carga, intento) se conserva. La fuente pixel
+// dibuja igual 14 y 18 px (×2, fuente.js), así que achicar la letra no gana espacio: se acorta el texto.
+const PASOS_TITULO = [
+  (s) => s.replace(/\s*\([^)]*\)/g, ''), // sin paréntesis: «Maar Al Hutaymah», «Cráter Jezero»
+  (s) => s.replace('Región candidata de Artemis, polo sur lunar', 'Polo sur lunar · Artemis')
+    .replace('Artemis candidate region, lunar south pole', 'Lunar south pole · Artemis'),
+  (s) => s.replace(/^Prueba terrestre · /, 'Prueba · ').replace(/^Earth test · /, 'Test · '),
+  (s) => s.replace(/^(Misión|Mission|Prueba|Test) · /, ''), // el subtítulo (gravedad, intento) ya dice qué es
+];
+const PASOS_SUBTITULO = [
+  (s) => s.replace('entrega con carga ≥', 'carga ≥').replace('deliver with payload ≥', 'payload ≥'),
+  (s) => s.replace(/^Gravedad de la Tierra \(([\d.]+ m\/s²)\)/, 'g Tierra $1').replace(/^Earth gravity \(([\d.]+ m\/s²)\)/, 'Earth g $1')
+    .replace(/^(Gravedad|Gravity) /, 'g '),
+];
+function acortar(t, max, pasos, original) {
+  let s = String(original ?? ''); // el texto pedido, no t.text (que ya pasó por los sustitutos de glifos)
+  for (const paso of pasos) {
+    if (t.width <= max) break;
+    const corto = paso(s);
+    if (corto !== s) { s = corto; t.setText(s); }
+  }
+  return ajustarAncho(t, max);
+}
+
 export class Hud {
   constructor(scene, { titulo, subtitulo, aviso, nota }) {
     this.scene = scene;
@@ -21,9 +47,10 @@ export class Hud {
       ? scene.add.nineslice(0, 0, 'ui/ui_hud_panel', undefined, 320, 29, 5, 5, 2, 6).setOrigin(0).setScale(3).setAlpha(0.94)
       : scene.add.rectangle(0, 0, 960, 88, 0x0b0d17, 0.78).setOrigin(0);
     fijo(banda);
-    // Columna izquierda hasta x = 426: las barras empiezan en x = 440. Lo que no cabe se recorta con «…».
-    fijo(ajustarAncho(TXT(scene, 16, 6, titulo, { size: 18, color: '#ffffff' }), ANCHO_IZQ));
-    fijo(ajustarAncho(TXT(scene, 16, 30, subtitulo), ANCHO_IZQ));
+    // Columna izquierda hasta x = 426: las barras empiezan en x = 440. Lo que no cabe se acorta (PASOS_*) y, si aún
+    // no cabe, se recorta con «…».
+    this.titulo = fijo(acortar(TXT(scene, 16, 6, titulo, { size: 18, color: '#ffffff' }), ANCHO_IZQ, PASOS_TITULO, titulo));
+    this.subtitulo = fijo(acortar(TXT(scene, 16, 30, subtitulo), ANCHO_IZQ, PASOS_SUBTITULO, subtitulo));
     // Nota de datos: en el HUD solo una keyword corta («Suelo: arena · I datos», DISENO.md §3) a 14 px; el texto completo
     // (fuente, tramo real, recreaciones, ambiente) se abre con la tecla I o tocando la nota.
     if (aviso) {

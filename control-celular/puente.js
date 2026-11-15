@@ -11,6 +11,24 @@
   const ORIGEN = new URL(document.currentScript?.src ?? 'http://localhost:8787/puente.js').origin;
   const WS_URL = ORIGEN.replace(/^http/, 'ws') + '/ws?rol=pantalla';
 
+  // ------------------------------------------------------------ idioma (playtest de Leo, B1: siempre salía en español)
+  // Igual que game/src/i18n.js: el juego pone <html lang> al cargar y al cambiar de idioma; si aún no lo puso,
+  // ?lang=es|en en la URL → lo guardado en el navegador → idioma del navegador (español si empieza con «es»).
+  function idioma() {
+    const html = document.documentElement.getAttribute('lang');
+    if (html === 'es' || html === 'en') return html;
+    try {
+      const url = new URLSearchParams(location.search).get('lang');
+      if (url === 'es' || url === 'en') return url;
+    } catch { /* sin URL */ }
+    try {
+      const g = localStorage.getItem('marsception.idioma');
+      if (g === 'es' || g === 'en') return g;
+    } catch { /* sin almacenamiento */ }
+    return (navigator.language ?? 'en').toLowerCase().startsWith('es') ? 'es' : 'en';
+  }
+  const tr = (es, en) => (idioma() === 'en' ? en : es);
+
   // tecla → [keyCode, code]
   const TECLAS = {
     ArrowLeft: [37, 'ArrowLeft'], ArrowUp: [38, 'ArrowUp'], ArrowRight: [39, 'ArrowRight'], ArrowDown: [40, 'ArrowDown'],
@@ -94,8 +112,8 @@
       let m; try { m = JSON.parse(e.data); } catch { return; }
       if (m.t === 'k') tecla(m.k, m.d, m.r);
       else if (m.t === 'pads') {
-        if (m.n > pads) { ui.aviso('📱 Control conectado'); ui.cerrar(); }
-        else if (m.n < pads) ui.aviso('📱 Control desconectado');
+        if (m.n > pads) { ui.aviso(tr('📱 Control conectado', '📱 Phone controller connected')); ui.cerrar(); }
+        else if (m.n < pads) ui.aviso(tr('📱 Control desconectado', '📱 Phone controller disconnected'));
         pads = m.n;
         ui.pads(pads);
       }
@@ -145,34 +163,53 @@
           font-size: 13px; transition: transform .3s; }
         .aviso.ver { transform: translate(-50%, 0); }
       </style>
-      <div class="pastilla" title="Control de celular"><span class="p"></span><span class="t">Conectar celular</span></div>
+      <div class="pastilla"><span class="p"></span><span class="t"></span></div>
       <div class="velo"><div class="tarjeta">
-        <div class="qr"><img alt="QR para conectar el celular"></div>
+        <div class="qr"><img></div>
         <div>
-          <h2>📱 Usa tu celular como control</h2>
-          <p>1. Celular y compu en la <b>misma red</b> (Wi-Fi o hotspot del celular).</p>
-          <p>2. Escanea el QR con la cámara y gira el celular.</p>
-          <p>Código de sala: <span class="sala">····</span></p>
+          <h2></h2>
+          <p class="paso1"></p>
+          <p class="paso2"></p>
+          <p><span class="etSala"></span> <span class="sala">····</span></p>
           <p class="url"></p>
           <div class="redes"></div>
-          <button class="cerrar">Listo · jugar</button>
+          <button class="cerrar"></button>
         </div>
       </div></div>
       <div class="aviso"></div>`;
     const $ = (s) => raiz.querySelector(s);
     const pastilla = $('.pastilla'), velo = $('.velo');
-    let info = null, elegida = 0, tenue;
+    let info = null, elegida = 0, tenue, nPads = 0;
+
+    // Textos fijos en el idioma del juego; se vuelven a poner si el juego cambia de idioma (observa <html lang>).
+    function textos() {
+      pastilla.title = tr('Control de celular', 'Phone controller');
+      $('.qr img').alt = tr('QR para conectar el celular', 'QR code to connect your phone');
+      $('h2').textContent = tr('📱 Usa tu celular como control', '📱 Use your phone as a controller');
+      $('.paso1').innerHTML = tr('1. Celular y compu en la <b>misma red</b> (Wi-Fi o hotspot del celular).',
+        '1. Phone and computer on the <b>same network</b> (Wi-Fi or the phone\'s hotspot).');
+      $('.paso2').textContent = tr('2. Escanea el QR con la cámara y gira el celular.', '2. Scan the QR code with the camera and turn the phone sideways.');
+      $('.etSala').textContent = tr('Código de sala:', 'Room code:');
+      $('.cerrar').textContent = tr('Listo · jugar (Enter / Esc)', 'Done · play (Enter / Esc)');
+      $('.pastilla .t').textContent = nPads
+        ? tr(`Control · ${nPads} conectado${nPads > 1 ? 's' : ''}`, `Controller · ${nPads} connected`)
+        : tr('Conectar celular', 'Connect phone');
+      if (velo.classList.contains('abierto')) pintar();
+    }
+    textos();
+    new MutationObserver(textos).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
 
     async function cargarInfo() {
       try { info = await (await fetch(ORIGEN + '/info', { cache: 'no-store' })).json(); } catch { info = null; }
       pintar();
     }
     function pintar() {
-      if (!info) { $('.url').textContent = 'No se pudo leer la red del relay.'; return; }
+      if (!info) { $('.url').textContent = tr('No se pudo leer la red del relay.', 'Could not read the relay\'s network.'); return; }
       $('.sala').textContent = info.sala;
       const dirs = info.direcciones;
       if (!dirs.length) {
-        $('.url').textContent = 'Esta compu no tiene red: conéctala al Wi-Fi o al hotspot del celular.';
+        $('.url').textContent = tr('Esta compu no tiene red: conéctala al Wi-Fi o al hotspot del celular.',
+          'This computer has no network: connect it to Wi-Fi or to the phone\'s hotspot.');
         $('.qr img').removeAttribute('src');
         $('.redes').innerHTML = '';
         return;
@@ -197,6 +234,19 @@
     pastilla.onclick = () => (velo.classList.contains('abierto') ? cerrar() : abrir());
     $('.cerrar').onclick = cerrar;
     velo.onclick = (e) => { if (e.target === velo) cerrar(); };
+    // Enter o Esc cierran el panel (playtest de Leo, A2). Se escucha en captura sobre window, antes que Phaser, y la
+    // tecla no llega al juego: así cerrar el panel no pausa la prueba ni activa el botón del menú que esté enfocado.
+    let cerradoCon = null; // su keyup tampoco llega
+    window.addEventListener('keydown', (e) => {
+      if (!velo.classList.contains('abierto') || (e.key !== 'Enter' && e.key !== 'Escape')) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      cerradoCon = e.key;
+      cerrar();
+    }, true);
+    window.addEventListener('keyup', (e) => {
+      if (cerradoCon && e.key === cerradoCon) { e.stopImmediatePropagation(); cerradoCon = null; }
+    }, true);
     // Si la red cambia con el panel abierto, el QR se actualiza.
     setInterval(() => { if (velo.classList.contains('abierto')) cargarInfo(); }, 4000);
 
@@ -206,7 +256,8 @@
       cerrar,
       estado(ok) { $('.pastilla .p').classList.toggle('ok', ok); if (!ok) this.pads(0); },
       pads(n) {
-        $('.pastilla .t').textContent = n ? `Control · ${n} conectado${n > 1 ? 's' : ''}` : 'Conectar celular';
+        nPads = n;
+        textos();
         pastilla.classList.remove('tenue');
         clearTimeout(tenue);
         tenue = setTimeout(() => pastilla.classList.add('tenue'), n ? 4000 : 10000);
