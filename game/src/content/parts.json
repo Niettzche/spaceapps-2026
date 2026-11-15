@@ -2,6 +2,7 @@
   {
     "id": "rueda_estandar",
     "nombre": "Rueda estándar",
+    "nombre_en": "Standard wheel",
     "sistema": "movilidad",
     "costo": 80,
     "masa": 6,
@@ -16,6 +17,7 @@
   {
     "id": "rueda_ancha",
     "nombre": "Rueda ancha para arena",
+    "nombre_en": "Wide sand wheel",
     "sistema": "movilidad",
     "costo": 120,
     "masa": 8,
@@ -30,6 +32,7 @@
   {
     "id": "rueda_tacos",
     "nombre": "Rueda rígida con tacos",
+    "nombre_en": "Rigid cleated wheel",
     "sistema": "movilidad",
     "costo": 140,
     "masa": 9,
@@ -44,6 +47,7 @@
   {
     "id": "chasis_ligero",
     "nombre": "Chasis ligero",
+    "nombre_en": "Light chassis",
     "sistema": "estructura",
     "costo": 150,
     "masa": 20,
@@ -53,6 +57,7 @@
   {
     "id": "chasis_reforzado",
     "nombre": "Chasis reforzado",
+    "nombre_en": "Reinforced chassis",
     "sistema": "estructura",
     "costo": 260,
     "masa": 35,
@@ -62,6 +67,7 @@
   {
     "id": "bateria_chica",
     "nombre": "Batería chica",
+    "nombre_en": "Small battery",
     "sistema": "energia",
     "costo": 90,
     "masa": 5,
@@ -71,6 +77,7 @@
   {
     "id": "bateria_grande",
     "nombre": "Batería grande",
+    "nombre_en": "Large battery",
     "sistema": "energia",
     "costo": 170,
     "masa": 11,
@@ -80,6 +87,7 @@
   {
     "id": "motor_eficiente",
     "nombre": "Motor eficiente",
+    "nombre_en": "Efficient motor",
     "sistema": "potencia",
     "costo": 110,
     "masa": 7,
@@ -90,6 +98,7 @@
   {
     "id": "motor_potente",
     "nombre": "Motor potente",
+    "nombre_en": "Powerful motor",
     "sistema": "potencia",
     "costo": 180,
     "masa": 10,
@@ -100,6 +109,7 @@
   {
     "id": "soporte_basico",
     "nombre": "Soporte de carga básico",
+    "nombre_en": "Basic cargo mount",
     "sistema": "carga",
     "costo": 60,
     "masa": 3,
@@ -109,6 +119,7 @@
   {
     "id": "soporte_amortiguado",
     "nombre": "Soporte de carga amortiguado",
+    "nombre_en": "Cushioned cargo mount",
     "sistema": "carga",
     "costo": 130,
     "masa": 6,
@@ -118,6 +129,7 @@
   {
     "id": "panel_solar",
     "nombre": "Panel solar (opcional)",
+    "nombre_en": "Solar panel (optional)",
     "sistema": "modulo",
     "costo": 150,
     "masa": 4,

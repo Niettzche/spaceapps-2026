@@ -4,6 +4,9 @@
 > **Los números de `game/src/content/parts.json` son valores de juego (P), no datos de ingeniería.**
 > Este documento solo explica qué hecho real inspira cada pieza y su compromiso (trade-off). Cada hecho tiene su fuente;
 > lo que no se pudo verificar no aparece. Las inspiraciones son para el pitch y las tarjetas del taller, no para el modelo.
+> Idioma: cada pieza trae `nombre` (español) y `nombre_en` (inglés); el taller muestra el que toca con `trDato(pieza, 'nombre')`
+> (`game/src/i18n.js`). Las ranuras tienen `nombre_en` en `game/src/scenes/Taller/diseno.js`, y `validar(…, { en: true })` da
+> los errores en inglés (sin la opción quedan en español, como esperan las pruebas).
 
 ## 1. Hechos verificados (fuentes NASA / JPL / Smithsonian)
 
