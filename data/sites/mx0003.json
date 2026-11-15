@@ -105,5 +105,5 @@
     "exageracion_vertical": null,
     "obstaculos": []
   },
-  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Oxia Planum (Marte), 0.96 km, 22 m, d/D 0.023. novedoso: false; a 20 km de un análogo conocido de data/known_analogs.json (Gran Desierto de Altar, dunas (Sonora, México)). Etiqueta de IA: hondonada_eolica_o_duna, confianza 0.60 (claude -p sobre Sentinel-2 y relieve; 29 de 33 aciertos en la validación, ciencia_datos/etiquetado_ia)."
+  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Oxia Planum (Marte), 0.96 km, 22 m, d/D 0.023. novedoso: false; a 20 km de un análogo conocido de data/known_analogs.json (Gran Desierto de Altar, dunas (Sonora, México)); no es el mismo lugar: solo cae dentro del radio de 50 km de la regla, y su propio tipo es el de la etiqueta de IA. Etiqueta de IA: hondonada_eolica_o_duna, confianza 0.60 (claude -p sobre Sentinel-2 y relieve; 29 de 33 aciertos en la validación, ciencia_datos/etiquetado_ia)."
 }
