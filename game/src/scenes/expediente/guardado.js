@@ -9,7 +9,7 @@ import { TICKETS_POR_PARTIDA } from '../../config/world.js';
 
 const CLAVE = 'mision_cero.partida.v1';
 
-const estado = { activa: false, autoguardado: false };
+const estado = { activa: false, autoguardado: false, sitioPedido: null };
 
 function almacen() {
   try { return window.localStorage; } catch { return null; }
@@ -77,6 +77,28 @@ export function elegirSitio(partida, sitio) {
   partida.sitio = sitio;
   guardar(partida);
   return r;
+}
+
+/**
+ * El Explorador abre el Expediente de un sitio jugable del catálogo. Sin partida en curso, retoma la guardada o empieza
+ * una nueva (como "Nueva partida"). El destino pasa a ser el gemelo del sitio (`destino_ref`); si el sitio en juego
+ * era de otro destino, se suelta (los tickets y los sitios ya pagados se conservan). No gasta tickets.
+ */
+export function visitarSitio(partida, sitio, { sitios, destinos, presupuesto, tickets }) {
+  if (!estado.activa && !restaurar(partida, sitios, destinos)) nuevaPartida(partida, sitio.destino_ref, { presupuesto, tickets });
+  if (partida.destino !== sitio.destino_ref) {
+    partida.destino = sitio.destino_ref;
+    if (partida.sitio && partida.sitio.destino_ref !== sitio.destino_ref) partida.sitio = null;
+  }
+  guardar(partida);
+  estado.sitioPedido = sitio.id;
+}
+
+/** Id del sitio que pidió el Explorador (una sola vez) o null. */
+export function tomarSitioPedido() {
+  const id = estado.sitioPedido;
+  estado.sitioPedido = null;
+  return id;
 }
 
 export function partidaActiva() {
