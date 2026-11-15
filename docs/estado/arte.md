@@ -1,9 +1,9 @@
 # Estado — Arte
 
-> Lo actualiza SOLO este frente. Ramas: `feat/arte` (#26) y `feat/arte-b` (#37), `feat/arte-c` (#49), `feat/arte-d` (#58), `feat/arte-e` (#64), `feat/arte-f` (#67), `feat/arte-g` (#72), `feat/arte-h` (#77), `feat/arte-i` (#79), `feat/arte-j` (#80), `feat/arte-k` (#84), mergeadas; `feat/arte-m` (nave del menú, piezas de 32 px y Marte grande). `feat/arte-l`: diapositivas, íconos y fuente para la web (va encima de `feat/arte-m`).
+> Lo actualiza SOLO este frente. Ramas: `feat/arte` (#26) y `feat/arte-b` (#37), `feat/arte-c` (#49), `feat/arte-d` (#58), `feat/arte-e` (#64), `feat/arte-f` (#67), `feat/arte-g` (#72), `feat/arte-h` (#77), `feat/arte-i` (#79), `feat/arte-j` (#80), `feat/arte-k` (#84), mergeadas; `feat/arte-m` (nave del menú, piezas de 32 px y Marte grande). `feat/arte-l` (#86), mergeadas; `feat/arte-n` (guía de tutoriales, íconos de variables, piezas nuevas y candado).
 
 **Responsable:** Mauricio  ·  **Agente:** Claude Code / Codex
-**Última actualización:** 15 nov 2026, 10:00
+**Última actualización:** 15 nov 2026, 12:00
 
 ## Hecho
 - **Prioridad A y B completas** (#26 y #37, en `main`):
@@ -122,13 +122,20 @@
     - El mapa del modelo usa las costas de Natural Earth 1:110m (dominio público) y las coordenadas de los 58 sitios de `data/sites`. Los 4 sitios jugables van resaltados.
   - **Fuente web:** `docs/media/fuentes_web/marsception-pixel.otf` y `.woff2`, más `fuentes.css`. Comprobada en Edge con texto real.
   - **Íconos para la web:** `docs/media/iconos/32|48/`.
+- **Guía, variables y piezas nuevas (`feat/arte-n`):**
+  - **`tutorial/guia.png`:** astronauta guía, 3 cuadros de 48 × 48 (normal, señalando y contenta).
+  - **`ui/ui_senalador.png`:** flecha que rebota, 4 cuadros de 12 × 14.
+  - **`ui/ui_resalte.png`:** 9-slice 12 × 12 con cortes de 4 y el centro transparente.
+  - **Variables del Expediente** (16 × 16): `ico_forma`, `ico_oscilacion`, `ico_precipitacion`, `ico_vegetacion`, `ico_confianza`, `ico_novedoso`, `ico_mision` y `ico_prueba`.
+  - **Piezas nuevas** (ícono de 16 y pieza de 32, ids provisionales): `chasis_titanio`, `chasis_fibra_carbono`, `rueda_nitinol`, `modulo_autorescate`, `sellos_polvo` y `candado`.
+  - **Siluetas** `silueta_<orugas|patas|rotor|serpiente|rappel>`.
 - `node assets/fuente/fx/exportar.mjs` regenera con pixelfx las 22 hojas de efectos.
 
 ## En curso
 - Nada.
 
 ## Siguiente
-- [ ] Piezas nuevas (chasis de titanio, chasis de fibra de carbono, llanta de Nitinol, módulo de auto-rescate, sellos antipolvo) y candado, cuando estén los ids en `SPRITES_PENDIENTES.md`.
+- [ ] Renombrar las piezas nuevas si el Taller usa otros ids (`SPRITES_PENDIENTES.md`).
 - [ ] Meter el clip de 5 s del juego en inglés en el video cuando Alan lo grabe (6 × 5 s = 30 s).
 - [ ] Ajustar nombres de obstáculos si juego los cambia al integrarlos (solo renombrar).
 - [ ] Ver el arte con el juego corriendo (todavía no lo he revisado en pantalla): ruedas en el taller y en la prueba, calcomanías, posición de efectos y polvo.
