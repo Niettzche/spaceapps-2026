@@ -1,4 +1,5 @@
 import hero from './assets/web_portada_960x960.png'
+import FeaturedLevels from './FeaturedLevels.jsx'
 import menu from '../../assets/pantallas/menu_fondo.png'
 import workshop from '../../assets/pantallas/taller_fondo.png'
 import dunes from '../../assets/pantallas/sitio_samalayuca.png'
@@ -133,6 +134,19 @@ export function ProjectHero({ lang }) {
     <section className="golden-path"><h2>{c.pathTitle}</h2><div className="path-grid">
       {[step1, step2, step3, step4].map((src, i) => <article key={src}><img src={src} alt="" loading="lazy" width="96" height="64" /><h3><span>{i + 1}</span> {c.path[i][0]}</h3><p>{c.path[i][1]}</p></article>)}
     </div><p className="art-note">{c.pathNote}</p></section>
+    <section className="discover-section" id="descubrir">
+      <h2>{lang === 'en' ? 'Discover. Ask ANA.' : 'Descubrir. Pregunta a ANA.'}</h2>
+      <div className="feature-grid">
+        <article><h3>{lang === 'en' ? 'Discover' : 'Descubrir'}</h3>
+          <p>{lang === 'en' ? 'Impact craters / volcanoes / mines / dunes' : 'Impactos / volcanes / minas / dunas'}</p>
+          <p>{lang === 'en' ? 'Filter the model catalog. Open “Why here?” for origin, measurements, sources and missing data.' : 'Filtra el catálogo del modelo. Abre «¿Por qué aquí?» para ver origen, medidas, fuentes y datos faltantes.'}</p>
+          <a className="ghost" href="#mapa">{c.explore}</a></article>
+        <article><h3>ANA</h3><p>{lang === 'en' ? 'Your analog tutor in the game' : 'Tu tutora de análogos en el juego'}</p>
+          <p>{lang === 'en' ? 'Suggested questions work offline. Free questions use the live AI service when available, grounded in project data; answers can be wrong.' : 'Las preguntas sugeridas funcionan sin conexión. Las preguntas libres usan el servicio de IA cuando está disponible, anclado en los datos del proyecto; puede equivocarse.'}</p>
+          {game && <a className="ghost" href={game}>{lang === 'en' ? 'Meet ANA in the game' : 'Conoce a ANA en el juego'}</a>}</article>
+      </div>
+    </section>
+    <FeaturedLevels lang={lang} />
   </>
 }
 export function ProjectFooter({ lang }) {

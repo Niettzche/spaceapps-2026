@@ -8,6 +8,10 @@ For data review, Claude suggested landform labels for 298 arid candidates using 
 
 NASA, ESA and other source measurements were not invented or replaced by AI output. Missing measurements remain missing. Team members remain responsible for reviewing code, claims, labels and final deliverables. Generated art is not NASA imagery and does not imply NASA endorsement.
 
+## Runtime AI · ANA
+
+ANA additionally offers an optional live AI question-answer service grounded in project data, labeled as AI and fallible. Its suggested questions use deterministic offline answers. ANA explains evidence and limits; it does not discover or validate sites and is separate from the statistical analog model.
+
 ## Español
 
 Se usaron Claude Code y Codex para apoyar código, depuración, integración, pruebas y documentación. Mauricio hizo el arte de MARSCEPTION con Claude, con asistencia de IA en su creación e iteración; ese material es ilustrativo, no una observación científica.

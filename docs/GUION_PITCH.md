@@ -32,7 +32,7 @@ MARSCEPTION conecta datos con decisiones: elegir un terreno, probar un diseño y
 - **Marte:** JPL publica 3.71 como gravedad ecuatorial; la ficha media publica 3.73. Elegimos 3.71 uniformemente, con un factor común de escala del juego.
 - **Modelo y cifras:** 6 sitios marcianos, 573 cráteres; 76 % usando solo profundidad/diámetro. Prefiltro complementario: 3/3 negativos y 9/21 análogos conocidos (`model/VALIDATION.md`); no confundirlo con el detector (9/11). Fuentes ampliadas en [metodología en inglés](METHODOLOGY_EN.md) y [preguntas de jueces](PITCH_QA_EN.md).
 - **Taller:** consultar las hojas Judges y Ambiente de `docs/taller/Space_Apps_Game_Data.xlsx`. Física v2: hundimiento por Bekker–Wong y tracción por Mohr–Coulomb, con parámetros de referencia y simulantes declarados; no son mediciones de cada sitio. Velocidad y precios son valores de juego. Consultar también la metodología actualizada. No afirmar que las ruedas anchas habrían salvado a Spirit.
-- **Pendientes:** grabar después de la publicación de Mario; verificar UI, enlaces públicos y video final. Edmundo confirma el envío oficial.
+- **Captura del 15 nov:** ambos caminos se completaron en la UI inglesa publicada: Marte, 845 puntos y dos estrellas; Luna, 825 puntos y dos estrellas. Hay tomas de Descubrir, ANA y los siete niveles. Falta guardar/verificar el MP4 y montar el tráiler con `docs/media/TRAILER_GUION.md`; no confundir las tomas breves abandonadas de los otros niveles con recorridos completos. Edmundo confirma el envío oficial.
 
 ## Control de tiempo
 

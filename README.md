@@ -2,7 +2,9 @@
 
 An open-data Earth-analog explorer and 2D rover game for preparing selected Moon and Mars operations.
 
-**Public demo:** [web explorer](https://v1.marsception.us/) · [rover game in English](https://v1.marsception.us/game/?lang=en). Deployment is managed by Mario. The current submission route uses seven slides while video work stays paused.
+**Public demo:** [project website](https://marsception.us/) · [rover game in English](https://v1.marsception.us/?lang=en). Deployment is managed by Mario. The current submission asset is the seven-slide PDF; the new recording and trailer follow [the English shot list](docs/media/TRAILER_GUION.md). PR #75 remains a draft.
+
+Physics 2 models Bekker–Wong sinkage and Mohr–Coulomb traction with declared reference/simulant limits. Explore seven featured Earth levels, filter the catalog in **Discover**, and ask **ANA** about evidence: suggested questions work offline; optional live AI answers can be wrong. See [English methodology](docs/METHODOLOGY_EN.md) and [level rules](docs/juego/NIVELES_DESTACADOS.md).
 
 NASA Space Apps 2026 · Monterrey / UDEM. Challenge: [Identify Earth Locations that Analog the Permanent Moon Base Locations and Mars](https://www.spaceappschallenge.org/2026/challenges/permanent-moon-base-locations-and-mars/).
 
@@ -46,6 +48,8 @@ node web/scripts/build-demo.mjs
 ```
 
 Upload `web/dist/`. It contains web `/`, game `/game/` and the video. `DEMO_BASE` supports subdirectory hosting; `VITE_WEB_URL`, `VITE_API_URL` and `VITE_GAME_URL` are coordinated by the build script. See [deployment instructions](web/DEPLOY.md). Mario manages publication to the public demo domain above.
+
+The observed public routing on 15 November differs from that combined-build layout: the project site is at `https://marsception.us/`, and its Play button opens the game at `https://v1.marsception.us/`. `https://marsception.us/game/` returns 404. Preserve Mario's separate-host configuration; for a separate web build, set `VITE_GAME_URL=https://v1.marsception.us/`.
 
 ## Data and methodology
 
