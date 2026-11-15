@@ -354,7 +354,7 @@ caso('obstáculos: deterministas, fuera de los planos y declarados', () => {
     const d = JSON.parse(readFileSync(new URL(`../../../data/targets/${id}.json`, import.meta.url)));
     const p = perfilDeDestino(d);
     const rocas = generarObstaculos(p, { mundo: d.mundo, semilla: id });
-    assert.ok(rocas.length >= 4 && rocas.length <= 12, `${id}: ${rocas.length}`);
+    assert.ok(rocas.length >= 2 && rocas.length <= 12, `${id}: ${rocas.length}`); // la ventana crítica lunar es una pared: en pendiente fuerte no se ponen rocas
     for (const o of rocas) assert.ok(o.tipo === 'roca' && o.radio_m >= 0.15 && o.radio_m <= 0.3 && o.x_m > 18 && o.x_m < p.largo_m - 30);
   }
   // Pinacate ya trae "bloques de roca recreados" en el perfil: no se duplican.
