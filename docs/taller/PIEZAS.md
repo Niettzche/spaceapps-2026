@@ -112,7 +112,8 @@ hay que elegir entre panel, aislante o radiador.
 | `radiador_motor` | módulo | 90 | 3 | `radiador` +0.006 /s de enfriamiento por radiación (regla b). Al límite de 100 °C el motor conserva 64 % de potencia en la Luna (26 % sin él) y ~74 % en Jezero (~35 %) | **(P), Gap para el motor** (§5). Radiadores de la electrónica: S78 |
 
 - Con ruedas anchas (890) todavía caben el aislante (930) o el radiador (980). El panel grande no cabe con ruedas anchas.
-- El Taller muestra el efecto del módulo en el destino elegido: "En <destino> (P): batería N % (sin aislante M %) · motor caliente…".
+- El Taller muestra el efecto del módulo en el destino elegido, en un renglón: "Luna (P): motor caliente 64 % (sin él 26 %)"
+  ("motor caliente" = potencia que conserva el motor al llegar a 100 °C).
 - Feedback (`feedback/reglas.js`): si la energía se acabó y hubo `bateria_fria` → aislante; si el motor se sobrecalentó sin
   radiador → radiador ("Aplicar y al taller" lo pone en el módulo).
 - `panel_solar`: §2 dice "sin efecto en el MVP", pero la física ya aplica la regla de luz (c) de `fisica/ambiente.js`.
