@@ -26,7 +26,7 @@ Distinct component evaluations include 9/11 documented Mexican craters in the or
 |---|---|
 | Demo | PENDING — completar con el VPS |
 | Rover game | Same verified demo domain, `/game/` |
-| Video | Same verified demo domain, `/media/mision-cero-30s-en.mp4` (29.90 s, English captions) |
+| Video | Same verified demo domain, `/media/mision-cero-30s-en.mp4` (25.00 s, English captions) |
 | Source code | https://github.com/Niettzche/spaceapps-2026 — owner must make public |
 | Methodology | `docs/METODOLOGIA.md` in the public source repository |
 
