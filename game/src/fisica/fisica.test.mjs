@@ -193,3 +193,129 @@ caso('estadísticas: subida, bajada y condición crítica de un perfil simple', 
   assert.ok(e.pendMaxSubida > 20 && e.critica.sentido === 'subida' && e.critica.superficie === 'roca');
 });
 console.log(`${n} casos OK (con estadísticas)`);
+
+// Ambiente (fisica/ambiente.js) y obstáculos recreados (fisica/obstaculos.js). Ver ESPECIFICACION §5b.
+import {
+  ambienteDe, ambienteDeSitio, ambienteDeDestino, factorFrio, temperaturaEquilibrio, pasoTemperaturaMotor, potenciaPermitida,
+  enfriamientoMotor, factorLuz, recargaPanel, lineasAmbiente, resumenAmbiente, REGLAS, DENSIDAD_AIRE_TIERRA,
+} from './ambiente.js';
+import { generarObstaculos, factorAgarreEn, notaObstaculos, REGLAS_OBSTACULOS } from './obstaculos.js';
+caso('ambiente: datos con fuente de los 4 sitios jugables y los 2 destinos', () => {
+  const sama = ambienteDeSitio('samalayuca');
+  assert.equal(sama.temperatura_min_C, 10.5); // T2M 17.85 − T2M_RANGE 14.78 / 2 (NASA POWER)
+  assert.equal(sama.temperatura_max_C, 25.2);
+  assert.deepEqual(sama.extremos_C, [-14.51, 42.41]);
+  assert.equal(sama.presion_kPa, 87.31);
+  assert.ok(Math.abs(sama.densidad_aire_kg_m3 - 1.046) < 0.002); // EQ-009: 87.31 / (0.2869 × 290.95)
+  for (const id of ['samalayuca', 'pinacate', 'mx0207', 'g00281']) {
+    const a = ambienteDeSitio(id);
+    assert.ok(a.fuentes[0].includes('NASA POWER') && !a.referencia, id);
+    assert.ok(a.densidad_aire_kg_m3 > 0.9 && a.densidad_aire_kg_m3 < 1.2, id);
+  }
+  const jez = ambienteDeDestino('jezero', 'marte');
+  assert.deepEqual([jez.temperatura_min_C, jez.temperatura_max_C, jez.presion_kPa, jez.densidad_aire_kg_m3], [-83, -22, 0.718, 0.016]);
+  const luna = ambienteDeDestino('polo_sur_lunar', 'luna');
+  assert.equal(luna.densidad_aire_kg_m3, 0);
+  assert.equal(luna.luz, 'rasante');
+  assert.equal(luna.temperatura_max_C, null); // sin dato de máxima en la ruta: null, no se inventa
+  // Sin dato del sitio → referencia de la Tierra declarada.
+  const otro = ambienteDeSitio('mx0000');
+  assert.ok(otro.referencia && otro.densidad_aire_kg_m3 === DENSIDAD_AIRE_TIERRA);
+  assert.equal(ambienteDe({ modo: 'prueba', mundo: 'tierra', sitioId: 'pinacate' }).id, 'pinacate');
+  assert.equal(ambienteDe({ modo: 'mision', mundo: 'marte', destinoId: 'jezero' }).id, 'jezero');
+});
+caso('ambiente: batería fría (−0.2 %/°C bajo 0 °C, piso 85 %)', () => {
+  assert.equal(factorFrio(15), 1);
+  assert.equal(factorFrio(0), 1);
+  assert.ok(Math.abs(factorFrio(-53) - 0.894) < 1e-9); // Luna, borde iluminado
+  assert.equal(factorFrio(-83), REGLAS.frio.piso); // Marte: 16.6 % → piso 85 %
+  assert.equal(factorFrio(null), 1);
+  for (const id of ['samalayuca', 'pinacate', 'mx0207', 'g00281']) assert.equal(factorFrio(ambienteDeSitio(id).temperatura_min_C), 1, id);
+});
+caso('ambiente: el aire enfría el motor (Tierra) y su falta no (Marte, Luna)', () => {
+  const eficiente = piezas.find((p) => p.id === 'motor_eficiente');
+  const potente = piezas.find((p) => p.id === 'motor_potente');
+  const sitios = ['samalayuca', 'pinacate', 'mx0207', 'g00281'].map(ambienteDeSitio);
+  // En la Tierra, ni el motor potente a fondo llega al límite.
+  for (const a of sitios) assert.ok(temperaturaEquilibrio(1, potente.consumo, a) < REGLAS.motor.limite_C, a.id);
+  const jez = ambienteDeDestino('jezero', 'marte');
+  const luna = ambienteDeDestino('polo_sur_lunar', 'luna');
+  assert.ok(enfriamientoMotor(sitios[0]) > 10 * enfriamientoMotor(jez));
+  assert.ok(enfriamientoMotor(jez) > enfriamientoMotor(luna) && enfriamientoMotor(luna) === REGLAS.motor.radiacion);
+  for (const a of [jez, luna]) assert.ok(temperaturaEquilibrio(1, eficiente.consumo, a) > REGLAS.motor.limite_C, a.id);
+  // Paso de tiempo: a fondo en la Luna, el motor eficiente pasa el límite en ~1 min; el potente, en menos de la mitad.
+  const tiempoAlLimite = (motor) => {
+    let T = -53;
+    for (let t = 0; t < 600; t += 0.1) {
+      T = pasoTemperaturaMotor(T, { a: 1, consumo: motor.consumo, dt: 0.1, amb: luna });
+      if (T >= REGLAS.motor.limite_C) return t;
+    }
+    return Infinity;
+  };
+  const te = tiempoAlLimite(eficiente);
+  const tp = tiempoAlLimite(potente);
+  assert.ok(te > 50 && te < 90, `eficiente ${te}`);
+  assert.ok(tp < te / 2, `potente ${tp}`);
+  // Sobrecalentado: solo la potencia que el ambiente alcanza a enfriar (con mínimo).
+  assert.equal(potenciaPermitida(50, eficiente.consumo, luna), 1);
+  const pl = potenciaPermitida(100, eficiente.consumo, luna);
+  assert.ok(pl >= REGLAS.motor.potencia_minima && pl < 0.5);
+  assert.equal(potenciaPermitida(100, eficiente.consumo, sitios[0]), 1);
+});
+caso('ambiente: luz rasante reduce la recarga del panel solar', () => {
+  const panel = piezas.find((p) => p.id === 'panel_solar');
+  const luna = ambienteDeDestino('polo_sur_lunar', 'luna');
+  const tierra = ambienteDeSitio('samalayuca');
+  assert.equal(factorLuz(tierra), 1);
+  assert.equal(factorLuz(luna), REGLAS.luz.rasante);
+  assert.ok(Math.abs(factorLuz(ambienteDeDestino('jezero', 'marte')) - 0.431) < 1e-9);
+  assert.ok(recargaPanel(panel, luna) < recargaPanel(panel, tierra) / 4);
+  assert.equal(recargaPanel(null, tierra), 0);
+});
+caso('ambiente: textos bilingües para el Expediente y las instrucciones', () => {
+  const jez = ambienteDeDestino('jezero', 'marte');
+  assert.equal(resumenAmbiente(jez), 'Marte: −83 a −22 °C · aire 0.016 kg/m³ (1 % de la Tierra): el motor se enfría poco');
+  const l = lineasAmbiente(ambienteDeDestino('polo_sur_lunar', 'luna'));
+  assert.ok(l[0] === 'Temperatura: −53 °C' && l.some((x) => x.startsWith('Luz: rasante')) && l.at(-1).startsWith('Fuente: WX-035'));
+  assert.ok(lineasAmbiente(ambienteDeSitio('pinacate'))[0].includes('extremos −4.7 / 48.4 °C'));
+  setIdioma('en');
+  try {
+    assert.ok(resumenAmbiente(jez).startsWith('Mars: −83 to −22 °C · air 0.016 kg/m³ (1 % of Earth'));
+    assert.ok(lineasAmbiente(jez).at(-1).startsWith('Source: WX-016'));
+  } finally {
+    setIdioma('es');
+  }
+});
+caso('obstáculos: deterministas, fuera de los planos y declarados', () => {
+  const sama = perfilDeSitio(JSON.parse(readFileSync(new URL('../../../data/sites/samalayuca.json', import.meta.url))));
+  const a = generarObstaculos(sama, { mundo: 'tierra', semilla: 'samalayuca' });
+  assert.deepEqual(a, generarObstaculos(sama, { mundo: 'tierra', semilla: 'samalayuca' }));
+  assert.ok(a.length > 0 && a.every((o) => o.recreacion && o.tipo === 'arena_blanda')); // todo arena: solo arena blanda
+  for (const o of a) assert.ok(o.desde_m >= 18 && o.hasta_m <= sama.largo_m - 30);
+  assert.equal(factorAgarreEn(a, a[0].desde_m + 1), REGLAS_OBSTACULOS.arenaBlanda.agarre);
+  assert.equal(factorAgarreEn(a, 5), 1);
+  assert.ok(notaObstaculos(a).startsWith('obstáculos recreados ('));
+  for (const id of ['jezero', 'polo_sur_lunar']) {
+    const d = JSON.parse(readFileSync(new URL(`../../../data/targets/${id}.json`, import.meta.url)));
+    const p = perfilDeDestino(d);
+    const rocas = generarObstaculos(p, { mundo: d.mundo, semilla: id });
+    assert.ok(rocas.length >= 4 && rocas.length <= 12, `${id}: ${rocas.length}`);
+    for (const o of rocas) assert.ok(o.tipo === 'roca' && o.radio_m >= 0.15 && o.radio_m <= 0.3 && o.x_m > 18 && o.x_m < p.largo_m - 30);
+  }
+  // Pinacate ya trae "bloques de roca recreados" en el perfil: no se duplican.
+  const pin = perfilDeSitio(JSON.parse(readFileSync(new URL('../../../data/sites/pinacate.json', import.meta.url))));
+  assert.equal(generarObstaculos(pin, { mundo: 'tierra', semilla: 'pinacate' }).filter((o) => o.tipo === 'roca').length, 0);
+});
+caso('feedback: sobrecalentamiento → línea de analogía y recomendación', () => {
+  const ev = (tipo, n = 1) => Array.from({ length: n }, (_, i) => ({ t: i, tipo, detalle: '100 °C' }));
+  const prueba = { resultado: { sitio: 'samalayuca', eventos: [], distancia_m: 250, energia_restante: 0.4 } };
+  const mision = { resultado: { destino: 'polo_sur_lunar', eventos: ev('sobrecalentamiento', 2), distancia_m: 250, energia_restante: 0.1 } };
+  const lineas = compararAnalogia(prueba, mision, { id: 'polo_sur_lunar', mundo: 'luna', gravedad_ms2: 1.62, no_reproducible_en_tierra: [] });
+  assert.ok(lineas.some((l) => l.startsWith('El motor se calentó 2 veces en la misión y ninguna en la prueba: el aire de la Tierra (1.046 kg/m³) lo enfría')));
+  assert.ok(lineas.some((l) => l.startsWith('Frío: en el destino hace −53 °C')));
+  const recE = recomendar({ eventos: ev('sobrecalentamiento'), diseno: [{ ranura: 'motor', pieza: 'motor_eficiente' }] });
+  assert.ok(recE.some((r) => r.id === 'pausas_motor'));
+  const recP = recomendar({ eventos: ev('sobrecalentamiento'), diseno: [{ ranura: 'motor', pieza: 'motor_potente' }] });
+  assert.ok(recP.some((r) => r.id === 'motor_eficiente_calor' && r.cambio.pieza === 'motor_eficiente'));
+});
+console.log(`${n} casos OK (con ambiente y obstáculos)`);

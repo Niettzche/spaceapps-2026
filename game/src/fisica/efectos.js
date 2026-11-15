@@ -121,7 +121,7 @@ export class Efectos {
     } else if (tipo === 'golpe_carga' || tipo === 'carga_perdida') {
       const { x, y } = r.carga.position;
       this.emitir({ tipo, x, y, superficie: this.superficieDe(x), intensidad });
-    } else if (tipo === 'energia_agotada') {
+    } else if (tipo === 'energia_agotada' || tipo === 'sobrecalentamiento') {
       this.emitir({ tipo, x: r.x, y: r.y, superficie: this.superficieDe(r.x) });
     }
     // 'patinaje' llega cada cuadro: el chorro de arena lo emite actualizar() desde la rueda que patina.
@@ -426,6 +426,15 @@ export class Efectos {
         const r = this.robot;
         if (!r) return;
         this._particulas('humo', r.x - m(0.6), r.y - m(0.4), 2, { colores: PALETA_HUMO, angulo: [255, 285], vel: [m(0.4), m(1.2)], vida: [800, 1300] });
+      });
+    },
+
+    sobrecalentamiento() {
+      // Bocanadas de humo del motor (parte trasera del chasis) durante ~1 s.
+      this._repetir(6, 170, () => {
+        const r = this.robot;
+        if (!r) return;
+        this._particulas('humo', r.x - m(1), r.y - m(0.3), 2, { colores: PALETA_HUMO, angulo: [250, 290], vel: [m(0.6), m(1.4)], vida: [600, 1000] });
       });
     },
 

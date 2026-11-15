@@ -2,6 +2,7 @@
 // de las dos corridas. Responde a lo que pide el reto: qué tan buen análogo fue el sitio y qué no pudo probar.
 import { GRAVEDAD } from '../config/world.js';
 import { datosSuelo } from '../fisica/suelos.js';
+import { ambienteDeSitio, ambienteDeDestino, porcentajeAire, factorFrio } from '../fisica/ambiente.js';
 import { tr, trDato } from '../i18n.js';
 
 // Se evalúa al usarse (el idioma puede cambiar después de cargar el módulo).
@@ -13,6 +14,8 @@ const NOMBRE_LIMITE = () => ({
   iluminacion_polar_rasante: tr('luz polar rasante', 'grazing polar sunlight'),
 });
 
+const veces = (n) => `${n} ${n === 1 ? 'vez' : 'veces'}`;
+const vecesEn = (n) => (n === 1 ? 'once' : `${n} times`);
 const contar = (r, tipo) => (r?.eventos ?? []).filter((e) => e.tipo === tipo).length;
 /** % de batería gastado por cada 100 m recorridos. */
 const gastoPor100m = (r) => (r && r.distancia_m > 1 ? ((1 - r.energia_restante) / r.distancia_m) * 100 * 100 : null);
@@ -49,6 +52,25 @@ export function compararAnalogia(prueba, mision, destino) {
     }
   } else {
     lineas.push(tr('Sin una prueba terrestre previa: no hay con qué comparar la misión.', 'No previous Earth test: nothing to compare the mission with.'));
+  }
+
+  // Ambiente: el motor y la batería (ambiente.js). La Tierra enfría el motor con su aire y no enfría la batería.
+  const sc = contar(m, 'sobrecalentamiento');
+  const pc = contar(p, 'sobrecalentamiento');
+  const ambD = destino ? ambienteDeDestino(destino.id, destino.mundo) : null;
+  if (m && (sc > 0 || pc > 0)) {
+    const ambT = ambienteDeSitio(p?.sitio);
+    const aire = ambD?.densidad_aire_kg_m3 === 0
+      ? tr('en el destino no hay aire y solo se enfría por radiación', 'at the destination there is no air and it only cools by radiation')
+      : tr(`en el destino el aire es el ${Math.max(1, Math.round(porcentajeAire(ambD)))} % del de la Tierra`,
+        `at the destination the air is ${Math.max(1, Math.round(porcentajeAire(ambD)))} % of Earth's`);
+    lineas.push(tr(`El motor se calentó ${veces(sc)} en la misión y ${pc ? veces(pc) : 'ninguna'} en la prueba: el aire de la Tierra (${ambT.densidad_aire_kg_m3} kg/m³) lo enfría; ${aire}.`,
+      `The motor overheated ${vecesEn(sc)} in the mission and ${pc ? vecesEn(pc) : 'never'} in the test: Earth's air (${ambT.densidad_aire_kg_m3} kg/m³) cools it; ${aire}.`));
+  }
+  const fD = ambD ? factorFrio(ambD.temperatura_min_C) : 1;
+  if (fD < 1) {
+    lineas.push(tr(`Frío: en el destino hace ${String(ambD.temperatura_min_C).replace('-', '−')} °C y la batería arrancó al ${Math.round(fD * 100)} %; en la prueba no se notó.`,
+      `Cold: the destination reaches ${String(ambD.temperatura_min_C).replace('-', '−')} °C and the battery started at ${Math.round(fD * 100)} %; the test did not show it.`));
   }
 
   const suelo = datosSuelo(destino?.mundo, 'arena');

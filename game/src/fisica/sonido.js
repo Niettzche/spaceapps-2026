@@ -144,6 +144,10 @@ export const EFECTOS_SONIDO = {
   energia_agotada(c, d) { // tono que baja en escalones, como un juguete sin pilas
     tono(c, d, { f0: 440, dur: 0.75, vol: 0.12, pasos: [440, 370, 311, 262, 220, 175, 131, 98] });
   },
+  sobrecalentamiento(c, d) { // dos pitidos de alarma cortos
+    tono(c, d, { f0: 880, dur: 0.09, vol: 0.08 });
+    tono(c, d, { f0: 880, dur: 0.09, vol: 0.08, t: 0.16 });
+  },
   carga_perdida(c, d) { // golpe grave y hueco
     tono(c, d, { tipo: 'triangle', f0: 110, f1: 40, dur: 0.3, vol: 0.5 });
     ruido(c, d, { f: 220, dur: 0.15, vol: 0.35 });

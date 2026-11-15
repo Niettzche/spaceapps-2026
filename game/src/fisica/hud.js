@@ -1,6 +1,7 @@
 // HUD de la prueba y la misión, fijo a la cámara. Usa la UI de arte (assets/ui) si existe; si no, figuras.
 import { tr } from '../i18n.js';
 import { nombreSuperficie } from './suelos.js';
+import { REGLAS } from './ambiente.js';
 
 const ESTILO = { fontFamily: 'monospace', fontSize: '13px', color: '#cfd6ff' };
 const ANCHO_IZQ = 530;
@@ -48,6 +49,12 @@ export class Hud {
       this.barras[clave] = fijo(scene.add.rectangle(x + 86, y + 7, 144, 8, color).setOrigin(0, 0.5));
     });
 
+    // Temperatura del motor (ambiente.js, regla b): barra fina bajo las otras; se pone roja cerca del límite.
+    fijo(scene.add.text(560, 64, tr('Motor', 'Motor'), { ...ESTILO, fontSize: '11px' }));
+    fijo(scene.add.rectangle(560 + 70, 70, 160, 5, 0x2b2d3a).setOrigin(0, 0.5));
+    this.barraMotor = fijo(scene.add.rectangle(560 + 72, 70, 0, 3, 0x6fb3ff).setOrigin(0, 0.5));
+    this.textoMotor = fijo(scene.add.text(560 + 236, 64, '', { ...ESTILO, fontSize: '11px' }));
+
     // Progreso hacia la meta o la zona de entrega (franja bajo el encabezado).
     fijo(scene.add.rectangle(16, 92, 928, 4, 0x2b2d3a).setOrigin(0, 0.5));
     this.progreso = fijo(scene.add.rectangle(16, 92, 0, 4, 0x4cc38a).setOrigin(0, 0.5));
@@ -59,6 +66,14 @@ export class Hud {
   actualizar(estado, { distancia_m, meta_m }) {
     for (const [clave, barra] of Object.entries(this.barras)) barra.width = 144 * Math.max(0, Math.min(1, estado[clave]));
     this.progreso.width = 928 * Math.max(0, Math.min(1, distancia_m / Math.max(1, meta_m)));
+    if (estado.tMotor != null) {
+      const lim = REGLAS.motor.limite_C;
+      const f = Math.max(0, Math.min(1, (estado.tMotor + 60) / (lim + 60))); // escala visual de −60 °C al límite
+      this.barraMotor.width = 156 * f;
+      this.barraMotor.fillColor = estado.sobrecalentado ? 0xff6b6b : estado.tMotor >= lim - REGLAS.motor.aviso_C ? 0xffb347 : 0x6fb3ff;
+      this.textoMotor.setText(`${Math.round(estado.tMotor)} °C${estado.sobrecalentado ? tr(' · CALIENTE', ' · HOT') : ''}`)
+        .setColor(estado.sobrecalentado ? '#ff9b9b' : '#cfd6ff');
+    }
     this.lectura.setText(
       `${estado.velocidadMs.toFixed(1)} m/s · ${Math.floor(distancia_m)}/${Math.floor(meta_m)} m\n${nombreSuperficie(estado.superficie) ?? ''}${estado.patina ? tr(' · PATINA', ' · SLIPPING') : ''}`,
     );

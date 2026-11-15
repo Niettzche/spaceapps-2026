@@ -13,6 +13,8 @@
 | `game/src/fisica/telemetria.js` | Eventos de la partida y armado del `Result` (`data/schema/result.schema.json`) |
 | `game/src/fisica/danio.js` | Daño por impacto al chasis y a la carga |
 | `game/src/fisica/energia.js` | Consumo de la batería |
+| `game/src/fisica/ambiente.js` | Ambiente del nivel con datos reales (temperatura, aire, luz) y sus reglas (P): batería fría, calor del motor, panel solar (§5b) |
+| `game/src/fisica/obstaculos.js` | Obstáculos recreados: rocas y arena blanda (§5b) |
 | `game/src/feedback/` | Reglas de recomendación a partir de los eventos |
 | `game/src/scenes/Prueba.js`, `Mision.js`, `Resultados.js` | Escenas del frente |
 
@@ -77,11 +79,88 @@
   en suelo blando (Bekker) haría la diferencia, pero es Gap en el libro de datos. Samalayuca: estándar sin energía; ancha llega (59 s).
 - **Patinaje:** `|ω_rueda × r| − |v_chasis|` mayor que un umbral durante más de ~0.3 s → evento `patinaje` con la superficie del tramo.
 
+## 5b. Ambiente y obstáculos
+
+Código: `game/src/fisica/ambiente.js` (datos + reglas + textos) y `game/src/fisica/obstaculos.js` (obstáculos recreados).
+`Recorrido` arma el ambiente del nivel (la prueba usa el sitio terrestre; la misión, el destino) y los obstáculos, y se los pasa al robot.
+AGENTS.md §5: temperatura y presión entran **solo** con una regla implementada y explicable. Datos con fuente; reglas (P).
+
+### Datos por nivel (con fuente)
+
+| Nivel | Temperatura (°C) | Presión (kPa) | Aire (kg/m³) | Luz | Fuente |
+|---|---|---|---|---|---|
+| Samalayuca | 10.5 a 25.2 (extremos −14.5 / 42.4) | 87.31 | 1.046 | directa | NASA POWER v2.10, 2001–2025, ANN (T2M 17.85, T2M_RANGE 14.78, T2M_MIN, T2M_MAX, PS); consulta 2026-11-14 |
+| Pinacate (MX0008) | 15.0 a 29.6 (−4.7 / 48.4) | 96.96 | 1.144 | directa | ídem (T2M 22.30, rango 14.51) |
+| Real de Ángeles (mx0207) | 8.7 a 24.1 (−7.0 / 35.8) | 79.01 | 0.951 | directa | ídem (T2M 16.40, rango 15.45) |
+| Al Wahbah (g00281) | 17.8 a 34.0 (0.6 / 45.3) | 89.41 | 1.042 | directa | ídem (T2M 25.91, rango 16.16) |
+| Jezero (Marte) | −83 a −22 | 0.718 | 0.016 | directa, 43 % de la Tierra | libro de datos WX-016 y WX-014 (NASA, primer reporte de MEDA, 2021-04-06); MR-010 y WX-007 (NSSDCA Mars Fact Sheet) |
+| Polo sur lunar | −53 (borde iluminado, ~220 K casi constante); máxima: null | ~3e-13 (vacío) | 0 | **rasante** | WX-035 / MN-013 (UCLA Diviner); MN-016 / EQ-010 (vacío, fila Draft); `no_reproducible_en_tierra: iluminacion_polar_rasante` |
+
+- Tierra, "día típico" = T2M ± T2M_RANGE / 2 (aproximación declarada); los extremos T2M_MIN / T2M_MAX son informativos.
+  Densidad del aire con EQ-009 (NASA Glenn): ρ = PS / (0.2869 × (T2M + 273.1)). Pinacate, mx0207 y g00281 coinciden con
+  `ciencia_datos/datos/clima_candidatos.csv` (MX0008, MX0207, G00281); Samalayuca no está en ese CSV y se consultó con la misma API.
+  PS (presión en superficie) se consultó para los 4 sitios el 14 nov 2026.
+- Otros sitios sin clima: referencia de la Tierra a nivel del mar (WX-001 101.4 kPa, WX-002 1.217 kg/m³, WX-003 10–20 °C), declarada.
+- Luna: no hay aire; la temperatura es de la superficie. Las sombras permanentes (25 K, MN-012) no están en la ruta.
+
+### Reglas (valores de juego, P)
+
+| Regla | Fórmula (P) | Efecto medido |
+|---|---|---|
+| a) Batería fría | capacidad útil = 1 − 0.2 % × (0 °C − T_mín), piso 85 %. Calefactor: no implementado | Tierra 100 % (T_mín > 0 en los 4 sitios); Luna 89 %; Marte 85 % (piso). La barra de energía arranca baja |
+| b) Calor del motor | dT/dt = 4 × \|acelerador\| × consumo − k (T − T_amb), k = 0.004 (radiación) + 0.1 × ρ / 1.217 (aire). Límite 100 °C | Tierra, eficiente a fondo: equilibrio ~45–55 °C; potente ~75–85 °C: nunca se sobrecalienta. Luna (k = 0.004): el eficiente pasa 100 °C a los ~70 s a fondo; el potente, en ~30 s. Marte (k = 0.0053): parecido |
+| b') Sobrecalentado | sobre 100 °C el motor empuja solo lo que el ambiente alcanza a enfriar (mín. 20 %), **pero la batería gasta lo que se pide** (la diferencia se pierde como calor); sale a < 95 °C. Evento `sobrecalentamiento` (humo, dos pitidos) | Soltar el acelerador lo enfría. HUD: barra "Motor" + °C, naranja a 90 °C, roja y "CALIENTE" al límite |
+| c) Luz → panel solar | recarga = capacidad del panel × 0.0025 /s × luz; luz = irradiancia / Tierra (Marte 0.431, WX-007) × 0.2 si es rasante | Panel (40): Tierra 0.1 /s, Marte 0.043 /s, polo sur lunar 0.02 /s |
+
+`T_amb` del motor = media del día típico (Luna: −53 °C). Pantalla: resumen del ambiente y efectos en las instrucciones de inicio
+(p. ej. "Marte: −83 a −22 °C · aire 0.016 kg/m³ (1 % de la Tierra): el motor se enfría poco") y en el panel de datos (tecla I) con la fuente.
+`lineasAmbiente(ambiente)` (bilingüe) devuelve las líneas para el Expediente (pendiente de integrar en `Expediente.js`).
+
+**Dónde se rompe la analogía:** en la prueba terrestre el motor nunca pasa del límite y la batería no pierde capacidad;
+la pantalla de resultados de la misión lo dice ("El motor se calentó N veces en la misión y ninguna en la prueba: el aire de la Tierra
+(1.046 kg/m³) lo enfría…"; "Frío: en el destino hace −53 °C y la batería arrancó al 89 %…"). Reglas: con sobrecalentamiento,
+motor potente → "usa el motor eficiente: se calienta la mitad"; motor eficiente → "maneja con pausas".
+
+### Obstáculos recreados (P)
+
+Deterministas (semilla = id del sitio o destino), con `recreacion: true` y declarados en la nota del nivel
+("obstáculos recreados (N rocas de 0.3–0.6 m medio enterradas…, M parches de arena blanda…)"). Nunca en los planos de inicio y final
+ni en pendientes > 14° (rocas) o > 10° (arena blanda). No modifican el perfil (`perfil.js`).
+
+| Tipo | Dónde | Medidas (P) | Física |
+|---|---|---|---|
+| Roca | Marte y Luna en todo el recorrido; Tierra solo en tramos de roca y solo si el perfil no trae ya "bloques de roca recreados" (Pinacate los trae) | Ø 0.3–0.6 m (Luna 0.3–0.44 m), una cada 22–38 m (Marte), 20–34 m (Luna), 14–24 m (Tierra). Asoma el 80 % del radio (Luna 50 %) | cuerpo estático redondo con label `suelo`: cuenta para contacto, golpes al chasis y sacudidas de la carga |
+| Arena blanda | tramos de arena de la Tierra, solo en terreno suave | 5–8 m, una cada 35–55 m | agarre de la rueda × 0.75 |
+
+Luna con rocas más bajas: con 1/6 de gravedad, una roca de ~0.11 m de alto a 4 m/s lanzó la carga fuera del soporte en 1 de 3 corridas.
+Dibujo: sprite `obstaculo_roca` si existe (ASSETS_ARTE.md); si no, roca de píxeles de al menos 3 × 2 px de arte; arena blanda = puntitos.
+Samalayuca: 2 parches de arena blanda. mx0207 (todo compacto) y g00281 (dunas empinadas) quedan sin obstáculos con estas reglas.
+
+### Resultados medidos (sin interfaz, paso fijo 60 Hz; diseño dorado = chasis ligero, rueda ancha × 2, motor eficiente, batería chica, soporte básico)
+
+`frena` = a fondo y frena 3 m dentro de la zona; `enfría` = igual, pero suelta el acelerador mientras el motor esté a ≥ 90 °C.
+
+| Escenario | Antes (sin ambiente) | Con ambiente y obstáculos |
+|---|---|---|
+| Samalayuca · rueda estándar | atascado a 153 m | atascado a 153 m (igual) |
+| Samalayuca · rueda ancha | meta, 58 s, 38 % | meta, 59 s, 37 %, carga 84 % |
+| Pinacate · tacos / ancha | meta / atascado | meta 54 s / atascado (igual) |
+| Luna · dorado · frena | entrega, 78 s, 22 % | entrega, 78–80 s, 7–9 %, 1 sobrecalentamiento |
+| Luna · dorado · enfría | — | entrega, 80–82 s, 14–15 %, sin sobrecalentamiento |
+| Luna · rueda estándar · frena / enfría | sin energía a 246 m | sin energía a 214 m / entrega en 119 s, 8 % |
+| Marte · dorado · frena / enfría | entrega, 63 s, 37 % | entrega, 72 s, 12–13 % / igual (no llega a 100 °C) |
+| Marte · rueda estándar | entrega, 71 s, 32 % | entrega, 77 s, 10 % |
+| Marte · motor potente · frena / enfría | entrega, 38 s, 27 % | carga perdida en una roca a ~165 m (va rápido) / igual |
+
+Integridad de la carga ≥ 99 % en las entregas. A fondo sin frenar: derrota en los dos destinos.
+
 ## 6. Energía
 
 - Por segundo: `consumo × acelerador × (1 + masa_total / 100)`. Detenido no gasta.
 - Capacidad = `capacidad` de la batería. Al llegar a 0: motor apagado → derrota por energía.
-- Panel solar: **fuera del MVP** (no hay regla de iluminación explicable todavía).
+- Batería fría: la partida arranca con la capacidad útil del §5b (regla a). La energía restante se mide sobre la capacidad nominal.
+- Motor sobrecalentado: gasta lo que se pide aunque empuje menos (§5b, regla b').
+- Panel solar: recarga pequeña según la luz del nivel (§5b, regla c), sin pasar de la capacidad útil. Propuesta para taller: `Taller.js` aún dice "sin efecto en el MVP".
 
 ## 7. Daño
 
@@ -156,12 +235,15 @@ Cada recomendación sale de un evento real de la partida:
 | Daño a la carga (integridad final < 90 %) o carga perdida | Soporte amortiguado |
 | Energía agotada | Batería grande o motor eficiente |
 | Chasis destruido | Chasis reforzado |
+| `sobrecalentamiento` (motor ≥ 100 °C) | Motor potente → motor eficiente (se calienta la mitad); eficiente → manejar con pausas |
 
 ## 12b. Dónde se rompe la analogía (pantalla de resultados de la misión)
 
 `game/src/feedback/analogia.js` compara la última prueba terrestre con la misión, con la telemetría real de ambas:
 gravedad (Tierra vs destino), momentos de patinaje, batería por cada 100 m, suelo medido del destino (suelos.js) y lo que
 la Tierra no puede reproducir (`no_reproducible_en_tierra` del target). Es la respuesta en vivo a "dónde se rompe la analogía".
+Con el ambiente (§5b) suma, si aplica: veces que el motor se sobrecalentó en la misión contra la prueba (el aire de la Tierra lo enfría)
+y la capacidad perdida por frío en el destino.
 
 ## Teclado en resultados
 

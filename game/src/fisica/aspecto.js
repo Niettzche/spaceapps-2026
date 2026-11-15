@@ -35,6 +35,7 @@ const TABLA = {
   baliza: { ancho: 4, cuadros: [1, 4], animaciones: { parpadea: 'todo' } },
   meta: { ancho: 8, cuadros: [1, 4], animaciones: { ondea: 'todo' } },
   zona_entrega: { ancho: 16, cuadros: [1] },
+  obstaculo_roca: { ancho: 8, cuadros: [1, 2, 3, 4] }, // rocas recreadas (obstaculos.js); varios cuadros = variantes
 };
 const SUPERFICIES = ['arena', 'roca', 'compacto'];
 const ES_TILE = /^(tierra|marte|luna)_(arena|roca|compacto)(_borde)?$/;

@@ -62,6 +62,7 @@ Si cambian los radios en `parts.json`, la rueda se dibuja con el diámetro = 2 �
 | `baliza` | 4 × 8 | 4 | B | luz que parpadea y brilla |
 | `meta` (bandera de la prueba) | 8 × 16 | 4 | A | ondea |
 | `zona_entrega` | 16 × 4 (repetible) | 1 | A | marca en el suelo |
+| `obstaculo_roca` | ~8 × 4 | 1–4 (variantes) | C | rocas recreadas (0.3–0.6 m, medio enterradas; `fisica/obstaculos.js`). Sin arte: figura de píxeles |
 
 ### Terreno (tiles)
 Relleno **16 × 16 repetible** + borde superior **16 × 4** por cada combinación:
@@ -172,6 +173,7 @@ Fuente pixel: debe ser propia o con licencia libre. La fuente "Patch Pixel" de p
 | `zona_entrega.png` | 1 (16 × 4) | se repite a lo ancho de la zona, apoyada en el suelo | esquina inferior izquierda |
 | `base.png` | 1 (40 × 24) | detrás del astronauta, al final de la zona | centro inferior |
 | `baliza.png` | 1 ó 4 de ~4 px | animación `parpadea`, al inicio de la zona | centro inferior |
+| `obstaculo_roca.png` | 1–4 de ~8 px | cada roca usa un cuadro (variantes); se escala al tamaño de la roca | centro inferior |
 
 Sin arte, `base` y `baliza` simplemente no aparecen (no tienen figura provisional).
 
