@@ -3,6 +3,7 @@
 //   partida.diseno = [{ ranura, pieza }]; cada ranura de rueda es un eje y cobra 2 × costo y 2 × masa.
 // Todos los números que salen de aquí son VALORES DE JUEGO, no datos de ingeniería.
 import { gastoPorSegundo } from '../../fisica/energia.js'; // misma regla de energía que la física (sin ciclo de imports)
+import { factorFrio, potenciaPermitida, recargaPanel, REGLAS } from '../../fisica/ambiente.js'; // mismas reglas de ambiente
 
 export const RANURAS = [
   { id: 'chasis', nombre: 'Chasis', nombre_en: 'Chassis', sistema: 'estructura', obligatoria: true, multiplicador: 1 },
@@ -91,6 +92,7 @@ export function resumen(diseno, catalogo, { masaCarga = 0 } = {}) {
   const motor = pieza('motor');
   const bateria = pieza('bateria');
   const carga = pieza('carga');
+  const modulo = pieza('modulo');
   const consumo = motor ? motor.consumo ?? null : null;
   const capacidad = bateria ? bateria.capacidad ?? null : null;
   const masaConCarga = masa + masaCarga;
@@ -107,8 +109,34 @@ export function resumen(diseno, catalogo, { masaCarga = 0 } = {}) {
     consumo,
     capacidad,
     proteccion: carga ? carga.proteccion ?? null : null,
+    // Módulo opcional (una sola bahía): panel solar, aislante de batería o radiador del motor. 0 = sin ese efecto.
+    modulo: modulo ? modulo.id : null,
+    panel: modulo && modulo.capacidad ? modulo.capacidad : 0,
+    aislamiento: modulo ? modulo.aislamiento_termico ?? 0 : 0,
+    radiador: modulo ? modulo.radiador ?? 0 : 0,
     fuerza_por_masa: motor && masaConCarga > 0 ? motor.fuerza / masaConCarga : null,
     autonomia_s: capacidad != null && gasto ? capacidad / gasto : null,
+  };
+}
+
+/**
+ * Lo que el ambiente le hace a ESTE diseño en un lugar (ambiente de fisica/ambiente.js), con las mismas reglas que la física:
+ *   bateria: fracción de la batería útil al arrancar por el frío (con el aislante, si lo lleva) y sin aislante;
+ *   potencia_caliente: potencia que conserva el motor al llegar al límite de temperatura (con y sin radiador);
+ *   recarga_s: unidades de batería por segundo que recarga el panel con la luz del lugar.
+ * Todo es regla de juego (P); el ambiente (temperatura, aire, luz) sí es dato con fuente.
+ */
+export function efectosEn(res, amb) {
+  if (!res || !amb) return null;
+  const tmin = amb.temperatura_min_C;
+  const consumo = res.consumo ?? 1;
+  const motor = (radiador) => potenciaPermitida(REGLAS.motor.limite_C, consumo, amb, REGLAS.motor, radiador);
+  return {
+    bateria: factorFrio(tmin, REGLAS.frio, res.aislamiento),
+    bateria_sin_modulo: factorFrio(tmin, REGLAS.frio, 0),
+    potencia_caliente: motor(res.radiador),
+    potencia_caliente_sin_modulo: motor(0),
+    recarga_s: res.panel ? recargaPanel({ capacidad: res.panel }, amb) : 0,
   };
 }
 

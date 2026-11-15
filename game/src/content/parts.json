@@ -45,6 +45,21 @@
     "nota": "valor de juego (P). Inspiración: garras de Curiosity y Perseverance, chevrones del LRV (PIEZAS.md H1, H5)"
   },
   {
+    "id": "rueda_malla",
+    "nombre": "Rueda de malla (tipo LRV)",
+    "nombre_en": "Mesh wheel (LRV-style)",
+    "sistema": "movilidad",
+    "costo": 100,
+    "masa": 5,
+    "radio_m": 0.55,
+    "agarre": {
+      "arena": 0.75,
+      "roca": 0.45,
+      "compacto": 0.75
+    },
+    "nota": "valor de juego (P). Inspiración: rueda de malla de acero del Lunar Roving Vehicle, 81.8 cm de diámetro (PIEZAS.md H5, S64). Ligera y grande: buen agarre en arena y regolito, menos fuerza al suelo (radio mayor) y floja en roca"
+  },
+  {
     "id": "chasis_ligero",
     "nombre": "Chasis ligero",
     "nombre_en": "Light chassis",
@@ -75,6 +90,16 @@
     "nota": "valor de juego (P). Inspiración: baterías de ion litio de los rovers (PIEZAS.md H6)"
   },
   {
+    "id": "bateria_mediana",
+    "nombre": "Batería mediana",
+    "nombre_en": "Medium battery",
+    "sistema": "energia",
+    "costo": 130,
+    "masa": 8,
+    "capacidad": 160,
+    "nota": "valor de juego (P). Inspiración: baterías de ion litio de los rovers (PIEZAS.md H6). Punto medio entre la chica y la grande"
+  },
+  {
     "id": "bateria_grande",
     "nombre": "Batería grande",
     "nombre_en": "Large battery",
@@ -94,6 +119,17 @@
     "fuerza": 50,
     "consumo": 0.6,
     "nota": "valor de juego (P). Compromiso fuerza contra consumo (PIEZAS.md H1)"
+  },
+  {
+    "id": "motor_equilibrado",
+    "nombre": "Motor equilibrado",
+    "nombre_en": "Balanced motor",
+    "sistema": "potencia",
+    "costo": 145,
+    "masa": 8,
+    "fuerza": 70,
+    "consumo": 0.9,
+    "nota": "valor de juego (P). Compromiso fuerza contra consumo y calor (PIEZAS.md H1). Punto medio entre el eficiente y el potente"
   },
   {
     "id": "motor_potente",
@@ -117,6 +153,16 @@
     "nota": "valor de juego (P). Mecánica de juego, sin referencia específica"
   },
   {
+    "id": "soporte_correas",
+    "nombre": "Soporte de carga con correas",
+    "nombre_en": "Strapped cargo mount",
+    "sistema": "carga",
+    "costo": 95,
+    "masa": 4,
+    "proteccion": 0.6,
+    "nota": "valor de juego (P). Mecánica de juego, sin referencia específica. Paredes de 0.35 m"
+  },
+  {
     "id": "soporte_amortiguado",
     "nombre": "Soporte de carga amortiguado",
     "nombre_en": "Cushioned cargo mount",
@@ -134,6 +180,26 @@
     "costo": 150,
     "masa": 4,
     "capacidad": 40,
-    "nota": "valor de juego (P). SIN EFECTO EN EL MVP: falta regla de iluminación (espec. de juego §6). Inspiración: Spirit y Opportunity (PIEZAS.md H7)"
+    "nota": "valor de juego (P). Recarga la batería según la luz del sitio (fisica/ambiente.js, regla c; luz rasante en el polo sur lunar). Inspiración: Spirit y Opportunity (PIEZAS.md H7)"
+  },
+  {
+    "id": "aislante_bateria",
+    "nombre": "Aislante de batería (aerogel)",
+    "nombre_en": "Battery insulation (aerogel)",
+    "sistema": "modulo",
+    "costo": 70,
+    "masa": 2,
+    "aislamiento_termico": 0.75,
+    "nota": "valor de juego (P): evita 75 % de la pérdida de batería por frío (fisica/ambiente.js, regla a). Inspiración: aislante de aerogel de la caja de baterías de Sojourner y MER, que las mantiene entre −40 y +40 °C contra −96 °C de noche en Marte (libro de datos, hoja Materials MT-008, S40)"
+  },
+  {
+    "id": "radiador_motor",
+    "nombre": "Radiador del motor",
+    "nombre_en": "Motor radiator",
+    "sistema": "modulo",
+    "costo": 90,
+    "masa": 3,
+    "radiador": 0.006,
+    "nota": "valor de juego (P): +0.006 /s de enfriamiento por radiación (fisica/ambiente.js, regla b). Sin referencia específica verificada; principio: sin aire el calor solo sale por radiación, así que el efecto es mayor en la Luna y en Marte"
   }
 ]
