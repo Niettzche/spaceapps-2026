@@ -3,7 +3,7 @@ import { irA } from './ui.js';
 import { SITIOS, DESTINOS } from '../data.js';
 import { partida } from '../main.js';
 import { PRESUPUESTO_INICIAL, TICKETS_POR_PARTIDA, GRAVEDAD } from '../config/world.js';
-import { COLOR, texto, boton, panel, Teclado, limpiar, ayudaFija, conFondo } from './expediente/interfaz.js';
+import { COLOR, texto, boton, panel, Teclado, limpiar, ayudaFija, conFondo, cajaArte, tituloPlaca } from './expediente/interfaz.js';
 import { DESTINO_POR_DEFECTO, ORDEN_DESTINOS } from './expediente/config.js';
 import { guardadoDisponible, restaurar, nuevaPartida, guardar, partidaActiva } from './expediente/guardado.js';
 import { sitiosParaDestino } from './expediente/logica.js';
@@ -61,11 +61,22 @@ export default class Menu extends Phaser.Scene {
     // La tecla L va en la propia etiqueta (antes era una nota de 10 px debajo).
     const b = boton(this, 945, 28, 'Español / English (L)', () => this.cambiarIdioma(vista), { size: 14, origen: [1, 0.5], crecer: false });
     const t = b.obj;
-    const ancho = (t.width - t.padding.left - t.padding.right) / t.text.length; // fuente monoespaciada
-    const finDesdeDerecha = idioma() === 'en' ? 4 : 14; // "English (L)" o "Español / English (L)"
-    const x = t.x - t.padding.right - (finDesdeDerecha + 7) * ancho;
+    const palabra = idioma() === 'en' ? 'English' : 'Español';
+    let x, w;
+    const chars = t.esPixel ? t.getTextBounds().characters : null;
+    const i = t.text.lastIndexOf(palabra);
+    if (chars?.length && i >= 0) {
+      // Fuente pixel (ancho variable): posición real de los glifos de la palabra.
+      const a = chars.find((c) => c.idx === i), z = chars.find((c) => c.idx === i + palabra.length - 1);
+      const izq = t.x - t.originX * t.width;
+      x = izq + a.x; w = z.x + z.w - a.x;
+    } else {
+      const ancho = (t.width - (t.padding?.left ?? 0) - (t.padding?.right ?? 0)) / t.text.length; // fuente monoespaciada
+      const finDesdeDerecha = idioma() === 'en' ? 4 : 14; // "English (L)" o "Español / English (L)"
+      x = t.x - (t.padding?.right ?? 0) - (finDesdeDerecha + 7) * ancho; w = 7 * ancho;
+    }
     // Subrayado del idioma actual (encima de la caja del botón; no solo color: es una línea).
-    this.add.rectangle(x, t.y + t.height / 2 - t.padding.bottom + 1, 7 * ancho, 2, 0xffd166).setOrigin(0, 0.5).setDepth(1);
+    this.add.rectangle(x, t.y + t.height / 2 + 2, w, 2, 0xffd166).setOrigin(0, 0.5).setDepth(1);
     return b;
   }
 
@@ -247,7 +258,7 @@ export default class Menu extends Phaser.Scene {
   }
 
   vistaDestino() {
-    texto(this, 480, 44, tr('¿A dónde va tu robot?', 'Where is your robot going?'), { size: 30, origen: [0.5, 0.5] });
+    tituloPlaca(this, 480, 40, tr('¿A dónde va tu robot?', 'Where is your robot going?'), { size: 30 });
 
     const ids = [...ORDEN_DESTINOS.filter((id) => DESTINOS[id]), ...Object.keys(DESTINOS).filter((id) => !ORDEN_DESTINOS.includes(id))];
     const ancho = 360;
@@ -265,7 +276,7 @@ export default class Menu extends Phaser.Scene {
       const d = DESTINOS[id];
       const x = x0 + i * (ancho + sep);
       const cx = x + ancho / 2;
-      panel(this, x, 76, ancho, 364).setFillStyle(COLOR.panel, 0.82);
+      cajaArte(this, 'ui/ui_tarjeta', x, 76, ancho, 366, { alfa: 0.94 });
       const n = sitiosParaDestino(SITIOS, id).length;
       const g = typeof d.gravedad_ms2 === 'number' ? d.gravedad_ms2 : GRAVEDAD[d.mundo];
       const mundo = MUNDOS[d.mundo] || trDato(d, 'nombre');
@@ -275,15 +286,15 @@ export default class Menu extends Phaser.Scene {
       texto(this, cx, 274, trDato(d, 'nombre'), { size: 16, color: COLOR.tenue, origen: [0.5, 0.5], ancho: ancho - 30, alinear: 'center' });
       // 2 datos grandes: gravedad en «g» (con m/s² debajo) y cuántos sitios análogos tiene.
       const izq = x + ancho * 0.27, der = x + ancho * 0.73;
-      texto(this, izq, 332, typeof g === 'number' ? `${formato(g / GRAVEDAD.tierra)} g` : '—', { size: 28, color: COLOR.acento, origen: [0.5, 0.5] });
-      texto(this, izq, 362, typeof g === 'number' ? `${tr('gravedad', 'gravity')} · ${formato(g)} m/s²` : tr('gravedad: sin dato', 'gravity: no data'),
-        { size: 14, color: COLOR.muyTenue, origen: [0.5, 0.5] });
-      texto(this, der, 332, n ? String(n) : '0', { size: 28, color: n ? COLOR.acento : COLOR.alerta, origen: [0.5, 0.5] });
-      texto(this, der, 362, n === 1 ? tr('sitio análogo', 'analog site') : tr('sitios análogos', 'analog sites'),
-        { size: 14, color: n ? COLOR.muyTenue : COLOR.alerta, origen: [0.5, 0.5] });
+      texto(this, izq, 322, typeof g === 'number' ? `${formato(g / GRAVEDAD.tierra)} g` : '—', { size: 28, color: COLOR.acento, origen: [0.5, 0.5] });
+      texto(this, izq, 344, typeof g === 'number' ? `${tr('gravedad', 'gravity')}\n${formato(g)} m/s²` : tr('gravedad: sin dato', 'gravity: no data'),
+        { size: 14, color: COLOR.muyTenue, origen: [0.5, 0], alinear: 'center', ancho: ancho / 2 - 16 });
+      texto(this, der, 322, n ? String(n) : '0', { size: 28, color: n ? COLOR.acento : COLOR.alerta, origen: [0.5, 0.5] });
+      texto(this, der, 344, n === 1 ? tr('sitio\nanálogo', 'analog\nsite') : tr('sitios\nanálogos', 'analog\nsites'),
+        { size: 14, color: n ? COLOR.muyTenue : COLOR.alerta, origen: [0.5, 0], alinear: 'center', ancho: ancho / 2 - 16 });
       const pista = tr(`${mundo}: ${formato(g)} m/s² solo en la misión, nunca en la prueba terrestre (Tierra ${formato(GRAVEDAD.tierra)})`,
         `${mundo}: ${formato(g)} m/s² only in the mission, never in the Earth test (Earth ${formato(GRAVEDAD.tierra)})`);
-      const b = boton(this, cx, 410, `${tr('Elegir', 'Choose')} ${mundo}`, () => this.elegirDestino(id),
+      const b = boton(this, cx, 416, `${tr('Elegir', 'Choose')} ${mundo}`, () => this.elegirDestino(id),
         { size: 18, anchoCaja: 240, alSobre: (v) => planeta.rapido(v), alEnfocar: (v) => ayuda.mostrar(v ? pista : '', b) });
       const s = planeta.sprite;
       s.setInteractive({ useHandCursor: true, pixelPerfect: false });

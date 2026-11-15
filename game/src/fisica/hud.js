@@ -3,32 +3,31 @@ import { tr } from '../i18n.js';
 import { nombreSuperficie } from './suelos.js';
 import { REGLAS } from './ambiente.js';
 import * as K from '../scenes/comun/pixel.js'; // panel, íconos y botones de arte (DISENO.md §2)
+import { ajustarAncho } from '../scenes/comun/fuente.js';
 
-const ESTILO = { fontFamily: 'monospace', fontSize: '14px', color: '#cfd6ff' };
-const ANCHO_IZQ = 530;
-const ANCHO_PROGRESO = 900; // franja de progreso; el ⚑ va al final (x ≈ 922)
-
-/** Reduce el tamaño de letra hasta que el texto quepa en `ancho` (sin bajar de 14 px); si aún no cabe, lo recorta con «…». */
-function encoger(t, ancho, min) {
-  let px = parseInt(t.style.fontSize, 10);
-  while (t.width > ancho && px > Math.max(14, min)) t.setFontSize(`${--px}px`);
-  let texto = t.text;
-  while (t.width > ancho && texto.length > 10) { texto = texto.slice(0, -2); t.setText(`${texto.trimEnd()}…`); }
-  return t;
-}
+// Fuente pixel ×2 (renglón de 24 px): columna izquierda (título · subtítulo · nota), barras con ícono al centro y la
+// lectura (velocidad, distancia, suelo) en 3 renglones cortos a la derecha.
+const ANCHO_IZQ = 410;
+const XB = 440; // columna de las barras
+const ANCHO_PROGRESO = 900; // franja de progreso; la marca de meta va al final (x ≈ 922)
+const TXT = (scene, x, y, s, o = {}) => K.txt(scene, x, y, s, { size: 14, color: '#cfd6ff', ...o });
 
 export class Hud {
   constructor(scene, { titulo, subtitulo, aviso, nota }) {
     this.scene = scene;
     const fijo = (o) => o.setScrollFactor(0).setDepth(90);
-    fijo(scene.add.rectangle(0, 0, 960, 88, 0x0b0d17, 0.78).setOrigin(0));
-    // Columna izquierda hasta x = 545: las barras empiezan en x = 560 (nombres de destino largos las tapaban).
-    fijo(encoger(scene.add.text(16, 10, titulo, { ...ESTILO, fontSize: '18px', color: '#ffffff' }), ANCHO_IZQ, 14));
-    fijo(encoger(scene.add.text(16, 34, subtitulo, ESTILO), ANCHO_IZQ, 14));
+    // Banda superior: panel de arte del HUD (ui_hud_panel, Mauricio: 9-slice con cortes 5 · 5 · 2 · 6, ×3); respaldo, rectángulo.
+    const banda = K.hay9(scene, 'ui/ui_hud_panel')
+      ? scene.add.nineslice(0, 0, 'ui/ui_hud_panel', undefined, 320, 29, 5, 5, 2, 6).setOrigin(0).setScale(3).setAlpha(0.94)
+      : scene.add.rectangle(0, 0, 960, 88, 0x0b0d17, 0.78).setOrigin(0);
+    fijo(banda);
+    // Columna izquierda hasta x = 426: las barras empiezan en x = 440. Lo que no cabe se recorta con «…».
+    fijo(ajustarAncho(TXT(scene, 16, 6, titulo, { size: 18, color: '#ffffff' }), ANCHO_IZQ));
+    fijo(ajustarAncho(TXT(scene, 16, 30, subtitulo), ANCHO_IZQ));
     // Nota de datos: en el HUD solo una keyword corta («Suelo: arena · I datos», DISENO.md §3) a 14 px; el texto completo
     // (fuente, tramo real, recreaciones, ambiente) se abre con la tecla I o tocando la nota.
     if (aviso) {
-      const t = fijo(scene.add.text(16, 56, '', { ...ESTILO, color: '#ffd166' }));
+      const t = fijo(TXT(scene, 16, 54, '', { color: '#ffd166' }));
       const pie = tr(' · I datos', ' · I data');
       let corto = nota || aviso;
       t.setText(corto + pie);
@@ -36,37 +35,39 @@ export class Hud {
       this._panelDatos(aviso);
       scene.input.keyboard.on('keydown-I', () => this.alternarDatos());
       t.setInteractive({ useHandCursor: true }).on('pointerdown', () => this.alternarDatos());
+      t.input.hitArea.setTo(0, -10, t.width, t.height + 20); // zona táctil ≥ 44 px de alto
     }
 
     this.barras = {};
     const hay = (k) => scene.textures.exists(k);
+    // 4 barras con su ícono de arte (8 × 8 × 2), una cada 18 px; sin ícono, la inicial del nombre (nunca solo color).
+    const fila = (i, icono, etiqueta) => {
+      const y = 10 + i * 18;
+      if (hay(icono)) fijo(scene.add.image(XB + 8, y, icono).setScale(2));
+      else fijo(TXT(scene, XB + 8, y, etiqueta.slice(0, 1), { origen: [0.5, 0.5] }));
+      return y;
+    };
     [['energia', tr('Energía', 'Energy'), 0x4cc38a, 'ui/ui_icono_energia'], ['integridad', tr('Carga', 'Payload'), 0xffd166, 'ui/ui_icono_carga'],
       ['chasis', tr('Chasis', 'Chassis'), 0x9aa4c7, 'ui/ui_icono_chasis']].forEach(([clave, etiqueta, color, icono], i) => {
-      const x = 560;
-      const y = 12 + i * 18;
-      // Ícono de arte (8 × 8 × 2) si existe; si no, el nombre.
-      if (hay(icono)) fijo(scene.add.image(x + 8, y + 7, icono).setScale(2));
-      fijo(scene.add.text(x + (hay(icono) ? 22 : 0), y - 1, etiqueta, ESTILO)); // 14 px
-      if (hay('ui/ui_marco_barra')) fijo(scene.add.nineslice(x + 82, y + 7, 'ui/ui_marco_barra', undefined, 76, 7, 2, 2, 2, 2).setOrigin(0, 0.5).setScale(2));
-      else fijo(scene.add.rectangle(x + 70, y + 7, 160, 10, 0x2b2d3a).setOrigin(0, 0.5));
-      this.barras[clave] = fijo(scene.add.rectangle(x + 86, y + 7, 144, 8, color).setOrigin(0, 0.5));
+      const y = fila(i, icono, etiqueta);
+      if (hay('ui/ui_marco_barra')) fijo(scene.add.nineslice(XB + 24, y, 'ui/ui_marco_barra', undefined, 76, 7, 2, 2, 2, 2).setOrigin(0, 0.5).setScale(2));
+      else fijo(scene.add.rectangle(XB + 24, y, 152, 10, 0x2b2d3a).setOrigin(0, 0.5));
+      this.barras[clave] = fijo(scene.add.rectangle(XB + 28, y, 144, 8, color).setOrigin(0, 0.5));
     });
 
-    // Temperatura del motor (ambiente.js, regla b): barra fina bajo las otras; se pone roja cerca del límite.
-    const iconoT = hay('ui/ui_icono_temperatura'); // arte 8 × 8 (mismo estilo que los otros íconos); si no, solo texto
-    if (iconoT) fijo(scene.add.image(560 + 8, 70, 'ui/ui_icono_temperatura').setScale(2));
-    fijo(scene.add.text(560 + (iconoT ? 22 : 0), 64, tr('Motor', 'Motor'), ESTILO)); // 14 px (antes 11)
-    fijo(scene.add.rectangle(560 + 70, 70, 160, 5, 0x2b2d3a).setOrigin(0, 0.5));
-    this.barraMotor = fijo(scene.add.rectangle(560 + 72, 70, 0, 3, 0x6fb3ff).setOrigin(0, 0.5));
-    this.textoMotor = fijo(scene.add.text(560 + 236, 64, '', ESTILO));
+    // Temperatura del motor (ambiente.js, regla b): 4.ª barra; se pone roja cerca del límite y el número lleva ⚠.
+    const yM = fila(3, 'ui/ui_icono_temperatura', tr('Motor', 'Motor'));
+    fijo(scene.add.rectangle(XB + 24, yM, 160, 6, 0x2b2d3a).setOrigin(0, 0.5));
+    this.barraMotor = fijo(scene.add.rectangle(XB + 26, yM, 0, 4, 0x6fb3ff).setOrigin(0, 0.5));
+    this.textoMotor = fijo(TXT(scene, XB + 192, yM, '', { origen: [0, 0.5] }));
 
     // Progreso hacia la meta o la zona de entrega (franja bajo el encabezado).
-    fijo(scene.add.rectangle(16, 92, ANCHO_PROGRESO, 4, 0x2b2d3a).setOrigin(0, 0.5));
-    this.progreso = fijo(scene.add.rectangle(16, 92, 0, 4, 0x4cc38a).setOrigin(0, 0.5));
-    fijo(scene.add.text(16 + ANCHO_PROGRESO + 6, 92, '⚑', { ...ESTILO, color: '#ffffff' }).setOrigin(0, 0.5));
-    this.lectura = fijo(scene.add.text(944, 12, '', { ...ESTILO, align: 'right' }).setOrigin(1, 0));
-    // Mensaje final grande y con contorno para que se lea sobre cualquier fondo (retro: textos más grandes).
-    this.mensaje = fijo(scene.add.text(480, 200, '', { ...ESTILO, fontSize: '44px', fontStyle: 'bold', color: '#ffffff', align: 'center', stroke: '#0b0d17', strokeThickness: 8 }).setOrigin(0.5));
+    fijo(scene.add.rectangle(16, 94, ANCHO_PROGRESO, 4, 0x2b2d3a).setOrigin(0, 0.5));
+    this.progreso = fijo(scene.add.rectangle(16, 94, 0, 4, 0x4cc38a).setOrigin(0, 0.5));
+    fijo(TXT(scene, 16 + ANCHO_PROGRESO + 6, 94, '⚑', { color: '#ffffff', origen: [0, 0.5] }));
+    this.lectura = fijo(TXT(scene, 944, 6, '', { alinear: 'right', origen: [1, 0] }));
+    // Mensaje final grande con la fuente del logo (contorno propio): se lee sobre cualquier fondo.
+    this.mensaje = fijo(K.txt(scene, 480, 200, '', { size: 33, titulo: true, alinear: 'center', ancho: 900, origen: [0.5, 0.5] }));
   }
 
   actualizar(estado, { distancia_m, meta_m }) {
@@ -77,23 +78,23 @@ export class Hud {
       const f = Math.max(0, Math.min(1, (estado.tMotor + 60) / (lim + 60))); // escala visual de −60 °C al límite
       this.barraMotor.width = 156 * f;
       this.barraMotor.fillColor = estado.sobrecalentado ? 0xff6b6b : estado.tMotor >= lim - REGLAS.motor.aviso_C ? 0xffb347 : 0x6fb3ff;
-      this.textoMotor.setText(`${Math.round(estado.tMotor)} °C${estado.sobrecalentado ? tr(' · CALIENTE', ' · HOT') : ''}`)
+      this.textoMotor.setText(`${estado.sobrecalentado ? '⚠ ' : ''}${Math.round(estado.tMotor)} °C`)
         .setColor(estado.sobrecalentado ? '#ff9b9b' : '#cfd6ff');
     }
     this.lectura.setText(
-      `${estado.velocidadMs.toFixed(1)} m/s · ${Math.floor(distancia_m)}/${Math.floor(meta_m)} m\n${nombreSuperficie(estado.superficie) ?? ''}${estado.patina ? tr(' · PATINA', ' · SLIPPING') : ''}`,
+      `${estado.velocidadMs.toFixed(1)} m/s\n${Math.floor(distancia_m)}/${Math.floor(meta_m)} m\n${estado.patina ? tr('PATINA · ', 'SLIP · ') : ''}${nombreSuperficie(estado.superficie) ?? ''}`,
     );
   }
 
   /** Panel con la nota de datos completa (fuentes, tramo real, recreaciones). Se abre y cierra con I o tocando la nota. */
   _panelDatos(aviso) {
     const s = this.scene;
-    const fijo = (o) => o.setScrollFactor(0).setDepth(98).setVisible(false);
-    const t = fijo(s.add.text(480, 270, tr(`Datos de este nivel\n\n${aviso}\n\n[I] cerrar`, `Data for this level\n\n${aviso}\n\n[I] close`), {
-      ...ESTILO, fontSize: '15px', color: '#ffffff', align: 'left', wordWrap: { width: 760 }, lineSpacing: 4,
-    }).setOrigin(0.5));
-    const fondo = fijo(K.panel(s, 80, Math.round(270 - (t.height + 36) / 2), 800, t.height + 36, { alfa: 0.96 }));
-    t.setDepth(99);
+    const fijo = (o) => o.setScrollFactor(0).setDepth(102).setVisible(false); // encima de las flechas táctiles (101)
+    const t = fijo(TXT(s, 480, 270, tr(`Datos de este nivel\n\n${aviso}\n\n[I] cerrar`, `Data for this level\n\n${aviso}\n\n[I] close`), {
+      color: '#ffffff', ancho: 840, origen: [0.5, 0.5],
+    }));
+    const fondo = fijo(K.panel(s, 40, Math.round(270 - (t.height + 36) / 2), 880, t.height + 36, { alfa: 0.96 }));
+    t.setDepth(103);
     this.datos = [fondo, t];
   }
 
@@ -108,11 +109,11 @@ export class Hud {
     const s = this.scene;
     const fijo = (o) => o.setScrollFactor(0).setDepth(110);
     const fondo = fijo(s.add.rectangle(480, 270, 960, 540, 0x0b0d17, 0.7));
-    const titulo = fijo(s.add.text(480, 205, tr('Pausa', 'Paused'), { ...ESTILO, fontSize: '38px', fontStyle: 'bold', color: '#ffffff' }).setOrigin(0.5));
-    const boton = (y, texto, color, fn) => fijo(s.add.text(480, y, texto, { ...ESTILO, fontSize: '21px', color })
-      .setOrigin(0.5).setInteractive({ useHandCursor: true }).on('pointerdown', fn));
-    const seguir = boton(280, tr('[ Continuar · Esc / Enter ]', '[ Resume · Esc / Enter ]'), '#4cc38a', alContinuar);
-    const salir = boton(330, tr('[ Abandonar · X ]', '[ Quit · X ]'), '#ff9b9b', alAbandonar);
+    const titulo = fijo(K.txt(s, 480, 200, tr('Pausa', 'Paused'), { size: 38, titulo: true, origen: [0.5, 0.5] }));
+    // Botones de arte (los de todo el juego); su caja se destruye con el texto.
+    const boton = (y, texto, color, fn) => K.fijarBoton(K.boton(s, 480, y, texto, fn, { size: 18, color, anchoMin: 340 }), 110).obj;
+    const seguir = boton(280, tr('Continuar · Esc / Enter', 'Resume · Esc / Enter'), '#4cc38a', alContinuar);
+    const salir = boton(336, tr('Abandonar · X', 'Quit · X'), '#ff9b9b', alAbandonar);
     return [fondo, titulo, seguir, salir];
   }
 

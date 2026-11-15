@@ -89,7 +89,7 @@ async function ubicar(k, texto) {
     const todos = [];
     const recorrer = (lista) => { for (const o of lista) { todos.push(o); if (o.list) recorrer(o.list); } };
     recorrer(s.children.list);
-    const o = todos.find((x) => x.type === 'Text' && x.text.includes(texto) && x.visible && x.active);
+    const o = todos.find((x) => (x.type === 'Text' || x.type === 'BitmapText') && x.text.includes(texto) && x.visible && x.active);
     if (!o) return null;
     const b = o.getBounds();
     const r = g.canvas.getBoundingClientRect();
@@ -139,7 +139,7 @@ const activa = (k) => () => page.evaluate((k) => window.__mc.Prueba.game.scene.i
 const textosDe = (k) => page.evaluate((k) => {
   const s = window.__mc.Prueba.game.scene.getScene(k);
   const todos = [];
-  const recorrer = (l) => { for (const o of l) { if (o.type === 'Text' && o.visible) todos.push(o.text); if (o.list) recorrer(o.list); } };
+  const recorrer = (l) => { for (const o of l) { if ((o.type === 'Text' || o.type === 'BitmapText') && o.visible) todos.push(o.text); if (o.list) recorrer(o.list); } };
   recorrer(s.children.list);
   return todos;
 }, k);

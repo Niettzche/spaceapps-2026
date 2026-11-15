@@ -158,7 +158,7 @@ export class Recorrido {
         g.fillStyle(0xffffff, 1).fillRect(xa - m(0.3), yMeta - m(1.8), m(0.6), m(1.8));
         g.fillStyle(0x6fb3ff, 1).fillRect(xa - m(0.22), yMeta - m(1.6), m(0.44), m(0.3));
       }
-      this.scene.add.text(a + 6, yMeta - m(6) + 4, tr('ZONA DE ENTREGA · frena y espera 2 s', 'DELIVERY ZONE · stop and wait 2 s'), { fontFamily: 'monospace', fontSize: '12px', color: '#4cc38a', stroke: '#0b0d17', strokeThickness: 3 }).setDepth(5);
+      K.txt(this.scene, a + 6, yMeta - m(6) + 4, tr('ZONA DE ENTREGA · frena y espera 2 s', 'DELIVERY ZONE · stop and wait 2 s'), { size: 14, color: '#4cc38a', borde: true }).setDepth(5);
     } else {
       const x = this.xMundo(this.meta_m);
       const bandera = sprite(this.scene, 'meta', { x, y: yMeta, origen: [0, 1], profundidad: 5, anim: 'ondea' });
@@ -168,7 +168,7 @@ export class Recorrido {
       }
       // El texto va justo encima de la bandera (sprite de 2 m o figura provisional de 4 m).
       const alto = bandera ? bandera.displayHeight : m(4);
-      this.scene.add.text(x + 6, yMeta - alto - 18, tr('META', 'FINISH'), { fontFamily: 'monospace', fontSize: '12px', color: '#ffffff', stroke: '#0b0d17', strokeThickness: 3 }).setDepth(5);
+      K.txt(this.scene, x + 6, yMeta - alto - 26, tr('META', 'FINISH'), { size: 14, color: '#ffffff', borde: true }).setDepth(5);
     }
   }
 

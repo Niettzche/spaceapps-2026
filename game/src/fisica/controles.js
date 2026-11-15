@@ -1,4 +1,5 @@
 // Controles: acelerar / frenar con teclado (→ ←, D A) y con dos botones táctiles. Ver ESPECIFICACION.md §4.
+import { textoPixel } from '../scenes/comun/fuente.js';
 import Phaser from 'phaser';
 
 export class Controles {
@@ -20,8 +21,7 @@ export class Controles {
         zona.setFillStyle(0xffffff, 0).setStrokeStyle(0);
         img = scene.add.image(x, 470, arte).setScale(3).setAlpha(0.85).setScrollFactor(0).setDepth(101);
       } else {
-        scene.add.text(x, 470, etiqueta, { fontFamily: 'monospace', fontSize: '28px', color: '#ffffff' })
-          .setOrigin(0.5).setAlpha(0.6).setScrollFactor(0).setDepth(101);
+        textoPixel(scene, x, 470, etiqueta, { size: 28, color: '#ffffff', origen: [0.5, 0.5] }).setAlpha(0.6).setScrollFactor(0).setDepth(101);
       }
       const presionado = scene.textures.exists(`${arte}_presionado`) ? `${arte}_presionado` : arte;
       const soltar = () => { this.tactil[lado] = false; if (img) img.setTexture(arte); else zona.setFillStyle(0xffffff, 0.08); };

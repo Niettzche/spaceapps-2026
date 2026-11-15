@@ -1,16 +1,17 @@
-// Utilidades mínimas de interfaz compartidas (provisionales; el frente de arte las reemplaza).
+// Utilidades mínimas de interfaz compartidas, con la fuente pixel (comun/fuente.js; respaldo monospace).
+import { textoPixel } from './comun/fuente.js';
+
 export function titulo(scene, texto, sub) {
-  scene.add.text(480, 58, texto, { fontFamily: 'monospace', fontSize: '38px', fontStyle: 'bold', color: '#ffffff' }).setOrigin(0.5);
-  if (sub) scene.add.text(480, 100, sub, { fontFamily: 'monospace', fontSize: '16px', color: '#9aa4c7' }).setOrigin(0.5);
+  textoPixel(scene, 480, 58, texto, { size: 38, titulo: true, origen: [0.5, 0.5] });
+  if (sub) textoPixel(scene, 480, 100, sub, { size: 16, color: '#a3abcc', origen: [0.5, 0.5] });
 }
 export function boton(scene, x, y, texto, alPulsar) {
-  const b = scene.add.text(x, y, `[ ${texto} ]`, { fontFamily: 'monospace', fontSize: '18px', color: '#ffd166' })
-    .setOrigin(0.5).setInteractive({ useHandCursor: true });
+  const b = textoPixel(scene, x, y, `[ ${texto} ]`, { size: 18, color: '#ffd166', origen: [0.5, 0.5] }).setInteractive({ useHandCursor: true });
   b.on('pointerdown', alPulsar);
   return b;
 }
 export function nota(scene, texto) {
-  scene.add.text(480, 514, texto, { fontFamily: 'monospace', fontSize: '14px', color: '#a3abcc', align: 'center', wordWrap: { width: 900 } }).setOrigin(0.5);
+  textoPixel(scene, 480, 514, texto, { size: 14, color: '#a3abcc', alinear: 'center', ancho: 900, origen: [0.5, 0.5] });
 }
 
 // Una sola transición a la vez; Phaser limpia el fundido al reiniciar la cámara.
