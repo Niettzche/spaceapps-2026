@@ -57,3 +57,18 @@ Responsable: Alan · Agente: Codex · Actualización: 2026-11-14
 - Sin escalar las imágenes de título. WebVTT resincronizado; texto de los cinco subtítulos conservado.
 - Verificados los fotogramas 149/150 y 746/747, el último fotograma 896 y la decodificación completa del MP4. Cada pantalla de título dura exactamente 5 s.
 - Rama fix/video-entrada-cierre-5s, sin cambios a gameplay, piezas o física.
+
+
+## Retro de Alan · resultados, ambiente y demo pública
+
+Esta actualización sustituye los pendientes anteriores de dominio: Mario publicó https://v1.marsception.us/. El despliegue sigue a cargo de Mario.
+
+- Rama `feat/feedback-ambiente-legible`: causa final explícita y consejo contextual en español/inglés. La condición de fin prioriza las recomendaciones de piezas. Un atasco sin evidencia no se atribuye a tracción.
+- Resultados: fondo opaco, texto de 16 px en tarjetas navegables con ratón/táctil y flechas; no se cortan recomendaciones por límite de cantidad. En misión, `A` o el enlace abre los límites de la analogía; puntuación y desglose se conservan.
+- Ambiente: aves planeadoras en Samalayuca/Pinacate, polvo distante en Marte y roca espacial sin fuego en Luna. Recreaciones declaradas en el panel de datos (`I`); sin colisiones, daño ni cambios de física. Se detienen con pausa y respetan movimiento reducido del sistema.
+- No se modificaron carpetas existentes, exportaciones del taller, piezas ni valores de balance.
+- README y ENTREGA_EN tienen los enlaces del dominio recibido. Web, juego y video devolvieron HTTP 200; el video tiene Content-Type video/mp4. Comparador corregido a 9/21 según model/VALIDATION.md (no confundir con 9/11 del detector).
+- Observación en la demo publicada: `/game/?lang=en` abrió textos de menú en español. Ver `docs/RETRO_DEMO.md`. La rama de juego contiene más cambios pendientes; esta rama no los integra. Coordinar Resultados.js con ese frente antes de mergear.
+- Validación: ocho pruebas nuevas, 23 casos de física, 14 de taller, pruebas de Expediente/precarga, límite de fps y enlaces web pasan. Build conjunto web/juego correcto; continúa el aviso conocido de bundles grandes.
+- Captura real: el usuario detuvo Computer Use con Escape antes de iniciar la grabación; no se produjo una captura. No se continuó con control de pantalla. Prueba en teléfono real, sonido y recorrido completo ES/EN siguen pendientes.
+- Formulario oficial: sesión iniciada y texto preparado anteriormente; guardar requiere que el usuario acepte términos/declaración de originalidad. No se envió el proyecto.

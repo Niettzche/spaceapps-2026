@@ -220,7 +220,8 @@ async function resultados(esperado) {
   const reg = await page.evaluate(() => { const p = window.__mc.partida; return p.resultados[p.resultados.length - 1]; });
   const txt = await textosDe('Resultados');
   await captura(`resultados_${reg.tipo}_${reg.exito ? 'exito' : 'falla'}`);
-  const recs = txt.filter((t) => t.startsWith('• ')).map((t) => t.slice(2));
+  // Las recomendaciones van en tarjetas (una a la vez): se leen de la escena.
+  const recs = await page.evaluate(() => (window.__mc.Prueba.game.scene.getScene('Resultados').recs ?? []).map((r) => r.texto));
   // Puntuación: texto con ★/☆ (sin arte) o estrellas de arte (Image 'ui/ui_estrella_llena|vacia') + el total como texto aparte.
   const arte = await page.evaluate(() => {
     const s = window.__mc.Prueba.game.scene.getScene('Resultados');
@@ -228,7 +229,7 @@ async function resultados(esperado) {
       .map((o) => o.texture.key);
     return { n: claves.length, llenas: claves.filter((k) => k === 'ui/ui_estrella_llena').length };
   });
-  const total = txt.find((t) => /^\d+$/.test(t.trim()));
+  const total = txt.find((t) => /^\d+( \/ 1000)?$/.test(t.trim()))?.replace(' / 1000', '');
   const puntos = txt.find((t) => /[★☆]/.test(t))
     ?? (arte.n >= 3 && total ? `${total.trim()} (${'★'.repeat(arte.llenas)}${'☆'.repeat(arte.n - arte.llenas)}, arte: ${arte.llenas}/${arte.n} llenas)` : null);
   const r = reg.resultado;
