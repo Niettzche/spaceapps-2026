@@ -173,7 +173,7 @@ es exp(−(40 − T)/20) y queda casi igual en todos.
 Oscilación de los sitios: 7.6 a 17.7 K, mediana 14.8 K. Con peso 0.20 en una media geométrica, la dimensión multiplica el total
 por s^0.2, entre 0.72 y 0.80: baja casi igual a todos los sitios y casi no cambia el orden.
 
-**Decisión del equipo.** No cambiamos pesos antes de la entrega: cambiaría todos los totales y el "9 de 20" del guion. La
+**Decisión del equipo.** No cambiamos pesos antes de la entrega: cambiaría todos los totales y el "9 de 21" del guion. La
 declaramos como **una dimensión que la Tierra no alcanza**: ningún sitio terrestre llega a la oscilación de la Luna (176 K) ni a
 la de Jezero (55 K). Esa dimensión dice "aquí no se puede probar el ciclo térmico", no ordena sitios.
 
@@ -193,7 +193,7 @@ Agregada el 14 nov 2026 por la noche, después del apartado "Borde levantado" de
 
 **Respuesta corta.** "El polo sur lunar y Jezero son terreno de cráteres. Nuestro detector encuentra depresiones, pero muchas
 son valles, presas o minas. El borde levantado es evidencia de que el hoyo se formó por una explosión o un impacto, como los
-cráteres de la Luna y de Marte. Con eso, nuestra lista de análogos de cráter queda hecha de cráteres y no de hoyos."
+cráteres de la Luna y de Marte. Con eso, nuestra lista de análogos de cráter se apoya en evidencia de que son cráteres, no solo hoyos."
 
 **Las tres razones**
 1. **Limpia la lista.** Sin esta medida, un valle redondo en el desierto pasa como "análogo lunar". Tienen borde levantado 10 de

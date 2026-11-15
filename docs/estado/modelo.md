@@ -5,6 +5,20 @@
 **Responsable:** Mario  ·  **Agente:** Claude Code / Codex
 **Última actualización:** 15 nov 2026, mañana (landing con divulgación científica en `informe/divulgacion/`; ANA, la tutora de análogos, ya en `main`; demo en https://v1.marsception.us/)
 
+
+## Hecho (auditoría de documentación, 15 nov, tarde; pedido de Mario)
+- Auditoría de solo lectura de los 63 `.md` de `main`, el texto del formulario y la landing. Se corrige lo del frente modelo:
+  - **Landing (ES y EN):** "exactitud balanceada" en vez de "acierto"; datos NASA **y ESA** (HRSC es de la ESA); 176 K es entre
+    el día y la noche en una lunación, no "por día"; dolinas y cañadas, no "plantas"; 62 sitios "con un cráter medido" (sin
+    "fecha", que falta en 434 de 685 variables); regiones como recuadros de 600 × 600 km (faltan 6 de 10); proponer sitios
+    necesita el servicio en línea; licencias "queremos ofrecer"; VALIDATION.md tiene las cifras de validación, no "todas";
+    nota de IA con arte, etiquetas y ANA (OpenAI); enlace a `docs/METHODOLOGY_EN.md`. `preparar_datos.py` y `node --test` pasan.
+  - `PROYECTO.md`: sin "sitios nuevos" ni "hallazgos"; Harrat Hutaymah sí está en Ryan et al. (2024); repo público; meta 21:00.
+  - `ciencia_datos/05_fichas_integradas.py` → `lista_corta.md` regenerada con el mismo cambio; `README.md` (repo público, tabla).
+  - `etiquetado_ia/README.md`: 33 casos con verdad externa; `NIVEL2.md`: 9 de 21; estado: Samalayuca `novedoso` = null, umbral 0.4.
+- Lo de otros frentes (ENTREGA_EN, USO_IA, METODOLOGIA, PITCH_QA, guion, docs/juego, docs/taller, AGENTS/DECISIONES) queda en el
+  informe de la auditoría para cada responsable.
+
 ## Hecho (landing: «Los análogos» y «Pruébalo», 15 nov, mañana)
 - **Tráiler en la landing (11:40, pedido de Mario):** sección `#trailer` justo después de la portada y enlace «▶ Ver el tráiler
   (30 s)» en la portada. Del video de 1080p y 14.4 MB salen `public/video/trailer.webm` (AV1 + Opus, 3.9 MB),
@@ -249,7 +263,8 @@
   `novedoso` ya se calcula: 7 candidatos quedan como no novedosos por estar a menos de 50 km del Gran Desierto de Altar,
   del Pinacate o de Rincón de Parangueo.
 - **Samalayuca** con variables reales y perfil de dunas de 3 km (coordenada de Domínguez-Acosta et al. 2023). No hay literatura
-  que la trate como análogo planetario, así que va como `candidato_modelo` con `novedoso: true`.
+  que la trate como análogo planetario, así que va como `candidato_modelo`. Hoy `novedoso` es `null`: ningún sitio del catálogo
+  se marca como novedoso.
 - `model/VALIDATION.md`: controles negativos 3 de 3 en 0 (veto por NDVI). Análogos conocidos: 9 de 21 por encima de 0.4; los que
   no pasan son análogos por razones que el comparador no ve (frío, lava húmeda, química, cuevas). Impactos terrestres: 8 de 8
   dentro de la nube de forma.
@@ -294,8 +309,7 @@
 - `docs/GUION_PITCH.md`, bloque «Evidencia y límites»: propongo decir «Ordenados solo por forma, entre los 25 primeros hay 14
   minas y 3 cráteres. Ordenados por el borde levantado, 11 cráteres y 1 mina.» Es lo que distingue al proyecto y hoy el guion no
   menciona el borde. Texto y cuidados en `model/NIVEL2.md` §D; figura lista en `informe/exposicion_modelo/`.
-- `game/src/scenes/expediente/config.js`: `UMBRAL_PROPUESTA` sigue en 0.6 en `main` (la API ya usa 0.4). Con 0.6 ningún análogo
-  conocido puede proponerse desde el Explorador (el más alto da 0.556).
+- ~~`game/src/scenes/expediente/config.js`: `UMBRAL_PROPUESTA` sigue en 0.6 en `main`.~~ Resuelto: `main` ya usa 0.4, igual que la API.
 - `docs/METODOLOGIA.md` dice «9/20 análogos conocidos»; lo correcto es 9 de 21, como ya dice el guion.
 - `site.schema.json`: valor de `estado` nuevo `control_positivo` para los cráteres de impacto conocidos (meteor_crater,
   tenoumer, roter_kamm, talemzane). Hoy van como `documentado` con la explicación en la nota.
