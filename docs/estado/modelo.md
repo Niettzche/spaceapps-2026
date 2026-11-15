@@ -18,7 +18,7 @@
 - «Contactar a ventas» escribe a hola@marsception.us. Pendiente: publicarla en marsception.us cuando Mario lo decida y verificar dos
   datos que no vienen del repo, ambos solo en los detalles técnicos: Pike (1977) y la presión de Marte (menos del 1 %).
 
-## Hecho (`POST /nivel`, 15 nov, 10:15; pedido opcional de integración)
+## Hecho (`POST /nivel`, 15 nov, 09:45; pedido opcional de integración)
 - **Qué es:** `POST /nivel {lat, lon}` devuelve el `nivel` de cualquier coordenada con los mismos campos que los de `data/sites`
   (`perfil_elevacion_m`, `paso_m`, `superficies`, `superficies_nota`, `fuente`…), para que el frente expediente vuelva jugables
   los lugares de «Descubrir» que no tienen nivel (47 de 63). Opcionales: `diam_km` (alarga el corte como en `analisis/26`:
