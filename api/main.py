@@ -12,6 +12,8 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 DB = ROOT / "api" / "propuestas.db"
 # (P) 0.4: con 0.6 ningún análogo conocido podía proponerse (máximo 0.556, Yungay); ver model/VALIDATION.md, umbral del explorador
 UMBRAL = float(os.getenv("UMBRAL_PROPUESTA", "0.4"))
+METODO = "prefiltro ambiental v0 (clima, vegetación y pendiente; sin forma: descarta, no ordena)"
+METODO_EN = "environmental prefilter v0 (climate, vegetation and slope; without shape it rules out, it does not rank)"
 app = FastAPI(title="Misión Cero API")
 app.add_middleware(CORSMiddleware, allow_origins=os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(","),
                    allow_methods=["*"], allow_headers=["*"])
@@ -42,7 +44,7 @@ def score(p: Punto):
     res = comparar(tierra["variables"], t["variables"])
     return {"punto": p.model_dump(), "variables": tierra["variables"], "errores": tierra["errores"],
             "similitud": res, "no_reproducible_en_tierra": t.get("no_reproducible_en_tierra", []),
-            "puede_proponer": (res["total"] or 0) >= UMBRAL, "metodo": "prefiltro ambiental v0 (clima, vegetación y pendiente; sin forma: descarta, no ordena)"}
+            "puede_proponer": (res["total"] or 0) >= UMBRAL, "metodo": METODO, "metodo_en": METODO_EN}
 
 
 class Propuesta(Punto):

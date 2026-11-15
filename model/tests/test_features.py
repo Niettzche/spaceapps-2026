@@ -47,3 +47,30 @@ def test_un_tramo_fallido_no_da_media_parcial(monkeypatch):
     except features.requests.HTTPError:
         return
     raise AssertionError("debió propagar el error")
+
+
+def test_ndvi_usa_earth_engine_primero(monkeypatch):
+    def ornl_no(*a):
+        raise AssertionError("no debió consultar ORNL si Earth Engine respondió")
+
+    monkeypatch.setattr(features, "_ndvi_ee", lambda lat, lon: 0.12)
+    monkeypatch.setattr(features, "_ndvi_ornl", ornl_no)
+    r = features.modis_ndvi(31.35, -106.48)
+    assert r["ndvi"]["valor"] == 0.12 and "Earth Engine" in r["ndvi"]["fuente"]
+
+
+def test_ndvi_cae_a_ornl_si_earth_engine_falla(monkeypatch):
+    def ee_falla(lat, lon):
+        raise RuntimeError("sin credenciales")
+
+    monkeypatch.setattr(features, "_ndvi_ee", ee_falla)
+    monkeypatch.setattr(features, "_ndvi_ornl", lambda lat, lon: 0.2)
+    r = features.modis_ndvi(31.35, -106.48)
+    assert r["ndvi"]["valor"] == 0.2 and "ORNL" in r["ndvi"]["fuente"]
+
+
+def test_ndvi_sin_fuentes_reporta_las_dos(monkeypatch):
+    monkeypatch.setattr(features, "_ndvi_ee", lambda lat, lon: None)
+    monkeypatch.setattr(features, "_ndvi_ornl", lambda lat, lon: None)
+    r = features.modis_ndvi(0, 0)
+    assert "ORNL" in r["error"]
