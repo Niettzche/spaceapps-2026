@@ -23,6 +23,7 @@ import { cajaArte } from '../scenes/expediente/interfaz.js';
 import { movimientoReducido } from '../scenes/expediente/efectos.js';
 import { GRAVEDAD } from '../config/world.js';
 import { versionFisica } from './version.js';
+import { NivelDestacado } from './nivel_destacado.js'; // 5 niveles destacados: bloques, parches, viento, eventos
 import { lugarDeSitio, fichaFisicaV2, paredesDeArena, PARED_ARENA } from './suelo_v2.js';
 import { SITIOS } from '../data.js';
 import { RUEDAS_POR_RANURA } from './diseno.js';
@@ -65,6 +66,8 @@ export class Recorrido {
     this.ambiente = o.ambiente ?? ambienteDe({ modo: o.modo, mundo: o.mundo, sitioId: o.sitioId, destinoId: o.destinoId });
     this.obstaculos = generarObstaculos(o.perfil, { mundo: o.mundo, semilla: (o.modo === 'prueba' ? o.sitioId : o.destinoId) ?? o.mundo });
     crearObstaculos(scene, o.perfil, this.terreno, this.obstaculos, { mundo: o.mundo, sprite, hayArte });
+    // Niveles destacados (content/niveles_destacados.js): parches y bloques recreados, viento y eventos. Sin config, no hace nada.
+    this.destacado = new NivelDestacado(scene, o, this.terreno);
 
     // Límites: paredes a los lados, sin techo ni piso (el suelo es el terreno). Las paredes van justo donde empieza y termina
     // el terreno: con 2 m de margen quedaba un hueco sin suelo al principio y el robot caía en reversa sin que pasara nada.
@@ -93,9 +96,10 @@ export class Recorrido {
       this.efectos?.alTelemetria(tipo, detalle); // efectos en la rueda, el chasis o la carga
       this.sonido?.alTelemetria(tipo, detalle); // golpes, crujido, sin energía (fisica/sonido.js)
     }, {
-      mundo: o.mundo, ambiente: this.ambiente, factorAgarre: (x) => factorAgarreEn(this.obstaculos, (x - xMundo(0)) / PX_POR_M),
+      mundo: o.mundo, ambiente: this.ambiente, factorAgarre: (x) => factorAgarreEn(this.obstaculos, (x - xMundo(0)) / PX_POR_M) * this.destacado.factorAgarre((x - xMundo(0)) / PX_POR_M),
       fisica: this.fisica, gravedad: o.gravedad, lugar,
     });
+    this.destacado.crear(this.robot, this.ambiente);
     this.efectos = new Efectos(scene, { mundo: o.mundo, gravedad: o.gravedad, robot: this.robot, superficieDe: this.superficieDe });
     this.sonido = new Sonido(scene, { mundo: o.mundo }); // motor, arena, golpes y fin; M silencia
     this.g = scene.add.graphics().setDepth(10);
@@ -121,7 +125,7 @@ export class Recorrido {
       : null;
     const avisoNivel = [`${o.perfil.ilustrativo ? '⚠ ' : ''}${o.perfil.nota}${notaObs ? ` · ${notaObs}` : ''}${notaPared ? ` · ${notaPared}` : ''}`, notaDecor].filter(Boolean).join(' ');
     const avisoSuelo = notaSuelo(o.mundo, o.perfil.superficies);
-    const avisoAmbiente = notaAmbiente(this.ambiente);
+    const avisoAmbiente = [this.destacado.nota(this.robot.masaTotal), notaAmbiente(this.ambiente)].filter(Boolean).join(' ');
     const nombreMundo = tr({ luna: 'la Luna', marte: 'Marte' }[o.mundo] ?? 'el destino', { luna: 'the Moon', marte: 'Mars' }[o.mundo] ?? 'the destination');
     const pctG = Math.round((o.gravedad / 9.81) * 100);
     // En la misión, la explicación de la gravedad pasa al panel de datos (I); en las instrucciones queda la keyword.
@@ -153,8 +157,9 @@ export class Recorrido {
         this.hud.instrucciones(tr('Prueba en la Tierra', 'Earth test'), [
           { texto: tr('Llega a la META con la carga', 'Reach the FINISH with the payload'), icono: 'ui/ui_icono_carga', escala: 3, respaldo: '⚑' },
           { texto: `${notaCorta ?? tr('Suelo sin dato', 'Soil: no data')}${bateriaFria}`, icono: 'iconos/ico_suelo', respaldo: '≈' },
+          this.destacado.filaEntrena(),
           controles,
-        ], pista);
+        ].filter(Boolean), pista);
       } else {
         const minimo = Math.round(o.umbralIntegridad * 100);
         this.hud.instrucciones(tr(`Llegada a ${nombreMundo}`, `Arrival on ${nombreMundo}`), [
@@ -287,6 +292,8 @@ export class Recorrido {
 
   superficieDe = (xMundo) => {
     const x = (xMundo - this.xMundo(0)) / PX_POR_M;
+    const parche = this.destacado?.superficie(x); // parche recreado de un nivel destacado (toba, talud, nieve, hielo)
+    if (parche) return parche;
     if (this.paredes?.some((t) => x >= t.desde && x < t.hasta)) return 'roca';
     return superficieEn(this.o.perfil, x);
   };
@@ -305,6 +312,7 @@ export class Recorrido {
     r.actualizar(delta, acelerador, this.superficieDe);
     this.aspecto.dibujar(this.g);
     this.efectos.actualizar(delta, r); // polvo de ruedas y arena al patinar
+    this.destacado.actualizar(delta / 1000, (r.x - this.xMundo(0)) / PX_POR_M); // viento y eventos de fondo
     this.sonido.actualizar(delta, r, acelerador);
     const estado = r.estado();
     const x_m = (r.x - this.xMundo(0)) / PX_POR_M;
@@ -416,6 +424,7 @@ export class Recorrido {
   }
 
   destruir() {
+    this.destacado?.destruir();
     this.decoracion?.destruir();
     this.efectos?.destruir();
     this.sonido?.destruir();
