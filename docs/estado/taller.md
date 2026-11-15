@@ -175,3 +175,7 @@ las pruebas en teléfono se hicieron con Claude Code. Cada dato se revisó contr
   puntuación, factor de gravedad, límites del modelo, Tierra contra misión). Judges QA-010…014.
 - Libro de datos: notas de BM-008, BM-013, BM-023 y BM-024 al día con física 2 (RV-175…179).
 - Sigue: playtest de la demo publicada (es/en) cuando Mario avise.
+
+## 15 nov · hoja de cifras del pitch (Leo)
+- `docs/PITCH_CIFRAS_EN.md`: una página con las cifras clave y su fuente (modelo, juego, lugares). Ojo: en `data/sites` hay
+  **16** niveles con perfil real de Copernicus GLO-30 (no 15).
