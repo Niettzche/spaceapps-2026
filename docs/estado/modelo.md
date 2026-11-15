@@ -5,6 +5,19 @@
 **Responsable:** Mario  ·  **Agente:** Claude Code / Codex
 **Última actualización:** 15 nov 2026, madrugada (demo publicada en https://v1.marsception.us/)
 
+## Hecho (15 niveles jugables, 15 nov, madrugada; rama `feat/modelo-niveles-15`)
+- **11 niveles nuevos con relieve real** (antes 4: samalayuca, pinacate, g00281, mx0207). Cráteres con fuente: g00266,
+  g00263, g00176, mx0261. Cráteres de impacto (sitios nuevos): meteor_crater, tenoumer, roter_kamm, talemzane. Tajos: mx0023,
+  mx0019, mx0155. Reparto: 10 Luna, 5 Marte (Jezero: samalayuca, g00266, tenoumer, roter_kamm, talemzane, por la regla 4).
+- `analisis/26_niveles_15.py`: celdas 21 y 23 pasadas a script local. `--comprobar` reproduce idénticos los niveles de g00281 y
+  mx0207 antes de medir. `model/niveles.py` escribe data/sites sin red. Corrido dos veces: la segunda no cambia nada.
+- En los sitios existentes solo cambia `nivel`. Los 4 de impacto son controles positivos del detector, no hallazgos:
+  `estado: documentado`, borde levantado positivo en los 4, novedoso false (Meteor) o null.
+- `model/borde.py` ahora lee también `perfiles_impactos.json`. `python -m model.borde` no cambia ningún sitio.
+- Sin obstáculos (`obstaculos: []`). Pendiente máxima del transecto: tajos 49–63°; en la ventana de 250 m que juega el juego, 34–37°.
+- Pendiente: `model/VALIDATION.md` (lo genera `model/validate.py` desde data/sites) no se regeneró; sus cuentas de sitios
+  no incluyen los 4 nuevos.
+
 ## Hecho (publicación de la demo, 15 nov, madrugada)
 - **Demo pública: https://v1.marsception.us/**, en inglés con https://v1.marsception.us/?lang=en. Este frente es el
   **único que publica** (pedido del integrador, para que dos sesiones no se pisen).
@@ -158,3 +171,7 @@
 - `game/src/scenes/expediente/config.js`: `UMBRAL_PROPUESTA` sigue en 0.6 en `main` (la API ya usa 0.4). Con 0.6 ningún análogo
   conocido puede proponerse desde el Explorador (el más alto da 0.556).
 - `docs/METODOLOGIA.md` dice «9/20 análogos conocidos»; lo correcto es 9 de 21, como ya dice el guion.
+- `site.schema.json`: valor de `estado` nuevo `control_positivo` para los cráteres de impacto conocidos (meteor_crater,
+  tenoumer, roter_kamm, talemzane). Hoy van como `documentado` con la explicación en la nota.
+- Pinacate: sumar MacDougal (MX0007), Sykes (MX0010) y Cerro Colorado (MX0012) como niveles alternos del sitio curado
+  (p. ej. `nivel` por cráter); hoy el contrato tiene un solo `nivel` por sitio.
