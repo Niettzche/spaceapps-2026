@@ -183,7 +183,7 @@ export const NIVELES_DESTACADOS = {
     lugar: { es: 'Hoya Rincón de Parangueo', en: 'Rincón de Parangueo maar' },
     tipo: 'maar_salino',
     destino: 'polo_sur_lunar',
-    fondo: 'maar', // Al Wahbah: maar con fondo de costra blanca de sal (docs/estado/arte.md). Falta un fondo de salar propio.
+    fondo: 'salar', // arte de Mauricio (#111): pared del maar, antigua orilla, estromatolitos y lago seco con sal cuarteada
     entrena: {
       es: 'Cruzar costra de sal y lodo blando en el fondo de un cráter y subir su pared, en un recorrido largo que exige energía',
       en: 'Cross salt crust and soft mud on a crater floor and climb its wall, on a long route that takes a lot of energy',
@@ -196,7 +196,7 @@ export const NIVELES_DESTACADOS = {
     parches: [
       // Lodo del lago donde la costra se rompe: sin parámetros de Bekker de lodo lacustre con fuente, se trata como arena suelta
       // que se hunde (P) con −40 % de agarre (P).
-      { clase: 'lodo', arte: 'obstaculo_arena_blanda', tinte: 0x9a8f80, cada: [18, 22], largo: [4, 6], pendienteMax: 6, soloSobre: 'compacto', superficie: 'arena', agarre: 0.6 },
+      { clase: 'lodo', arte: 'obstaculo_lodo', cada: [18, 22], largo: [4, 6], pendienteMax: 6, soloSobre: 'compacto', superficie: 'arena', agarre: 0.6 },
       // Costra de evaporitas sobre el piso del lago seco (solo donde el DEM tiene el piso «compacto»): dura, no se hunde; −30 %
       // de agarre (P; sin dato de fricción de costra salina en el libro de datos).
       { clase: 'sal', arte: 'obstaculo_sal', cada: [5, 6], largo: [3, 5], pendienteMax: 6, soloSobre: 'compacto', superficie: 'compacto', agarre: 0.7 },

@@ -120,15 +120,14 @@ export class EventosFondo {
       this.crestas = crestasDe(perfil).map((xm) => ({ x: terreno.xMundo(xm), y: terreno.yMundo(alturaEn(perfil, xm)) }));
       this.gMundo = scene.add.graphics().setDepth(4);
     }
-    // El cielo del fondo lunar de Mauricio (fondo_luna_1, capa fija) ya trae la Tierra pintada: solo se dibuja aquí si falta
-    // ese arte, para no ver dos Tierras.
-    const tierraEnFondo = scene.textures?.exists?.('arte:fondo_luna_1') ?? false;
-    if (this.programa.some((e) => e.tipo === 'tierra') && !tierraEnFondo) {
-      // La Tierra desde el polo sur lunar: baja sobre el horizonte y a media luz (arte de Mauricio, 18 × 18). Su lado de
+    if (this.programa.some((e) => e.tipo === 'tierra')) {
+      // La Tierra desde el polo sur lunar: baja sobre el horizonte y a media luz (arte de Mauricio, gibosa de 24 × 24). Su lado de
       // noche es azul muy oscuro y sobre el cielo negro solo se veía una tajada: se dibuja el disco completo detrás (lado
       // nocturno con luz de la Luna llena terrestre, «earthshine» inverso) y un halo de atmósfera para que se lea como
       // planeta. Más grande (×4) para que se reconozca.
-      const X = 680, Y = 165, R = 36; // lejos del botón «Abandonar» (arriba a la derecha)
+      // Encima de la Tierra pequeña que ya trae el cielo fijo de fondo_luna_1 (centro en 754, 175 de pantalla), para tapar esa y
+      // que se vea una sola: la gibosa de 24 × 24 de Mauricio (#111), con el lado nocturno transparente sobre el disco oscuro.
+      const X = 754, Y = 175, R = 46;
       const disco = scene.add.graphics().setScrollFactor(0).setDepth(-25.2);
       disco.fillStyle(0x6fb7ff, 0.18).fillCircle(X, Y, R + 7);
       disco.fillStyle(0x6fb7ff, 0.28).fillCircle(X, Y, R + 3);

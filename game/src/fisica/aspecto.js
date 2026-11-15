@@ -48,7 +48,7 @@ const TABLA = {
   evento_remolino: { ancho: 16, cuadros: [1, 8], animaciones: { gira: 'todo' } },
   evento_micrometeorito: { ancho: 16, cuadros: [1, 6], animaciones: { destello: 'todo' } },
   evento_fobos: { ancho: 8, cuadros: [1] },
-  evento_tierra: { ancho: 18, cuadros: [1] },
+  evento_tierra: { ancho: 24, cuadros: [1] },
 };
 // Pintura del chasis (Taller, cosmética): chasis_<ligero|reforzado>_<color>, mismos cuadros que el original (2.º = dañado).
 for (const chasis of ['chasis_ligero', 'chasis_reforzado']) {
