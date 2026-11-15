@@ -22,21 +22,45 @@ export function generar() {
   // ---- marco de barra 9-slice (6 × 6): borde de 2 px, interior hundido
   tira(D + 'ui_marco_barra.png', 6, 6, 1, (p) => filas(p, ['kkkkkk', 'kmlllk', 'kmggdk', 'kmggdk', 'kddddk', 'kkkkkk']), { contorno: false });
 
-  // ---- botón genérico 9-slice (12 × 12): normal y presionado
-  const boton = (presionado) => {
-    const g = Array.from({ length: 12 }, (_, y) => Array.from({ length: 12 }, (_, x) => {
-      if (x === 0 || y === 0 || x === 11 || y === 11) return 'k';
-      const yy = presionado ? y - 1 : y;
-      if (!presionado && y >= 9) return y === 10 ? 'd' : 'm';              // canto inferior (relieve)
-      if (yy <= 1) return presionado ? 'm' : 'h';                          // brillo superior
-      return presionado ? 'd' : 'l';
-    }));
-    // esquinas redondeadas
-    for (const [x, y] of [[0, 0], [11, 0], [0, 11], [11, 11]]) g[y][x] = '.';
-    return g.map((r) => r.join(''));
+  // ---- botón genérico 9-slice (12 × 12)
+  // 4 estados con borde visible (docs/juego/DISENO.md): normal, encima (borde amarillo), presionado (baja 1 px, sin canto)
+  // y desactivado (gris apagado). 12 × 12, cortes de 4 px en los 4 lados. Relleno oscuro para que el texto claro se lea.
+  const ESTADOS = {
+    ui_boton: { borde: '#b9a6ff', luz: '#3a3f6e', relleno: '#262b4e', canto: '#14172e', baja: false },
+    ui_boton_encima: { borde: '#ffd166', luz: '#4a5090', relleno: '#30366a', canto: '#191c3c', baja: false },
+    ui_boton_presionado: { borde: '#e0a83c', luz: '#1e2242', relleno: '#1e2242', canto: null, baja: true },
+    ui_boton_desactivado: { borde: '#4a5468', luz: '#1c2030', relleno: '#181b28', canto: '#10121c', baja: false },
   };
-  tira(D + 'ui_boton.png', 12, 12, 1, (p) => filas(p, boton(false)), { contorno: false });
-  tira(D + 'ui_boton_presionado.png', 12, 12, 1, (p) => filas(p, boton(true)), { contorno: false });
+  for (const [nombre, e] of Object.entries(ESTADOS)) {
+    const f = createFrame(12, 12), K = hex(BASE.k);
+    for (let y = 0; y < 12; y++) for (let x = 0; x < 12; x++) {
+      const esquina = (x === 0 || x === 11) && (y === 0 || y === 11);
+      if (esquina) continue;
+      const y0 = e.baja ? 1 : 0, yCanto = e.canto ? 9 : 11;      // el presionado no tiene canto: ocupa todo
+      let c;
+      if (x === 0 || x === 11 || y === 11 || y === y0) c = K;                         // contorno
+      else if (y < y0) c = 0;
+      else if (e.canto && y >= yCanto) c = hex(e.canto);                              // canto inferior (relieve)
+      else if (x === 1 || x === 10 || y === y0 + 1 || y === yCanto - 1) c = hex(e.borde);   // borde visible
+      else if (y === y0 + 2) c = hex(e.luz);                                          // brillo de arriba
+      else c = hex(e.relleno);
+      if (c) f.color[y * 12 + x] = c;
+    }
+    guardar(D + nombre + '.png', f);
+  }
+
+  // ---- chips 9-slice (8 × 8, cortes de 3 px) para etiquetas cortas: rojo = límite / riesgo, cian = dato medido
+  const chip = (nombre, borde, relleno) => {
+    const f = createFrame(8, 8);
+    for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) {
+      const cx = Math.min(x, 7 - x), cy = Math.min(y, 7 - y);
+      if (cx + cy < 1) continue;                                                      // esquinas redondeadas
+      f.color[y * 8 + x] = cx === 0 || cy === 0 || (cx + cy === 1) ? hex(borde) : hex(relleno);
+    }
+    guardar(D + nombre + '.png', f);
+  };
+  chip('ui_chip_rojo', '#ff7a93', '#3a1424');
+  chip('ui_chip_cian', '#80e0dc', '#0f3236');
 
   // ---- botones táctiles 24 × 24 con flecha naranja; el presionado baja 2 px y pierde el canto
   const flecha = (p, dir, dy) => {
