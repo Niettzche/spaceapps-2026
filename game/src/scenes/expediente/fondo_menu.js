@@ -161,7 +161,8 @@ export class FondoMenu {
   }
 
   crearAgujero() {
-    const p = posicionAgujero(this.rng);
+    // El agujero negro no cae sobre la consola de opciones ni el logo del menú nuevo (retro de Leo: tapaba los botones 35 %).
+    const p = posicionAgujero(this.rng, { evitar: { x0: 20, y0: 340, x1: 940, y1: 535 } });
     this.agujero = { x: p.x, y: p.y, t: 0, dur: 9 };
   }
 

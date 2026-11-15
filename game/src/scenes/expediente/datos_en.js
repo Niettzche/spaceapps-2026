@@ -28,7 +28,7 @@ const SITIOS_EN = {
   },
   g00281: {
     nombre: 'Al Wahbah maar (Harrat Kishb, Saudi Arabia)',
-    proceso: 'Closed crater-like depression of unconfirmed origin (no rim: sinkhole, basin or eroded maar)',
+    proceso: 'Closed crater-like depression (maar); measured raised rim of 6.1 m',
     uso_exploracion: 'Candidate to verify in the field: navigation and mobility inside a crater-like depression',
   },
 };
@@ -95,8 +95,8 @@ const EXACTOS = {
     'Perseverance MEDA, Munguira et al. 2023, JGR Planets 128, e2022JE007559 (doi:10.1029/2022JE007559), Table 1',
   'Mosaico HRSC+MOLA Blend DEM 200 m (ESA/NASA, vía USGS Astrogeology)': 'HRSC+MOLA Blend DEM 200 m mosaic (ESA/NASA, via USGS Astrogeology)',
   'LRO LOLA polar ldem_80s_80m (NASA), promediado a 200 m': 'LRO LOLA polar ldem_80s_80m (NASA), averaged to 200 m',
-  'Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)':
-    'Closed crater-like depression of unconfirmed origin (no rim: sinkhole, basin or eroded maar)',
+  'Depresión cerrada tipo cráter (maar); borde levantado medido de 6.1 m':
+    'Closed crater-like depression (maar); measured raised rim of 6.1 m',
   'Depresión cerrada tipo cráter de origen sin confirmar (borde levantado: probable volcánico)':
     'Closed crater-like depression of unconfirmed origin (raised rim: probably volcanic)',
   'Probable tajo minero a cielo abierto (cantera de OpenStreetMap a ≤ 2 km; por verificar)':
