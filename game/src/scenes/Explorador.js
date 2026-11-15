@@ -179,9 +179,11 @@ export default class Explorador extends Phaser.Scene {
       visitarSitio(partida, s, { sitios: SITIOS, destinos: DESTINOS, presupuesto: PRESUPUESTO_INICIAL, tickets: TICKETS_POR_PARTIDA });
       irA(this, 'Expediente');
     });
+    // Corto para que el resultado quepa sin desplazarse; el aviso del ticket va en el title del botón y se repite en el Expediente.
+    abrir.title = tr('Se abre su Expediente; el ticket solo se gasta si confirmas ahí.', 'Opens its site file; a ticket is spent only if you confirm there.');
     return el('div', { class: 'jugar' }, [
-      el('p', {}, tr(`${trDato(s, 'nombre') || s.id} (a ${formatoDistancia(km)}) ya tiene nivel con su relieve real. Se abre su Expediente; el ticket solo se gasta si confirmas ahí.`,
-        `${trDato(s, 'nombre') || s.id} (${formatoDistancia(km)} away) already has a level with its real terrain. Opens its site file; a ticket is spent only if you confirm there.`)),
+      el('p', {}, tr(`Ya en el catálogo con nivel: ${trDato(s, 'nombre') || s.id} (a ${formatoDistancia(km)})`,
+        `Already in the catalog with a level: ${trDato(s, 'nombre') || s.id} (${formatoDistancia(km)} away)`)),
       abrir,
     ]);
   }
@@ -221,7 +223,7 @@ export default class Explorador extends Phaser.Scene {
 
   // El Explorador es un diálogo modal: Tab y Shift+Tab dan la vuelta dentro de él en vez de salir a la página.
   mantenerFoco(ev) {
-    const enfocables = [...this.capa.querySelectorAll('button, input, select, textarea, a[href], [tabindex]:not([tabindex="-1"])')]
+    const enfocables = [...this.capa.querySelectorAll('button, input, select, textarea, a[href], summary, [tabindex]:not([tabindex="-1"])')]
       .filter((e) => !e.disabled && e.offsetParent !== null);
     if (!enfocables.length) return;
     const primero = enfocables[0];
@@ -463,16 +465,26 @@ export default class Explorador extends Phaser.Scene {
     const sim = d?.similitud || {};
     const vars = d?.variables || {};
     const porDim = sim.por_dimension || {};
-    const filas = Object.keys(porDim).map((k) => {
+    // Tabla corta (DISENO.md §2: una pantalla, una pregunta): dimensión · este punto · destino · similitud, solo valores.
+    // Las fuentes (con fecha) bajan a «Ver más»: con la fuente completa en cada celda la tabla se salía a la derecha en
+    // 960 px y no cabía a lo alto. Ningún dato se pierde: está a un clic, y también en el title de cada valor.
+    const fuenteDe = (v) => [enIdioma(v?.fuente), v?.fecha].filter(Boolean).join(' · ');
+    const dims = Object.keys(porDim).map((k) => {
       const t = vars[k] && typeof vars[k] === 'object' ? vars[k] : { valor: vars[k] ?? null };
-      const ds = destino?.variables?.[k];
-      return el('tr', {}, [
-        el('th', { scope: 'row' }, etiquetaVariable(k)),
-        el('td', {}, [formatoValor(t), el('small', {}, enIdioma(t.fuente) || (t.valor == null ? tr('no disponible para este punto', 'not available for this point') : ''))]),
-        el('td', {}, [ds ? formatoValor(ds) : sinDato(), el('small', {}, trDato(ds, 'fuente') || '')]),
-        el('td', { class: 'num' }, formatoPorcentaje(porDim[k])),
-      ]);
+      return { k, t, ds: destino?.variables?.[k] || null };
     });
+    // Sin valor: «—» a la vista (cabe en la columna angosta) y «sin dato» para el lector de pantalla.
+    const vacio = () => [el('span', { 'aria-hidden': 'true' }, '—'), el('span', { class: 'sr' }, sinDato())];
+    const filas = dims.map(({ k, t, ds }) => el('tr', {}, [
+      el('th', { scope: 'row' }, etiquetaVariable(k)),
+      el('td', { title: fuenteDe(t) }, t.valor == null ? vacio() : formatoValor(t)),
+      el('td', { title: ds ? fuenteDe(ds) : '' }, ds?.valor != null ? formatoValor(ds) : (ds?.texto || vacio())),
+      el('td', { class: 'num sim' }, typeof porDim[k] === 'number' ? formatoPorcentaje(porDim[k]) : vacio()),
+    ]));
+    const fuentes = el('ul', { class: 'fuentes' }, dims.map(({ k, t, ds }) => el('li', {}, [
+      el('strong', {}, `${etiquetaVariable(k)}: `),
+      `${tr('este punto', 'this point')} — ${fuenteDe(t) || sinDato()}; ${tr('destino', 'destination')} — ${(ds && fuenteDe(ds)) || sinDato()}`,
+    ])));
     const limites = (d?.no_reproducible_en_tierra || []).map(etiquetaLimite);
     const notas = [...(sim.limites_calculo || []).map(enIdioma),
       ...(d?.errores || []).map((e) => `${tr('Error al obtener datos', 'Error fetching data')}: ${typeof e === 'string' ? e : JSON.stringify(e)}`)];
@@ -488,28 +500,39 @@ export default class Explorador extends Phaser.Scene {
         tr(`Ya en el catálogo: ${trDato(cerca.sitio, 'nombre') || cerca.sitio.id} (a ${formatoDistancia(cerca.distanciaKm)})`,
           `Already in the catalog: ${trDato(cerca.sitio, 'nombre') || cerca.sitio.id} (${formatoDistancia(cerca.distanciaKm)} away)`))
       : this.tarjetaPorQue(porQuePunto(d, punto, CONOCIDOS), tr('Lo que dice el modelo de este punto', 'What the model says about this point'));
+    const nombreDestino = destino ? trDato(destino, 'nombre') : punto.destino;
     const izquierda = el('div', {}, [
-      jugar,
-      el('div', { class: 'total' }, [
+      // Arriba y en grande lo que decide el jugador (DISENO.md §2): ¿qué tan parecido es?
+      el('h2', { class: 'total' }, [
         el('span', { class: 'grande' }, formatoPorcentaje(total)),
-        el('span', {}, tr(` similitud total con ${destino ? trDato(destino, 'nombre') : punto.destino} · confianza ${formatoPorcentaje(sim.confianza)}`,
-          ` total similarity with ${destino ? trDato(destino, 'nombre') : punto.destino} · confidence ${formatoPorcentaje(sim.confianza)}`)
-          + (sim.vetado ? tr(' · VETADO por vegetación', ' · VETOED by vegetation') : '')),
+        el('span', {}, [tr(`similitud con ${nombreDestino}`, `similarity with ${nombreDestino}`),
+          el('small', { class: 'sec' }, tr(`confianza ${formatoPorcentaje(sim.confianza)}`, `confidence ${formatoPorcentaje(sim.confianza)}`)
+            + (sim.vetado ? tr(' · VETADO por vegetación', ' · VETOED by vegetation') : ''))]),
       ]),
+      el('div', { class: 'chips', role: 'group', 'aria-label': tr('Lo que la Tierra no puede probar', 'What Earth cannot test') }, [
+        el('span', { class: 'sec' }, tr('La Tierra no prueba:', 'Earth cannot test:')),
+        ...(limites.length ? limites.map((l) => el('span', { class: 'chip limite' }, l)) : [el('span', {}, sinDato())]),
+      ]),
+      this.bloquePropuesta(d, punto),
+    ]);
+    const tabla = el('table', { class: 'compacta api' }, [
+      el('thead', {}, el('tr', {}, [el('th', {}, tr('Dimensión', 'Dimension')), el('th', {}, tr('Este punto', 'This point')),
+        el('th', {}, tr('Destino', 'Destination')), el('th', { class: 'num' }, tr('Simil.', 'Simil.'))])),
+      el('tbody', {}, filas.length ? filas : el('tr', {}, el('td', { colspan: 4 }, tr('La API no devolvió dimensiones.', 'The API returned no dimensions.')))),
+    ]);
+    // «Ver más»: fuentes con fecha, método, límites del cálculo y la tarjeta «¿Por qué?». Nada se borra (DISENO.md §2.7).
+    const detalle = el('details', { class: 'ver-mas' }, [
+      el('summary', {}, tr('Ver más: fuentes, método y por qué', 'More: sources, method and why')),
       el('p', { class: 'ayuda' }, tr(`Punto ${formatoCoordenada(punto.lat, punto.lon)} · método: ${trDato(d, 'metodo') || sinDato()}. `
         + 'La forma de cráter solo existe para depresiones medidas por el detector; en un punto cualquiera falta y baja la confianza.',
       `Point ${formatoCoordenada(punto.lat, punto.lon)} · method: ${trDato(d, 'metodo') || sinDato()}. `
         + 'Crater shape only exists for depressions measured by the detector; at an arbitrary point it is missing and confidence drops.')),
-      el('p', {}, [el('strong', {}, tr('Lo que la Tierra no puede probar: ', 'What Earth cannot test: ')), limites.length ? limites.join(' · ') : sinDato()]),
+      fuentes,
       ...notas.map((n) => el('p', { class: 'nota' }, n)),
-      this.bloquePropuesta(d, punto),
+      tarjeta,
     ]);
-    const derecha = el('div', {}, [tarjeta, el('table', { class: 'compacta' }, [
-      el('thead', {}, el('tr', {}, [el('th', {}, tr('Dimensión', 'Dimension')), el('th', {}, tr('Tierra (este punto)', 'Earth (this point)')),
-        el('th', {}, tr('Destino', 'Destination')), el('th', {}, tr('Similitud', 'Similarity'))])),
-      el('tbody', {}, filas.length ? filas : el('tr', {}, el('td', { colspan: 4 }, tr('La API no devolvió dimensiones.', 'The API returned no dimensions.')))),
-    ])]);
-    this.resultado.replaceChildren(el('article', { class: 'dos-col' }, [izquierda, derecha]));
+    const derecha = el('div', {}, [tabla, jugar, detalle]);
+    this.resultado.replaceChildren(el('article', { class: 'dos-col api' }, [izquierda, derecha]));
     this.colapsarFormulario(punto);
     this.enfocarResultado();
   }
@@ -529,10 +552,9 @@ export default class Explorador extends Phaser.Scene {
     const salida = el('div', { 'aria-live': 'polite' });
     const form = el('form', { class: 'propuesta', novalidate: true }, [
       el('strong', {}, tr('Proponer este sitio', 'Propose this site')),
-      el('p', { class: 'ayuda' }, tr('Se guarda como "propuesto por usuario", pendiente de revisión del equipo. '
-        + 'No es un análogo confirmado. El alias es opcional y se guarda con la propuesta: no pongas datos personales.',
-      'It is saved as "user proposed", pending review by the team. '
-        + 'It is not a confirmed analog. The alias is optional and is saved with the proposal: do not enter personal data.')),
+      // Corto (cabe sin desplazarse): pendiente de revisión, no confirmado y sin datos personales.
+      el('p', { class: 'ayuda' }, tr('Queda pendiente de revisión del equipo (no es un análogo confirmado). Alias opcional: sin datos personales.',
+        'It stays pending team review (not a confirmed analog). Alias optional: no personal data.')),
       el('div', { class: 'fila' }, [
         el('label', { for: 'mc-nombre' }, [tr('Nombre del sitio', 'Site name'), nombre]),
         el('label', { for: 'mc-autor' }, [tr('Tu alias', 'Your alias'), autor]),

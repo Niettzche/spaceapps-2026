@@ -81,13 +81,49 @@ export const ESTILOS = `
 #mc-explorador table.compacta td small, #mc-explorador table.compacta th small { line-height: 1.25; }
 #mc-explorador table.compacta th small.sim { display: block; color: #ffd166; font-weight: 400; font-size: 15px; }
 #mc-explorador .dos-col.mitades { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+/* Resultado con API: tabla de 4 columnas fijas (solo valores, 16 px) y lo secundario en «Ver más», para que se vea
+   sin desplazarse en 960 × 540 y en un teléfono en horizontal (DISENO.md §2: una pantalla, una pregunta). */
+#mc-explorador .dos-col.api { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); }
+#mc-explorador .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+#mc-explorador h2.total { display: flex; flex-wrap: nowrap; align-items: center; gap: 0 12px; font-size: 18px; margin: 4px 0 0; }
+#mc-explorador h2.total .grande { flex: 0 0 auto; }
+#mc-explorador h2.total small.sec { display: block; font-size: 16px; font-weight: 400; margin: 0; }
+#mc-explorador .sec { color: #a3abcc; }
+#mc-explorador .chips { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin: 6px 0; }
+#mc-explorador .chip { border: 1px solid currentColor; border-radius: 3px; padding: 0 6px; font-size: 16px; }
+#mc-explorador .chip.limite { color: #ff7a93; }
+#mc-explorador table.api { table-layout: fixed; font-size: 16px; margin-top: 0; }
+#mc-explorador table.api thead th:first-child { width: 34%; }
+#mc-explorador table.api thead th:last-child { width: 72px; }
+#mc-explorador table.api th, #mc-explorador table.api td { overflow-wrap: break-word; }
+#mc-explorador table.api td.sim { color: #ffd166; }
+#mc-explorador .dos-col.api .jugar { flex-wrap: nowrap; padding: 4px 4px 4px 10px; margin: 6px 0; }
+#mc-explorador .dos-col.api .jugar p { flex: 1 1 auto; }
+#mc-explorador .dos-col.api .jugar button { flex: 0 0 auto; }
+#mc-explorador .dos-col.api .propuesta { margin-top: 6px; padding-top: 4px; }
+#mc-explorador .dos-col.api form.propuesta .fila { margin: 4px 0; gap: 6px 10px; }
+#mc-explorador .dos-col.api form.propuesta label { flex: 1 1 120px; min-width: 0; }
+#mc-explorador .dos-col.api form.propuesta input { min-width: 0; width: 100%; }
+#mc-explorador .dos-col.api form.propuesta .ayuda { margin: 2px 0; }
+#mc-explorador details.ver-mas { margin: 0; }
+#mc-explorador details.ver-mas > summary { cursor: pointer; color: #ffd166; min-height: 44px; display: flex; align-items: center; }
+#mc-explorador details.ver-mas > summary::before { content: "▸"; margin-right: 8px; }
+#mc-explorador details.ver-mas[open] > summary::before { content: "▾"; }
+#mc-explorador details.ver-mas .fuentes { margin: 4px 0; padding-left: 18px; font-size: 16px; }
+#mc-explorador details.ver-mas .fuentes li { margin: 2px 0; }
+/* Pantallas bajas (teléfono en horizontal): menos aire para que el resultado quepa a lo alto. */
+@media (max-height: 420px) { #mc-explorador { padding: 8px 12px; }
+  #mc-explorador h1 { font-size: 20px; }
+  #mc-explorador .dos-col.api { line-height: 1.3; }
+  #mc-explorador table.api th, #mc-explorador table.api td { padding: 2px 6px; }
+  #mc-explorador .dos-col.api h2.total .grande { font-size: 26px; } }
 #mc-explorador .propuesta.compacta { margin-top: 6px; padding-top: 4px; }
 #mc-explorador .propuesta.compacta .fila { flex-wrap: nowrap; align-items: center; margin: 4px 0; }
 #mc-explorador .propuesta.compacta .nota { flex: 1 1 auto; }
 #mc-explorador .propuesta.compacta .fila > button { flex: 0 0 auto; }
 #mc-explorador .fuera { padding: 6px 12px; }
 #mc-explorador .fuera p { margin: 4px 0; }
-@media (max-width: 720px) { #mc-explorador .dos-col, #mc-explorador .dos-col.mitades { grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 720px) { #mc-explorador .dos-col, #mc-explorador .dos-col.mitades, #mc-explorador .dos-col.api { grid-template-columns: minmax(0, 1fr); }
   #mc-explorador .propuesta.compacta .fila { flex-wrap: wrap; } }
 /* Modo sin API: catálogo precalculado + clima de NASA POWER */
 #mc-explorador .modo { border: 1px solid #ffd166; background: #2a2410; padding: 8px 14px; border-radius: 4px; margin: 8px auto; }
