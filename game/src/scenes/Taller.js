@@ -73,7 +73,7 @@ function datoClave(p) {
   if (p.sistema === 'potencia') return tr(`fuerza ${p.fuerza} · consumo ${p.consumo}/s`, `force ${p.fuerza} · drain ${p.consumo}/s`);
   if (p.sistema === 'energia') return tr(`capacidad ${p.capacidad}`, `capacity ${p.capacidad}`);
   if (p.sistema === 'carga') return tr(`protección ${Math.round(p.proteccion * 100)} %`, `protection ${Math.round(p.proteccion * 100)} %`);
-  if (p.id === 'panel_solar') return tr('sin efecto en el MVP (falta regla de iluminación)', 'no effect in the MVP (no lighting rule yet)');
+  if (p.id === 'panel_solar') return tr('recarga con la luz del sitio (rasante en el polo lunar, menor en Marte)', 'recharges with the site\'s sunlight (grazing at the lunar pole, weaker on Mars)');
   return '';
 }
 const conModificador = (ev) => Boolean(ev && (ev.ctrlKey || ev.metaKey || ev.altKey));
