@@ -5,6 +5,24 @@
 **Responsable:** Mario  ·  **Agente:** Claude Code / Codex
 **Última actualización:** 15 nov 2026, mañana (landing con divulgación científica en `informe/divulgacion/`; ANA, la tutora de análogos, ya en `main`; demo en https://v1.marsception.us/)
 
+## Hecho (`POST /nivel`, 15 nov, 10:15; pedido opcional de integración)
+- **Qué es:** `POST /nivel {lat, lon}` devuelve el `nivel` de cualquier coordenada con los mismos campos que los de `data/sites`
+  (`perfil_elevacion_m`, `paso_m`, `superficies`, `superficies_nota`, `fuente`…), para que el frente expediente vuelva jugables
+  los lugares de «Descubrir» que no tienen nivel (47 de 63). Opcionales: `diam_km` (alarga el corte como en `analisis/26`:
+  3 km, 4 km si pasa de 1.2 km, más si hace falta) y `destino` (solo añade la nota del regolito en la Luna).
+  Respuesta: `{punto, nivel, resumen, avisos, metodo}`.
+- **Cómo:** `model/nivel_vivo.py`, mismo método y misma regla de superficie v2 que `analisis/26_niveles_15.py`. No agrega
+  dependencias al servidor (el centro se proyecta con Earth Engine en vez de pyproj). `python -m model.nivel_vivo` recalcula los
+  niveles publicados de Meteor Crater y Al Hutaymah y salen **idénticos** (101 y 134 puntos, 5 tramos cada uno).
+- **Probado en local con Earth Engine:** un sitio de Atacama sin nivel (g00003) responde en 3.5 s con 134 puntos; la misma
+  consulta repetida sale de caché; mar y lago grande dan 422 con explicación; latitud fuera de rango, 422; si Earth Engine no
+  responde, 502 sin detalles internos. 13 pruebas nuevas sin red (6 de la regla en `model/tests`, 7 del endpoint en `api/tests`).
+- **Límites:** siempre usa la zona UTM local, así que en México no sale idéntico a los niveles hechos con EPSG:6372 (en
+  Samalayuca aparece un tramo de roca que el nivel publicado no tiene); el corte va centrado en el punto que se manda, no en
+  un cráter medido; sin límite de consultas por persona (igual que `/score`); cada consulta nueva son 4 llamadas a Earth Engine.
+- **Falta, de otros frentes:** que el frente expediente lo llame desde «Descubrir»; que integración lo agregue a la lista de
+  endpoints de `AGENTS.md` §8; y volver a publicar la API (no hay que instalar nada nuevo).
+
 ## Hecho (landing con divulgación científica, 15 nov)
 - **`informe/divulgacion/`: landing del juego con la ciencia explicada** (Vite, bilingüe con `?lang=en`, tema oscuro y claro).
   Portada inspirada en la pantalla de inicio del juego (pixel art animado, con el rover del juego), cómo se juega con capturas
