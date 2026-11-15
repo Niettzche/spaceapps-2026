@@ -3,7 +3,43 @@
 > Lo actualiza SOLO este frente. Rama: `feat/modelo`.
 
 **Responsable:** Mario  ·  **Agente:** Claude Code / Codex
-**Última actualización:** 14 nov 2026, 14:30
+**Última actualización:** 14 nov 2026, noche (borde levantado, sobre el PR de la auditoría del modelo)
+
+## Hecho (borde levantado, 14 nov, noche)
+- **`model/borde.py`: evidencia medida de que una depresión es un cráter.** `h/D` = altura máxima del perfil radial promedio a
+  80 m entre 0.83 y 1.67 radios, sobre el terreno lejano (1.67 a 2 radios). Usa `ciencia_datos/datos/perfiles_radiales.json`
+  (analisis/18): no consulta nada. Ventana y umbral provisionales (P).
+- **Resultado** (`model/VALIDATION.md`, sección B): tienen borde levantado 10 de 11 cráteres con fuente externa (catálogo de
+  México, Meteor Crater, literatura), 3 de 26 presas, valles o dunas (IA ≥ 0.7) y 4 de 38 tajos con cantera de OpenStreetMap.
+  AUC 0.91 donde el puntaje de forma da 0.42 y 0.36. Por altura del borde, 7 de los 11 quedan entre los 20 primeros de 296; por
+  forma, 2.
+- **En `data/sites`:** variable nueva `variables.borde_levantado` (metros, con `h/D` en la nota) en los 57 sitios con cráter
+  medido (`mx0090` en `null`: no tiene perfil). Con borde: Pinacate, 4 de los 5 cráteres naturales verificados (Colton no) y 5
+  sin verificar (mx0003, mx0017, mx0045, mx0047, mx0121: los primeros que conviene revisar). Ninguno de los 22 tajos.
+  La nota de cada candidato dice si la medida apoya a la etiqueta. **No entra al puntaje: ningún total, `destino_ref` ni
+  `novedoso` cambió.**
+- **Límites:** no mide parecido con la Luna ni con Marte (solo 22 % de los gemelos lunares y 15 % de los marcianos tienen borde
+  con esta medida); 11 casos con fuente, uno solo de impacto; la ventana ancha se eligió después de ver los datos (con la
+  estrecha pasan 7 de 11). Falta la prueba independiente: perfiles a 80 m de los cráteres de impacto de `impactos_tierra.csv`.
+- Corregido en `VALIDATION.md`: los totales frente al polo sur lunar son más bajos por la pendiente (objetivo 8.63° contra 3.56°),
+  no por la oscilación térmica, que se recorta igual en los dos destinos. Los tajos someros (mx0088, mx0457) ya no dicen
+  "pendientes extremas".
+- Comandos: `python -m model.borde` (todos los sitios) y `python -m model.scan --solo-categoria` (notas); los dos son idempotentes.
+- **Guía para exponer el modelo:** `informe/guia_exposicion_modelo.pdf` (4 páginas; generador `informe/generar_guia_exposicion.py`):
+  guion propuesto de 30 s para el bloque «Evidencia y límites», figura del borde, 12 preguntas de jueces con respuesta y respaldo,
+  y lo que no hay que decir. El generador se detiene si una cifra copiada ya no está en `model/VALIDATION.md`.
+
+## Hecho (auditoría del 14 nov, noche)
+- **Pinacate** ahora usa la misma regla que `scan.py` (destino = cuerpo al que más se parece su forma): `polo_sur_lunar`,
+  forma 0.972, total 0.529 (antes `jezero`, 0.028 y 0.149). El total frente a Jezero queda en la nota. `model/curados.py --sin-perfil`
+  conserva el nivel jugable. El sitio del camino lunar sigue siendo decisión del equipo (§16).
+- **Categoría de cada candidato** (`scan.py`, regla 6; modo `--solo-categoria`): cráter natural verificado 5, tajo minero 22, sin
+  verificar 29. Va en `nota`; en los tajos también en `uso_exploracion` (dónde se rompe la analogía, con el percentil de d/D lunar).
+- **G00263** (maar Al Hutaymah) y **G00266** (cono de toba Jabal Bayda) exportados con `scan.py --global --ids`, `novedoso: null`
+  hasta revisar Ryan et al. 2024.
+- `VALIDATION.md`: comparador presentado como **prefiltro ambiental** con su tasa en los sitios del detector; exactitud con
+  D ≥ 2 km (77.6 % ± 0.7 %, 788 lunares y 125 marcianos); tabla de umbral del explorador. Análogos conocidos: 9 de 21 (no 9 de 20: Colton se agregó después).
+- `api/main.py`: umbral de propuesta 0.6 → 0.4 (P); con 0.6 ningún análogo conocido podía proponerse.
 
 ## Hecho
 - Detector de cráteres (núcleo del modelo, AGENTS.md §6.1 y §8.1): `analisis/00–15`. Corre igual sobre México (5,208 depresiones),
@@ -28,7 +64,7 @@
   del Pinacate o de Rincón de Parangueo.
 - **Samalayuca** con variables reales y perfil de dunas de 3 km (coordenada de Domínguez-Acosta et al. 2023). No hay literatura
   que la trate como análogo planetario, así que va como `candidato_modelo` con `novedoso: true`.
-- `model/VALIDATION.md`: controles negativos 3 de 3 en 0 (veto por NDVI). Análogos conocidos: 9 de 20 por encima de 0.4; los que
+- `model/VALIDATION.md`: controles negativos 3 de 3 en 0 (veto por NDVI). Análogos conocidos: 9 de 21 por encima de 0.4; los que
   no pasan son análogos por razones que el comparador no ve (frío, lava húmeda, química, cuevas). Impactos terrestres: 8 de 8
   dentro de la nube de forma.
 
@@ -60,3 +96,8 @@
 ## Cambios que propongo a contratos o AGENTS.md (los aplica el integrador)
 - `site.schema.json`: un campo opcional `gemelo` ({cuerpo, sitio, lat, lon, diam_km, prof_m}). Hoy el gemelo va como texto en `nota`.
 - `site.schema.json`: permitir `similitud_por_destino` (polo_sur_lunar y jezero), para no perder la comparación con el otro destino.
+- `docs/GUION_PITCH.md`, sección "Preguntas": agregar la respuesta a "¿qué tiene que ver el borde levantado con los análogos?".
+  El texto exacto, las tres razones y lo que no hay que decir están en `model/NIVEL2.md` §D. Ojo: la frase "dos evidencias
+  independientes" no se sostiene (la IA también vio el relieve); la correcta está ahí.
+- Juego y web: la variable nueva `variables.borde_levantado` sale sin etiqueta propia ("Borde levantado" solo en español en el
+  Expediente; `borde_levantado` en la ficha de la web). Propuesta de etiqueta: "Borde levantado (80 m)" / "Raised rim (80 m)".

@@ -1,0 +1,118 @@
+{
+  "id": "g00263",
+  "nombre": "Maar Al Hutaymah (Harrat Hutaymah, Arabia Saudita)",
+  "pais": "SA",
+  "lat": 26.9888,
+  "lon": 42.2465,
+  "estado": "candidato_modelo",
+  "destino_ref": "polo_sur_lunar",
+  "prueba_util": null,
+  "uso_exploracion": "Candidato a verificar en campo: navegación y movilidad dentro de una depresión tipo cráter",
+  "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (borde levantado: probable volcánico)",
+  "novedoso": null,
+  "variables": {
+    "forma": {
+      "valor": 0.8442,
+      "unidad": "0-1",
+      "fuente": "Modelo explicable Luna contra Marte (regresión logística, 3 variables) + distancia a la nube Luna+Marte",
+      "fecha": "2026-11-14",
+      "nota": "P(Luna)=0.8442, distancia a la nube=4.9; dentro del 95 % de la nube de cráteres Luna+Marte"
+    },
+    "diametro": {
+      "valor": 1.296,
+      "unidad": "km",
+      "fuente": "Copernicus DEM GLO-30 (ESA), remuestreado a 200 m; detector analisis/07_buscador_crateres.py",
+      "fecha": null,
+      "nota": null
+    },
+    "profundidad": {
+      "valor": 120.9,
+      "unidad": "m",
+      "fuente": "Copernicus DEM GLO-30 (ESA), remuestreado a 200 m; detector analisis/07_buscador_crateres.py",
+      "fecha": null,
+      "nota": null
+    },
+    "profundidad_diametro": {
+      "valor": 0.0933,
+      "unidad": "-",
+      "fuente": "Copernicus DEM GLO-30 (ESA), remuestreado a 200 m; detector analisis/07_buscador_crateres.py",
+      "fecha": null,
+      "nota": null
+    },
+    "borde": {
+      "valor": 17.5,
+      "unidad": "m",
+      "fuente": "Copernicus DEM GLO-30 (ESA), remuestreado a 200 m; detector analisis/07_buscador_crateres.py",
+      "fecha": null,
+      "nota": "a 200 m el borde lunar medido es negativo (mediana −23 m): no se usa como criterio de parecido"
+    },
+    "borde_levantado": {
+      "valor": 18.1,
+      "unidad": "m",
+      "fuente": "Copernicus DEM GLO-30 (ESA) llevado a 80 m; perfil radial promedio del cráter (analisis/18_perfiles_radiales.py, ciencia_datos/datos/perfiles_radiales.json)",
+      "fecha": null,
+      "nota": "h/D = +0.0140, positiva: el borde queda más alto que el terreno lejano, lo que es evidencia de cráter de impacto o de explosión. Altura máxima del perfil radial promedio entre 0.83 y 1.67 radios, sobre el terreno lejano (1.67 a 2 radios). No mide parecido con la Luna ni con Marte: dice si la depresión tiene borde de cráter (model/VALIDATION.md, sección B). Ventana y umbral provisionales (P)."
+    },
+    "ndvi_p90": {
+      "valor": 0.133,
+      "unidad": "-",
+      "fuente": "MODIS MOD13Q1 percentil 90, 2021-2025 (Earth Engine)",
+      "fecha": null,
+      "nota": "filtro de zonas áridas del detector: < 0.35"
+    },
+    "oscilacion_termica": {
+      "valor": 15.85,
+      "unidad": "K",
+      "fuente": "NASA POWER T2M_RANGE (climatología anual)",
+      "fecha": "2001-2025",
+      "nota": "25-year Meteorological and Solar Monthly & Annual Climatologies (January 2001 - December 2025)"
+    },
+    "precipitacion": {
+      "valor": 0.07,
+      "unidad": "mm/día",
+      "fuente": "NASA POWER PRECTOTCORR (climatología anual)",
+      "fecha": "2001-2025",
+      "nota": "25-year Meteorological and Solar Monthly & Annual Climatologies (January 2001 - December 2025)"
+    },
+    "ndvi": {
+      "valor": 0.101,
+      "unidad": "-",
+      "fuente": "MODIS MOD13Q1 (Google Earth Engine, MODIS/061/MOD13Q1)",
+      "fecha": "2021-2025",
+      "nota": "media del píxel de 250 m"
+    },
+    "pendiente": {
+      "valor": 0.95,
+      "unidad": "grados",
+      "fuente": "Copernicus DEM GLO-30 (ESA, versión 2024_1) promediado a 200 m, Google Earth Engine",
+      "fecha": null,
+      "nota": "media de la pendiente en un cuadro de 10 km centrado en el punto"
+    }
+  },
+  "similitud": {
+    "total": 0.5393,
+    "por_dimension": {
+      "forma": 0.8442,
+      "oscilacion_termica": 0.2989,
+      "precipitacion": 0.9324,
+      "ndvi": 0.51,
+      "pendiente": 0.2152
+    },
+    "confianza": 1.0
+  },
+  "limites": [
+    "gravedad",
+    "presion_atmosferica",
+    "radiacion",
+    "vacio",
+    "iluminacion_polar_rasante",
+    "oscilacion_termica: destino por encima del máximo terrestre (176.0 > 40.0); se compara contra el extremo"
+  ],
+  "nivel": {
+    "perfil_elevacion_m": [],
+    "fuente": null,
+    "exageracion_vertical": null,
+    "obstaculos": []
+  },
+  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Polo sur (85-90°S) (Luna), 1.32 km, 124 m, d/D 0.094, en -86.466, 68.056. Nombre: nodo natural=volcano 'الهتيمة' de OpenStreetMap a ~0.10 km; anillo de toba con cráter central de ~1 km en Pallister (1985), USGS OFR 85-125 (https://pubs.usgs.gov/of/1985/0125/report.pdf). novedoso: null; no encontrado como análogo lunar o marciano en la literatura revisada; falta revisar Ryan et al. 2024 (doi:10.1130/GES02712.1). Categoría: cráter natural verificado (etiqueta de IA crater_volcanico, confianza 0.80). Segunda evidencia, medida: borde levantado (18.1 m sobre el terreno lejano; model/borde.py); la etiqueta y la medida coinciden. El puntaje describe qué tan lunar o marciana es su forma; no decide qué es (model/VALIDATION.md). Etiqueta de IA: crater_volcanico, confianza 0.80 (claude -p sobre Sentinel-2 y relieve; 29 de 33 aciertos en la validación, ciencia_datos/etiquetado_ia)."
+}

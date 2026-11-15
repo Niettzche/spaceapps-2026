@@ -4,7 +4,9 @@ Dos tipos de dimensión:
 - **forma** (principal): puntaje ya calculado en [0, 1] por model/forma.py (modelo explicable Luna contra Marte +
   distancia a la nube Luna+Marte). Solo existe para sitios con un cráter medido por el detector; en un punto
   cualquiera falta, se omite y baja la confianza.
-- **complementarias** (clima, vegetación, pendiente): s = exp(-|tierra - destino| / escala)
+- **complementarias** (clima, vegetación, pendiente): s = exp(-|tierra - destino| / escala). Juntas son un **prefiltro
+  ambiental** (árido, sin vegetación, relieve comparable): descartan, pero no ordenan sitios áridos entre sí
+  (model/VALIDATION.md, sección A). Qué es cada sitio lo dice la categoría de model/scan.py (regla 6), no el puntaje.
 - Si el destino está fuera del rango alcanzable en la Tierra, se compara contra el extremo terrestre
   ("lo más cerca que llega la Tierra") y se registra en `limites`.
 - Total: media geométrica ponderada. Veto: si una dimensión con veto da ~0, el total es 0.

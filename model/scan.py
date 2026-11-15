@@ -14,6 +14,16 @@ ciencia_datos/datos/hoyas_mexico.csv). Aquí:
    Si la IA dice valle, presa, duna o "no se puede decir", o no hay etiqueta, novedoso = null: no se presume
    novedoso lo que no sabemos que es un cráter. El tipo y la confianza de la IA van en la nota del sitio.
 
+6. Categoría (lo que ES el sitio, independiente del puntaje): cráter natural verificado (catálogo de México, o etiqueta de IA
+   cráter volcánico o de impacto con confianza ≥ 0.7), tajo minero (cantera de OpenStreetMap a ≤ 2 km, o etiqueta de IA
+   mina_o_cantera ≥ 0.7) o sin verificar (todo lo demás). Va en la nota y, en los tajos, en uso_exploracion. El puntaje de
+   forma no decide la categoría: no distingue un cráter de otra depresión (AUC 0.42, model/VALIDATION.md).
+   Segunda evidencia, medida: el borde levantado (model/borde.py, perfiles radiales a 80 m) va en variables.borde_levantado y
+   en la nota. No cambia la categoría ni el puntaje: dice si la medida apoya o no a la etiqueta.
+
+Uso extra:  python -m model.scan --solo-categoria   (aplica solo la regla 6 a los JSON existentes, sin consultar nada;
+                                                     también escribe variables.borde_levantado en los candidatos)
+            python -m model.scan --global --ids G00263,G00266   (exporta esos candidatos globales, no los N mejores)
 Uso extra:  python -m model.scan --solo-ia   (aplica solo la regla 5 a los JSON de data/sites/ que ya existen, sin
             consultar NASA POWER ni Earth Engine y sin tocar nivel, variables ni similitud)
 
@@ -27,6 +37,7 @@ cuando estén listos.
 """
 from __future__ import annotations
 
+import functools
 import json
 import math
 import pathlib
@@ -37,7 +48,7 @@ from concurrent.futures import ThreadPoolExecutor
 import numpy as np
 import pandas as pd
 
-from model import features, forma
+from model import borde, features, forma
 from model.score import comparar
 
 RAIZ = pathlib.Path(__file__).resolve().parents[1]
@@ -109,6 +120,24 @@ ANALOGO_OTRO_CUERPO = {
 
 PAIS_REGION = {"Atacama": "CL", "Arizona": "US", "Arabia": "SA"}
 
+# Nombres con fuente de candidatos globales (coordenada a < 0.2 km de la fuente; detalle en model/NIVEL2.md §A)
+NOMBRES_GLOBALES = {
+    "g00263": ("Maar Al Hutaymah (Harrat Hutaymah, Arabia Saudita)",
+               "nodo natural=volcano 'الهتيمة' de OpenStreetMap a ~0.10 km; anillo de toba con cráter central de ~1 km en Pallister (1985), "
+               "USGS OFR 85-125 (https://pubs.usgs.gov/of/1985/0125/report.pdf)"),
+    "g00266": ("Cono de toba Jabal Bayda (Harrat Khaybar, Arabia Saudita)",
+               "nodo 'جبل البيضاء' de OpenStreetMap a ~0.04 km; NASA Earth Observatory (2024) lo describe como cono de toba con cráter de "
+               "1,400 m (https://science.nasa.gov/earth/earth-observatory/white-and-black-volcanoes-of-saudi-arabia-152839); "
+               "el detector mide ~1.0 km a 200 m"),
+}
+
+# Revisión de literatura incompleta: novedoso queda null hasta revisar la fuente pendiente (no se presentan como descubrimientos)
+LITERATURA_PENDIENTE = {
+    sid: ("no encontrado como análogo lunar o marciano en la literatura revisada; falta revisar Ryan et al. 2024 "
+          "(doi:10.1130/GES02712.1)")
+    for sid in ("g00263", "g00266")
+}
+
 # Regla 5: solo es novedoso lo que la IA verificada reconoce como cráter o mina (AGENTS.md: no presumir)
 TIPOS_IA_NOVEDOSO = {"crater_volcanico", "crater_impacto", "mina_o_cantera"}
 CONF_IA_MIN = 0.7
@@ -166,7 +195,7 @@ def aplicar_regla_ia() -> list[dict]:
 N_GLOBAL = 12   # (P) cuántos candidatos globales se exportan (AGENTS.md §6.4 c: pocos sitios finales, México destacado)
 
 
-def candidatos_globales(n: int = N_GLOBAL) -> pd.DataFrame:
+def candidatos_globales(n: int = N_GLOBAL, ids: list[str] | None = None) -> pd.DataFrame:
     """Cráteres del mismo detector en otras zonas áridas (ciencia_datos/datos/global_crateres.csv, analisis/16).
 
     Se quedan los áridos tipo cráter, se quitan los que repiten una detección de México a menos de 1 km (el cuadro de
@@ -179,11 +208,123 @@ def candidatos_globales(n: int = N_GLOBAL) -> pd.DataFrame:
     g = g[np.array(dmin) > 1.0].copy()
     pf = forma.puntuar(g.diam_km, g.prof_m, g.borde_m)
     g["forma_mejor"] = np.maximum(pf.forma_polo_sur_lunar.to_numpy(), pf.forma_jezero.to_numpy())
-    g = g.nlargest(n, "forma_mejor").reset_index(drop=True)
+    if ids:                                     # candidatos pedidos por id (p. ej. revisados en model/NIVEL2.md §A)
+        g = g[g.gid.str.lower().isin([i.lower() for i in ids])].reset_index(drop=True)
+        faltan = set(i.lower() for i in ids) - set(g.gid.str.lower())
+        if faltan:
+            raise SystemExit(f"No están entre los áridos tipo cráter de global_crateres.csv (o repiten México): {sorted(faltan)}")
+    else:
+        g = g.nlargest(n, "forma_mejor").reset_index(drop=True)
     g["cid"] = g.gid
     g["pais"] = g.region.map(lambda r: next((v for k, v in PAIS_REGION.items() if k in r), None))
     g["nombre_catalogo"] = None; g["tipo_catalogo"] = None; g["nombre_previo"] = None
     return g
+
+
+# --- Regla 6: categoría (qué es el sitio) -------------------------------------------------------------------------------------
+TIPOS_IA_NATURAL = {"crater_volcanico", "crater_impacto"}
+NOTA_CATEGORIA = re.compile(r" ?Categoría: [^\n]*?(?= Etiqueta de IA:|$)")
+FRASE_TAJO_USO = re.compile(r"\. La analogía se rompe [^\n]*$")
+PCT_EXCESO = 90      # (P) percentil de d/D lunar a partir del cual se dice que el tajo es "demasiado hondo"
+
+
+@functools.lru_cache(maxsize=1)
+def _dd_lunar() -> pd.DataFrame:
+    ref = pd.read_csv(DATOS / "hoyas_referencia.csv")
+    return ref[ref.crater.astype(bool) & (ref.cuerpo == "Luna")][["diam_km", "prof_diam"]].reset_index(drop=True)
+
+
+def pct_dd_lunar(diam_km: float, prof_diam: float) -> tuple[float, int]:
+    """Porcentaje de cráteres lunares de diámetro parecido (de la mitad al doble) con d/D menor que el del sitio, y cuántos son."""
+    lu = _dd_lunar()
+    par = lu[lu.diam_km.between(diam_km / 2, diam_km * 2)]
+    return float((par.prof_diam < prof_diam).mean() * 100) if len(par) else float("nan"), len(par)
+
+
+def categoria(s: dict, etiquetas: dict) -> tuple[str, str]:
+    """(categoría, de dónde sale) para un candidato del modelo. No usa el puntaje."""
+    tipo, conf = etiquetas.get(s["id"], (None, None))
+    proceso = s.get("proceso") or ""
+    if "catálogo de cráteres conocidos" in proceso:
+        return "crater_natural", "catálogo de cráteres conocidos de México (ciencia_datos/datos/crateres_conocidos_mx.csv)"
+    if tipo in TIPOS_IA_NATURAL and conf >= CONF_IA_MIN:
+        return "crater_natural", f"etiqueta de IA {tipo}, confianza {conf:.2f}"
+    if "tajo minero" in proceso:
+        return "tajo_minero", "cantera de OpenStreetMap a ≤ 2 km" + (f"; etiqueta de IA {tipo}, confianza {conf:.2f}" if tipo else "; sin etiqueta de IA")
+    if tipo == "mina_o_cantera" and conf >= CONF_IA_MIN:
+        return "tajo_minero", f"etiqueta de IA mina_o_cantera, confianza {conf:.2f}"
+    if tipo is None:
+        motivo = "sin etiqueta de IA"
+    elif conf < CONF_IA_MIN:
+        motivo = f"la IA dice {tipo} con confianza {conf:.2f} (< {CONF_IA_MIN})"
+    else:   # valle, presa, duna u otro con confianza alta: la IA no tiene casos validados de esos tipos (model/VALIDATION.md)
+        motivo = f"la IA dice {tipo} con confianza {conf:.2f}, pero no tiene casos validados de ese tipo"
+    return "sin_verificar", motivo
+
+
+def frase_borde(s: dict, cat: str) -> str:
+    """Segunda evidencia de la categoría: el borde levantado medido (model/borde.py). Acompaña a la etiqueta; no la cambia."""
+    m = ((s.get("variables") or {}).get(borde.CLAVE) or {}).get("valor")
+    if m is None:
+        return "Borde levantado: sin medida (no hay perfil radial a 80 m)."
+    lev = borde.levantado(borde.medir(s["id"]))
+    lev = m > 0 if lev is None else lev
+    donde = f"{m:.1f} m sobre el terreno lejano; model/borde.py"
+    if cat == "crater_natural":
+        return (f"Segunda evidencia, medida: borde levantado ({donde}); la etiqueta y la medida coinciden." if lev else
+                f"La medida del borde no lo confirma ({donde}): la única evidencia es la anterior.")
+    if cat == "tajo_minero":
+        return (f"Tiene borde levantado medido ({donde}), poco común en los tajos (model/VALIDATION.md)." if lev else
+                f"Sin borde levantado medido ({donde}).")
+    return (f"Tiene borde levantado medido ({donde}), que es evidencia de cráter, pero ninguna etiqueta verificada lo confirma: "
+            "es de los primeros que conviene revisar." if lev else f"Tampoco tiene borde levantado medido ({donde}).")
+
+
+def aplicar_categoria(s: dict, etiquetas: dict) -> dict:
+    """Escribe la categoría en la nota (antes de la frase de la IA) y, en los tajos, dónde se rompe la analogía. Idempotente."""
+    cat, origen = categoria(s, etiquetas)
+    v = s.get("variables", {})
+    diam, dd = (v.get("diametro") or {}).get("valor"), (v.get("profundidad_diametro") or {}).get("valor")
+    medida = frase_borde(s, cat)
+    if cat == "crater_natural":
+        frase = (f"Categoría: cráter natural verificado ({origen}). {medida} El puntaje describe qué tan lunar o marciana es su "
+                 "forma; no decide qué es (model/VALIDATION.md).")
+    elif cat == "tajo_minero":
+        pct, n = pct_dd_lunar(diam, dd) if diam and dd else (float("nan"), 0)
+        rompe = (f"La analogía se rompe por exceso de profundidad, sobre todo en el fondo: su d/D ({dd:.3f}) supera al {pct:.0f} % de "
+                 f"los {n:,} cráteres lunares de diámetro parecido (mitad a doble) medidos a 200 m" if pct >= PCT_EXCESO else
+                 f"La analogía se rompe por ser un hueco artificial escalonado; su d/D ({dd:.3f}) supera solo al {pct:.0f} % de los {n:,} "
+                 "cráteres lunares de diámetro parecido, así que aquí la profundidad no es el problema" if pct == pct else
+                 "La analogía se rompe por ser un hueco artificial; sin d/D medida")
+        # Un tajo somero no es "de pendientes extremas": se dice lo que es según su d/D frente a la Luna
+        papel = ("Análogo operativo de pendientes extremas, no geológico." if pct >= PCT_EXCESO else
+                 "Análogo operativo de una excavación somera, no geológico." if pct == pct else "Análogo operativo, no geológico.")
+        frase = (f"Categoría: tajo minero ({origen}). {papel} {rompe} (ciencia_datos/salidas/lista_corta.md). {medida} "
+                 "novedoso se refiere a data/known_analogs.json, no a un hallazgo geológico.")
+        uso = FRASE_TAJO_USO.sub("", s.get("uso_exploracion") or "")
+        s["uso_exploracion"] = f"{uso}. {rompe}."
+    else:
+        frase = (f"Categoría: sin verificar; la etiqueta no está verificada ({origen}): no se sabe si es un cráter, una presa, un valle "
+                 f"o una duna. {medida} El puntaje de forma no lo decide (model/VALIDATION.md).")
+    nota = NOTA_CATEGORIA.sub("", s.get("nota") or "")
+    i = nota.find(" Etiqueta de IA:")
+    s["nota"] = (nota[:i] + " " + frase + nota[i:]) if i >= 0 else (nota.rstrip() + " " + frase)
+    return s
+
+
+def aplicar_regla_categoria() -> list[dict]:
+    """Modo --solo-categoria: escribe la regla 6 en los candidatos del modelo con cráter medido, sin tocar nada más."""
+    etiquetas, out = etiquetas_ia(), []
+    for f in sorted(SITES.glob("*.json")):
+        s = json.loads(f.read_text(encoding="utf-8"))
+        if s.get("estado") != "candidato_modelo" or "forma" not in s.get("variables", {}):
+            continue                               # curados (Pinacate) y Samalayuca (dunas, sin cráter) no entran
+        borde.poner_variable(s, s["id"].upper())   # la nota de la categoría cita esta medida
+        aplicar_categoria(s, etiquetas)
+        f.write_text(json.dumps(s, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        out.append({"id": s["id"], "categoria": categoria(s, etiquetas)[0], "novedoso": s.get("novedoso"),
+                    "total": s["similitud"]["total"]})
+    return out
 
 
 def analogos_conocidos() -> list[tuple[str, float, float]]:
@@ -198,8 +339,10 @@ def construir_sitio(r: pd.Series, targets: dict, ref: pd.DataFrame, conocidos: l
     fz = forma.forma_para(destino, r.diam_km, r.prof_m, r.borde_m)
     tierra = features.variables_tierra(float(r.lat), float(r.lon))
     es_mina = bool(r.km_mina <= 2.0)
-    nombre = r.nombre_catalogo or (r.nombre_previo if isinstance(r.nombre_previo, str) else None)
-    aviso_nombre = ("" if r.nombre_catalogo or not nombre else
+    nombre_global = NOMBRES_GLOBALES.get(str(r.cid).lower())
+    nombre = r.nombre_catalogo or (r.nombre_previo if isinstance(r.nombre_previo, str) else None) or (nombre_global or (None,))[0]
+    aviso_nombre = (f" Nombre: {nombre_global[1]}." if nombre_global and nombre == nombre_global[0] else
+                    "" if r.nombre_catalogo or not nombre else
                     " Nombre por verificar: se asignó en analisis/09 por cercanía a una mina o cantera de OpenStreetMap; "
                     "no se cotejó con un inventario minero oficial.")
     if es_mina:
@@ -241,10 +384,13 @@ def construir_sitio(r: pd.Series, targets: dict, ref: pd.DataFrame, conocidos: l
     if novedoso is not False and str(r.cid).lower() in ANALOGO_OTRO_CUERPO:
         novedoso = None
         aviso_novedoso = f" novedoso: null; {ANALOGO_OTRO_CUERPO[str(r.cid).lower()]}."
+    if novedoso is not False and str(r.cid).lower() in LITERATURA_PENDIENTE:
+        novedoso = None
+        aviso_novedoso = f" novedoso: null; {LITERATURA_PENDIENTE[str(r.cid).lower()]}."
     novedoso, frase_ia = novedoso_por_ia(str(r.cid).lower(), novedoso, etiquetas_ia())
     aviso_novedoso += frase_ia
     g = gemelo(cuerpo, float(r.diam_km), float(r.prof_diam), ref)
-    return {
+    sitio = {
         "id": str(r.cid).lower(),
         "nombre": nombre or (f"Depresión tipo cráter {r.cid}" + (f" ({r.region})" if isinstance(r.get("region"), str) else "")),
         "pais": r.get("pais") or "MX", "lat": round(float(r.lat), 5), "lon": round(float(r.lon), 5),
@@ -259,9 +405,15 @@ def construir_sitio(r: pd.Series, targets: dict, ref: pd.DataFrame, conocidos: l
                  + (f", en {g['lat']}, {g['lon']}" if g["lat"] is not None else "")
                  + (f". Errores al medir: {'; '.join(tierra['errores'])}" if tierra["errores"] else "") + "." + aviso_nombre + aviso_novedoso),
     }
+    borde.poner_variable(sitio, str(r.cid))
+    return aplicar_categoria(sitio, etiquetas_ia())
 
 
 def main():
+    if "--solo-categoria" in sys.argv:
+        t = pd.DataFrame(aplicar_regla_categoria())
+        print(t.groupby(["categoria", "novedoso"], dropna=False).size().to_string())
+        return t
     if "--solo-ia" in sys.argv:
         t = pd.DataFrame(aplicar_regla_ia())
         print(t.groupby(["ia", "antes", "ahora"], dropna=False).size().to_string())
@@ -275,7 +427,8 @@ def main():
     print(f"Candidatos áridos: {len(c) + len(pin)}; del Pinacate (van al sitio curado): {len(pin)}; a exportar: {len(c)}")
     conocidos = analogos_conocidos()
     if "--global" in sys.argv:
-        c = candidatos_globales()
+        ids = next((a.split("=", 1)[1] if "=" in a else sys.argv[sys.argv.index(a) + 1] for a in sys.argv if a.startswith("--ids")), None)
+        c = candidatos_globales(ids=ids.split(",") if ids else None)
         print(f"Candidatos globales a exportar (mejor forma, sin duplicados de México): {len(c)}")
     with ThreadPoolExecutor(6) as ex:
         sitios = list(ex.map(lambda row: construir_sitio(row[1], targets, ref, conocidos), c.iterrows()))

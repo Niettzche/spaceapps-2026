@@ -46,6 +46,13 @@
       "fecha": null,
       "nota": "a 200 m el borde lunar medido es negativo (mediana −23 m): no se usa como criterio de parecido"
     },
+    "borde_levantado": {
+      "valor": 16.2,
+      "unidad": "m",
+      "fuente": "Copernicus DEM GLO-30 (ESA) llevado a 80 m; perfil radial promedio del cráter (analisis/18_perfiles_radiales.py, ciencia_datos/datos/perfiles_radiales.json)",
+      "fecha": null,
+      "nota": "h/D = +0.0118, positiva: el borde queda más alto que el terreno lejano, lo que es evidencia de cráter de impacto o de explosión. Altura máxima del perfil radial promedio entre 0.83 y 1.67 radios, sobre el terreno lejano (1.67 a 2 radios). No mide parecido con la Luna ni con Marte: dice si la depresión tiene borde de cráter (model/VALIDATION.md, sección B). Ventana y umbral provisionales (P)."
+    },
     "ndvi_p90": {
       "valor": 0.249,
       "unidad": "-",
@@ -107,5 +114,5 @@
     "exageracion_vertical": null,
     "obstaculos": []
   },
-  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Polo sur (85-90°S) (Luna), 1.37 km, 104 m, d/D 0.075, en -85.26, 13.401. novedoso: false; a 0 km de un análogo conocido de data/known_analogs.json (Maar Rincón de Parangueo (Valle de Santiago, Guanajuato, México)). Etiqueta de IA: crater_volcanico, confianza 0.70 (claude -p sobre Sentinel-2 y relieve; 29 de 33 aciertos en la validación, ciencia_datos/etiquetado_ia)."
+  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Polo sur (85-90°S) (Luna), 1.37 km, 104 m, d/D 0.075, en -85.26, 13.401. novedoso: false; a 0 km de un análogo conocido de data/known_analogs.json (Maar Rincón de Parangueo (Valle de Santiago, Guanajuato, México)). Categoría: cráter natural verificado (catálogo de cráteres conocidos de México (ciencia_datos/datos/crateres_conocidos_mx.csv)). Segunda evidencia, medida: borde levantado (16.2 m sobre el terreno lejano; model/borde.py); la etiqueta y la medida coinciden. El puntaje describe qué tan lunar o marciana es su forma; no decide qué es (model/VALIDATION.md). Etiqueta de IA: crater_volcanico, confianza 0.70 (claude -p sobre Sentinel-2 y relieve; 29 de 33 aciertos en la validación, ciencia_datos/etiquetado_ia)."
 }

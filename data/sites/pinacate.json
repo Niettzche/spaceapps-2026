@@ -5,18 +5,18 @@
   "lat": 31.84444,
   "lon": -113.39111,
   "estado": "documentado",
-  "destino_ref": "jezero",
+  "destino_ref": "polo_sur_lunar",
   "prueba_util": "relieve",
   "uso_exploracion": "Geología de campo y movilidad en terreno volcánico y dentro de un cráter (maar El Elegante)",
   "proceso": "Vulcanismo basáltico y cráteres",
   "novedoso": false,
   "variables": {
     "forma": {
-      "valor": 0.028,
+      "valor": 0.972,
       "unidad": "0-1",
       "fuente": "Modelo explicable Luna contra Marte (regresión logística, 3 variables) + distancia a la nube Luna+Marte",
       "fecha": "2026-11-14",
-      "nota": "Cráter MX0008: P(Luna)=0.972, distancia a la nube=15.907; dentro del 95 % de la nube de cráteres Luna+Marte"
+      "nota": "Cráter MX0008: P(Luna)=0.972, distancia a la nube=15.008; dentro del 95 % de la nube de cráteres Luna+Marte"
     },
     "diametro": {
       "valor": 1.445,
@@ -45,6 +45,13 @@
       "fuente": "Copernicus DEM GLO-30 (ESA), remuestreado a 200 m; detector analisis/07_buscador_crateres.py",
       "fecha": null,
       "nota": null
+    },
+    "borde_levantado": {
+      "valor": 15.6,
+      "unidad": "m",
+      "fuente": "Copernicus DEM GLO-30 (ESA) llevado a 80 m; perfil radial promedio del cráter (analisis/18_perfiles_radiales.py, ciencia_datos/datos/perfiles_radiales.json)",
+      "fecha": null,
+      "nota": "h/D = +0.0108, positiva: el borde queda más alto que el terreno lejano, lo que es evidencia de cráter de impacto o de explosión. Altura máxima del perfil radial promedio entre 0.83 y 1.67 radios, sobre el terreno lejano (1.67 a 2 radios). No mide parecido con la Luna ni con Marte: dice si la depresión tiene borde de cráter (model/VALIDATION.md, sección B). Ventana y umbral provisionales (P)."
     },
     "oscilacion_termica": {
       "valor": 14.51,
@@ -76,13 +83,13 @@
     }
   },
   "similitud": {
-    "total": 0.149,
+    "total": 0.529,
     "por_dimension": {
-      "forma": 0.028,
+      "forma": 0.972,
       "oscilacion_termica": 0.2796,
       "precipitacion": 0.6005,
       "ndvi": 0.4023,
-      "pendiente": 0.7128
+      "pendiente": 0.2586
     },
     "confianza": 1.0
   },
@@ -90,7 +97,9 @@
     "gravedad",
     "presion_atmosferica",
     "radiacion",
-    "oscilacion_termica: destino por encima del máximo terrestre (55.0 > 40.0); se compara contra el extremo"
+    "vacio",
+    "iluminacion_polar_rasante",
+    "oscilacion_termica: destino por encima del máximo terrestre (176.0 > 40.0); se compara contra el extremo"
   ],
   "nivel": {
     "perfil_elevacion_m": [
@@ -258,5 +267,5 @@
     ],
     "superficies_nota": "Superficie: clasificación por reglas, no medición directa. arena si arena del suelo ≥ 65 %; si no, roca si rugosidad local (desv. est. en 90 m) > 2 m o pendiente > 15°; si no, compacto. Fuente: Copernicus DEM GLO-30 (rugosidad y pendiente); OpenLandMap SOL_SAND-WFRACTION v02, 0 cm (arena del suelo, 250 m) (ciencia_datos/datos/niveles.json, analisis/21)."
   },
-  "nota": "Coordenada: Smithsonian GVP, subrasgos de Pinacate (vn=341001): cráter El Elegante 31°50′40″N 113°23′28″W. Documentado como análogo: viajes de entrenamiento de geología de 1965–1967 y de la tripulación del Apolo 14 (Shepard y Mitchell) del 14 al 18 de febrero de 1970 (Phinney 2015, NASA SP-2015-626). Otras detecciones del campo (MacDougal MX0007, Sykes MX0010, Cerro Colorado MX0012, MX0009, MX0011) se agregan aquí en vez de exportarse como candidatos. Forma frente al otro destino (polo_sur_lunar): 0.972."
+  "nota": "Coordenada: Smithsonian GVP, subrasgos de Pinacate (vn=341001): cráter El Elegante 31°50′40″N 113°23′28″W. Documentado como análogo: viajes de entrenamiento de geología de 1965–1967 y de la tripulación del Apolo 14 (Shepard y Mitchell) del 14 al 18 de febrero de 1970 (Phinney 2015, NASA SP-2015-626). Otras detecciones del campo (MacDougal MX0007, Sykes MX0010, Cerro Colorado MX0012, MX0009, MX0011) se agregan aquí en vez de exportarse como candidatos. destino_ref = polo_sur_lunar: el cuerpo al que más se parece su forma (P(Luna)=0.972; misma regla que model/scan.py). Frente al otro destino (jezero): forma 0.028, total 0.149."
 }

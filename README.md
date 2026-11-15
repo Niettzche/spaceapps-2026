@@ -2,7 +2,7 @@
 
 An open-data Earth-analog explorer and 2D rover game for preparing selected Moon and Mars operations.
 
-**Public demo:** pending VPS publication. The website will open at the deployment root, the game at `/game/`, and the captioned 29.9-second video at `/media/mision-cero-30s-en.mp4`. Add the verified public URL here after deployment; no demo URL has been assumed.
+**Public demo:** pending VPS publication. The website will open at the deployment root, the game at `/game/`, and the captioned 25-second video at `/media/mision-cero-30s-en.mp4`. Add the verified public URL here after deployment; no demo URL has been assumed.
 
 NASA Space Apps 2026 · Monterrey / UDEM. Challenge: [Identify Earth Locations that Analog the Permanent Moon Base Locations and Mars](https://www.spaceappschallenge.org/2026/challenges/permanent-moon-base-locations-and-mars/).
 

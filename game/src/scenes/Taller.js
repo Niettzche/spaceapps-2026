@@ -58,7 +58,7 @@ function datoClave(p) {
       `wheel grip  sand ${f2(p.agarre.arena)} · rock ${f2(p.agarre.roca)} · compact ${f2(p.agarre.compacto)}`,
     );
   }
-  if (p.sistema === 'estructura') return tr(`resistencia ${p.resistencia}`, `strength ${p.resistencia}`);
+  if (p.sistema === 'estructura') return tr(`resistencia ${p.resistencia}`, `durability ${p.resistencia}`);
   if (p.sistema === 'potencia') return tr(`fuerza ${p.fuerza} · consumo ${p.consumo}/s`, `force ${p.fuerza} · drain ${p.consumo}/s`);
   if (p.sistema === 'energia') return tr(`capacidad ${p.capacidad}`, `capacity ${p.capacidad}`);
   if (p.sistema === 'carga') return tr(`protección ${Math.round(p.proteccion * 100)} %`, `protection ${Math.round(p.proteccion * 100)} %`);
@@ -119,7 +119,7 @@ export default class Taller extends Phaser.Scene {
       tr('Destino: ', 'Destination: ') + (destino ? trDato(destino, 'nombre') : partida.destino),
       sitio ? tr('Prueba en: ', 'Test at: ') + trDato(sitio, 'nombre') : null,
       tipos ? tr(`superficies: ${tipos}`, `surfaces: ${tipos}`)
-        : (sitio && sitio.prueba_util ? tr('prueba útil: ', 'useful test: ') + trDato(sitio, 'prueba_util') : null),
+        : (sitio && sitio.prueba_util ? tr('prueba útil: ', 'tests: ') + trDato(sitio, 'prueba_util') : null),
     ].filter(Boolean).join(' · ');
     titulo(this, tr('Taller', 'Workshop'), sub);
 
@@ -339,13 +339,13 @@ export default class Taller extends Phaser.Scene {
       tr('En la prueba: agarre² × agarre del suelo (P)', 'In the test: grip² × soil grip (P)'), // fisica/robot.js: friccionDeAgarre = agarre²
       tr(
         `Resistencia ${res.resistencia ?? '—'} · Protección de carga ${res.proteccion != null ? Math.round(res.proteccion * 100) + ' %' : '—'}`,
-        `Strength ${res.resistencia ?? '—'} · Cargo protection ${res.proteccion != null ? Math.round(res.proteccion * 100) + ' %' : '—'}`,
+        `Durability ${res.resistencia ?? '—'} · Cargo protection ${res.proteccion != null ? Math.round(res.proteccion * 100) + ' %' : '—'}`,
       ),
       tr(
         `Fuerza/masa ${res.fuerza_por_masa != null ? res.fuerza_por_masa.toFixed(2) : '—'} · `
           + `Autonomía ≈ ${res.autonomia_s != null ? Math.round(res.autonomia_s) + ' s a fondo' : '—'} con carga (P)`,
         `Force/mass ${res.fuerza_por_masa != null ? res.fuerza_por_masa.toFixed(2) : '—'} · `
-          + `Range ≈ ${res.autonomia_s != null ? Math.round(res.autonomia_s) + ' s at full power' : '—'}, loaded (P)`,
+          + `Battery ≈ ${res.autonomia_s != null ? Math.round(res.autonomia_s) + ' s at full power' : '—'}, loaded (P)`,
       ),
     ];
     this.txtValidacion.setY(VALIDACION_Y + this.txtEstado.height + 4);

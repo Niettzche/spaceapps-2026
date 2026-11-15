@@ -32,6 +32,17 @@ export const PALETAS = {
     // campo de lava (Pinacate): cielo claro con bruma, conos de ceniza óxido apagado
     cielo_lava: ['#3a4e7a', '#5a74a0', '#8a9eb8', '#b8c0c4', '#dcd2c0', '#f0e2c8'],
     conos: ['#2a1a1e', '#4a2a28', '#6e3e32', '#94563e', '#b8744e'],
+    // mina a cielo abierto (Real de Ángeles, Zacatecas): cielo de altiplano, bancos de roca, semidesierto
+    cielo_mina: ['#24407e', '#34589c', '#4c78b6', '#76a0cc', '#a6c4dc', '#d4e2ea'],
+    sierra_mina: ['#4a4a66', '#62607a', '#7e7a8c', '#9a94a0'],
+    banco: ['#2e1e1c', '#4e3430', '#74503f', '#9a6e54', '#be9070', '#dcb894', '#f0d8b8'],
+    oxido: ['#5a2a1c', '#8a4426', '#b06838', '#cc8a52'],
+    semidesierto: ['#1e1a10', '#3a3220', '#5e5232', '#867644', '#ae9a5c', '#d2be80'],
+    matorral: ['#141c10', '#26341a', '#3e5026', '#5e6e34', '#82904a'],
+    // maar de Al Wahbah (Arabia Saudita): cielo pálido de calor, toba en capas, basalto, harrat pedregoso, costra de sal
+    cielo_maar: ['#3a5a8e', '#5a7cac', '#88a2c4', '#b6c4d0', '#d8d8d0', '#f2ecdc'],
+    toba: ['#3e2a22', '#5e4232', '#82604a', '#a6805e', '#c6a07a', '#dcbe96'],
+    harrat: ['#16130f', '#2a2420', '#433a32', '#6a5c4c', '#94826a', '#bca88a', '#d8c6a4'],
   },
   marte: {
     // óxido (Jezero)
