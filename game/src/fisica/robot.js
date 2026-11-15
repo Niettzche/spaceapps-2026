@@ -16,8 +16,8 @@ export const DIM = {
     chasis_ligero: { largo: 3.0, alto: 0.7 },
     chasis_reforzado: { largo: 3.0, alto: 0.9 },
   },
-  radioRueda: { rueda_estandar: 0.45, rueda_ancha: 0.5, rueda_tacos: 0.45 }, // respaldo si falta radio_m; igual a parts.json
-  paredSoporte: { soporte_basico: 0.25, soporte_amortiguado: 0.45 },
+  radioRueda: { rueda_estandar: 0.45, rueda_ancha: 0.5, rueda_tacos: 0.45, rueda_malla: 0.55 }, // respaldo si falta radio_m; igual a parts.json
+  paredSoporte: { soporte_basico: 0.25, soporte_correas: 0.35, soporte_amortiguado: 0.45 },
   carga: { largo: 0.9, alto: 0.6 },
   ejeX: 0.36, // posición de los ejes como fracción del largo, desde el centro
 };
@@ -121,9 +121,14 @@ export class Robot {
     // Estado
     this.energiaMax = p.bateria.capacidad;
     // Batería fría: arranca con menos energía útil (ambiente.js, regla a). Sin ambiente = 100 %.
-    this.factorFrio = ambiente ? factorFrio(ambiente.temperatura_min_C) : 1;
+    // El módulo calentador (`aislamiento_termico`) evita parte de esa pérdida; el radiador (`radiador`) enfría el motor. (P)
+    this.aislamiento = p.modulo?.aislamiento_termico ?? 0;
+    this.radiador = p.modulo?.radiador ?? 0;
+    this.factorFrio = ambiente ? factorFrio(ambiente.temperatura_min_C, REGLAS.frio, this.aislamiento) : 1;
     this.energiaUtil = this.energiaMax * this.factorFrio;
     this.energia = this.energiaUtil;
+    // Queda en la telemetría para que el feedback pueda culpar al frío (feedback/reglas.js: calentador de batería).
+    if (this.factorFrio < 1) alEvento('bateria_fria', `${Math.round(this.factorFrio * 100)} %`);
     // Motor: temperatura (°C), empieza a la del ambiente (regla b).
     this.tMotor = temperaturaAmbienteMotor(ambiente);
     this.tMotorMax = this.tMotor;
@@ -321,9 +326,9 @@ export class Robot {
   _termica(a, dt) {
     const R = REGLAS.motor;
     const consumo = this.piezas.motor.consumo ?? 1;
-    this.potenciaMotor = this.sobrecalentado ? potenciaPermitida(this.tMotor, consumo, this.ambiente) : 1;
+    this.potenciaMotor = this.sobrecalentado ? potenciaPermitida(this.tMotor, consumo, this.ambiente, R, this.radiador) : 1;
     const ef = Math.sign(a) * Math.min(Math.abs(a), this.potenciaMotor);
-    this.tMotor = pasoTemperaturaMotor(this.tMotor, { a: ef, consumo, dt, amb: this.ambiente });
+    this.tMotor = pasoTemperaturaMotor(this.tMotor, { a: ef, consumo, dt, amb: this.ambiente, radiador: this.radiador });
     this.tMotorMax = Math.max(this.tMotorMax, this.tMotor);
     if (!this.sobrecalentado && this.tMotor >= R.limite_C) {
       this.sobrecalentado = true;
@@ -365,7 +370,8 @@ export class Robot {
     const partes = this.chasis.parts.length > 1 ? this.chasis.parts.slice(1) : this.chasis.parts;
     partes.forEach((parte, i) => {
       if (i === 0 ? omitir.chasis : omitir.soporte) return; // parte 0 = base; 1 y 2 = paredes del soporte
-      g.fillStyle(this.destruido ? 0x5a3a3a : 0xdfe3ee, 1);
+      // colorChasis: pintura elegida en el Taller (cosmética, la pone fisica/aspecto.js); sin pintura, blanco lunar.
+      g.fillStyle(this.destruido ? 0x5a3a3a : (this.colorChasis ?? 0xdfe3ee), 1);
       g.fillPoints(parte.vertices, true);
     });
     const c = Phaser.Display.Color.Interpolate.ColorWithColor(

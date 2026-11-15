@@ -56,3 +56,17 @@ Origen al centro, 1 cuadro, contorno de 1 px. Giran con el chasis. Si falta un a
 
 ## Cómo verificar
 `cd game && npm run dev` (reiniciar Vite al agregar archivos nuevos) y jugar el camino dorado en Marte y Luna; `npm run build`.
+
+## 6. Piezas nuevas del taller (15 nov, frente taller)
+Ids finales de `game/src/content/parts.json` (`docs/taller/PIEZAS.md` §6). **Ya entregado en #72** y conectado: íconos y
+sprites de `rueda_malla`, `bateria_mediana`, `panel_solar_grande`, `calentador_bateria`, `radiador` (ícono + `deco_*`) y la
+pintura `chasis_<ligero|reforzado>_<rojo|azul|verde|amarillo|morado>` (gris = sin variante). `rueda_grousers` está registrada
+en `fisica/aspecto.js`, pero **ninguna pieza usa ese id** (la rueda con garras es `rueda_tacos`, que ya tiene arte).
+
+Falta (sin arte el juego ya funciona: figura en la prueba y solo texto en el Taller):
+
+| Archivo | Medida (px de arte) | Descripción |
+|---|---|---|
+| `iconos/motor_equilibrado.png`, `iconos/soporte_correas.png` | 16 × 16 | Íconos del taller |
+| `entidades/soporte_correas.png` | 10 de ancho, 1 cuadro | Soporte con paredes medianas (0.35 m, entre el básico y el amortiguado) y correas cruzadas |
+| `entidades/deco_motor_equilibrado.png` | ~4 × 3 | Calcomanía como las de los otros motores (x −8 del chasis) |

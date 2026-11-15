@@ -369,8 +369,11 @@ caso('feedback: sobrecalentamiento → línea de analogía y recomendación', ()
   const lineas = compararAnalogia(prueba, mision, { id: 'polo_sur_lunar', mundo: 'luna', gravedad_ms2: 1.62, no_reproducible_en_tierra: [] });
   assert.ok(lineas.some((l) => l.startsWith('El motor se calentó 2 veces en la misión y ninguna en la prueba: el aire de la Tierra (1.045 kg/m³) lo enfría')));
   assert.ok(lineas.some((l) => l.startsWith('Frío: la mínima medida en el destino fue −53 °C (borde iluminado)')));
+  // Motor eficiente sin radiador → radiador en el módulo (taller); con radiador → manejar con pausas.
   const recE = recomendar({ eventos: ev('sobrecalentamiento'), diseno: [{ ranura: 'motor', pieza: 'motor_eficiente' }] });
-  assert.ok(recE.some((r) => r.id === 'pausas_motor'));
+  assert.ok(recE.some((r) => r.id === 'radiador' && r.cambio.ranuras[0] === 'modulo'));
+  const recR = recomendar({ eventos: ev('sobrecalentamiento'), diseno: [{ ranura: 'motor', pieza: 'motor_eficiente' }, { ranura: 'modulo', pieza: 'radiador' }] });
+  assert.ok(recR.some((r) => r.id === 'pausas_motor'));
   const recP = recomendar({ eventos: ev('sobrecalentamiento'), diseno: [{ ranura: 'motor', pieza: 'motor_potente' }] });
   assert.ok(recP.some((r) => r.id === 'motor_eficiente_calor' && r.cambio.pieza === 'motor_eficiente'));
 });
