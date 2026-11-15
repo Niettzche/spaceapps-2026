@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { irA } from './ui.js';
+import { tocarMusica } from '../audio/musica.js';
 import { SITIOS, DESTINOS } from '../data.js';
 import { partida } from '../main.js';
 import { COLOR, texto, boton, panel, Teclado, cajaArte } from './expediente/interfaz.js';
@@ -22,7 +23,6 @@ import { infoVariable, tecnicoConUnidad, leyendaTabla, explicaConfianza, explica
 import { icono, iconoVariable } from './expediente/iconos_expediente.js';
 import { pasosTutorial, debeMostrarTutorial } from './expediente/tutorial_expediente.js';
 import { abrirTutorial } from './expediente/tutorial_vista.js';
-import { tocarMusica } from '../audio/musica.js';
 
 // Dueño: frente expediente. Comparación 1 a 1: sitio terrestre vs destino, misma variable y unidad.
 // Diseño (docs/juego/DISENO.md §2–§3): se entiende en 3 segundos. Arriba el sitio y su similitud total (barra + %);
