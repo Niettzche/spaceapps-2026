@@ -291,6 +291,12 @@ async function corrida(c) {
     return `${c.boton} → Expediente (destino ${d})`;
   });
   await paso('expediente', async () => {
+    // Con 15 niveles la lista se pagina (5 por página, ordenada por similitud): avanza con «▶» hasta ver el sitio.
+    for (let i = 0; i < 6 && !(await ubicar('Expediente', c.sitio)); i++) {
+      // «›» también sale en las filas de la tabla: se pasa de página con la tecla real AvPág (PageDown) del Expediente.
+      await page.keyboard.press('PageDown');
+      await page.waitForTimeout(600);
+    }
     await clic('Expediente', c.sitio, async () => (await textosDe('Expediente')).some((t) => t.startsWith(c.sitio)));
     await captura('expediente');
     const tickets = await page.evaluate(() => window.__mc.partida.tickets);
