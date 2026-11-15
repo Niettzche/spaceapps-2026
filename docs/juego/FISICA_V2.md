@@ -244,6 +244,29 @@ Cambio por la roca de la Tierra con μ ≈ 0.7 (antes tan 45° = 1, sin fuente):
 recomendada pasa a ser la **malla** (`content/niveles_destacados.js`); la ancha se declara «a veces pasa», como ya pasaba en Tenoumer.
 Es coherente con las pruebas de rovers reales: Curiosity subió 22° en roca en pruebas (S100, FUENTES_FISICA.md).
 
+### 5.3 Obstáculos v2 (15 nov, mañana): el camino dorado sigue 5/5
+
+Cambios con física (NIVELES_DESTACADOS.md, «Obstáculos v2»): Jezero con 17 rocas de Golombek (antes 8), la Luna con 2 cráteres pequeños
+hundidos en el perfil (d/D 0.060 del detector) y 3 rocas, Samalayuca con 3 parches de arena blanda más en los valles entre dunas y
+Al Hutaymah con 5 bloques de toba bajos. No se tocaron `suelo_v2.js`, `robot.js` ni las piezas. La misión sigue frenando sola sobre
+cada roca (`PASO_ROCA`, v ≤ 1.5·√(2gH)/sin α). El dibujo (contorno, rizaduras, matorral) no crea cuerpos.
+
+Simulador por pasos (`scratchpad/fis/barrido.mjs`), 5 inicios por caso, acelerador a fondo:
+
+| Caso | Inicio 0 | 3 | 7 | 13 | 20 | Resultado |
+|---|---|---|---|---|---|---|
+| Samalayuca, estándar | atascado 19 m | 18 m | 19 m | 19 m | 18 m | **falla 5/5** |
+| Samalayuca, ancha | meta, E 46 % | E 47 % | E 47 % | E 46 % | E 46 % | **pasa 5/5** (carga 89–92 %) |
+| Al Hutaymah g00263, estándar | atascado 18 m | 18 m | 19 m | 18 m | 18 m | **falla 5/5** |
+| Al Hutaymah g00263, ancha | meta, E 36 % | E 38 % | E 39 % | E 38 % | E 39 % | **pasa 5/5** (carga 94–96 %) |
+| Misión Jezero, ancha | entrega, E 26 % | E 26 % | E 26 % | E 26 % | E 26 % | **entrega 5/5** (carga 98–99 %; antes E 34–35 %) |
+| Misión Luna, ancha | entrega, E 8 % | E 10 % | E 11 % | E 9 % | E 7 % | **entrega 5/5** (carga 99–100 %; antes E 9–13 %) |
+
+Con cráteres de 3–7 m la Luna bajaba a E 4–12 %: se dejaron en 3–5 m. Salidas: `scratchpad/obstaculos_v2/barrido_final.txt` y la
+corrida lunar con 3–5 m.
+
+La energía de la misión lunar baja un poco (los cráteres y el frenado en las rocas): pendiente 2 de §6 sigue valiendo.
+
 ## 6. Pendientes
 
 1. Que el integrador agregue `ancho_m` a `data/schema/part.schema.json` (hoy se acepta porque el esquema no cierra propiedades).

@@ -4,6 +4,7 @@
 import { tr } from '../i18n.js';
 import { aleatorio, semillaDe, alturaEn, PLANO_INICIO_M, PLANO_FINAL_M } from './perfil.js';
 import { velAMs } from './escala.js';
+import { contornear, bordeParche } from './obstaculos.js';
 
 const MARGEN_INICIO_M = 4;
 const MARGEN_FINAL_M = 2;
@@ -138,9 +139,13 @@ export function crearElementos(scene, perfil, { xMundo, yMundo }, lista, { mundo
       const nombre = sprite && sufijo(o.arte);
       const s = nombre && sprite(scene, nombre, { x, y: ySuelo + PX, origen: [0.5, 1], profundidad: 3 });
       if (s) {
-        // Escala el arte al tamaño del bloque (ancho = cuerda a ras del suelo), sin pasar de 2× el arte.
-        const cuerda = 2 * Math.sqrt(Math.max(0, rpx * rpx - (rpx - alto) * (rpx - alto)));
-        s.setScale(Math.max(1, Math.min(6, cuerda / s.frame.width)), Math.max(1, Math.min(6, (alto + PX) / s.frame.height)));
+        // Pixel art a ×3 (1 px de arte = 3 px, como el resto del juego; antes se escalaba a ×1–2 y los bloques se veían
+        // diminutos). Solo se ve lo que asoma, con un mínimo de 3 px de arte, más contorno y sombra.
+        const H = s.frame.height;
+        const vis = Math.min(H, Math.max(3, Math.round(alto / PX) + 1));
+        s.setScale(PX, PX).setCrop(0, 0, s.frame.width, vis);
+        s.y = ySuelo + PX + (H - vis) * PX;
+        contornear(scene, s, { recorte: [0, 0, s.frame.width, vis], luz: o.clase === 'lava_aa' ? 0x8a8078 : mundo === 'luna' ? 0xe4e4ec : 0xf2e6d0, aclarar: o.clase === 'lava_aa' ? 0.25 : 0 });
       } else {
         g.fillStyle(o.clase === 'lava_aa' ? 0x2b2324 : 0x6a5a50, 1).fillCircle(x, ySuelo + rpx - alto, rpx);
       }
@@ -158,6 +163,7 @@ export function crearElementos(scene, perfil, { xMundo, yMundo }, lista, { mundo
           t.setScale((2 * 24) / t.frame.width, 3); // 2 m de ancho por tile
           if (xm + 2 > o.hasta_m) t.setCrop(0, 0, Math.max(1, Math.round(((o.hasta_m - xm) / 2) * t.frame.width)), t.frame.height);
         }
+        bordeParche(g, perfil, { xMundo, yMundo }, o.desde_m, o.hasta_m, (COLOR_PARCHE[o.clase] ?? [o.tinte ?? 0xc8c0b0])[0], { hoyos: ['nieve', 'lodo', 'toba', 'talud'].includes(o.clase) });
         continue;
       }
       const [base, mota] = COLOR_PARCHE[o.clase] ?? [o.tinte ?? 0xc8c0b0, 0xffffff];
@@ -170,6 +176,7 @@ export function crearElementos(scene, perfil, { xMundo, yMundo }, lista, { mundo
         g.fillStyle(base, 0.95).fillPoints([{ x: a.x, y: a.y - PX }, { x: b.x, y: b.y - PX }, { x: b.x, y: b.y + grueso }, { x: a.x, y: a.y + grueso }], true);
         g.fillStyle(mota, 0.9).fillRect(Math.round((a.x + r() * 9) / PX) * PX, Math.round((a.y + r() * grueso * 0.6) / PX) * PX, PX, PX);
       }
+      bordeParche(g, perfil, { xMundo, yMundo }, o.desde_m, o.hasta_m, base, { hoyos: ['nieve', 'lodo', 'toba', 'talud'].includes(o.clase) });
     }
   }
   // Lava aa: golpes del robot contra el bloque → daño al chasis (P). El robot emite la telemetría.

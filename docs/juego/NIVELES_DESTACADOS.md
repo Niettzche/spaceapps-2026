@@ -159,7 +159,43 @@ el viento y la nieve; con el mismo método, la consulta nueva reproduce la tabla
   (estándar, ancha y tacos se quedan sin energía a 511–538 m; la malla llega con 0 %). La rueda no decide: la costra y el lodo son
   tramos cortos y planos.
 
-## Misiones finales (sin obstáculos nuevos: el camino dorado está calibrado sin ellos)
+## Obstáculos v2 (15 nov, mañana): que se vean, más donde se juega y avisos
+
+Respuesta a «los obstáculos no los acabo de ver, lo sigo viendo muy lineal» (Edmundo). Código: `fisica/obstaculos.js`,
+`fisica/elementos_nivel.js`, `fisica/avisos.js`. Todo lo agregado es **recreación** (`recreacion: true`) con semilla fija por nivel;
+lo que no trae fuente es (P).
+
+| Nivel | Antes | Después | Fuente o P |
+|---|---|---|---|
+| Misión Jezero | 8 rocas de 0.34–0.60 m | **17 rocas de 0.25–0.62 m** (separación ≥ 5 m) | Distribución de Golombek y Rapp 1997, reformulada en Golombek et al. 2012 (S86, S129; MR-071): F_k(D) = k·e^(−qD), q = 1.79 + 0.152/k. **k de Jezero = Gap**: k = 8 % (P; Viking 1 midió ~7–8 %). De F_k sale cuántas rocas corta la ruta por metro (λ ≈ 0.089 /m para D 0.25–0.8 m). D < 0.25 m no se ve a esta escala y D > 0.8 m se esquiva al planear la ruta (P). Asoman 0.8 del radio (P). |
+| Misión Luna | 3 rocas de 0.34–0.36 m | **2 cráteres pequeños de 4.4 y 4.6 m** (0.26 y 0.27 m de hondo) + 3 rocas | d/D = **0.060**: el que mide nuestro detector en el polo sur con LOLA (PROYECTO.md). Es la forma de cráteres de km aplicada a cráteres de 3–5 m (P; con 3–7 m la energía de la misión lunar bajaba a 5 %); separación (P). Cuenco coseno sin borde levantado (a 200 m el borde lunar sale negativo). Solo en tramos de ≤ 8° (los primeros 95 m: después el perfil sube a 16–21°). |
+| Samalayuca (camino dorado Marte) | 1 parche de arena blanda | **4 parches** (3 nuevos en los valles entre dunas) + rizaduras de viento y matorral seco (solo dibujo, sin colisión) | Valle = mínimo local que baja ≥ 0.4 m en ±8 m (P); agarre −25 % (P, el mismo de antes). Rizaduras: dunas activas de cuarzo (S141). |
+| Al Hutaymah g00263 (camino dorado Luna) | nada | **5 bloques de toba** de 0.3–0.4 m (asoman ≤ 0.13 m) + matorral (solo dibujo) | Anillo de toba de un campo basáltico; tamaño y separación (P). |
+| Tenoumer, Pinacate, Pingualuit, Cananea, Jabal Bayda, Parangueo | los mismos | **los mismos números** (no hay fuente para más), pero visibles | — |
+
+**Que se vean.** Los bloques de los destacados se dibujaban a ×1–2 del arte (diminutos) y las rocas recortadas a 2 px de arte; el arte
+de roca de Marte y la Luna tiene casi el color del suelo y solo se veía el contorno. Ahora: arte a ×3 (como todo el juego), mínimo
+**3 px de arte** visibles, contorno oscuro a los lados, **borde de luz arriba** y sombra; las rocas de Marte y la Luna llevan un velo
+claro (las rocas frescas se ven más claras que el polvo). Los parches llevan una franja clara arriba que sigue el terreno, banda oscura
+debajo, bordes marcados y hoyuelos en arena blanda, nieve, lodo, lapilli y talud. Los cráteres lunares, borde iluminado y fondo en
+sombra. La colisión no cambió: el dibujo puede asomar hasta 1 px de arte más que el cuerpo (mínimo visible).
+
+**Avisos** (`fisica/avisos.js`): la primera vez que un tipo de obstáculo queda a ≤ 9 m delante del robot sale un cartel corto arriba
+al centro, bajo el HUD (fuente pixel 16 px, triángulo dibujado porque la fuente no trae «⚠», 2.6 s): «Arena blanda», «Bloques de toba»,
+«Campo de rocas: el robot frena solo» (misiones), «Rocas: pásalas despacio», «Cráter pequeño», «Eyecta: bloques del cráter», «Lava aa:
+frena», «Bombas volcánicas», «Lapilli suelto», «Talud suelto», «Nieve: las ruedas se hunden», «Hielo: patina», «Costra de sal: patina»,
+«Lodo blando», y para eventos: «¡Piedras rodando!» (desprendimiento de Cananea) y «Remolino de polvo: tapa el sol» (solo donde el
+remolino sí baja la luz: Tenoumer y Jezero). En inglés con `tr()`. Uno por tipo y por partida; si llegan dos, van en cola.
+
+**Dinámicos (ya existían; se revisaron):** piedras que ruedan desde un banco en Cananea y quedan como obstáculo (`desprendimiento`, P),
+remolinos que cruzan la pista en Tenoumer y Jezero (y solo visuales en Samalayuca), ráfagas visibles con partículas (arena en
+Samalayuca, nieve en Pingualuit, ceniza en Jabal Bayda) y polvo que sale en arco balístico en la Luna (`efectos.js`, sin aire).
+Todos con semilla por nivel y declarados como recreación en el panel de datos (tecla I).
+
+**Camino dorado tras el cambio** (simulador por pasos, física 2, 5 inicios distintos: 0, 3, 7, 13 y 20 pasos sin acelerar;
+diseño base chasis ligero + motor eficiente + batería chica + soporte básico): ver la tabla en FISICA_V2.md §5.3.
+
+## Misiones finales (viento, eventos y, desde la v2 de obstáculos, rocas de Golombek y cráteres lunares)
 
 - **Jezero (Marte):** viento de ráfagas de 10 m/s con ρ = 0.017 (casi no empuja; se explica en el panel), partículas de polvo,
   remolinos de polvo (~1 % menos luz al panel al pasar; 15 % los fuertes, MR-083) y Fobos cruzando el cielo (acelerado: el tránsito real dura horas).
@@ -223,6 +259,9 @@ ancha 2/5 (antes meta) y Pingualuit con ancha 4/5; los demás diseños de la tab
   La costra de sal no tiene dato de fricción con fuente; con −30 % de agarre en suelo plano no detiene a ninguna rueda.
 
 ## Arte que falta (para Mauricio)
+
+- **Obstáculos v2** (ver docs/arte/SPRITES_PENDIENTES.md §10): matorral seco, rizaduras, bloque de toba, cráter lunar pequeño y roca
+  de Marte/Luna más clara que el suelo. Hoy se dibujan o se tiñen.
 
 - Fondo ártico / tundra (Pingualuit usa `desierto`).
 - Tiles de parche **en pendiente** (toba, talud, nieve, hielo): los tiles planos quedan en escalones; en pendiente se dibuja una franja.

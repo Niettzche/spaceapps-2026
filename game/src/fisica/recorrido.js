@@ -16,7 +16,9 @@ import { tr } from '../i18n.js';
 import { AspectoRobot, crearFondo, claveDeFondo, sprite, tira, hayArte } from './aspecto.js';
 import { ambienteDe, notaAmbiente, factorFrio } from './ambiente.js';
 import * as K from '../scenes/comun/pixel.js'; // botón de arte (Abandonar)
-import { generarObstaculos, crearObstaculos, factorAgarreEn, notaObstaculos } from './obstaculos.js';
+import { generarObstaculos, crearObstaculos, factorAgarreEn, notaObstaculos, aplicarCrateres } from './obstaculos.js';
+import { Avisos, puntosDeAviso } from './avisos.js';
+import { textoPixel } from '../scenes/comun/fuente.js'; // «⚠ Eyecta», «⚠ Arena blanda»… la primera vez de cada tipo
 // Tutorial guiado de la primera prueba y la primera misión (docs/juego/PLAN_REMAKE.md §1).
 import { CLAVES_TUTORIAL, marcaTutorial, pasosPrueba, pasosMision } from '../scenes/comun/tutorial.js';
 import { abrirTutorial } from '../scenes/comun/tutorial_vista.js';
@@ -60,12 +62,15 @@ export class Recorrido {
     scene.cameras.main.setBackgroundColor(FONDO[o.mundo] ?? FONDO.tierra);
 
     const baseY = 380;
+    // Obstáculos recreados (rocas, arena blanda, cráteres lunares, extras del camino dorado). Ver ESPECIFICACION §5b.
+    // Se generan antes del terreno: los cráteres pequeños de la Luna se hunden en el perfil (aplicarCrateres).
+    this.obstaculos = generarObstaculos(o.perfil, { mundo: o.mundo, semilla: (o.modo === 'prueba' ? o.sitioId : o.destinoId) ?? o.mundo });
+    o.perfil = aplicarCrateres(o.perfil, this.obstaculos);
     this.terreno = construirTerreno(scene, o.perfil, { mundo: o.mundo, origenX: 0, baseY });
     const { xMundo, yMundo } = this.terreno;
     this.xMundo = xMundo;
     // Ambiente real del nivel (temperatura, aire, luz) y obstáculos recreados (rocas, arena blanda). Ver ESPECIFICACION §5b.
     this.ambiente = o.ambiente ?? ambienteDe({ modo: o.modo, mundo: o.mundo, sitioId: o.sitioId, destinoId: o.destinoId });
-    this.obstaculos = generarObstaculos(o.perfil, { mundo: o.mundo, semilla: (o.modo === 'prueba' ? o.sitioId : o.destinoId) ?? o.mundo });
     crearObstaculos(scene, o.perfil, this.terreno, this.obstaculos, { mundo: o.mundo, sprite, hayArte });
     // Niveles destacados (content/niveles_destacados.js): parches y bloques recreados, viento y eventos. Sin config, no hace nada.
     this.destacado = new NivelDestacado(scene, o, this.terreno);
@@ -101,6 +106,7 @@ export class Recorrido {
       fisica: this.fisica, gravedad: o.gravedad, lugar,
     });
     this.destacado.crear(this.robot, this.ambiente);
+    this.avisos = new Avisos(scene, puntosDeAviso(this.obstaculos, this.destacado.elementos, { modo: o.modo }), { textoPixel });
     // Misión: paso seguro sobre cada roca recreada (robot.js, PASO_ROCA). En la Tierra no: la prueba se maneja en vivo.
     const radioRueda_m = Math.min(...this.robot.ruedas.map((w) => w.radio)) / PX_POR_M;
     this.pasosRoca = o.modo === 'mision' ? this.obstaculos.filter((x) => x.tipo === 'roca').map((x) => ({
@@ -325,6 +331,13 @@ export class Recorrido {
     this.aspecto.dibujar(this.g);
     this.efectos.actualizar(delta, r); // polvo de ruedas y arena al patinar
     this.destacado.actualizar(delta / 1000, (r.x - this.xMundo(0)) / PX_POR_M); // viento y eventos de fondo
+    if (!this.tutorial?.abierto()) {
+      // Eventos dinámicos que también avisan la primera vez: piedras que ruedan (Cananea) y remolinos que sí bajan la luz.
+      const ev = this.destacado.eventos;
+      if (ev?.vistos?.size) this.avisos.forzar('desprendimiento');
+      if (ev && !ev.soloVisual && [...(ev.objetos?.keys() ?? [])].some((e) => e.tipo === 'remolino')) this.avisos.forzar('remolino');
+      this.avisos.actualizar((Math.max(...r.ruedas.map((w) => w.cuerpo.position.x)) - this.xMundo(0)) / PX_POR_M);
+    }
     this.sonido.actualizar(delta, r, acelerador);
     const estado = r.estado();
     const x_m = (r.x - this.xMundo(0)) / PX_POR_M;
@@ -448,6 +461,7 @@ export class Recorrido {
 
   destruir() {
     this.destacado?.destruir();
+    this.avisos?.destruir();
     this.decoracion?.destruir();
     this.efectos?.destruir();
     this.sonido?.destruir();
