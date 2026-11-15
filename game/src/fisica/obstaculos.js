@@ -335,7 +335,9 @@ export function crearObstaculos(scene, perfil, { xMundo, yMundo }, lista, { mund
       cuerpos.push(cuerpo);
       // Arte según el tamaño (las grandes con el sprite grande); la toba de Al Hutaymah con la roca aclarada.
       const n = o.radio_m * 2 < 0.4 ? 1 : o.radio_m * 2 < 0.6 ? 2 : 3;
-      const nombre = sprite && elegir('obstaculo_roca', `_${o.fuente === 'golombek' ? n : (i % 3) + 1}`);
+      // Toba de Al Hutaymah: bloque propio de Mauricio (#114) si existe; si no, la roca aclarada.
+      const bloqueToba = o.clase === 'toba' && sprite ? elegir('obstaculo_toba_bloque', `_${(i % 2) + 1}`) : null;
+      const nombre = bloqueToba ?? (sprite && elegir('obstaculo_roca', `_${o.fuente === 'golombek' ? n : (i % 3) + 1}`));
       const s = nombre && sprite(scene, nombre, { x, y: ySuelo, origen: [0.5, 1], profundidad: 3 });
       if (s) {
         // A escala de arte; solo se ve la parte de arriba que asoma (la roca está medio enterrada): se recorta el resto.
@@ -344,7 +346,7 @@ export function crearObstaculos(scene, perfil, { xMundo, yMundo }, lista, { mund
         const vis = Math.min(H, Math.max(3, Math.round(alto / PX) + 1));
         s.setCrop(0, 0, s.frame.width, vis);
         s.y = ySuelo + PX + (H - vis) * PX;
-        if (o.clase === 'toba') s.setTint(0xe6d6b8);
+        if (o.clase === 'toba' && !bloqueToba) s.setTint(0xe6d6b8);
         contornear(scene, s, { recorte: [0, 0, s.frame.width, vis], luz: LUZ_ROCA[mundo] ?? LUZ_ROCA.tierra, aclarar: mundo === 'tierra' ? 0 : 0.35 });
       } else {
         // Roca de píxeles (1 px de arte = 1/8 m): mínimo 3 × 2 px para que se vea; tapa más angosta, brillo y sombra.
