@@ -19,6 +19,11 @@ export const UMBRAL_PROPUESTA = 0.6;
 // NASA POWER puede tardar: espera generosa antes de declarar que la API no responde.
 export const ESPERA_API_MS = 90000; // medido: ~60 s por punto con NASA POWER + MODIS
 
+// Boot: no precarga formatos pesados ni archivos mayores a este límite (P). El arte del juego en /assets pesa hoy
+// ≤ 23 KB por archivo; 300 KB deja margen para fondos grandes y frena GIF o video que se cuelen en /assets.
+export const LIMITE_PRECARGA_BYTES = 300 * 1024;
+export const EXTENSIONES_SIN_PRECARGA = ['gif', 'mp4', 'webm'];
+
 /**
  * Enlace a la ficha completa en web/. Manda `sitio=<id del sitio>` y, si el id es de una detección del detector
  * (mx0007, g00003), también `ficha=<ID en mayúsculas>` que es como web/ nombra sus fichas (web/public/data/fichas.json).
