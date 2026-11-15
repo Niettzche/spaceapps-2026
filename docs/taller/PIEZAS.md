@@ -151,7 +151,7 @@ Reglas puras: `game/src/scenes/Taller/arrastre.js` (prueba: `arrastre.test.mjs`)
 Combinaciones dentro de 1,000: Nitinol en los dos ejes (970), carbono + anchas (980), auto-rescate + anchas (990),
 titanio + malla (960). Titanio + anchas (1,040) **no cabe**. Con ruedas estándar, el auto-rescate no basta para Samalayuca
 (se atasca igual a 41 m tras 2 rescates): no reemplaza a las ruedas anchas. Feedback: `rueda_nitinol` (carga dañada aun con
-soporte amortiguado), `auto_rescate` (patinó ≥ 3 veces con ruedas ya adecuadas y sin módulo) y aviso de uso del rescate.
+soporte amortiguado), `auto_rescate` (el intento falló por atasco o energía, patinó ≥ 3 veces con ruedas ya adecuadas y sin módulo) y aviso de uso del rescate.
 
 **Bloqueadas** (`game/src/scenes/Taller/bloqueadas.js`, no están en `parts.json`): se ven con candado y su razón para que
 estén todas las filas del libro, sin inventar física.

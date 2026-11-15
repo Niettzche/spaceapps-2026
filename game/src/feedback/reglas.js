@@ -79,7 +79,9 @@ export function recomendar(resultado, motivo) {
   // Auto-rescate (AB-002): patinó varias veces aunque ya lleva las ruedas que recomendaríamos y la bahía del módulo está libre.
   const patinajes = patinaArena + patinaRoca;
   const conModulo = d.some((x) => x.ranura === 'modulo' && x.pieza);
-  if (patinajes >= 3 && !conModulo && !recs.some((r) => r.id === 'rueda_ancha' || r.id === 'rueda_tacos')) {
+  // Solo si el intento falló por atasco o energía: tras una prueba superada no se agrega ruido al camino dorado.
+  const fallo = ['atascado', 'energia_agotada'].includes(motivo);
+  if (fallo && patinajes >= 3 && !conModulo && !recs.some((r) => r.id === 'rueda_ancha' || r.id === 'rueda_tacos')) {
     recs.push({
       id: 'auto_rescate',
       texto: tr('Pon el auto-rescate en el módulo: zafa al robot cuando se atasca.', 'Fit the self-rescue module: it frees the robot when it gets stuck.'),

@@ -125,6 +125,7 @@ caso('feedback: el camino dorado sigue recomendando ruedas anchas primero; auto-
   const r2 = recomendar({ eventos: ev(4), diseno: anchas }, 'atascado');
   assert.equal(r2[0].id, 'auto_rescate');
   assert.deepEqual(r2[0].cambio, { ranuras: ['modulo'], pieza: 'auto_rescate' });
+  assert.ok(!recomendar({ eventos: ev(12), diseno: anchas }, 'meta').some((r) => r.id === 'auto_rescate'), 'no tras una prueba superada');
   const r3 = recomendar({ eventos: [...ev(1), { t: 9, tipo: 'auto_rescate', detalle: '1' }], diseno: comoDiseno({ ...base(), modulo: 'auto_rescate' }) }, 'meta');
   assert.ok(r3.some((r) => r.id === 'auto_rescate_uso' && !r.cambio));
   const golpes = Array.from({ length: 5 }, (_, i) => ({ t: i, tipo: 'golpe_carga', detalle: '3 m/s' }));
