@@ -93,3 +93,8 @@
 ## Cambios que propongo a contratos o AGENTS.md (los aplica el integrador)
 - `site.schema.json`: un campo opcional `gemelo` ({cuerpo, sitio, lat, lon, diam_km, prof_m}). Hoy el gemelo va como texto en `nota`.
 - `site.schema.json`: permitir `similitud_por_destino` (polo_sur_lunar y jezero), para no perder la comparación con el otro destino.
+- `docs/GUION_PITCH.md`, sección "Preguntas": agregar la respuesta a "¿qué tiene que ver el borde levantado con los análogos?".
+  El texto exacto, las tres razones y lo que no hay que decir están en `model/NIVEL2.md` §D. Ojo: la frase "dos evidencias
+  independientes" no se sostiene (la IA también vio el relieve); la correcta está ahí.
+- Juego y web: la variable nueva `variables.borde_levantado` sale sin etiqueta propia ("Borde levantado" solo en español en el
+  Expediente; `borde_levantado` en la ficha de la web). Propuesta de etiqueta: "Borde levantado (80 m)" / "Raised rim (80 m)".
