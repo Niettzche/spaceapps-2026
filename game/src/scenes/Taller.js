@@ -24,9 +24,10 @@ const FUENTE = 'monospace';
 // Posición de cada ranura en el esquema lateral (el robot avanza hacia la derecha).
 const ESQUEMA = {
   modulo: { x: 365, y: 192, w: 120, h: 48 },
-  motor: { x: 115, y: 250, w: 120, h: 52 },
-  bateria: { x: 240, y: 250, w: 120, h: 52 },
-  carga: { x: 365, y: 250, w: 120, h: 52 },
+  // Fila de arriba un poco más alta (60) para que quepan ícono + 3–4 líneas de texto sin salirse de la caja.
+  motor: { x: 115, y: 250, w: 120, h: 60 },
+  bateria: { x: 240, y: 250, w: 120, h: 60 },
+  carga: { x: 365, y: 250, w: 120, h: 60, etiqueta: 'Carga' }, // "Soporte de carga" + nombre de la pieza no cabe con ícono
   chasis: { x: 240, y: 318, w: 370, h: 52 },
   rueda_tras: { x: 115, y: 392, rueda: true },
   rueda_del: { x: 365, y: 392, rueda: true },
@@ -173,8 +174,10 @@ export default class Taller extends Phaser.Scene {
         // Con ícono, el texto se recorre a la derecha para no taparlo.
         txt.setX(clave ? e.x + 12 : e.x);
         txt.setWordWrapWidth(clave ? e.w - 32 : e.w - 8);
+        txt.setFontSize(clave ? 10 : 11); // con ícono queda menos ancho: letra un punto más chica
       }
-      const etiqueta = r.multiplicador > 1 ? `${r.nombre} ×${r.multiplicador}` : r.nombre;
+      const nombreRanura = e.etiqueta ?? r.nombre;
+      const etiqueta = r.multiplicador > 1 ? `${nombreRanura} ×${r.multiplicador}` : nombreRanura;
       const vacio = r.obligatoria ? '(vacía)' : '(opcional)';
       txt.setText(`${etiqueta}\n${p ? p.nombre : vacio}`);
       txt.setColor(falta ? C.error : (elegida ? C.acento : C.texto));
