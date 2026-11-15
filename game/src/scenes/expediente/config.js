@@ -33,6 +33,11 @@ export const ESPERA_POWER_MS = 8000;
 // ≤ 23 KB por archivo; 300 KB deja margen para fondos grandes y frena GIF o video que se cuelen en /assets.
 export const LIMITE_PRECARGA_BYTES = 300 * 1024;
 export const EXTENSIONES_SIN_PRECARGA = ['gif', 'mp4', 'webm'];
+// Pantalla de carga (arte de Mauricio, assets/pantallas/carga_fondo.png, 320 × 180 con el logo y el marco vacío de la
+// barra). Excepción explícita al límite de arriba: se carga primero, en preload(), pese el que pese, para dibujar la barra
+// sobre ella. Hoy pesa 11 KB. `hueco`: rectángulo vacío de la barra en px de arte (assets/fuente/titulo.mjs: x 64..255,
+// y 147..150); se escala igual que la imagen. Si la imagen falta o falla, el Boot dibuja la misma barra sobre fondo liso.
+export const FONDO_CARGA = { clave: 'pantallas/carga_fondo', ancho: 320, hueco: { x: 64, y: 147, w: 192, h: 4 } };
 
 /**
  * Enlace a la ficha completa en web/. Manda `sitio=<id del sitio>` y, si el id es de una detección del detector
