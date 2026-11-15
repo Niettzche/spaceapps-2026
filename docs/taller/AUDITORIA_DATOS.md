@@ -42,3 +42,57 @@
 **Mi Excel y mis documentos:** revisé las hojas Judges, Ambiente y Biomes, y `PIEZAS.md`, `AMBIENTE.md`, `PITCH_QA_EN.md` y `METHODOLOGY_EN.md`. Ninguno llama "medidos" a los ángulos de Apolo y Viking (la hoja Judges cita la advertencia de NASA de que son estimaciones), y las gravedades y velocidades coinciden con las fuentes. No encontré errores que corregir.
 
 **Falta (después de que Mario publique):** recorrer la demo en v1.marsception.us con `?lang=es` y `?lang=en` para confirmar que se ve lo mismo que el código auditado.
+
+## 2. Clima y obstáculos (15 nov, `main` 1698854)
+
+> Juego local (`npm run dev`) con `?lang=es` y `?lang=en`. Capturé en pantalla el panel de instrucciones de la prueba en Samalayuca
+> y de la misión a Jezero, y el panel de datos (tecla I) de la misión lunar. La barra del motor la vi en las tres. Las líneas de
+> Resultados las revisé en el código (`feedback/analogia.js`), sin terminar una partida.
+> Comparo con la hoja **Ambiente** del libro de datos y con `docs/taller/AMBIENTE.md`. Las reglas (P) de `fisica/ambiente.js`
+> y `fisica/obstaculos.js` son valores de juego: reviso que estén marcadas, no su valor.
+
+| Pantalla | Texto | Valor | Fuente | ✓/✗ | Corrección propuesta |
+|---|---|---|---|---|---|
+| Datos de los sitios (`ambiente.js`, `CLIMA_SITIOS`) | Mínima/máxima típica, extremos, media, presión y densidad de samalayuca, pinacate, mx0207 y g00281 | 28 valores | AMBIENTE.md AM-001…AM-028 (NASA POWER, S74/S75) | ✓ | — (coinciden uno por uno) |
+| Datos de los destinos (`ambiente.js`) | Jezero −83 / −22 / −55 °C, 0.718 kPa, 0.017 kg/m³; Luna −53 °C (borde), −248 °C (sombra), 3×10⁻¹⁰ Pa, 0 | — | AMBIENTE.md (S22, S21, S07, S02) | ✓ | — |
+| Instrucciones, prueba Samalayuca (EN) | "Earth: 0 to 36 °C · air 1.04 kg/m³: cools the motor well" | 0.3 / 36.2 °C; 1.045 kg/m³ | AM samalayuca | ⚠ | `toFixed(2)` muestra 1.045 como **1.04** (redondeo binario). Sugerencia: 3 decimales ("1.045") |
+| Instrucciones, misión Jezero (EN) | "Mars: −83 to −22 °C · air 0.017 kg/m³ (1 % of Earth's): the motor barely cools" | −83 / −22 °C; 0.017; 1 % | S22; 0.017 / 1.217 = 1.4 % | ⚠ | Las temperaturas son de **dos soles** de MEDA, no un rango típico. Sugerencia: "−83 to −22 °C (2 sols, MEDA)" / "(2 soles, MEDA)" |
+| Instrucciones, misiones | "cold battery: starts at 85 % · motor: limit 100 °C" | 85 %; 100 °C | Reglas de `ambiente.js` (P) | ⚠ | Aquí no dice que son valores de juego (en el panel I sí: "Reglas (P)"). Sugerencia: anteponer "(P)" |
+| Instrucciones, misión Jezero | "Arrival on Mars · gravity 3.71 m/s² (38 % of Earth's)" | 3.71; 38 % | S71 | ✓ | — |
+| Panel de datos (I), Luna (ES) | "Luna: −53 °C · sin aire (vacío): el motor solo se enfría por radiación" | −53 °C | Diviner (S07): ~220 K en bordes iluminados | ⚠ | No dice que es el **borde iluminado** (esa nota solo sale en el Expediente). Sugerencia: "−53 °C (borde iluminado)" / "(sunlit rim)" |
+| Panel de datos (I), Luna | "Reglas (P): batería fría: arranca al 89 % · motor: límite 100 °C · luz rasante: el panel solar recarga 20 %" | 89 %; 100 °C; 20 % | `factorFrio(−53)` = 0.894; reglas (P) | ✓ | — |
+| Panel de datos (I), Luna | "Fuente: docs/taller/AMBIENTE.md: LRO Diviner, UCLA (S07); NASA Moon Fact Sheet (S02)" | — | AMBIENTE.md | ✓ | — |
+| Panel de datos (I), obstáculos | "3 rocas de 0.3–0.4 m medio enterradas (asoman ≤ 0.09 m); el modelo de elevación no los resuelve" | 0.3–0.6 m | Recreación (P); los DEM son de 30–200 m por píxel (`docs/METODOLOGIA.md`) | ✓ | — |
+| Panel de datos (I), arena blanda | "soft-sand patches (grip −25 %)" | −25 % | Recreación (P) | ✓ | — |
+| Barra del motor (HUD) | Temperatura al arrancar: 18 °C (Samalayuca), −55 °C (Jezero), −53 °C (Luna) | media del lugar | AM: 17.9 / −55 / −53 | ✓ | — |
+| Expediente (`lineasAmbiente`) | "Pressure: 0.718 kPa · air 0.017 kg/m³ (1 % of Earth's at sea level)"; "solar panel at 43 %" | 0.718; 43 % | S22; WX-007: 586.2 / 1361 W/m² = 0.431 | ✓ | — |
+| Resultados (`analogia.js:67`) | "El motor se calentó N veces… el aire de la Tierra (1.045 kg/m³) lo enfría; en el destino el aire es el 1 % del de la Tierra" | 1.045; 1 % | AM samalayuca; S22 | ✓ | Opcional: "…del de la Tierra a nivel del mar", porque el 1 % se calcula contra 1.217 y no contra el 1.045 del sitio |
+| Resultados (`analogia.js:72`) | "Frío: en el destino hace −83 °C y la batería arrancó al 85 %" | −83 °C | S22 (mínima de dos soles) | ⚠ | "hace −83 °C" suena a temperatura habitual. Sugerencia: "la mínima medida fue −83 °C (MEDA, dos soles)" / "the measured low was −83 °C (MEDA, two sols)" |
+| Resultados (`analogia.js:78`, `:44`) | "estimación de Apolo / estimación de ingeniería con datos Viking"; "menos fuerza de tracción" | — | Auditoría 1 | ✓ | — (corregido) |
+| Regla del motor (P), coherencia | Equilibrio a fondo con el motor eficiente: Tierra +27 °C, Marte +444 °C (se sobrecalienta), Luna +600 °C | — | `REGLAS.motor` y densidades de AMBIENTE.md | ✓ | — (coincide con el comentario del código: "~25–30 °C" y "pasa de 500 °C") |
+| Comentario de código (`ambiente.js:210`) | El ejemplo dice "aire 0.016 kg/m³" | 0.016 | El valor que se usa es 0.017 | ⚠ | Solo es un comentario (no sale en pantalla): cambiar a 0.017 |
+
+**Resumen de la sección 2:** sin errores (✗). Los números de clima vienen bien de AMBIENTE.md y las reglas están marcadas (P) en el
+panel de datos y en el Expediente. Hay 6 avisos (⚠):
+1. "1.04" en vez de 1.045.
+2. Los −83/−22 °C de Jezero sin decir que son dos soles.
+3. Falta "(P)" en las reglas del panel de instrucciones.
+4. Los −53 °C lunares sin decir "borde iluminado".
+5. "hace −83 °C" en Resultados.
+6. Un comentario de código desactualizado.
+
+## 3. Demo publicada (v1.marsception.us, 15 nov)
+
+Revisé el bundle publicado (`/assets/index-B7-1DKRo.js`, el que carga `https://v1.marsception.us/game/?lang=en`) buscando los textos de cada cambio:
+
+| Qué | ¿Está en la demo publicada? |
+|---|---|
+| Menú en inglés ("New game") y selector "Español / English" | ✓ |
+| Taller en inglés (#57: "durability") | ✓ |
+| Ambiente y obstáculos ("cold battery", "grazing light", "soft-sand") | ✓ |
+| Correcciones de la auditoría 1 ("traction force", "Apollo estimate", "Viking data", "about 78") | ✗ ninguna |
+| Errores ya corregidos en `main` ("measured value", "and SRTM", "75–77") | ✗ siguen ahí |
+
+**Conclusión:** la demo es más nueva que la de la auditoría 1, pero se publicó **antes** de que entraran sus correcciones. Hay que
+**volver a publicar con `main` actual** (1698854 o posterior) para que los jueces no vean "measured value", "SRTM" ni "75–77 %".
+Después basta con buscar de nuevo esos textos en el bundle publicado.
