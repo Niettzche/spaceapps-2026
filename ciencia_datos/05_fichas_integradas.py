@@ -40,6 +40,9 @@ for p in pr:
     filas.append(dict(id=p["id"], dif_fondo=z["fondo"], dif_pared=z["pared"], dif_borde=z["borde"], dif_alrededor=z["alrededor"],
                       dif_media=round(sum(z.values()) / 4, 4), gemelo_lat=g["lat"], gemelo_lon=g["lon"], gemelo_diam_km=g["d"], gemelo_prof_m=g["p"]))
 F = F.merge(pd.DataFrame(filas), on="id", how="left")
+# Diferencia RELATIVA: la absoluta está en unidades de d/D y premia lo plano (un hoyo plano difiere poco en d/D de cualquier cosa);
+# dividida entre su propio d/D mide la diferencia como fracción de la profundidad del cráter
+F["dif_rel"] = (F.dif_media / F.prof_diam).round(4)
 
 # ---------- P(Luna) del modelo explicable Luna contra Marte, donde ya está calculada ----------
 pl = pd.read_csv(S / "puntaje_luna_marte_mexico.csv")[["cid", "P_Luna", "dentro_95"]].rename(columns={"cid": "id"})
@@ -63,22 +66,22 @@ F.to_csv(S / "fichas_integradas.csv", index=False)
 # ---------- lista corta propuesta (reglas declaradas; provisional) ----------
 REGLAS = {
     "base": "árido (NDVI p90 < 0.35); etiqueta de IA con confianza ≥ 0.7; forma con sombra polar en ≥ 80 % del cráter (sol a 1.5°)",
-    "natural": "cráter volcánico o de impacto según la IA: los 3 con menor diferencia media de perfil contra su gemelo lunar (80 m)",
+    "natural": "cráter volcánico o de impacto según la IA: los 3 con menor diferencia relativa de perfil contra su gemelo lunar (80 m; diferencia media / d/D)",
     "mina": "mina o cantera según la IA y junto a cantera de OpenStreetMap (≤ 2 km): las 3 más hondas para su tamaño (d/D), una por región si se puede",
 }
 base = F[(F.conf_ia >= 0.7) & (F.sombra_crater_tierra >= 0.8)]
-nat = base[base.etiqueta_ia.isin(["crater_volcanico", "crater_impacto"])].nsmallest(3, "dif_media").assign(papel="cráter natural: forma más lunar")
+nat = base[base.etiqueta_ia.isin(["crater_volcanico", "crater_impacto"])].nsmallest(3, "dif_rel").assign(papel="cráter natural: forma más lunar")
 mn = base[(base.etiqueta_ia == "mina_o_cantera") & (base.km_mina <= 2)].sort_values("prof_diam", ascending=False)
 mn = pd.concat([mn.drop_duplicates("region"), mn]).drop_duplicates("id").head(3).assign(papel="tajo minero: pendientes extremas (analogía rota por exceso)")
 LC = pd.concat([nat, mn])
-cols = ["papel", "id", "nombre", "region", "lat", "lon", "diam_km", "prof_m", "prof_diam", "etiqueta_ia", "conf_ia", "dif_fondo", "dif_pared",
+cols = ["papel", "id", "nombre", "region", "lat", "lon", "diam_km", "prof_m", "prof_diam", "etiqueta_ia", "conf_ia", "dif_media", "dif_rel", "dif_fondo", "dif_pared",
         "dif_borde", "dif_alrededor", "sombra_crater_tierra", "sombra_crater_luna", "ind_mafico", "t2m_rango_diario_c", "P_Luna", "conocido_como", "razon_ia"]
 LC[cols].to_csv(S / "lista_corta.csv", index=False)
 
 md = ["# Lista corta propuesta (provisional, la decide el equipo)", "",
       "Generada por `ciencia_datos/05_fichas_integradas.py` a partir de `fichas_integradas.csv`.", "", "**Reglas:**"]
 md += [f"- {k}: {v}" for k, v in REGLAS.items()]
-md += ["", "| Papel | id | Lugar | D (km) | d/D | IA | Dif. perfil fondo/pared/borde | Sombra polar (Tierra / gemelo) | Ya conocido |", "|---|---|---|---|---|---|---|---|---|"]
+md += ["", "| Papel | id | Lugar | D (km) | d/D | IA | Dif. relativa | Dif. perfil fondo/pared/borde | Sombra polar (Tierra / gemelo) | Ya conocido |", "|---|---|---|---|---|---|---|---|---|---|"]
 for r in LC.itertuples():
     if isinstance(r.nombre, str) and r.nombre:
         nom = r.nombre + (" (nombre por verificar)" if r.etiqueta_ia == "mina_o_cantera" else "")
@@ -88,19 +91,20 @@ for r in LC.itertuples():
         nom = "sin nombre"
     lugar = nom + f", {r.region} ({r.lat:.3f}, {r.lon:.3f})"
     md.append(f"| {r.papel} | {r.id} | {lugar} | {r.diam_km:.2f} | {r.prof_diam:.3f} | {r.etiqueta_ia} ({r.conf_ia}) | "
-              f"{r.dif_fondo:.4f} / {r.dif_pared:.4f} / {r.dif_borde:.4f} | {r.sombra_crater_tierra:.2f} / {r.sombra_crater_luna:.2f} | {r.conocido_como or 'no'} |")
+              f"{r.dif_rel:.2f} | {r.dif_fondo:.4f} / {r.dif_pared:.4f} / {r.dif_borde:.4f} | {r.sombra_crater_tierra:.2f} / {r.sombra_crater_luna:.2f} | {r.conocido_como or 'no'} |")
 # Lectura principal: se genera de los datos (no se escribe a mano)
-base_nat = base[base.etiqueta_ia.isin(["crater_volcanico", "crater_impacto"])].sort_values("dif_media")
+base_nat = base[base.etiqueta_ia.isin(["crater_volcanico", "crater_impacto"])].sort_values("dif_rel")
 nuevos = base_nat[base_nat.conocido_como == ""]
 conocidos_en_lista = int((nat.conocido_como != "").sum())
-lista_nuevos = "; ".join(f"{r.id} ({r.region}, dif. {r.dif_media:.4f})" for r in nuevos.itertuples())
+lista_nuevos = "; ".join(f"{r.id} ({r.region}, dif. relativa {r.dif_rel:.2f})" for r in nuevos.itertuples())
 md += ["", f"**Lectura principal:** {len(base_nat)} cráteres naturales pasan la regla base; {len(nuevos)} de ellos **no están en ninguna lista de análogos conocidos** "
        f"y son candidatos nuevos a revisar: {lista_nuevos}. Los {len(nat)} de la lista corta son los de perfil más parecido y {conocidos_en_lista} ya son análogos conocidos, "
        f"así que también funcionan como **controles** de que el método encuentra lo que debe. Si el equipo quiere, los nuevos mejor puntuados pueden entrar a la lista. "
        f"Ojo: \"no está en la lista\" no significa \"nunca usado\". `data/known_analogs.json` tiene 20 sitios, y algunos de estos caen en campos volcánicos usados para entrenamiento (por ejemplo, G00176 en el campo volcánico de San Francisco, Arizona); hay que verificarlos en la literatura antes de llamarlos novedosos. "
        f"Los **tajos mineros** ({mn.region.nunique()} regiones) son el otro hallazgo: análogo operativo de pendientes extremas, con la analogía rota por exceso de profundidad, sobre todo en el fondo."]
-pd.DataFrame(nuevos[["id", "region", "lat", "lon", "diam_km", "prof_diam", "etiqueta_ia", "conf_ia", "dif_media", "sombra_crater_tierra", "razon_ia"]]).to_csv(S / "naturales_nuevos.csv", index=False)
+pd.DataFrame(nuevos[["id", "region", "lat", "lon", "diam_km", "prof_diam", "etiqueta_ia", "conf_ia", "dif_media", "dif_rel", "sombra_crater_tierra", "razon_ia"]]).to_csv(S / "naturales_nuevos.csv", index=False)
 md += ["", "**Cómo leerla:**",
+       "- *Dif. relativa*: diferencia media de perfil con su gemelo lunar dividida entre el d/D del propio cráter (0.10 = el perfil difiere en promedio un 10 % de su profundidad relativa). Es la que ordena la lista: la absoluta premia lo plano.",
        "- *Dif. perfil*: diferencia media con su gemelo lunar por zona, en profundidad/diámetro (mediana de todos los candidatos ≈ 0.002; criterio provisional del visor: < 0.015).",
        "- *Sombra polar*: fracción del cráter en sombra permanente si estuviera en el polo sur (Sol a 1.5°). Es un experimento: ningún lugar de la Tierra tiene ese Sol.",
        "- Clima (NASA POWER): los candidatos caen en 126 celdas de POWER, no en 296 climas distintos; la lluvia de Atacama no está verificada.",
@@ -108,4 +112,4 @@ md += ["", "**Cómo leerla:**",
        "", "**Límites de todos:** gravedad, vacío, radiación, frío extremo (≈ 40 K en la sombra lunar), hielo y composición (el polo sur es anortosita)."]
 (S / "lista_corta.md").write_text("\n".join(md) + "\n", encoding="utf-8")
 print(f"fichas_integradas: {len(F)} candidatos · lista corta: {len(LC)}")
-print(LC[["papel", "id", "nombre", "region", "prof_diam", "etiqueta_ia", "conf_ia", "dif_media", "sombra_crater_tierra", "conocido_como"]].to_string(index=False))
+print(LC[["papel", "id", "nombre", "region", "prof_diam", "etiqueta_ia", "conf_ia", "dif_media", "dif_rel", "sombra_crater_tierra", "conocido_como"]].to_string(index=False))
