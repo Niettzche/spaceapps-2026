@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { sonarBoton } from '../../fisica/sonido.js';
 import { movimientoReducido, soltarTweensAlDestruir } from './efectos.js';
+import { textoPixel, FUENTE_RESPALDO } from '../comun/fuente.js';
 
 // Dueño: frente expediente. Kit de interfaz de MIS escenas (Boot, Menú, Expediente, Explorador).
 // No reemplaza ui.js (del integrador): agrega foco visible y navegación por teclado (AGENTS.md §12: accesible).
@@ -20,38 +21,37 @@ export const COLOR = {
   sobre: '#ffffff', // texto bajo el ratón
   fondoSobre: '#2a3160', // fondo del texto bajo el ratón
 };
-export const FUENTE = 'monospace';
+export const FUENTE = FUENTE_RESPALDO; // respaldo de la fuente pixel (comun/fuente.js)
 // Zona táctil mínima (px del juego). En horizontal en un teléfono (escala ≈ 0.72) 44 px del juego ≈ 32 px reales.
 export const ZONA_MIN = { ancho: 64, alto: 44 };
 
-export function texto(scene, x, y, contenido, { size = 14, color = COLOR.texto, origen = [0, 0], ancho, alinear = 'left', estilo = 'normal' } = {}) {
-  const t = scene.add.text(x, y, contenido, {
-    fontFamily: FUENTE, fontSize: `${size}px`, color, align: alinear, fontStyle: estilo,
-    wordWrap: ancho ? { width: ancho, useAdvancedWrap: true } : undefined,
-  });
-  return t.setOrigin(origen[0], origen[1]);
+/** Texto con la fuente pixel del juego (BitmapText ×2 o más; respaldo monospace). Ver comun/fuente.js. */
+export function texto(scene, x, y, contenido, { size = 14, color = COLOR.texto, origen = [0, 0], ancho, alinear = 'left', estilo = 'normal', titulo = false } = {}) {
+  return textoPixel(scene, x, y, contenido, { size, color, origen, ancho, alinear, estilo, titulo });
 }
 
 export function panel(scene, x, y, w, h, { relleno = COLOR.panel, borde = COLOR.borde } = {}) {
   return scene.add.rectangle(x, y, w, h, relleno).setOrigin(0, 0).setStrokeStyle(1, borde);
 }
 
-// Caja de los botones con marco: colores del arte de Mauricio (ui/ui_boton: borde casi negro, brillo arriba, sombra abajo),
-// en versión oscura para que el texto amarillo/verde/blanco tenga contraste AA (el 9-slice de arte es gris claro y
-// NineSlice no se puede teñir en Phaser 3.80; ver DISENO.md §2.6).
+// Caja de los botones con marco: arte de Mauricio (ui/ui_boton[_encima|_presionado|_desactivado], 9-slice 12 × 12,
+// cortes de 4, dibujado ×3: el mismo botón que Taller/HUD/Resultados en comun/pixel.js). Relleno oscuro: el texto
+// amarillo/verde/blanco tiene contraste AA. Respaldo sin la textura (o sin WebGL): la caja dibujada de antes.
 const CAJA = {
   relleno: 0x262d4a, rellenoSobre: 0x3a4468, rellenoApagado: 0x171b2e,
   brillo: 0x4a5468, brilloSobre: 0x6a7690, sombra: 0x10131f, contorno: 0x0e0c16,
 };
+const ESCALA_ARTE = 3;
 const hex = (c) => (typeof c === 'string' ? parseInt(c.replace('#', ''), 16) : c);
+const hayArte = (scene, clave) => scene.sys.game.renderer?.type === Phaser.WEBGL && scene.textures.exists(clave);
 
 /**
  * Botón con foco. Devuelve un objeto { obj, activar(), setHabilitado(), setEtiqueta(), enfocar() }.
- * `marco`: true = botón con caja (relleno + borde del color de su estado); false = elemento de lista (solo texto).
- *   La caja se dibuja en un Graphics aparte que sigue al texto (posición, escala, visibilidad, contenedor y destrucción):
- *   `obj` sigue siendo el Text, así que quien lo mete en un contenedor (Expediente) no cambia.
+ * `marco`: true = botón con caja de arte (ui_boton en sus 4 estados); false = elemento de lista (solo texto, fondo al pasar).
+ *   La caja es un objeto aparte que sigue al texto (posición, escala, visibilidad, contenedor y destrucción):
+ *   `obj` sigue siendo el texto (BitmapText con la fuente pixel), así que quien lo mete en un contenedor (Expediente) no cambia.
  * `numero`: atajo de teclado; se muestra como "1 · texto" (igual que Resultados.js).
- * `sugerido`: opción que ejecuta Enter si nada tiene foco; se marca con " ⏎" y borde verde (igual que Resultados.js).
+ * `sugerido`: opción que ejecuta Enter si nada tiene foco; se marca con " ⏎" y texto verde (igual que Resultados.js).
  * `anchoMin` / `altoMin`: tamaño mínimo de la zona táctil en px del juego (más grande que el dibujo, sin cambiarlo).
  * `anchoCaja`: ancho mínimo de la caja (para una columna de botones del mismo ancho); el texto va centrado.
  * `crecer`: al pasar el ratón el botón crece a ×1.05 (tween corto) y vuelve al salir. Por defecto solo los de marco
@@ -66,13 +66,13 @@ export function boton(scene, x, y, etiqueta, alPulsar, {
   anchoMin = ZONA_MIN.ancho, altoMin = ZONA_MIN.alto, crecer = marco, alSobre = null, alEnfocar = null, anchoCaja = 0,
 } = {}) {
   const t = texto(scene, x, y, '', { size, color, origen, ancho, alinear: marco ? 'center' : 'left' });
-  if (marco) t.setPadding(Math.round(size * 0.75), Math.round(size * 0.3));
-  const caja = marco ? cajaDeBoton(scene, t) : null;
+  const pad = marco ? { x: Math.round(size * 0.75), y: 8 } : { x: 4, y: 3 };
+  const caja = cajaDeBoton(scene, t, { pad, anchoCaja, lista: !marco });
   const animar = crecer && !movimientoReducido();
   if (animar) soltarTweensAlDestruir(scene, t);
   let resaltado = false;
   const b = {
-    obj: t, etiqueta, habilitado, enfocado: false, sobre: false, color, numero, sugerido,
+    obj: t, caja: caja.obj, etiqueta, habilitado, enfocado: false, sobre: false, presionado: false, color, numero, sugerido,
     // Durante el fundido de salida no se aceptan más pulsaciones (evita, p. ej., gastar un segundo ticket).
     activar() {
       if (!b.habilitado || enTransicion(scene)) return;
@@ -88,6 +88,7 @@ export function boton(scene, x, y, etiqueta, alPulsar, {
     marcarSobre(v) {
       if (b.sobre === v) return;
       b.sobre = v;
+      if (!v) b.presionado = false;
       b.pintar();
       if (animar && t.active) {
         scene.tweens.killTweensOf(t);
@@ -100,34 +101,40 @@ export function boton(scene, x, y, etiqueta, alPulsar, {
       return `${b.numero ? `${b.numero} · ` : ''}${b.etiqueta}${b.sugerido ? ' ⏎' : ''}`;
     },
     pintar() {
-      // Foco de teclado (▶, verde) y ratón encima (blanco con fondo) son estados distintos: el ratón no mueve el foco.
+      if (!t.active) return;
+      // Foco de teclado (▶, verde) y ratón encima (blanco, caja resaltada) son estados distintos: el ratón no mueve el foco.
       // El foco de teclado solo se dibuja en modo teclado (después de usar flechas/Tab): con ratón, un solo resaltado,
       // el de la opción bajo el cursor. Antes quedaba «Continuar» en verde mientras el ratón marcaba otra (retro de Leo).
       const sobre = b.sobre && b.habilitado;
       const foco = b.enfocado && scene.modoTeclado;
       const c = !b.habilitado ? COLOR.muyTenue : foco ? COLOR.foco : sobre ? COLOR.sobre : b.sugerido ? COLOR.sugerido : b.color;
       t.setColor(c);
-      if (!marco) t.setBackgroundColor(sobre ? COLOR.fondoSobre : null);
-      if (marco && anchoCaja) t.setFixedSize(0, 0);
       t.setText((foco ? '▶ ' : '') + b.rotulo());
-      if (marco && anchoCaja && t.width < anchoCaja) t.setFixedSize(anchoCaja, 0);
-      // Borde: grueso solo en el resaltado (ratón o foco de teclado), así hay un único botón con borde grueso.
-      // La sugerida se distingue por su texto verde y ⏎, con el borde amarillo normal.
-      if (caja) caja.dibujar({ borde: foco || sobre ? c : b.color, sobre: sobre || foco, habilitado: b.habilitado, grueso: foco || sobre });
+      // Un único resaltado: la caja «encima» (borde amarillo) para el ratón o el foco de teclado.
+      caja.dibujar({ borde: foco || sobre ? c : b.color, sobre: sobre || foco, habilitado: b.habilitado, presionado: b.presionado && b.habilitado });
       b.ajustarZona();
       const r = (sobre || foco) && b.habilitado;
       if (r !== resaltado) { resaltado = r; alEnfocar?.(r); }
     },
-    // La zona táctil crece desde el punto de origen del texto (centrada, o hacia la derecha/abajo si el origen es 0).
+    // La zona táctil cubre la caja y crece hasta anchoMin × altoMin alrededor de su centro (coordenadas locales del texto).
     ajustarZona() {
       if (!t.input) return;
-      const w = Math.max(t.width, anchoMin);
-      const h = Math.max(t.height, altoMin);
-      t.input.hitArea.setTo(-(w - t.width) * t.originX, -(h - t.height) * t.originY, w, h);
+      const m = caja.medidas();
+      const sx = t.scaleX || 1, sy = t.scaleY || 1;
+      const w = Math.max(m.w, anchoMin), h = Math.max(m.h, altoMin);
+      const izq = t.x - t.originX * t.width, arr = t.y - t.originY * t.height;
+      const cx = m.x0 + m.w / 2 - izq, cy = m.y0 + m.h / 2 - arr;
+      t.input.hitArea.setTo((cx - w / 2) / sx, (cy - h / 2) / sy, w / sx, h / sy);
     },
   };
   t.setInteractive({ hitArea: new Phaser.Geom.Rectangle(0, 0, 1, 1), hitAreaCallback: Phaser.Geom.Rectangle.Contains, useHandCursor: true });
-  t.on('pointerdown', () => b.activar());
+  t.on('pointerdown', () => {
+    if (b.habilitado && marco) {
+      b.presionado = true; b.pintar();
+      scene.time.delayedCall(90, () => { b.presionado = false; b.pintar(); });
+    }
+    b.activar();
+  });
   // Antes 'pointerover' movía el foco de teclado y nada lo quitaba al salir: el resaltado quedaba pegado hasta que
   // otra opción tomaba el foco. Ahora el ratón solo marca/desmarca su propio estado.
   t.on('pointerover', () => {
@@ -144,52 +151,77 @@ export function boton(scene, x, y, etiqueta, alPulsar, {
 }
 
 /**
- * Caja (Graphics) detrás del texto de un botón. Se dibuja en coordenadas locales con el mismo origen que el texto,
- * así escala y se mueve con él. Cada cuadro (postupdate) copia posición, escala, visibilidad, transparencia y
- * profundidad del texto y se coloca justo debajo de él, en su mismo contenedor si lo tiene. Se destruye con el texto.
+ * Caja detrás del texto de un botón: 9-slice de arte (marco) o rectángulo de fondo al pasar (lista). Cada cuadro
+ * (postupdate) copia posición, tamaño (con la escala del tween), visibilidad, transparencia y profundidad del texto y
+ * se coloca justo debajo de él, en su mismo contenedor si lo tiene. Se destruye con el texto.
  */
-function cajaDeBoton(scene, t) {
-  const g = scene.add.graphics();
-  let ultimo = null;
+function cajaDeBoton(scene, t, { pad, anchoCaja = 0, lista = false }) {
+  const arte = !lista && hayArte(scene, 'ui/ui_boton');
+  const obj = arte
+    ? scene.add.nineslice(0, 0, 'ui/ui_boton', undefined, 12, 12, 4, 4, 4, 4).setOrigin(0, 0).setScale(ESCALA_ARTE)
+    : scene.add.graphics();
+  let estado = { sobre: false, habilitado: true, borde: COLOR.acento, presionado: false };
+  let ultimo = '';
+  const medidas = () => {
+    const tw = t.width, th = t.height;
+    let w = Math.max(anchoCaja * (t.scaleX || 1), tw + 2 * pad.x);
+    let h = th + 2 * pad.y;
+    if (arte) { w = Math.ceil(w / ESCALA_ARTE) * ESCALA_ARTE; h = Math.ceil(h / ESCALA_ARTE) * ESCALA_ARTE; }
+    const izq = t.x - t.originX * tw, arr = t.y - t.originY * th;
+    const x0 = Math.round(izq - pad.x + t.originX * (tw + 2 * pad.x - w));
+    const y0 = Math.round(arr - pad.y + t.originY * (th + 2 * pad.y - h)) + (arte ? 2 : 0); // el bisel del arte va abajo
+    return { x0, y0, w, h };
+  };
+  const dibujar = () => {
+    const m = medidas();
+    const { sobre, habilitado, presionado } = estado;
+    const firma = `${m.x0},${m.y0},${m.w},${m.h},${sobre},${habilitado},${presionado},${estado.borde}`;
+    if (firma === ultimo) return;
+    ultimo = firma;
+    if (arte) {
+      const clave = !habilitado ? 'ui/ui_boton_desactivado' : presionado ? 'ui/ui_boton_presionado' : sobre ? 'ui/ui_boton_encima' : 'ui/ui_boton';
+      const k = scene.textures.exists(clave) ? clave : 'ui/ui_boton';
+      if (obj.texture.key !== k) { obj.setTexture(k); obj.updateUVs?.(); }
+      obj.setPosition(m.x0, m.y0).setSize(m.w / ESCALA_ARTE, m.h / ESCALA_ARTE);
+      return;
+    }
+    const g = obj;
+    g.clear();
+    const { x0, y0, w, h } = m;
+    if (lista) {
+      if (sobre && habilitado) g.fillStyle(hex(COLOR.fondoSobre), 1).fillRect(x0, y0, w, h);
+      return;
+    }
+    g.fillStyle(CAJA.contorno, 1).fillRect(x0 - 1, y0 - 1, w + 2, h + 2);
+    g.fillStyle(!habilitado ? CAJA.rellenoApagado : sobre ? CAJA.rellenoSobre : CAJA.relleno, habilitado ? 0.96 : 0.85).fillRect(x0, y0, w, h);
+    if (habilitado) {
+      g.fillStyle(sobre ? CAJA.brilloSobre : CAJA.brillo, 1).fillRect(x0 + 2, y0 + 2, w - 4, 2);
+      g.fillStyle(CAJA.sombra, 1).fillRect(x0 + 2, y0 + h - 4, w - 4, 2);
+    }
+    g.lineStyle(sobre ? 2 : 1, habilitado ? hex(estado.borde) : COLOR.decoracion, habilitado ? 1 : 0.7).strokeRect(x0 + 0.5, y0 + 0.5, w - 1, h - 1);
+  };
   const seguir = () => {
-    if (!t.active || !g.active) return;
+    if (!t.active || !obj.active) return;
     const padre = t.parentContainer || null;
     // Container.addAt saca la caja de la lista de la escena (contenedor exclusivo). El caso contrario no ocurre.
-    if (padre && g.parentContainer !== padre) padre.addAt(g, padre.getIndex(t));
-    const lista = padre ? padre.list : scene.children.list;
-    if (lista.indexOf(g) !== lista.indexOf(t) - 1) (padre || scene.children).moveBelow(g, t);
+    if (padre && obj.parentContainer !== padre) padre.addAt(obj, padre.getIndex(t));
+    const l = padre ? padre.list : scene.children.list;
+    if (l.indexOf(obj) !== l.indexOf(t) - 1) (padre || scene.children).moveBelow(obj, t);
     // setDepth reordena la lista de la escena: solo si cambió.
-    if (g.depth !== t.depth) g.setDepth(t.depth);
-    g.setPosition(t.x, t.y).setScale(t.scaleX, t.scaleY).setVisible(t.visible).setAlpha(t.alpha)
-      .setScrollFactor(t.scrollFactorX, t.scrollFactorY);
-    if (ultimo && (ultimo.w !== t.width || ultimo.h !== t.height)) caja.dibujar(ultimo.estado);
-  };
-  const caja = {
-    dibujar(estado) {
-      const w = t.width, h = t.height;
-      ultimo = { w, h, estado };
-      const x0 = -t.originX * w, y0 = -t.originY * h;
-      const { sobre, habilitado, grueso } = estado;
-      g.clear();
-      g.fillStyle(CAJA.contorno, 1).fillRect(x0 - 1, y0 - 1, w + 2, h + 2);
-      g.fillStyle(!habilitado ? CAJA.rellenoApagado : sobre ? CAJA.rellenoSobre : CAJA.relleno, habilitado ? 0.96 : 0.85)
-        .fillRect(x0, y0, w, h);
-      if (habilitado) {
-        g.fillStyle(sobre ? CAJA.brilloSobre : CAJA.brillo, 1).fillRect(x0 + 2, y0 + 2, w - 4, 2);
-        g.fillStyle(CAJA.sombra, 1).fillRect(x0 + 2, y0 + h - 4, w - 4, 2);
-      }
-      // Borde del color del estado (amarillo = acción, verde = foco/sugerido, blanco = ratón); gris si está deshabilitado.
-      g.lineStyle(grueso ? 2 : 1, habilitado ? hex(estado.borde) : COLOR.decoracion, habilitado ? 1 : 0.7)
-        .strokeRect(x0 + 0.5, y0 + 0.5, w - 1, h - 1);
-      seguir();
-    },
+    if (obj.depth !== t.depth) obj.setDepth(t.depth);
+    obj.setVisible(t.visible).setAlpha(t.alpha).setScrollFactor(t.scrollFactorX, t.scrollFactorY);
+    dibujar();
   };
   scene.events.on('postupdate', seguir);
   t.once('destroy', () => {
     scene.events.off('postupdate', seguir);
-    if (g.active) g.destroy();
+    if (obj.active) obj.destroy();
   });
-  return caja;
+  return {
+    obj,
+    medidas,
+    dibujar(e) { estado = e; seguir(); dibujar(); },
+  };
 }
 
 /**

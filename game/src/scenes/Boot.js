@@ -7,6 +7,7 @@ import { LIMITE_PRECARGA_BYTES, EXTENSIONES_SIN_PRECARGA } from './expediente/co
 import { planDePrecarga, bytesDeDataUri, formatoBytes } from './expediente/precarga.js';
 import { prepararIngles } from './expediente/datos_en.js';
 import { tr } from '../i18n.js';
+import { cargarFuentes } from './comun/fuente.js';
 
 // Dueño: frente expediente. Pantalla de carga con progreso REAL:
 // la barra sigue los eventos del cargador de Phaser para el arte de /assets (ver expediente/assets.js).
@@ -33,6 +34,15 @@ async function medirBytes(url) {
 
 export default class Boot extends Phaser.Scene {
   constructor() { super('Boot'); }
+
+  // La fuente pixel (2 PNG + 2 XML, pocos KB) se carga antes de dibujar nada: así la pantalla de carga ya la usa.
+  // Si falla, texto() sigue con monospace (comun/fuente.js).
+  preload() {
+    const aviso = (f) => console.warn(`[Boot] fuente no cargada: ${f.key}; se usa monospace`);
+    this.load.on('loaderror', aviso);
+    this.load.once('complete', () => this.load.off('loaderror', aviso));
+    cargarFuentes(this);
+  }
 
   create() {
     prepararIngles(); // agrega <campo>_en a los datos de data/ para trDato() en todas las escenas

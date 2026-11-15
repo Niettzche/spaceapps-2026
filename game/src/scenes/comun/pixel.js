@@ -6,7 +6,7 @@
 //   iconos/ico_*  16 × 16 (keywords)
 import Phaser from 'phaser';
 import { P, num } from '../expediente/componentes.js';
-import { FUENTE } from '../expediente/interfaz.js';
+import { textoPixel } from './fuente.js';
 import { sonarBoton } from '../../fisica/sonido.js';
 
 export { P, num };
@@ -28,15 +28,11 @@ export function nueve(scene, clave, x, y, w, h, corte, escala = ESCALA_BOTON) {
   return scene.add.nineslice(x, y, clave, undefined, aw, ah, corte, corte, corte, corte).setOrigin(0, 0).setScale(escala);
 }
 
-/** Texto con la fuente del juego (nunca < 14 px: DISENO.md §2.1). */
-export function txt(scene, x, y, contenido, { size = 16, color = P.texto, origen = [0, 0], ancho, estilo = 'normal', alinear = 'left', interlineado = 0, borde = false } = {}) {
-  const t = scene.add.text(x, y, contenido, {
-    fontFamily: FUENTE, fontSize: `${Math.max(14, size)}px`, color, fontStyle: estilo, align: alinear, lineSpacing: interlineado,
-    wordWrap: ancho ? { width: ancho, useAdvancedWrap: true } : undefined,
-    ...(borde ? { stroke: '#0b0d17', strokeThickness: 4 } : {}),
-  });
-  return t.setOrigin(origen[0], origen[1]);
+/** Texto con la fuente pixel del juego (BitmapText ×2 o más; respaldo monospace; nunca < 14 px: DISENO.md §2.1). */
+export function txt(scene, x, y, contenido, { size = 16, color = P.texto, origen = [0, 0], ancho, estilo = 'normal', alinear = 'left', interlineado = 0, borde = false, titulo = false } = {}) {
+  return textoPixel(scene, x, y, contenido, { size, color, origen, ancho, estilo, alinear, interlineado, borde, titulo });
 }
+export { textoPixel };
 
 /** Panel con marco de arte (ui_panel ×3); respaldo: rectángulo con borde. Origen arriba a la izquierda. */
 export function panel(scene, x, y, w, h, { alfa = 1, relleno = P.panel, borde = P.borde } = {}) {
