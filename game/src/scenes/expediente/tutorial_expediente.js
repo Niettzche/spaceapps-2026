@@ -3,30 +3,22 @@
 // Lógica pura (sin Phaser) para probarla con `node --test`; la vista está en tutorial_vista.js.
 // Regla (AGENTS.md §3.3): los textos explican qué es cada zona; no dan cifras de ningún sitio.
 import { tr } from '../../i18n.js';
+import { CLAVES_TUTORIAL, marcaTutorial, posicionBurbuja } from '../comun/tutorial.js';
 
-export const CLAVE_TUTORIAL = 'marsception.tutorial_expediente.visto';
-
-// Si el navegador no deja guardar (modo privado, almacenamiento bloqueado), se recuerda al menos durante la sesión.
-let vistoEnSesion = false;
-
-function almacenDelNavegador() {
-  try { return globalThis.localStorage ?? null; } catch { return null; }
-}
+// La marca de «ya visto» y la posición de la burbuja son comunes a todos los tutoriales (comun/tutorial.js).
+export const CLAVE_TUTORIAL = CLAVES_TUTORIAL.expediente;
+const marca = marcaTutorial(CLAVE_TUTORIAL);
 
 /** ¿Hay que mostrar el tutorial al abrir el Expediente? (`almacen` inyectable para las pruebas) */
-export function debeMostrarTutorial(almacen = almacenDelNavegador()) {
-  if (vistoEnSesion) return false;
-  try { return almacen?.getItem(CLAVE_TUTORIAL) !== '1'; } catch { return true; }
-}
+export const debeMostrarTutorial = (almacen) => marca.debeMostrar(almacen);
 
 /** Marca el tutorial como visto (al terminarlo o saltarlo). */
-export function marcarTutorialVisto(almacen = almacenDelNavegador()) {
-  vistoEnSesion = true;
-  try { almacen?.setItem(CLAVE_TUTORIAL, '1'); return true; } catch { return false; }
-}
+export const marcarTutorialVisto = (almacen) => marca.marcarVisto(almacen);
 
 /** Solo para pruebas: olvida la marca de la sesión. */
-export function _reiniciarSesionTutorial() { vistoEnSesion = false; }
+export function _reiniciarSesionTutorial() { marca._reiniciarSesion(); }
+
+export { posicionBurbuja };
 
 /**
  * Los pasos, en el idioma actual. `mundo`: nombre del destino («Marte», «Luna»). Cada paso:
@@ -71,18 +63,4 @@ export function pasosTutorial(mundo) {
         'Spend 1 ticket to test your robot at this place. Testing a site you already paid for again is free.'),
     },
   ];
-}
-
-/**
- * Dónde va la burbuja respecto de la zona resaltada: abajo si la zona está en la mitad de arriba, si no arriba.
- * Devuelve { x, y, abajo } (esquina superior izquierda de la burbuja), dentro de la pantalla (`pantalla` = { w, h }).
- */
-export function posicionBurbuja(zona, burbuja, pantalla = { w: 960, h: 540 }, { hueco = 28, margen = 8 } = {}) {
-  const cx = zona ? zona.x + zona.w / 2 : pantalla.w / 2;
-  const x = Math.round(Math.min(Math.max(margen, cx - burbuja.w / 2), pantalla.w - margen - burbuja.w));
-  if (!zona) return { x, y: Math.round((pantalla.h - burbuja.h) / 2), abajo: null };
-  const abajo = zona.y + zona.h / 2 < pantalla.h / 2;
-  let y = abajo ? zona.y + zona.h + hueco : zona.y - hueco - burbuja.h;
-  y = Math.round(Math.min(Math.max(margen, y), pantalla.h - margen - burbuja.h));
-  return { x, y, abajo };
 }
