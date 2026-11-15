@@ -8,10 +8,11 @@ import { movimientoReducido, soltarTweensAlDestruir } from './efectos.js';
 export const COLOR = {
   texto: '#ffffff',
   tenue: '#9aa4c7',
-  muyTenue: '#6c7393',
+  muyTenue: '#a3abcc', // texto secundario: ≥ 5.4:1 en todos los fondos (antes #6c7393, 3.1:1 en filas resaltadas)
   acento: '#ffd166',
   foco: '#06d6a0',
-  alerta: '#ef476f',
+  alerta: '#ff7a93', // riesgo / límite: ≥ 5:1 (antes #ef476f, 3.4:1 sobre fondoSobre)
+  decoracion: 0x6c7393, // solo para líneas y marcos (no texto): el gris oscuro de antes
   panel: 0x141831,
   borde: 0x2a3160,
   resalte: 0x1f2550,
