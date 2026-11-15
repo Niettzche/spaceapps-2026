@@ -197,7 +197,13 @@ export default class Explorador extends Phaser.Scene {
   async consultar() {
     this.error.textContent = '';
     const v = validarCoordenadasHemisferio({ lat: this.lat.value, latHem: this.latHem.value, lon: this.lon.value, lonHem: this.lonHem.value });
-    if (!v.ok) { this.error.textContent = v.error; return; }
+    if (!v.ok) {
+      // El resultado anterior ya no corresponde a lo que está escrito en el formulario: no se deja debajo del error.
+      this.error.textContent = v.error;
+      this.estado.textContent = '';
+      this.resultado.replaceChildren();
+      return;
+    }
     const destino = this.destino.value;
     this.consulta?.abort();
     this.consulta = new AbortController();
