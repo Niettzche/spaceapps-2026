@@ -127,3 +127,22 @@ las pruebas en teléfono se hicieron con Claude Code. Cada dato se revisó contr
     del módulo en el destino. Revisado a 960 × 540 en es/en.
   - Pruebas nuevas: `node game/src/scenes/Taller/piezas.test.mjs` (13 casos). Sprites pendientes: `docs/arte/SPRITES_PENDIENTES.md` §6.
   - Sigue: arte de las piezas nuevas; decidir si el calentador y el radiador se quedan sin fuente o se cambian.
+- **15 nov (agente del frente taller): Taller por arrastre en pixel art.**
+  - Robot grande (sprites ×8) con 7 sockets; bandeja por sistema (Movilidad, Estructura, Energía, Protección, Módulo, Bloqueadas)
+    con el arte 32 × 32 de `assets/piezas` (#85). Arrastrar, tocar → socket o teclado; quitar arrastrando afuera o clic derecho;
+    presupuesto animado y «Probar» deshabilitado si excede o falta algo. Reglas en `Taller/arrastre.js`.
+  - Piezas del libro: `chasis_titanio` (MT-002), `chasis_carbono` (MT-004), `rueda_nitinol` (AB-004, amortigua sacudidas) y
+    `auto_rescate` (AB-002, +agarre al atascarse). 11 filas bloqueadas con razón (RT-002…RT-006, AB-001, AB-003, AB-009…011, MT-012).
+    Tabla: `PIEZAS.md` §7. Arte pendiente: `SPRITES_PENDIENTES.md` §7.
+  - Pruebas: `node game/src/scenes/Taller/arrastre.test.mjs` (8 casos). Camino dorado simulado: estándar falla, anchas pasa, misiones entregan.
+  - ~~Sigue: conectar la fuente bitmap~~ hecho (ver abajo).
+
+- **15 nov, pulido del Taller con la fuente pixel:** todo el texto del Taller usa la fuente bitmap (`textoPixel`), sin
+  monospace, y nada se encima ni se corta a 960 × 540 en es y en (revisión automática de 18 estados × 2 idiomas: 0 problemas).
+  - Encabezado: título + sitio y destino en 2 líneas; botones «Personalizar» y «? Ayuda». El presupuesto pasó al panel derecho.
+  - Panel derecho: validación · costo «(P)» y lo que queda + barra · masa, autonomía y efecto del destino con íconos ·
+    agarre en 3 barras · protección y resistencia · lo especial del diseño.
+  - Pintura y nombre en el panel «Personalizar» (las teclas P y N siguen funcionando directo; Deshacer los revierte).
+  - Botones de abajo en una fila sin cortes; «Igual en ambos ejes» sin el glifo ⇄ (la fuente no lo tiene).
+  - Arte nuevo (#89): `chasis_fibra_carbono` → `chasis_carbono` y `modulo_autorescate` → `auto_rescate` (alias en el Taller),
+    candado de arte en la pestaña y las tarjetas, siluetas de orugas, patas, rotor, serpiente y rappel en Bloqueadas.

@@ -15,8 +15,10 @@ export const DIM = {
   chasis: {
     chasis_ligero: { largo: 3.0, alto: 0.7 },
     chasis_reforzado: { largo: 3.0, alto: 0.9 },
+    chasis_titanio: { largo: 3.0, alto: 0.7 }, // mismo tamaño que el ligero (parts.json: otro material)
+    chasis_carbono: { largo: 3.0, alto: 0.7 },
   },
-  radioRueda: { rueda_estandar: 0.45, rueda_ancha: 0.5, rueda_tacos: 0.45, rueda_malla: 0.55 }, // respaldo si falta radio_m; igual a parts.json
+  radioRueda: { rueda_estandar: 0.45, rueda_ancha: 0.5, rueda_tacos: 0.45, rueda_malla: 0.55, rueda_nitinol: 0.45 }, // respaldo si falta radio_m; igual a parts.json
   paredSoporte: { soporte_basico: 0.25, soporte_correas: 0.35, soporte_amortiguado: 0.45 },
   carga: { largo: 0.9, alto: 0.6 },
   ejeX: 0.36, // posición de los ejes como fracción del largo, desde el centro
@@ -39,6 +41,7 @@ export const PATINA_SEG = 0.35; // exportada para los efectos (efectos.js)
 const CONTACTO_RECIENTE_SEG = 0.15; // la suspensión hace rebotar la rueda: cuenta el contacto reciente
 const SIN_FUERZA_MS = 0.3;
 const SIN_FUERZA_SEG = 1.5;
+const ATASCO_MS = 0.5; // auto-rescate: por debajo de esta velocidad, acelerando, el robot cuenta como atascado (P)
 // Volcado: de lado (> ~75°) y casi quieto durante 2 s. Antes pedía > 115°: un robot tumbado de lado se quedaba así para
 // siempre sin que la partida terminara. Las pendientes jugables no pasan de ~35°, así que 75° no se confunde con una subida. (P)
 const VOLCADO_RAD = 1.3;
@@ -132,6 +135,15 @@ export class Robot {
     // Motor: temperatura (°C), empieza a la del ambiente (regla b).
     this.tMotor = temperaturaAmbienteMotor(ambiente);
     this.tMotorMax = this.tMotor;
+    // Llanta superelástica (parts.json `amortiguacion`, rueda de Nitinol): fracción de la sacudida que no llega a la carga,
+    // promedio de los dos ejes. Sin la pieza = 0 (sin cambio). (P)
+    this.amortiguacion = this.ruedas.reduce((s, w) => s + (w.pieza.amortiguacion ?? 0), 0) / this.ruedas.length;
+    // Auto-rescate (módulo `auto_rescate`, AB-002): ver _autoRescate. Sin el módulo = null (sin cambio).
+    this.rescate = p.modulo?.auto_rescate ?? null;
+    this.tAtasco = 0;
+    this.tRescate = 0;
+    this.tEsperaRescate = 0;
+    this.rescates = 0;
     this.sobrecalentado = false;
     this.potenciaMotor = 1;
     this.vidaMax = p.chasis.resistencia;
@@ -229,7 +241,8 @@ export class Robot {
       w.superficie = superficieDe(w.cuerpo.position.x);
       // Fricción = curva(agarre de la pieza) × agarre real del suelo (suelos.js; sin dato = 1).
       w.cuerpo.friction = friccionDeAgarre(w.pieza.agarre?.[w.superficie] ?? 0.6) * agarreSuelo(this.mundo, w.superficie)
-        * (this.factorAgarre?.(w.cuerpo.position.x) ?? 1);
+        * (this.factorAgarre?.(w.cuerpo.position.x) ?? 1)
+        * (this.tRescate > 0 ? this.rescate.agarre : 1); // auto-rescate activo: más agarre unos segundos (P)
     }
 
     // Energía
@@ -282,6 +295,7 @@ export class Robot {
     const tocaSuelo = this.ruedas.some((w) => this.t - w.ultimoContacto < CONTACTO_RECIENTE_SEG);
     if (a > 0 && tocaSuelo && !algunaPatina && this.velocidadMs < SIN_FUERZA_MS) this.tSinFuerza += dt;
     else this.tSinFuerza = 0;
+    if (this.rescate) this._autoRescate(dt, a, tocaSuelo);
     if (this.tSinFuerza > SIN_FUERZA_SEG) {
       this.alEvento('sin_fuerza', this.piezas.motor.id);
       this.tSinFuerza = 0;
@@ -301,7 +315,8 @@ export class Robot {
     if (this.vPrevia && dt > 0) {
       const g = velAMs(Math.hypot(v.x - this.vPrevia.x, v.y - this.vPrevia.y)) / dt / 9.81;
       this.sacudida = 0.6 * this.sacudida + 0.4 * g;
-      const d = this.cargaPerdida ? 0 : danioSacudida(this.sacudida, dt, this.piezas.carga.proteccion ?? 0);
+      // La llanta superelástica absorbe parte de la sacudida antes de que llegue a la carga (amortiguacion, P).
+      const d = this.cargaPerdida ? 0 : danioSacudida(this.sacudida * (1 - this.amortiguacion), dt, this.piezas.carga.proteccion ?? 0);
       if (d > 0) {
         this.integridad = Math.max(0, this.integridad - d);
         this.alEvento('golpe_carga', `sacudida ${Math.round(this.sacudida)} g`);
@@ -339,6 +354,27 @@ export class Robot {
     return ef;
   }
 
+  /**
+   * Auto-rescate (módulo `auto_rescate`; AB-002 del libro: VIPER mueve sus ruedas una a una para salir de suelo blando).
+   * Si acelera y casi no avanza (< ATASCO_MS) durante `atasco_s`, gasta `energia` y multiplica el agarre por `agarre` durante
+   * `duracion_s`; después espera `espera_s`. Registra el evento `auto_rescate` (feedback/reglas.js). Todo (P).
+   */
+  _autoRescate(dt, a, tocaSuelo) {
+    const R = this.rescate;
+    this.tRescate = Math.max(0, this.tRescate - dt);
+    this.tEsperaRescate = Math.max(0, this.tEsperaRescate - dt);
+    // Atascado = acelerando, tocando el suelo y casi sin avanzar (patine o no). Patinar avanzando no cuenta.
+    const atascado = a > 0 && tocaSuelo && this.velocidadMs < ATASCO_MS;
+    this.tAtasco = atascado && this.tRescate === 0 ? this.tAtasco + dt : 0;
+    if (this.tAtasco < R.atasco_s || this.tEsperaRescate > 0 || this.energia <= R.energia) return;
+    this.energia -= R.energia;
+    this.tRescate = R.duracion_s;
+    this.tEsperaRescate = R.duracion_s + R.espera_s;
+    this.tAtasco = 0;
+    this.rescates += 1;
+    this.alEvento('auto_rescate', String(this.rescates));
+  }
+
   /** ¿Motor cerca del límite? (para un jugador que suelta el acelerador a tiempo) */
   get motorCaliente() { return this.tMotor >= REGLAS.motor.limite_C - REGLAS.motor.aviso_C; }
 
@@ -353,6 +389,7 @@ export class Robot {
       patina: this.ruedas.some((w) => w.tPatina > PATINA_SEG),
       tMotor: this.ambiente ? this.tMotor : null,
       sobrecalentado: this.sobrecalentado,
+      rescate: this.tRescate > 0,
     };
   }
 

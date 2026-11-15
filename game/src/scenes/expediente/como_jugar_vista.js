@@ -1,6 +1,6 @@
 // Dueño: frente expediente. Vista de "Cómo jugar" dentro del Menú (la lógica está en como_jugar.js).
 import { tr } from '../../i18n.js';
-import { COLOR, texto, boton, panel, conFondo } from './interfaz.js';
+import { COLOR, texto, boton, panel, conFondo, cajaArte, tituloPlaca } from './interfaz.js';
 import { pantallasComoJugar, marcarComoJugarVisto } from './como_jugar.js';
 
 // Página actual (se conserva si el Menú se reinicia al cambiar de idioma con L).
@@ -25,9 +25,9 @@ export function vistaComoJugar(scene, { presupuesto, alTerminar, redibujar, boto
     redibujar();
   };
 
-  texto(scene, 480, 40, tr('Cómo jugar', 'How to play'), { size: 28, origen: [0.5, 0.5] });
-  conFondo(scene, texto(scene, 480, 74, `${estado.pagina + 1} / ${total}`, { size: 16, color: COLOR.tenue, origen: [0.5, 0.5] }));
-  panel(scene, 80, 96, 800, 286).setFillStyle(COLOR.panel, 0.9);
+  tituloPlaca(scene, 480, 36, tr('Cómo jugar', 'How to play'), { size: 28, padY: 8 });
+  conFondo(scene, texto(scene, 480, 78, `${estado.pagina + 1} / ${total}`, { size: 16, color: COLOR.tenue, origen: [0.5, 0.5] }));
+  cajaArte(scene, 'ui/ui_tarjeta', 80, 96, 800, 288, { alfa: 0.94 });
   // Viñeta de Mauricio (96×64 dibujada ×3) a la izquierda; sin arte, solo el texto centrado en el panel.
   const conImagen = !!p.imagen && scene.textures.exists(p.imagen);
   if (conImagen) {

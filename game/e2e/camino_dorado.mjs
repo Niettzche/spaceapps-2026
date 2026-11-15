@@ -4,7 +4,8 @@
 // efecto, emite 'pointerdown' sobre el objeto y lo anota como "respaldo" (eso también es un hallazgo).
 //
 // Recorrido, una vez para Marte (jezero → Samalayuca) y otra para la Luna (polo_sur_lunar → maar Al Wahbah, g00281):
-//   Boot → Menú → Nueva partida → destino → Expediente (sitio) → gastar ticket → Taller (ruedas estándar) → Prueba
+//   Boot → pantalla de inicio (Enter) → menú de opciones → Nueva partida (zoom a la nave) → destino → Expediente (sitio)
+//   → gastar ticket → Taller (ruedas estándar) → Prueba
 //   → Resultados (en Samalayuca y Al Wahbah: falla y recomienda rueda ancha) → Volver al taller → ruedas anchas en ambos ejes
 //   → Prueba → Resultados → Lanzar misión → Misión (acelera; frena en la zona de entrega) → Resultados (puntos y estrellas)
 //   → Menú (para empezar la siguiente corrida).
@@ -54,7 +55,13 @@ const browser = await chromium.launch({ executablePath: CHROMIUM, args: ['--use-
 const page = await browser.newPage({ viewport: { width: 960, height: 540 } });
 // "Cómo jugar" (Menú) sale la primera vez que se pulsa "Nueva partida" en un navegador; la prueba lo da por visto con
 // la misma marca que deja el juego (game/src/scenes/expediente/como_jugar.js), así el camino dorado no cambia.
-await page.addInitScript(() => { try { localStorage.setItem('marsception.como_jugar.visto', '1'); } catch { /* sin almacenamiento */ } });
+// Igual con el tutorial rápido del Expediente (expediente/tutorial_expediente.js); en el juego también se salta con Esc.
+await page.addInitScript(() => {
+  try {
+    localStorage.setItem('marsception.como_jugar.visto', '1');
+    localStorage.setItem('marsception.tutorial_expediente.visto', '1');
+  } catch { /* sin almacenamiento */ }
+});
 const errores = [];
 page.on('pageerror', (e) => errores.push({ paso: pasoActual, tipo: 'pageerror', texto: e.message }));
 page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') errores.push({ paso: pasoActual, tipo: m.type(), texto: m.text() }); });
@@ -75,7 +82,7 @@ async function captura(nombre) {
 const escenaLista = (k) => page.waitForFunction((k) => {
   const g = window.__mc?.Prueba?.game;
   const s = g?.scene.getScene(k);
-  return !!s && g.scene.isActive(k) && !s.cameras.main.fadeEffect.isRunning && s.children.list.length > 0;
+  return !!s && g.scene.isActive(k) && !s.cameras.main.fadeEffect.isRunning && !s.zoomando && s.children.list.length > 0;
 }, k, { timeout: 20000, polling: 50 });
 
 const activas = () => page.evaluate(() => window.__mc.Prueba.game.scene.getScenes(true).map((s) => s.scene.key));
@@ -88,7 +95,7 @@ async function ubicar(k, texto) {
     const todos = [];
     const recorrer = (lista) => { for (const o of lista) { todos.push(o); if (o.list) recorrer(o.list); } };
     recorrer(s.children.list);
-    const o = todos.find((x) => x.type === 'Text' && x.text.includes(texto) && x.visible && x.active);
+    const o = todos.find((x) => (x.type === 'Text' || x.type === 'BitmapText') && x.text.includes(texto) && x.visible && x.active);
     if (!o) return null;
     const b = o.getBounds();
     const r = g.canvas.getBoundingClientRect();
@@ -114,10 +121,16 @@ async function clic(k, texto, listo, { emitirSiFalla = true, espera = 2500 } = {
   throw new Error(`"${texto}" no tuvo efecto ni con clic ni con emit`);
 }
 
-/** Clic real en una coordenada lógica (960 × 540) de la escena, p. ej. una figura sin texto. */
-async function clicEn(x, y) {
+/** Arrastre real con el ratón entre dos puntos lógicos (960 × 540): bajar, mover en pasos y soltar. */
+async function arrastrar(desde, hasta, pasos = 12) {
   const r = await page.evaluate(() => { const g = window.__mc.Prueba.game; const b = g.canvas.getBoundingClientRect(); return { l: b.left, t: b.top, fx: b.width / g.scale.width, fy: b.height / g.scale.height }; });
-  await page.mouse.click(r.l + x * r.fx, r.t + y * r.fy);
+  const px = (p) => ({ x: r.l + p.x * r.fx, y: r.t + p.y * r.fy });
+  const a = px(desde);
+  const b = px(hasta);
+  await page.mouse.move(a.x, a.y);
+  await page.mouse.down();
+  for (let k = 1; k <= pasos; k++) await page.mouse.move(a.x + (b.x - a.x) * k / pasos, a.y + (b.y - a.y) * k / pasos);
+  await page.mouse.up();
 }
 
 async function esperar(fn, ms) {
@@ -132,7 +145,7 @@ const activa = (k) => () => page.evaluate((k) => window.__mc.Prueba.game.scene.i
 const textosDe = (k) => page.evaluate((k) => {
   const s = window.__mc.Prueba.game.scene.getScene(k);
   const todos = [];
-  const recorrer = (l) => { for (const o of l) { if (o.type === 'Text' && o.visible) todos.push(o.text); if (o.list) recorrer(o.list); } };
+  const recorrer = (l) => { for (const o of l) { if ((o.type === 'Text' || o.type === 'BitmapText') && o.visible) todos.push(o.text); if (o.list) recorrer(o.list); } };
   recorrer(s.children.list);
   return todos;
 }, k);
@@ -251,10 +264,23 @@ async function corrida(c) {
   const marca = { t: 0 };
   await paso('menu', async () => {
     await escenaLista('Menu');
+    // Al abrir el juego, el Boot deja la pantalla de inicio (Marte grande, «Presiona Enter»): Enter → menú de opciones.
+    // Al volver de Resultados se llega directo a las opciones.
+    const vista = () => page.evaluate(() => window.__mc.Prueba.game.scene.getScene('Menu').vista);
+    let desdeInicio = false;
+    if ((await vista()) === 'inicio') {
+      desdeInicio = true;
+      await captura('inicio');
+      await page.keyboard.press('Enter');
+      if (!(await esperar(async () => (await vista()) === 'principal', 3000))) return 'FALLA: Enter en la pantalla de inicio no abrió las opciones';
+      await escenaLista('Menu');
+    }
     await captura('menu');
-    await clic('Menu', 'Nueva partida', async () => !!(await ubicar('Menu', c.boton)));
+    // «Nueva partida» hace zoom a la nave (~0.8 s) y luego muestra los destinos; se espera a que la cámara termine.
+    await clic('Menu', 'Nueva partida', async () => (await vista()) === 'destino' && !!(await ubicar('Menu', c.boton)), { espera: 4000 });
+    await escenaLista('Menu');
     await captura('menu_destino');
-    return 'Nueva partida → vista de destino';
+    return `${desdeInicio ? 'inicio → Enter → ' : ''}Nueva partida → zoom a la nave → vista de destino`;
   });
   await paso('destino', async () => {
     await clic('Menu', c.boton, activa('Expediente'));
@@ -289,12 +315,16 @@ async function corrida(c) {
     await escenaLista('Taller');
     const yaAnchas = await page.evaluate(() => { const m = window.__mc.Prueba.game.scene.getScene('Taller').mapa; return m.rueda_del === 'rueda_ancha' && m.rueda_tras === 'rueda_ancha'; });
     if (aplica && !yaAnchas) return 'FALLA: "Aplicar y al taller" no dejó las ruedas anchas puestas';
-    for (const [ranura, x] of yaAnchas ? [] : [['rueda_del', 365], ['rueda_tras', 115]]) {
-      const taller = () => page.evaluate(() => { const s = window.__mc.Prueba.game.scene.getScene('Taller'); return { sel: s.sel, mapa: s.mapa }; });
-      await clicEn(x, 392);
-      const indice = ranura === 'rueda_del' ? 1 : 2;
-      if (!(await esperar(async () => (await taller()).sel === indice, 1500))) return `FALLA: el clic en la rueda (${ranura}) no la seleccionó`;
-      await clic('Taller', '○ Rueda ancha para arena', async () => (await taller()).mapa[ranura] === 'rueda_ancha');
+    // Sin "Aplicar": arrastre REAL con el ratón de la tarjeta «Ancha» (pestaña Movilidad) al socket de cada eje.
+    if (!yaAnchas) {
+      const mapa = () => page.evaluate(() => window.__mc.Prueba.game.scene.getScene('Taller').mapa);
+      await clic('Taller', 'Movilidad', async () => (await page.evaluate(() => window.__mc.Prueba.game.scene.getScene('Taller').pestana)) === 'movilidad');
+      for (const ranura of ['rueda_del', 'rueda_tras']) {
+        const p = await page.evaluate((r) => { const s = window.__mc.Prueba.game.scene.getScene('Taller'); return { c: s.cartaDe('rueda_ancha'), d: s.socketDe(r) }; }, ranura);
+        if (!p.c) return 'FALLA: no hay tarjeta de rueda ancha en la bandeja del Taller';
+        await arrastrar(p.c, p.d);
+        if (!(await esperar(async () => (await mapa())[ranura] === 'rueda_ancha', 1500))) return `FALLA: el arrastre al socket ${ranura} no puso la rueda ancha`;
+      }
     }
     await captura('taller_ancha');
     const txt = (await textosDe('Taller')).find((t) => t.startsWith('✓') || t.startsWith('✗') || t.startsWith('✕'));
