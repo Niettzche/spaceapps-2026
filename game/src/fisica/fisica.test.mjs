@@ -251,7 +251,8 @@ import {
   ambienteDe, ambienteDeSitio, ambienteDeDestino, factorFrio, temperaturaEquilibrio, pasoTemperaturaMotor, potenciaPermitida,
   enfriamientoMotor, factorLuz, recargaPanel, lineasAmbiente, resumenAmbiente, REGLAS, DENSIDAD_AIRE_TIERRA,
 } from './ambiente.js';
-import { generarObstaculos, factorAgarreEn, notaObstaculos, REGLAS_OBSTACULOS } from './obstaculos.js';
+import { generarObstaculos, factorAgarreEn, notaObstaculos, REGLAS_OBSTACULOS, aplicarCrateres } from './obstaculos.js';
+import { puntosDeAviso, tiposCercanos } from './avisos.js';
 caso('ambiente: datos con fuente de los 4 sitios jugables y los 2 destinos', () => {
   const sama = ambienteDeSitio('samalayuca');
   // Fuente única: docs/taller/AMBIENTE.md (NASA POWER; densidad derivada).
@@ -346,18 +347,44 @@ caso('obstáculos: deterministas, fuera de los planos y declarados', () => {
   const sama = perfilDeSitio(JSON.parse(readFileSync(new URL('../../../data/sites/samalayuca.json', import.meta.url))));
   const a = generarObstaculos(sama, { mundo: 'tierra', semilla: 'samalayuca' });
   assert.deepEqual(a, generarObstaculos(sama, { mundo: 'tierra', semilla: 'samalayuca' }));
-  assert.ok(a.length > 0 && a.every((o) => o.recreacion && o.tipo === 'arena_blanda')); // todo arena: solo arena blanda
-  for (const o of a) assert.ok(o.desde_m >= 18 && o.hasta_m <= sama.largo_m - 30);
-  assert.equal(factorAgarreEn(a, a[0].desde_m + 1), REGLAS_OBSTACULOS.arenaBlanda.agarre);
+  // Todo arena: solo arena blanda con efecto; rizaduras y matorral son solo dibujo (visual: true).
+  assert.ok(a.length > 0 && a.every((o) => o.recreacion && (o.tipo === 'arena_blanda' || o.visual)));
+  assert.ok(a.some((o) => o.tipo === 'arena_blanda') && a.some((o) => o.tipo === 'rizadura') && a.some((o) => o.tipo === 'matorral'));
+  for (const o of a.filter((x) => x.tipo === 'arena_blanda')) assert.ok(o.desde_m >= 18 && o.hasta_m <= sama.largo_m - 30);
+  const blanda = a.find((o) => o.tipo === 'arena_blanda');
+  assert.equal(factorAgarreEn(a, blanda.desde_m + 1), REGLAS_OBSTACULOS.arenaBlanda.agarre);
   assert.equal(factorAgarreEn(a, 5), 1);
   assert.ok(notaObstaculos(a).startsWith('obstáculos recreados ('));
   for (const id of ['jezero', 'polo_sur_lunar']) {
     const d = JSON.parse(readFileSync(new URL(`../../../data/targets/${id}.json`, import.meta.url)));
     const p = perfilDeDestino(d);
-    const rocas = generarObstaculos(p, { mundo: d.mundo, semilla: id });
-    assert.ok(rocas.length >= 2 && rocas.length <= 12, `${id}: ${rocas.length}`); // la ventana crítica lunar es una pared: en pendiente fuerte no se ponen rocas
-    for (const o of rocas) assert.ok(o.tipo === 'roca' && o.radio_m >= 0.15 && o.radio_m <= 0.3 && o.x_m > 18 && o.x_m < p.largo_m - 30);
+    const lista = generarObstaculos(p, { mundo: d.mundo, semilla: id });
+    const rocas = lista.filter((o) => o.tipo === 'roca');
+    // Marte: campo de rocas de Golombek (k = 8 %, D 0.25–0.8 m); Luna: rocas bajas + cráteres pequeños con d/D del detector.
+    const [min, max] = id === 'jezero' ? [10, 30] : [2, 12];
+    assert.ok(rocas.length >= min && rocas.length <= max, `${id}: ${rocas.length}`);
+    for (const o of rocas) assert.ok(o.radio_m >= 0.12 && o.radio_m <= 0.4 && o.x_m > 18 && o.x_m < p.largo_m - 30);
+    for (let i = 1; i < rocas.length; i++) if (id === 'jezero') assert.ok(rocas[i].x_m - rocas[i - 1].x_m >= REGLAS_OBSTACULOS.golombek.separacionMin_m - 0.1);
+    const crateres = lista.filter((o) => o.tipo === 'crater');
+    if (id === 'polo_sur_lunar') {
+      assert.ok(crateres.length >= 1, 'cráteres lunares');
+      for (const c of crateres) assert.equal(c.profundidad_m, Math.round(c.diametro_m * REGLAS_OBSTACULOS.crater.dD * 100) / 100);
+      const p2 = aplicarCrateres(p, lista);
+      const c = crateres[0];
+      assert.ok(alturaEn(p2, c.x_m) < alturaEn(p, c.x_m) - c.profundidad_m * 0.9); // el hueco está en el perfil
+      assert.equal(alturaEn(p2, c.x_m - c.diametro_m), alturaEn(p, c.x_m - c.diametro_m)); // fuera del cráter no cambia
+    } else assert.equal(crateres.length, 0);
   }
+  // Al Hutaymah (camino dorado lunar): bloques de toba bajos (≤ 0.15 m de alto).
+  const g263 = perfilDeSitio(JSON.parse(readFileSync(new URL('../../../data/sites/g00263.json', import.meta.url))));
+  const toba = generarObstaculos(g263, { mundo: 'tierra', semilla: 'g00263' }).filter((o) => o.clase === 'toba');
+  assert.ok(toba.length >= 3 && toba.every((o) => o.alto_m <= 0.15));
+  // Avisos: uno por tipo, en orden de aparición, y solo a ≤ 9 m.
+  const puntos = puntosDeAviso([...toba, { tipo: 'rizadura', desde_m: 20, hasta_m: 25, visual: true }], [{ tipo: 'parche', clase: 'nieve', desde_m: 50, hasta_m: 60 }]);
+  assert.deepEqual(puntos.map((x) => x.clave), toba[0].x_m < 50 ? ['toba', 'nieve'] : ['nieve', 'toba']);
+  assert.deepEqual(tiposCercanos(puntos, 50 - 10, new Set()), toba[0].x_m - 0.2 <= 49 && toba[0].x_m > 37 ? ['toba'] : []);
+  assert.ok(tiposCercanos(puntos, 45, new Set()).includes('nieve'));
+  assert.ok(!tiposCercanos(puntos, 45, new Set(['nieve'])).includes('nieve'));
   // Pinacate ya trae "bloques de roca recreados" en el perfil: no se duplican.
   const pin = perfilDeSitio(JSON.parse(readFileSync(new URL('../../../data/sites/pinacate.json', import.meta.url))));
   assert.equal(generarObstaculos(pin, { mundo: 'tierra', semilla: 'pinacate' }).filter((o) => o.tipo === 'roca').length, 0);
