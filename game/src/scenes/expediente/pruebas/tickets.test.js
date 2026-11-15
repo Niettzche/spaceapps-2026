@@ -15,7 +15,7 @@ globalThis.window = {
 };
 globalThis.document = { addEventListener() {}, visibilityState: 'visible' };
 
-const { nuevaPartida, elegirSitio, sitioPagado, restaurar, guardar, guardadoDisponible } = await import('../guardado.js');
+const { nuevaPartida, elegirSitio, sitioPagado, restaurar, guardar, guardadoDisponible, visitarSitio, tomarSitioPedido } = await import('../guardado.js');
 const { conciliarTickets, leerGuardado, serializarPartida } = await import('../logica.js');
 const { TICKETS_POR_PARTIDA, PRESUPUESTO_INICIAL } = await import('../../../config/world.js');
 
@@ -140,4 +140,27 @@ test('el guardado escrito a mano con 9 tickets no se muestra como 9 al Continuar
   const p = estadoInicial();
   restaurar(p, SITIOS, DESTINOS);
   assert.equal(p.tickets, 3);
+});
+
+test('Explorador → Expediente de un sitio de otro destino: cambia el destino, no gasta tickets ni olvida lo pagado', () => {
+  const p = estadoInicial();
+  empezar(p, 'jezero');
+  const marte = { id: 'm', destino_ref: 'jezero' };
+  const luna = { id: 'l', destino_ref: 'polo_sur_lunar' };
+  elegirSitio(p, marte);
+  const opciones = { sitios: [marte, luna], destinos: DESTINOS, presupuesto: PRESUPUESTO_INICIAL, tickets: TICKETS_POR_PARTIDA };
+  visitarSitio(p, luna, opciones);
+  assert.equal(p.destino, 'polo_sur_lunar');
+  assert.equal(p.sitio, null); // el sitio en juego era de Marte: se suelta
+  assert.equal(p.tickets, 2);
+  assert.equal(sitioPagado(p, 'm'), true);
+  assert.equal(tomarSitioPedido(), 'l');
+  assert.equal(tomarSitioPedido(), null); // se consume una sola vez
+  assert.equal(guardadoDisponible(DESTINOS).destino, 'polo_sur_lunar');
+  // Mismo destino: conserva el sitio en juego.
+  elegirSitio(p, luna);
+  visitarSitio(p, { id: 'l2', destino_ref: 'polo_sur_lunar' }, opciones);
+  assert.equal(p.sitio.id, 'l');
+  assert.equal(p.tickets, 1);
+  assert.equal(tomarSitioPedido(), 'l2');
 });

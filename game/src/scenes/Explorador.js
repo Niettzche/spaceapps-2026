@@ -1,18 +1,26 @@
 import Phaser from 'phaser';
 import { irA } from './ui.js';
-import { SITIOS, DESTINOS } from '../data.js';
+import { SITIOS, TODOS_LOS_SITIOS, DESTINOS } from '../data.js';
 import { partida } from '../main.js';
-import { ORDEN_DESTINOS, DESTINO_POR_DEFECTO, UMBRAL_PROPUESTA } from './expediente/config.js';
-import { consultarPunto, proponerSitio, apiDisponible, API_URL } from './expediente/api.js';
-import { validarCoordenadasHemisferio, aHemisferio, formatoCoordenada, formatoValor, formatoPorcentaje, puedeProponer, validarNombrePropuesta, sinDato } from './expediente/logica.js';
-import { MUNDOS, etiquetaVariable, etiquetaLimite } from './expediente/textos.js';
+import { PRESUPUESTO_INICIAL, TICKETS_POR_PARTIDA } from '../config/world.js';
+import { ORDEN_DESTINOS, DESTINO_POR_DEFECTO, UMBRAL_PROPUESTA, RADIO_CATALOGO_KM, urlFicha } from './expediente/config.js';
+import { consultarPunto, proponerSitio, apiDisponible, climaPower, API_URL } from './expediente/api.js';
+import {
+  validarCoordenadasHemisferio, aHemisferio, formatoCoordenada, formatoValor, formatoPorcentaje, puedeProponer, validarNombrePropuesta, sinDato,
+  filasComparacion, limitesDe, esDemostracion, esMina, unidadVisible, formatoNumero, recortar } from './expediente/logica.js';
+import { buscarEnCatalogo, formatoDistancia, similitudClima, DIMENSIONES_CLIMA } from './expediente/catalogo.js';
+import { visitarSitio } from './expediente/guardado.js';
+import { MUNDOS, ESTADOS, etiquetaVariable, etiquetaLimite } from './expediente/textos.js';
 import { crearCapa, el, ESTILOS } from './expediente/capa.js';
 import { prepararIngles, enIdioma } from './expediente/datos_en.js';
 import { tr, trDato, idioma } from '../i18n.js';
 
 // Dueño: frente expediente. Explorador libre (AGENTS.md §6.4, punto 3):
 // coordenada → POST /score (similitud en vivo) → si supera el umbral, proponer el sitio (POST /submit).
-// El formulario es HTML sobre el lienzo (accesible con teclado y lector de pantalla). Sin API, el juego sigue funcionando.
+// SIN API (la demo pública; AGENTS.md §3 regla 7): la coordenada se busca en el catálogo precalculado (data/sites/,
+// sitio más cercano a ≤ RADIO_CATALOGO_KM) y, si NASA POWER responde desde el navegador, se muestra el clima en vivo con
+// una similitud PARCIAL (solo clima; sin forma no hay total ni se puede proponer).
+// El formulario es HTML sobre el lienzo (accesible con teclado y lector de pantalla).
 export default class Explorador extends Phaser.Scene {
   constructor() { super('Explorador'); }
 
@@ -55,21 +63,23 @@ export default class Explorador extends Phaser.Scene {
     const r = await apiDisponible({ senal: this.sondeo.signal });
     if (this.capa !== capa || r.tipo === 'cancelado') return; // la escena se cerró (o se volvió a abrir) mientras esperaba
     aviso.remove();
-    if (r.ok) this.armarFormulario();
-    else this.mostrarSinApi(r);
+    this.conApi = r.ok;
+    if (!r.ok) this.capa.append(this.avisoSinApi(r));
+    this.armarFormulario();
   }
 
-  mostrarSinApi(r) {
-    const ir = el('button', { type: 'button', class: 'primario' }, tr('Volver al menú', 'Back to menu'));
-    ir.addEventListener('click', () => this.volver());
-    this.capa.append(el('div', { class: 'aviso', role: 'alert' }, [
-      el('strong', {}, tr('Consulta en vivo no disponible', 'Live lookup not available')),
-      el('p', {}, tr('La consulta en vivo necesita la API del modelo, que no está publicada en esta demo. Mira los sitios ya calculados en el Expediente.',
-        'The live lookup needs the model API, which is not published in this demo. See the sites already computed in the Site File.')),
-      r.tipo === 'no_publicada' ? null : el('p', { class: 'nota' }, tr(`(${API_URL} no respondió a /health en 4 s)`, `(${API_URL} did not answer /health within 4 s)`)),
-      ir,
-    ]));
-    ir.focus();
+  // Sin API no hay consulta en vivo del modelo, pero el Explorador sigue sirviendo con el catálogo precalculado.
+  avisoSinApi(r) {
+    const n = TODOS_LOS_SITIOS.filter((s) => Number.isFinite(s.lat) && Number.isFinite(s.lon)).length;
+    return el('div', { class: 'modo', role: 'status' }, [
+      el('strong', {}, tr('Modo sin API: catálogo precalculado', 'No-API mode: precomputed catalog')),
+      el('p', {}, tr(`La API del modelo no está publicada en esta demo. Tu coordenada se busca entre los ${n} sitios ya calculados `
+        + 'por el modelo (búsqueda en zonas áridas, no todo el planeta) y, si NASA POWER responde, se muestra su clima en vivo.',
+      `The model API is not published in this demo. Your coordinate is looked up among the ${n} sites already computed `
+        + 'by the model (a search of arid regions, not the whole planet) and, if NASA POWER answers, its live climate is shown.')),
+      r.tipo === 'no_publicada' ? null
+        : el('p', { class: 'nota' }, tr(`(${API_URL} no respondió a /health en 4 s)`, `(${API_URL} did not answer /health within 4 s)`)),
+    ]);
   }
 
   armarFormulario() {
@@ -100,7 +110,8 @@ export default class Explorador extends Phaser.Scene {
       this.lat.value = String(h.lat); this.latHem.value = h.latHem;
       this.lon.value = String(h.lon); this.lonHem.value = h.lonHem;
     });
-    this.botonConsultar = el('button', { type: 'submit', class: 'primario' }, tr('Calcular similitud', 'Compute similarity'));
+    this.botonConsultar = el('button', { type: 'submit', class: 'primario' }, this.conApi
+      ? tr('Calcular similitud', 'Compute similarity') : tr('Buscar en el catálogo', 'Search the catalog'));
     this.error = el('p', { class: 'error', role: 'alert' });
     this.estado = el('p', { class: 'estado', 'aria-live': 'polite' });
     this.resultado = el('section', { 'aria-live': 'polite' });
@@ -116,15 +127,17 @@ export default class Explorador extends Phaser.Scene {
     ]);
     form.addEventListener('submit', (ev) => { ev.preventDefault(); this.consultar(); });
 
-    this.capa.append(
-      el('p', { class: 'ayuda' }, tr('Escribe una coordenada de la Tierra en grados decimales, sin signo, y elige N/S y E/O. La API del modelo descarga sus variables '
+    const ayuda = this.conApi ? el('p', { class: 'ayuda' }, tr('Escribe una coordenada de la Tierra en grados decimales, sin signo, y elige N/S y E/O. La API del modelo descarga sus variables '
         + '(NASA POWER, MODIS, relieve) y las compara con el destino. Si la similitud llega a '
         + `${Math.round(UMBRAL_PROPUESTA * 100)} %, puedes proponer el sitio.`,
       'Type an Earth coordinate in decimal degrees, without a sign, and pick N/S and E/W. The model API downloads its variables '
         + '(NASA POWER, MODIS, terrain) and compares them with the destination. If similarity reaches '
-        + `${Math.round(UMBRAL_PROPUESTA * 100)} %, you can propose the site.`)),
-      form, this.estado, this.resultado,
-    );
+        + `${Math.round(UMBRAL_PROPUESTA * 100)} %, you can propose the site.`))
+      : el('p', { class: 'ayuda' }, tr('Escribe una coordenada de la Tierra en grados decimales, sin signo, y elige N/S y E/O. '
+        + `Si hay un sitio del catálogo a ${RADIO_CATALOGO_KM} km o menos, verás su ficha; si no, los 3 más cercanos.`,
+      'Type an Earth coordinate in decimal degrees, without a sign, and pick N/S and E/W. '
+        + `If a catalog site is within ${RADIO_CATALOGO_KM} km, you will see its card; if not, the 3 nearest ones.`));
+    this.capa.append(ayuda, form, this.estado, this.resultado);
     this.lat.focus();
   }
 
@@ -149,6 +162,7 @@ export default class Explorador extends Phaser.Scene {
     this.consulta?.abort();
     this.consulta = new AbortController();
     this.resultado.replaceChildren();
+    if (!this.conApi) { this.consultarSinApi({ ...v, destino }, destino); return; }
     this.botonConsultar.disabled = true;
     const inicio = Date.now();
     const pintarEspera = () => {
@@ -162,16 +176,16 @@ export default class Explorador extends Phaser.Scene {
     clearInterval(reloj);
     if (!this.capa) return; // la escena se cerró mientras esperaba
     this.botonConsultar.disabled = false;
-    if (!r.ok) { this.mostrarFallo(r); return; }
+    if (!r.ok) { this.mostrarFallo(r, { ...v, destino }); return; }
     this.estado.textContent = '';
     this.mostrarResultado(r.datos, { ...v, destino });
   }
 
-  mostrarFallo(r) {
+  mostrarFallo(r, punto) {
     if (r.tipo === 'cancelado') { this.estado.textContent = ''; return; }
     const sinApi = r.tipo === 'red' || r.tipo === 'espera';
     this.estado.textContent = '';
-    this.resultado.replaceChildren(el('div', { class: 'aviso' }, [
+    const aviso = el('div', { class: 'aviso' }, [
       el('strong', {}, sinApi ? tr('La API del modelo no responde.', 'The model API is not responding.')
         : tr('La API rechazó la consulta.', 'The API rejected the request.')),
       el('p', {}, `${r.mensaje}${sinApi ? ` (${API_URL})` : ''}`),
@@ -179,7 +193,173 @@ export default class Explorador extends Phaser.Scene {
         ? tr('El juego sigue funcionando con los datos guardados: vuelve al menú y juega con los sitios del catálogo.',
           'The game keeps working with the saved data: go back to the menu and play with the catalog sites.')
         : tr('Revisa la coordenada y vuelve a intentarlo.', 'Check the coordinate and try again.')),
-    ]));
+    ]);
+    // La API se cayó a media consulta: se responde con el catálogo precalculado en vez de dejar al jugador sin nada,
+    // y las siguientes consultas ya no esperan a la API.
+    if (sinApi && punto) {
+      this.conApi = false;
+      this.botonConsultar.textContent = tr('Buscar en el catálogo', 'Search the catalog');
+      this.consultarSinApi(punto, punto.destino, { aviso });
+    } else this.resultado.replaceChildren(aviso);
+  }
+
+  // ---------- Sin API: catálogo precalculado + clima de NASA POWER ----------
+
+  consultarSinApi(punto, destinoId, { aviso = null } = {}) {
+    this.estado.textContent = '';
+    const cat = buscarEnCatalogo(TODOS_LOS_SITIOS, punto, { radioKm: RADIO_CATALOGO_KM });
+    const etiqueta = el('p', { class: 'etiqueta' }, tr('Resultado precalculado del catálogo (sin consulta en vivo)', 'Precomputed catalog result (no live lookup)'));
+    const nodos = [aviso, etiqueta];
+    let clima = null;
+    if (cat.encontrado) nodos.push(this.fichaCatalogo(cat.encontrado, destinoId));
+    else {
+      clima = el('section', { class: 'clima', 'aria-live': 'polite' });
+      nodos.push(this.fueraDelCatalogo(cat, punto), clima, this.propuestaSinApi());
+    }
+    this.resultado.replaceChildren(...nodos.filter(Boolean));
+    // A 960×540 el resultado queda debajo del formulario: se lleva a la vista (el formulario sigue arriba, con scroll).
+    (aviso || etiqueta).scrollIntoView?.({ block: 'start' });
+    if (clima) this.pedirClima(punto, destinoId, clima, this.consulta);
+  }
+
+  fichaCatalogo({ sitio: s, distanciaKm: km }, destinoElegido) {
+    const gemelo = DESTINOS[s.destino_ref] || null;
+    const nombreGemelo = gemelo ? `${MUNDOS[gemelo.mundo] || gemelo.mundo} · ${trDato(gemelo, 'nombre')}` : (s.destino_ref || sinDato());
+    const est = (esMina(s) && ESTADOS.mina) || ESTADOS[s.estado] || { texto: s.estado, color: '#9aa4c7' };
+    const sim = s.similitud || {};
+    const { filas } = gemelo ? filasComparacion(s, gemelo) : { filas: [] };
+    const { noReproducible, notas } = limitesDe(s, gemelo);
+    const jugable = !!gemelo && SITIOS.includes(s);
+    const elegido = DESTINOS[destinoElegido];
+
+    const acciones = el('div', { class: 'fila' });
+    if (jugable) {
+      const abrir = el('button', { type: 'button', class: 'primario' }, tr('Abrir su Expediente', 'Open its Site File'));
+      abrir.addEventListener('click', () => {
+        visitarSitio(partida, s, { sitios: SITIOS, destinos: DESTINOS, presupuesto: PRESUPUESTO_INICIAL, tickets: TICKETS_POR_PARTIDA });
+        irA(this, 'Expediente');
+      });
+      acciones.append(abrir);
+    }
+    const url = urlFicha(s);
+    if (url) acciones.append(el('a', { class: 'boton', href: url, target: '_blank', rel: 'noopener' }, tr('Ficha completa ↗', 'Full fact sheet ↗')));
+
+    return el('article', { class: 'ficha' }, [
+      el('h2', { tabindex: '-1' }, trDato(s, 'nombre') || s.id),
+      el('p', {}, [el('span', { style: `color: ${est.color}` }, est.texto),
+        ` · ${tr(`a ${formatoDistancia(km)} de tu punto`, `${formatoDistancia(km)} from your point`)} · ${formatoCoordenada(s.lat, s.lon)}`
+          + (s.novedoso === true ? tr(' · NOVEDOSO', ' · NOVEL') : '')]),
+      esDemostracion(s) ? el('p', { class: 'error' }, tr('ILUSTRATIVO · datos de demostración: no son mediciones del sitio',
+        'ILLUSTRATIVE · demo data: not measurements of the site')) : null,
+      el('div', { class: 'total' }, [
+        el('span', { class: 'grande' }, formatoPorcentaje(sim.total)),
+        el('span', {}, tr(` similitud total con su gemelo: ${nombreGemelo} · confianza ${formatoPorcentaje(sim.confianza)}`,
+          ` total similarity with its twin: ${nombreGemelo} · confidence ${formatoPorcentaje(sim.confianza)}`)),
+      ]),
+      // La acción va arriba, junto al puntaje: a 960×540 se ve sin desplazar.
+      acciones.childElementCount ? acciones : null,
+      elegido && gemelo && elegido.id !== gemelo.id
+        ? el('p', { class: 'nota' }, tr(`El modelo calculó este sitio contra su gemelo (${trDato(gemelo, 'nombre')}), no contra ${trDato(elegido, 'nombre')}.`,
+          `The model computed this site against its twin (${trDato(gemelo, 'nombre')}), not against ${trDato(elegido, 'nombre')}.`)) : null,
+      el('table', {}, [
+        el('thead', {}, el('tr', {}, [el('th', {}, tr('Dimensión', 'Dimension')), el('th', {}, tr('Tierra (sitio)', 'Earth (site)')),
+          el('th', {}, tr('Gemelo', 'Twin')), el('th', {}, tr('Similitud', 'Similarity'))])),
+        el('tbody', {}, filas.length ? filas.map((f) => el('tr', {}, [
+          el('th', { scope: 'row' }, f.etiqueta),
+          el('td', {}, [formatoValor(f.tierra), el('small', {}, recortar(trDato(f.tierra, 'fuente') || '', 70))]),
+          el('td', {}, [f.destino?.texto && f.destino.valor == null ? f.destino.texto : formatoValor(f.destino),
+            el('small', {}, recortar(trDato(f.destino, 'fuente') || '', 70))]),
+          el('td', { class: 'num' }, f.mismaUnidad ? formatoPorcentaje(f.similitud) : tr('⚠ unidades distintas', '⚠ different units')),
+        ])) : el('tr', {}, el('td', { colspan: 4 }, sinDato()))),
+      ]),
+      el('p', {}, [el('strong', {}, tr('Lo que la Tierra no puede probar: ', 'What Earth cannot test: ')),
+        noReproducible.length ? noReproducible.map((l) => l.etiqueta).join(' · ') : sinDato()]),
+      ...notas.map((n) => el('p', { class: 'nota' }, `${tr('Límite del cálculo', 'Calculation limit')}: ${enIdioma(n)}`)),
+      jugable ? null : el('p', { class: 'nota' }, tr('Este sitio aún no es jugable (no tiene recorrido de prueba): es parte del catálogo del modelo.',
+        'This site is not playable yet (it has no test route): it is part of the model catalog.')),
+    ]);
+  }
+
+  fueraDelCatalogo(cat, punto) {
+    const lista = el('ul', { class: 'cercanos' }, cat.cercanos.map(({ sitio: s, distanciaKm: km }) => {
+      const est = (esMina(s) && ESTADOS.mina) || ESTADOS[s.estado] || { texto: s.estado };
+      const b = el('button', { type: 'button', class: 'secundario' }, `${trDato(s, 'nombre') || s.id} · ${est.texto} · ${formatoDistancia(km)}`);
+      b.addEventListener('click', () => this.consultarSitio(s));
+      return el('li', {}, b);
+    }));
+    return el('div', { class: 'fuera' }, [
+      el('strong', {}, tr('Fuera del catálogo precalculado', 'Outside the precomputed catalog')),
+      el('p', {}, tr(`Ningún sitio del catálogo está a ${RADIO_CATALOGO_KM} km o menos de ${formatoCoordenada(punto.lat, punto.lon)}. `
+        + 'Sin la API, el modelo no puede medir la forma de cráter de un punto nuevo. Los 3 sitios más cercanos (elige uno para ver su ficha):',
+      `No catalog site is within ${RADIO_CATALOGO_KM} km of ${formatoCoordenada(punto.lat, punto.lon)}. `
+        + 'Without the API, the model cannot measure the crater shape of a new point. The 3 nearest sites (pick one to see its card):')),
+      cat.cercanos.length ? lista : el('p', { class: 'nota' }, sinDato()),
+    ]);
+  }
+
+  // Rellena el formulario con un sitio del catálogo y lo consulta (queda a 0 km: se ve su ficha).
+  consultarSitio(s) {
+    const h = aHemisferio(s.lat, s.lon);
+    this.lat.value = String(h.lat); this.latHem.value = h.latHem;
+    this.lon.value = String(h.lon); this.lonHem.value = h.lonHem;
+    this.consultar();
+    this.resultado.querySelector('h2')?.focus();
+  }
+
+  // Clima en vivo directo de NASA POWER (sin la API del modelo). Si falla, la sección se omite con una nota neutra.
+  async pedirClima(punto, destinoId, caja, consulta) {
+    caja.replaceChildren(el('p', { class: 'estado' }, tr('Consultando el clima de este punto en NASA POWER…', 'Querying this point\'s climate in NASA POWER…')));
+    const r = await climaPower(punto, { senal: consulta?.signal });
+    if (!this.capa || consulta !== this.consulta || !caja.isConnected) return; // otra consulta o la escena se cerró
+    const destino = DESTINOS[destinoId];
+    if (!r.ok || !destino) {
+      caja.replaceChildren(el('p', { class: 'nota' }, tr('Clima en vivo no disponible ahora (NASA POWER no respondió): se omite.',
+        'Live climate not available right now (NASA POWER did not answer): skipped.')));
+      return;
+    }
+    const filas = similitudClima(r.clima, destino.variables);
+    const recortes = filas.filter((f) => f.recorte).map((f) => {
+      const u = unidadVisible(f.destino.unidad);
+      return tr(`${etiquetaVariable(f.clave)}: el destino (${formatoNumero(f.recorte.destino)} ${u}) está fuera de lo que alcanza la Tierra; se compara contra ${formatoNumero(f.recorte.extremo)} ${u}.`,
+        `${etiquetaVariable(f.clave)}: the destination (${formatoNumero(f.recorte.destino)} ${u}) is beyond what Earth reaches; compared against ${formatoNumero(f.recorte.extremo)} ${u}.`);
+    });
+    const escalas = Object.entries(DIMENSIONES_CLIMA)
+      .map(([k, c]) => `${etiquetaVariable(k)} ${c.escala} ${unidadVisible(filas.find((f) => f.clave === k)?.tierra?.unidad || '')}`.trim()).join(', ');
+    caja.replaceChildren(
+      el('h3', {}, tr('Similitud parcial (solo clima, sin forma del cráter)', 'Partial similarity (climate only, no crater shape)')),
+      el('p', { class: 'ayuda' }, tr(`Clima en vivo de este punto (NASA POWER, climatología anual) contra ${trDato(destino, 'nombre')}. `
+        + `s = exp(−|Tierra − destino| / escala); escalas del modelo (P): ${escalas}.`,
+      `Live climate of this point (NASA POWER, annual climatology) against ${trDato(destino, 'nombre')}. `
+        + `s = exp(−|Earth − destination| / scale); model scales (P): ${escalas}.`)),
+      el('table', {}, [
+        el('thead', {}, el('tr', {}, [el('th', {}, tr('Dimensión', 'Dimension')), el('th', {}, tr('Este punto', 'This point')),
+          el('th', {}, tr('Destino', 'Destination')), el('th', {}, tr('Similitud', 'Similarity'))])),
+        el('tbody', {}, filas.map((f) => el('tr', {}, [
+          el('th', { scope: 'row' }, etiquetaVariable(f.clave)),
+          el('td', {}, [formatoValor(f.tierra), el('small', {}, `${enIdioma(f.tierra?.fuente) || ''}${f.tierra?.fecha ? ` · ${f.tierra.fecha}` : ''}`)]),
+          el('td', {}, [formatoValor(f.destino), el('small', {}, recortar(trDato(f.destino, 'fuente') || '', 70))]),
+          el('td', { class: 'num' }, formatoPorcentaje(f.similitud)),
+        ]))),
+      ]),
+      ...recortes.map((t) => el('p', { class: 'nota' }, t)),
+      el('p', { class: 'nota' }, tr('Sin la forma del cráter (la dimensión principal) no hay similitud total. Tampoco se revisan vegetación (MODIS) '
+        + 'ni relieve: eso lo calcula la API del modelo. Un clima parecido, por sí solo, no hace análogo a un punto.',
+      'Without crater shape (the main dimension) there is no total similarity. Vegetation (MODIS) and terrain are not checked either: '
+        + 'the model API computes those. A similar climate alone does not make a point an analog.')),
+    );
+  }
+
+  // Sin API no se puede guardar una propuesta: el botón se ve, deshabilitado, con la razón.
+  propuestaSinApi() {
+    const boton = el('button', { type: 'button', class: 'primario', disabled: true, 'aria-describedby': 'mc-propuesta-nota' }, tr('Proponer sitio', 'Propose site'));
+    return el('div', { class: 'propuesta' }, [
+      el('strong', {}, tr('Proponer este sitio', 'Propose this site')),
+      el('div', { class: 'fila' }, [boton,
+        el('p', { id: 'mc-propuesta-nota', class: 'nota' }, tr('Necesita la API del servidor, que calcula la similitud total (con la forma del cráter) '
+          + 'y guarda la propuesta. En esta demo no está publicada.',
+        'It needs the server API, which computes the total similarity (with crater shape) and stores the proposal. '
+          + 'It is not published in this demo.'))]),
+    ]);
   }
 
   mostrarResultado(d, punto) {

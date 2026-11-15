@@ -4,7 +4,7 @@ import { SITIOS, DESTINOS } from '../data.js';
 import { partida } from '../main.js';
 import { COLOR, texto, boton, panel, Teclado } from './expediente/interfaz.js';
 import { GRAVEDAD, TICKETS_POR_PARTIDA } from '../config/world.js';
-import { elegirSitio, sitioPagado } from './expediente/guardado.js';
+import { elegirSitio, sitioPagado, tomarSitioPedido } from './expediente/guardado.js';
 import { DESTINO_POR_DEFECTO, urlFicha } from './expediente/config.js';
 import {
   sitiosParaDestino, filasComparacion, limitesDe, formatoValor, formatoPorcentaje, esDemostracion, recortar, sinDato, esMina } from './expediente/logica.js';
@@ -31,7 +31,9 @@ export default class Expediente extends Phaser.Scene {
     if (!DESTINOS[partida.destino]) partida.destino = DESTINOS[DESTINO_POR_DEFECTO] ? DESTINO_POR_DEFECTO : Object.keys(DESTINOS)[0];
     this.destino = DESTINOS[partida.destino] || null;
     this.sitios = sitiosParaDestino(SITIOS, partida.destino);
-    const i = Math.max(0, this.sitios.findIndex((s) => s.id === partida.sitio?.id));
+    // Si viene del Explorador ("Abrir su Expediente"), se selecciona ese sitio; si no, el que está en juego.
+    const pedido = tomarSitioPedido();
+    const i = Math.max(0, this.sitios.findIndex((s) => s.id === (pedido ?? partida.sitio?.id)));
     this.seleccion = this.sitios[i] || null;
     this.pagina = Math.floor(i / POR_PAGINA);
     this.teclado = new Teclado(this, { alEscape: () => irA(this, 'Menu') });

@@ -62,7 +62,23 @@ En la integración de la ronda 3 (`e68d856`) el Menú y el Expediente quedaron a
 - [x] Medido en el build de producción con el arte de entonces (93 PNG, el mayor de 22.4 KB): no se saltó nada; lo
   descargado hasta el Menú pasó de 542.0 KB a 543.0 KB.
 
-Pruebas del frente hoy en main: **18/18** (`cd game && node --test src/scenes/expediente/pruebas/`).
+### Explorador sin API (14 nov, sobre `feat/juego`)
+Playtest: "el explorador libre no funciona" (la API no está publicada; antes solo salía un aviso y "Volver").
+- [x] **Catálogo precalculado:** la coordenada se busca entre los sitios de `data/sites/` (`TODOS_LOS_SITIOS`, 58 con
+  coordenadas) por distancia de gran círculo. A ≤ 25 km (`RADIO_CATALOGO_KM`, P) se ve su ficha: nombre, estado,
+  distancia, similitud total y por dimensión, confianza, gemelo, lo que la Tierra no puede probar y notas del cálculo.
+  Si es jugable, "Abrir su Expediente" (`visitarSitio` en `guardado.js`: el destino pasa a su gemelo, no gasta tickets;
+  si el sitio en juego era de otro destino se suelta). Si no hay sitio cerca: "Fuera del catálogo precalculado" + los 3
+  más cercanos con su distancia (botones). Todo con la etiqueta "Resultado precalculado del catálogo (sin consulta en vivo)".
+- [x] **Clima en vivo de NASA POWER desde el navegador** (verificado: responde con `Access-Control-Allow-Origin: *`, sin
+  llave, ~0.1 s; espera máx. 8 s). Solo fuera del catálogo: `T2M_RANGE` y `PRECTOTCORR` (misma consulta que
+  `model/features.py`) → similitud PARCIAL por dimensión con la fórmula y escalas de `model/score.py` (20 K, 1 mm/día;
+  recorte al máximo terrestre de 40 K). Sin forma no hay total. Si POWER falla, se omite con una nota neutra.
+- [x] **Proponer sitio** sin API: botón deshabilitado con la razón ("necesita la API del servidor"). Con API, igual que antes.
+  Si la API se cae a media consulta, se responde con el catálogo y las siguientes consultas ya no la esperan.
+- [x] Letra del Explorador ≥ 15 px. Pruebas nuevas: `pruebas/catalogo.test.js` (9) y 1 en `tickets.test.js`.
+
+Pruebas del frente: **41/41** (`cd game && node --test src/scenes/expediente/pruebas/`).
 
 ## Prueba del camino completo en Luna y Marte
 Recorrido con clics y teclas reales (`npm run dev`, Chrome sin ventana): Menú → Nueva partida → destino → Expediente →
