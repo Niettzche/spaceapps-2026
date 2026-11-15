@@ -8,6 +8,10 @@ import { danioCarga, danioChasis } from './danio.js';
 import { gastoPorSegundo } from './energia.js';
 import { puntuar } from '../feedback/puntuacion.js';
 import { recomendar } from '../feedback/reglas.js';
+import { setIdioma } from '../i18n.js';
+
+// Las aserciones de texto están en español; en Node el idioma por defecto sale de navigator (puede ser 'en').
+setIdioma('es');
 
 const piezas = JSON.parse(readFileSync(new URL('../content/parts.json', import.meta.url)));
 let n = 0;
@@ -152,3 +156,30 @@ caso('analogía: gravedad, patinaje y límites del destino', () => {
   assert.ok(compararAnalogia(null, mision, luna).some((x) => x.includes('Sin una prueba')));
 });
 console.log(`${n} casos OK (con analogía)`);
+
+// Textos en inglés (i18n.js): mismas funciones, idioma cambiado al llamarlas.
+caso('inglés: analogía, recomendaciones y notas de perfil y suelo', () => {
+  setIdioma('en');
+  try {
+    const prueba = { resultado: { distancia_m: 250, energia_restante: 0.4, eventos: [{ t: 1, tipo: 'patinaje', detalle: 'arena' }] } };
+    const mision = { resultado: { distancia_m: 250, energia_restante: 0.2, eventos: [{ t: 1, tipo: 'patinaje' }, { t: 4, tipo: 'patinaje' }] } };
+    const luna = { mundo: 'luna', gravedad_ms2: 1.62, no_reproducible_en_tierra: ['gravedad', 'vacio', 'radiacion'] };
+    const l = compararAnalogia(prueba, mision, luna);
+    assert.match(l[0], /^Gravity: Earth 9\.81 → destination 1\.62 m\/s²/);
+    assert.ok(l.some((x) => x.includes('1 moments in the test, 2 in the mission')));
+    assert.ok(l.some((x) => x.includes('vacuum, radiation')) && l.some((x) => x.includes('loose regolith')));
+    const recs = recomendar({ eventos: [{ t: 1, tipo: 'patinaje', detalle: 'arena' }, { t: 2, tipo: 'patinaje', detalle: 'arena' }], diseno: DISENO_POR_DEFECTO, integridad_carga: 1 });
+    assert.equal(recs[0].texto, 'Switch to wide sand wheels.');
+    assert.equal(recs[0].evidencia, 'Your wheels slipped 2 times on sand.');
+    const elev = Array.from({ length: 101 }, () => 0);
+    const p = perfilDesdeElevaciones(elev, { paso_m: 30, superficies: [{ desde: 0, hasta: 3000, tipo: 'arena' }], dunasRecreadas: true, fuente: 'DEM, muestreo a 30 m; rumbo 90°' });
+    assert.match(p.nota, /^Measured profile \(DEM, sampled at 30 m; bearing 90°\) · real 250 m stretch \(from m \d+\) of a 3\.0 km transect/);
+    assert.ok(p.nota.includes('recreated dune faces') && p.nota.endsWith('flat start and finish = recreation'));
+    assert.match(generarPerfil({ tipo: 'dunas' }).nota, /^Illustrative generated terrain \(dunes\)/);
+    const suelo = notaSuelo('tierra', [{ tipo: 'arena' }, { tipo: 'roca' }]);
+    assert.ok(suelo.startsWith('Soil: sand') && suelo.endsWith(' · rock: provisional grip (P)'));
+  } finally {
+    setIdioma('es');
+  }
+});
+console.log(`${n} casos OK (con inglés)`);

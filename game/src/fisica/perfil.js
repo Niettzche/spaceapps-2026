@@ -5,6 +5,9 @@
 //   superficies: tramos en metros; tipo ∈ arena | roca | compacto.
 //   ilustrativo: true si NO viene de datos reales (se avisa en pantalla).
 
+import { tr } from '../i18n.js';
+import { traducirFuente } from './nombres_en.js';
+
 export const SUPERFICIES = ['arena', 'roca', 'compacto'];
 
 // Zonas planas para arrancar y para la meta o la entrega (recreación de juego). (P)
@@ -121,6 +124,10 @@ const GENERADORES = {
 };
 
 export const TIPOS_GENERADOS = Object.keys(GENERADORES);
+const TIPO_EN = { dunas: 'dunes', lava: 'lava field', pendiente: 'slope', luna: 'Moon', marte: 'Mars' };
+
+/** Parte de la nota que describe el tramo real usado (se reemplaza en la misión). */
+const esParteTramo = (p) => p.startsWith('tramo real de') || p.startsWith('real ');
 
 /** Recorta y desplaza los tramos de superficie de [0, largo] a [desplazamiento, desplazamiento + largo]. */
 function desplazarSuperficies(superficies, desplazamiento, largoTotal) {
@@ -158,7 +165,8 @@ export function generarPerfil({ tipo = 'dunas', semilla = 1, largo_m = 240 } = {
     superficies: desplazarSuperficies(superficies, PLANO_INICIO_M, base.largo_m),
     ilustrativo: true,
     fuente: null,
-    nota: `Terreno ilustrativo generado (${tipo}); no es un perfil medido.`,
+    nota: tr(`Terreno ilustrativo generado (${tipo}); no es un perfil medido.`,
+      `Illustrative generated terrain (${TIPO_EN[tipo] ?? tipo}); not a measured profile.`),
     tipo,
   };
 }
@@ -245,12 +253,17 @@ export function perfilDesdeElevaciones(elevaciones, {
   const base = conPlanos(elev, largoJugable);
   const km = (mts) => (mts >= 1000 ? `${(mts / 1000).toFixed(1)} km` : `${Math.round(mts)} m`);
   const partes = [
-    `Perfil medido (${fuente ?? 'fuente sin declarar'})`,
-    total > largoJugable ? `tramo real de ${km(largoJugable)} (desde el m ${Math.round(v.desde)}) de un transecto de ${km(total)}` : null,
-    exageracion !== 1 ? `exageración vertical ×${exageracion}` : null,
-    hayDunas ? `caras de duna recreadas (~${DUNA.anguloRef}°, ángulo de reposo de la arena; el modelo de 30 m no las resuelve)` : null,
-    hayRocas ? 'bloques de roca recreados (~0.5 m; el modelo de 30 m no resuelve rocas sueltas)' : null,
-    'inicio y meta planos = recreación',
+    tr(`Perfil medido (${fuente ?? 'fuente sin declarar'})`, `Measured profile (${traducirFuente(fuente) ?? 'source not declared'})`),
+    total > largoJugable
+      ? tr(`tramo real de ${km(largoJugable)} (desde el m ${Math.round(v.desde)}) de un transecto de ${km(total)}`,
+        `real ${km(largoJugable)} stretch (from m ${Math.round(v.desde)}) of a ${km(total)} transect`)
+      : null,
+    exageracion !== 1 ? tr(`exageración vertical ×${exageracion}`, `vertical exaggeration ×${exageracion}`) : null,
+    hayDunas ? tr(`caras de duna recreadas (~${DUNA.anguloRef}°, ángulo de reposo de la arena; el modelo de 30 m no las resuelve)`,
+      `recreated dune faces (~${DUNA.anguloRef}°, angle of repose of sand; the 30 m model does not resolve them)`) : null,
+    hayRocas ? tr('bloques de roca recreados (~0.5 m; el modelo de 30 m no resuelve rocas sueltas)',
+      'recreated rock blocks (~0.5 m; the 30 m model does not resolve loose rocks)') : null,
+    tr('inicio y meta planos = recreación', 'flat start and finish = recreation'),
   ].filter(Boolean);
   return {
     ...base,
@@ -345,9 +358,11 @@ export function perfilDeDestino(destino) {
     });
     const transecto = paso * (elev.length - 1);
     const km = (mts) => (mts >= 1000 ? `${(mts / 1000).toFixed(1)} km` : `${Math.round(mts)} m`);
-    const partes = perfil.nota.split(' · ').filter((p) => !p.startsWith('tramo real de'));
-    partes.splice(1, 0, `tramo real de ${km(VENTANA_REAL_M)} (desde el m ${Math.round(desde)}) de un transecto de ${km(transecto)}, `
-      + `elegido por su pendiente media (${v.media.toFixed(1)}°), la más parecida a la típica del destino (${objetivo}°)`);
+    const partes = perfil.nota.split(' · ').filter((p) => !esParteTramo(p));
+    partes.splice(1, 0, tr(`tramo real de ${km(VENTANA_REAL_M)} (desde el m ${Math.round(desde)}) de un transecto de ${km(transecto)}, `
+      + `elegido por su pendiente media (${v.media.toFixed(1)}°), la más parecida a la típica del destino (${objetivo}°)`,
+    `real ${km(VENTANA_REAL_M)} stretch (from m ${Math.round(desde)}) of a ${km(transecto)} transect, `
+      + `chosen because its mean slope (${v.media.toFixed(1)}°) is the closest to the destination's typical slope (${objetivo}°)`));
     return { ...perfil, nota: partes.join(' · '), ventana: { desde_m: desde, hasta_m: desde + VENTANA_REAL_M, transecto_m: transecto, pendiente_media: v.media } };
   }
   const mundo = TIPO_POR_MUNDO[destino?.mundo] ?? 'marte';
@@ -365,7 +380,8 @@ export function perfilDeDestino(destino) {
   return {
     ...perfil,
     y_m,
-    nota: `${perfil.nota} Inclinación media de ${pendiente}°: la pendiente típica medida del destino${fuente ? ` (${fuente})` : ''}.`,
+    nota: tr(`${perfil.nota} Inclinación media de ${pendiente}°: la pendiente típica medida del destino${fuente ? ` (${fuente})` : ''}.`,
+      `${perfil.nota} Mean incline of ${pendiente}°: the measured typical slope of the destination${fuente ? ` (${traducirFuente(fuente)})` : ''}.`),
   };
 }
 

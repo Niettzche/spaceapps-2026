@@ -5,24 +5,26 @@
 // Modelo de juego (P): fricción efectiva de la rueda = curva(agarre de la pieza) × agarre del suelo (tope 1).
 // La pieza dice qué fracción del agarre del suelo aprovecha la rueda; el suelo pone el límite real.
 
+import { tr } from '../i18n.js';
+
 const FUENTE_LUNA = 'Connolly y Carrier, propiedades del regolito lunar (datos Apolo), NASA NTRS 20220014634';
 const FUENTE_MARTE = 'Propiedades mecánicas del suelo de Marte (Viking), NASA NTRS 20200003046, tabla 1';
 const FUENTE_DUNA = 'Arena seca de Wong (2001) en NASA/TM-20250006958, tabla 1 (28°); caras de barjanes, Pelletier et al. 2015, JGR (34°)';
 
 export const SUELOS = {
   luna: {
-    arena: { bioma: 'BM-008', nombre: 'regolito suelto', phi: [30, 50], fuente: FUENTE_LUNA },
-    compacto: { bioma: 'BM-012', nombre: 'regolito compactado', phi: [30, 50], fuente: FUENTE_LUNA },
+    arena: { bioma: 'BM-008', nombre: 'regolito suelto', nombre_en: 'loose regolith', phi: [30, 50], fuente: FUENTE_LUNA },
+    compacto: { bioma: 'BM-012', nombre: 'regolito compactado', nombre_en: 'compacted regolith', phi: [30, 50], fuente: FUENTE_LUNA },
     roca: null, // sin dato para roca lunar
   },
   marte: {
-    arena: { bioma: 'BM-013', nombre: 'polvo y arena suelta (drift)', phi: [15.6, 20.4], fuente: FUENTE_MARTE },
-    compacto: { bioma: 'BM-015', nombre: 'suelo con costra (crusty/cloddy)', phi: [29.8, 39.2], fuente: FUENTE_MARTE },
-    roca: { bioma: 'BM-016', nombre: 'roca o afloramiento (cota superior)', phi: [40, 60], fuente: FUENTE_MARTE },
+    arena: { bioma: 'BM-013', nombre: 'polvo y arena suelta (drift)', nombre_en: 'loose dust and sand (drift)', phi: [15.6, 20.4], fuente: FUENTE_MARTE },
+    compacto: { bioma: 'BM-015', nombre: 'suelo con costra (crusty/cloddy)', nombre_en: 'crusty/cloddy soil', phi: [29.8, 39.2], fuente: FUENTE_MARTE },
+    roca: { bioma: 'BM-016', nombre: 'roca o afloramiento (cota superior)', nombre_en: 'rock or outcrop (upper bound)', phi: [40, 60], fuente: FUENTE_MARTE },
   },
   tierra: {
     // Arena seca GENÉRICA (no medida en Samalayuca). Mismo origen que la fila BM-004 del libro de datos.
-    arena: { bioma: 'BM-004', nombre: 'arena de duna seca (genérica)', phi: [28, 34], fuente: FUENTE_DUNA, generico: true },
+    arena: { bioma: 'BM-004', nombre: 'arena de duna seca (genérica)', nombre_en: 'dry dune sand (generic)', phi: [28, 34], fuente: FUENTE_DUNA, generico: true },
     // Sin dato con fuente: la lava sólida se comporta como roca y el suelo "compacto" de Pinacate/mx0207 no tiene φ medido.
     // BM-003 (escoria suelta, 25–32°, NPS) existe en el libro de datos, pero no corresponde a estos tramos: no se usa aquí.
     roca: null,
@@ -47,6 +49,10 @@ export const USAR_SUELO_TIERRA = false;
 
 // Hundimiento en suelo blando (Bekker: k_c, k_φ, n): NO implementado. El libro de datos tiene arena seca (BM-004, NASA TM)
 // y valores lunares aproximados (BM-008, Draft); el polvo de Marte (BM-013) sigue sin dato.
+
+/** Nombre de un tipo de superficie (arena | roca | compacto) en el idioma actual. */
+const SUPERFICIE_EN = { arena: 'sand', roca: 'rock', compacto: 'compact' };
+export const nombreSuperficie = (tipo) => (tipo ? tr(tipo, SUPERFICIE_EN[tipo] ?? tipo) : tipo);
 
 const tanGrados = (g) => Math.tan((g * Math.PI) / 180);
 
@@ -81,8 +87,9 @@ export function notaSuelo(mundo, superficies) {
   if (!tipos.length) return null;
   const partes = tipos.map((t) => {
     const d = datosSuelo(mundo, t);
-    if (!d) return `${t}: agarre provisional (P)`;
-    return `${t} φ ${d.phi[0]}–${d.phi[1]}° (${d.generico ? 'genérico, ' : ''}${d.bioma})`;
+    const n = nombreSuperficie(t);
+    if (!d) return tr(`${n}: agarre provisional (P)`, `${n}: provisional grip (P)`);
+    return `${n} φ ${d.phi[0]}–${d.phi[1]}° (${d.generico ? tr('genérico, ', 'generic, ') : ''}${d.bioma})`;
   });
-  return `Suelo: ${partes.join(' · ')}`;
+  return `${tr('Suelo', 'Soil')}: ${partes.join(' · ')}`;
 }

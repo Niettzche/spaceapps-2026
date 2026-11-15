@@ -1,4 +1,7 @@
 // HUD de la prueba y la misión, fijo a la cámara. Usa la UI de arte (assets/ui) si existe; si no, figuras.
+import { tr } from '../i18n.js';
+import { nombreSuperficie } from './suelos.js';
+
 const ESTILO = { fontFamily: 'monospace', fontSize: '13px', color: '#cfd6ff' };
 const ANCHO_IZQ = 530;
 
@@ -22,7 +25,7 @@ export class Hud {
     // Nota de datos: en el HUD solo una línea (para no distraer al manejar); el texto completo se abre con la tecla I.
     if (aviso) {
       const t = fijo(scene.add.text(16, 56, '', { ...ESTILO, fontSize: '11px', color: '#ffd166' }));
-      const pie = ' · [I] datos';
+      const pie = tr(' · [I] datos', ' · [I] data');
       let corto = aviso;
       t.setText(corto + pie);
       while (t.width > ANCHO_IZQ && corto.length > 10) { corto = corto.slice(0, -2); t.setText(`${corto.trimEnd()}…${pie}`); }
@@ -33,8 +36,8 @@ export class Hud {
 
     this.barras = {};
     const hay = (k) => scene.textures.exists(k);
-    [['energia', 'Energía', 0x4cc38a, 'ui/ui_icono_energia'], ['integridad', 'Carga', 0xffd166, 'ui/ui_icono_carga'],
-      ['chasis', 'Chasis', 0x9aa4c7, 'ui/ui_icono_chasis']].forEach(([clave, etiqueta, color, icono], i) => {
+    [['energia', tr('Energía', 'Energy'), 0x4cc38a, 'ui/ui_icono_energia'], ['integridad', tr('Carga', 'Payload'), 0xffd166, 'ui/ui_icono_carga'],
+      ['chasis', tr('Chasis', 'Chassis'), 0x9aa4c7, 'ui/ui_icono_chasis']].forEach(([clave, etiqueta, color, icono], i) => {
       const x = 560;
       const y = 12 + i * 18;
       // Ícono de arte (8 × 8 × 2) si existe; si no, el nombre.
@@ -57,7 +60,7 @@ export class Hud {
     for (const [clave, barra] of Object.entries(this.barras)) barra.width = 144 * Math.max(0, Math.min(1, estado[clave]));
     this.progreso.width = 928 * Math.max(0, Math.min(1, distancia_m / Math.max(1, meta_m)));
     this.lectura.setText(
-      `${estado.velocidadMs.toFixed(1)} m/s · ${Math.floor(distancia_m)}/${Math.floor(meta_m)} m\n${estado.superficie ?? ''}${estado.patina ? ' · PATINA' : ''}`,
+      `${estado.velocidadMs.toFixed(1)} m/s · ${Math.floor(distancia_m)}/${Math.floor(meta_m)} m\n${nombreSuperficie(estado.superficie) ?? ''}${estado.patina ? tr(' · PATINA', ' · SLIPPING') : ''}`,
     );
   }
 
@@ -65,7 +68,7 @@ export class Hud {
   _panelDatos(aviso) {
     const s = this.scene;
     const fijo = (o) => o.setScrollFactor(0).setDepth(98).setVisible(false);
-    const t = fijo(s.add.text(480, 270, `Datos de este nivel\n\n${aviso}\n\n[I] cerrar`, {
+    const t = fijo(s.add.text(480, 270, tr(`Datos de este nivel\n\n${aviso}\n\n[I] cerrar`, `Data for this level\n\n${aviso}\n\n[I] close`), {
       ...ESTILO, fontSize: '13px', color: '#ffffff', align: 'left', wordWrap: { width: 760 }, lineSpacing: 4,
     }).setOrigin(0.5));
     const fondo = fijo(s.add.rectangle(480, 270, 800, t.height + 32, 0x0b0d17, 0.92).setStrokeStyle(2, 0xffd166, 0.7));
@@ -84,11 +87,11 @@ export class Hud {
     const s = this.scene;
     const fijo = (o) => o.setScrollFactor(0).setDepth(110);
     const fondo = fijo(s.add.rectangle(480, 270, 960, 540, 0x0b0d17, 0.7));
-    const titulo = fijo(s.add.text(480, 210, 'Pausa', { ...ESTILO, fontSize: '30px', color: '#ffffff' }).setOrigin(0.5));
+    const titulo = fijo(s.add.text(480, 210, tr('Pausa', 'Paused'), { ...ESTILO, fontSize: '30px', color: '#ffffff' }).setOrigin(0.5));
     const boton = (y, texto, color, fn) => fijo(s.add.text(480, y, texto, { ...ESTILO, fontSize: '18px', color })
       .setOrigin(0.5).setInteractive({ useHandCursor: true }).on('pointerdown', fn));
-    const seguir = boton(275, '[ Continuar · Esc / Enter ]', '#4cc38a', alContinuar);
-    const salir = boton(320, '[ Abandonar · X ]', '#ff9b9b', alAbandonar);
+    const seguir = boton(275, tr('[ Continuar · Esc / Enter ]', '[ Resume · Esc / Enter ]'), '#4cc38a', alContinuar);
+    const salir = boton(320, tr('[ Abandonar · X ]', '[ Quit · X ]'), '#ff9b9b', alAbandonar);
     return [fondo, titulo, seguir, salir];
   }
 
