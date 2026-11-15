@@ -10,6 +10,7 @@ import { notaSuelo } from './suelos.js';
 import { Telemetria, construirResultado } from './telemetria.js';
 import { Efectos } from './efectos.js';
 import { Sonido } from './sonido.js';
+import { tr } from '../i18n.js';
 import { AspectoRobot, crearFondo, claveDeFondo, sprite, tira } from './aspecto.js';
 
 const FONDO = { tierra: '#7f9fbf', marte: '#b98a6a', luna: '#05060b' }; // color si no hay fondo de arte (fisica/aspecto.js)
@@ -83,16 +84,18 @@ export class Recorrido {
     this.hud = new Hud(scene, { titulo: o.titulo, subtitulo: o.subtitulo, aviso: [avisoSuelo && `${avisoSuelo}.`, avisoNivel].filter(Boolean).join(' ') });
     this._botonAbandonar();
     // Instrucciones al empezar: objetivo + controles (teclado y táctil). Esc abandona.
-    const controles = '→ / D acelerar   ← / A frenar   (táctil: ▶ ◀)   Esc pausa';
-    if (o.modo === 'prueba') this.hud.instrucciones('Prueba en la Tierra: llega a la META con la carga', [controles]);
+    const controles = tr('→ / D acelerar   ← / A frenar   (táctil: ▶ ◀)   Esc pausa', '→ / D accelerate   ← / A brake   (touch: ▶ ◀)   Esc pause');
+    if (o.modo === 'prueba') this.hud.instrucciones(tr('Prueba en la Tierra: llega a la META con la carga', 'Earth test: reach the FINISH with the payload'), [controles]);
     else {
       // Llegada al destino: fundido desde negro y el cambio de mundo explicado con el dato de gravedad.
       scene.cameras.main.fadeIn(900, 0, 0, 0);
-      const nombreMundo = { luna: 'la Luna', marte: 'Marte' }[o.mundo] ?? 'el destino';
+      const nombreMundo = tr({ luna: 'la Luna', marte: 'Marte' }[o.mundo] ?? 'el destino', { luna: 'the Moon', marte: 'Mars' }[o.mundo] ?? 'the destination');
       const pct = Math.round((o.gravedad / 9.81) * 100);
-      this.hud.instrucciones(`Llegada a ${nombreMundo} · gravedad ${o.gravedad} m/s² (${pct} % de la Tierra)`, [
-        'Pesas menos: las ruedas agarran menos y el robot rebota más',
-        'Frena y detente 2 s dentro de la ZONA DE ENTREGA con la carga ≥ 60 %',
+      const minimo = Math.round(o.umbralIntegridad * 100);
+      this.hud.instrucciones(tr(`Llegada a ${nombreMundo} · gravedad ${o.gravedad} m/s² (${pct} % de la Tierra)`,
+        `Arrival on ${nombreMundo} · gravity ${o.gravedad} m/s² (${pct} % of Earth's)`), [
+        tr('Pesas menos: las ruedas agarran menos y el robot rebota más', 'Less weight: the wheels grip less and the robot bounces more'),
+        tr(`Frena y detente 2 s dentro de la ZONA DE ENTREGA con la carga ≥ ${minimo} %`, `Brake and stay still 2 s inside the DELIVERY ZONE with payload ≥ ${minimo} %`),
         controles,
       ]);
     }
@@ -120,7 +123,7 @@ export class Recorrido {
         g.fillStyle(0xffffff, 1).fillRect(xa - m(0.3), yMeta - m(1.8), m(0.6), m(1.8));
         g.fillStyle(0x6fb3ff, 1).fillRect(xa - m(0.22), yMeta - m(1.6), m(0.44), m(0.3));
       }
-      this.scene.add.text(a + 6, yMeta - m(6) + 4, 'ZONA DE ENTREGA · frena y espera 2 s', { fontFamily: 'monospace', fontSize: '12px', color: '#4cc38a', stroke: '#0b0d17', strokeThickness: 3 }).setDepth(5);
+      this.scene.add.text(a + 6, yMeta - m(6) + 4, tr('ZONA DE ENTREGA · frena y espera 2 s', 'DELIVERY ZONE · stop and wait 2 s'), { fontFamily: 'monospace', fontSize: '12px', color: '#4cc38a', stroke: '#0b0d17', strokeThickness: 3 }).setDepth(5);
     } else {
       const x = this.xMundo(this.meta_m);
       const bandera = sprite(this.scene, 'meta', { x, y: yMeta, origen: [0, 1], profundidad: 5, anim: 'ondea' });
@@ -130,12 +133,12 @@ export class Recorrido {
       }
       // El texto va justo encima de la bandera (sprite de 2 m o figura provisional de 4 m).
       const alto = bandera ? bandera.displayHeight : m(4);
-      this.scene.add.text(x + 6, yMeta - alto - 18, 'META', { fontFamily: 'monospace', fontSize: '12px', color: '#ffffff', stroke: '#0b0d17', strokeThickness: 3 }).setDepth(5);
+      this.scene.add.text(x + 6, yMeta - alto - 18, tr('META', 'FINISH'), { fontFamily: 'monospace', fontSize: '12px', color: '#ffffff', stroke: '#0b0d17', strokeThickness: 3 }).setDepth(5);
     }
   }
 
   _botonAbandonar() {
-    const t = this.scene.add.text(944, 54, '[ Abandonar ]', { fontFamily: 'monospace', fontSize: '12px', color: '#ff9b9b' })
+    const t = this.scene.add.text(944, 54, tr('[ Abandonar ]', '[ Quit ]'), { fontFamily: 'monospace', fontSize: '12px', color: '#ff9b9b' })
       .setOrigin(1, 0).setScrollFactor(0).setDepth(95).setInteractive({ useHandCursor: true });
     t.on('pointerdown', () => this._terminar(false, 'abandono'));
   }
@@ -225,11 +228,15 @@ export class Recorrido {
       intentos: this.o.intentos,
       eventos: this.telemetria.eventos,
     });
-    const textos = {
+    const textos = tr({
       meta: '¡Prueba superada!', entrega: '¡Entrega completada!', chasis_destruido: 'Chasis destruido',
       carga_perdida: 'Se perdió la carga', volcado: 'El robot volcó', energia_agotada: 'Sin energía', atascado: 'El robot quedó atascado',
       carga_danada: 'La carga llegó muy dañada', abandono: 'Prueba abandonada',
-    };
+    }, {
+      meta: 'Test passed!', entrega: 'Delivery complete!', chasis_destruido: 'Chassis destroyed',
+      carga_perdida: 'Payload lost', volcado: 'The robot flipped over', energia_agotada: 'Out of energy', atascado: 'The robot got stuck',
+      carga_danada: 'Payload arrived too damaged', abandono: 'Run abandoned',
+    });
     this.hud.mostrar(textos[motivo] ?? motivo);
     this.scene.time.delayedCall(ESPERA_FIN_MS, () => this.o.alTerminar({
       tipo: this.o.modo, exito, motivo, ilustrativo: this.o.perfil.ilustrativo, resultado,

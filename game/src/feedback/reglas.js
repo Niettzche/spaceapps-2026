@@ -1,5 +1,9 @@
 // Feedback por reglas: cada recomendación sale de eventos reales de la partida. Ver ESPECIFICACION.md §12.
 import { usaPieza } from '../fisica/diseno.js';
+import { tr } from '../i18n.js';
+
+// "1 vez / 3 veces" · "1 time / 3 times"
+const veces = (n) => tr(`${n} ${n === 1 ? 'vez' : 'veces'}`, `${n} ${n === 1 ? 'time' : 'times'}`);
 
 // Por encima de esta integridad final, los golpes a la carga no generan recomendación (valor de juego, P).
 export const INTEGRIDAD_SIN_AVISO = 0.9;
@@ -18,8 +22,8 @@ export function recomendar(resultado) {
   if (patinaArena > 0 && !usaPieza(d, 'rueda_ancha')) {
     recs.push({
       id: 'rueda_ancha',
-      texto: 'Cambia a ruedas anchas para arena.',
-      evidencia: `Tus ruedas patinaron ${patinaArena} ${patinaArena === 1 ? 'vez' : 'veces'} en arena.`,
+      texto: tr('Cambia a ruedas anchas para arena.', 'Switch to wide sand wheels.'),
+      evidencia: tr(`Tus ruedas patinaron ${veces(patinaArena)} en arena.`, `Your wheels slipped ${veces(patinaArena)} on sand.`),
       cambio: { ranuras: ['rueda_del', 'rueda_tras'], pieza: 'rueda_ancha' },
     });
   }
@@ -27,8 +31,8 @@ export function recomendar(resultado) {
   if (patinaRoca > 0 && !usaPieza(d, 'rueda_tacos')) {
     recs.push({
       id: 'rueda_tacos',
-      texto: 'Prueba ruedas con tacos para roca.',
-      evidencia: `Tus ruedas patinaron ${patinaRoca} ${patinaRoca === 1 ? 'vez' : 'veces'} en roca.`,
+      texto: tr('Prueba ruedas con tacos para roca.', 'Try lugged wheels for rock.'),
+      evidencia: tr(`Tus ruedas patinaron ${veces(patinaRoca)} en roca.`, `Your wheels slipped ${veces(patinaRoca)} on rock.`),
       cambio: { ranuras: ['rueda_del', 'rueda_tras'], pieza: 'rueda_tacos' },
     });
   }
@@ -36,8 +40,9 @@ export function recomendar(resultado) {
   if (sinFuerza > 0 && !usaPieza(d, 'motor_potente')) {
     recs.push({
       id: 'motor_potente',
-      texto: 'Usa el motor potente para subir pendientes.',
-      evidencia: `El robot se detuvo ${sinFuerza} ${sinFuerza === 1 ? 'vez' : 'veces'} acelerando sin patinar: le faltó fuerza.`,
+      texto: tr('Usa el motor potente para subir pendientes.', 'Use the powerful motor to climb slopes.'),
+      evidencia: tr(`El robot se detuvo ${veces(sinFuerza)} acelerando sin patinar: le faltó fuerza.`,
+        `The robot stalled ${veces(sinFuerza)} while accelerating without slipping: it lacked force.`),
       cambio: { ranuras: ['motor'], pieza: 'motor_potente' },
     });
   }
@@ -47,25 +52,26 @@ export function recomendar(resultado) {
   if ((cargaDanada || contar('carga_perdida') > 0) && !usaPieza(d, 'soporte_amortiguado')) {
     recs.push({
       id: 'soporte_amortiguado',
-      texto: 'Usa el soporte de carga amortiguado.',
+      texto: tr('Usa el soporte de carga amortiguado.', 'Use the cushioned payload mount.'),
       evidencia: contar('carga_perdida') > 0
-        ? 'La carga se cayó del soporte.'
-        : `La carga recibió ${golpesCarga} ${golpesCarga === 1 ? 'golpe' : 'golpes'} (integridad final ${Math.round(resultado.integridad_carga * 100)} %).`,
+        ? tr('La carga se cayó del soporte.', 'The payload fell off its mount.')
+        : tr(`La carga recibió ${golpesCarga} ${golpesCarga === 1 ? 'golpe' : 'golpes'} (integridad final ${Math.round(resultado.integridad_carga * 100)} %).`,
+          `The payload took ${golpesCarga} ${golpesCarga === 1 ? 'hit' : 'hits'} (final integrity ${Math.round(resultado.integridad_carga * 100)} %).`),
       cambio: { ranuras: ['carga'], pieza: 'soporte_amortiguado' },
     });
   }
   if (contar('energia_agotada') > 0) {
     if (!usaPieza(d, 'bateria_grande')) {
-      recs.push({ id: 'bateria_grande', texto: 'Lleva la batería grande.', evidencia: 'Se acabó la energía antes de terminar.', cambio: { ranuras: ['bateria'], pieza: 'bateria_grande' } });
+      recs.push({ id: 'bateria_grande', texto: tr('Lleva la batería grande.', 'Bring the large battery.'), evidencia: tr('Se acabó la energía antes de terminar.', 'The battery ran out before the end.'), cambio: { ranuras: ['bateria'], pieza: 'bateria_grande' } });
     } else if (usaPieza(d, 'motor_potente')) {
-      recs.push({ id: 'motor_eficiente', texto: 'Cambia al motor eficiente: gasta la mitad.', evidencia: 'Se acabó la energía aun con la batería grande.', cambio: { ranuras: ['motor'], pieza: 'motor_eficiente' } });
+      recs.push({ id: 'motor_eficiente', texto: tr('Cambia al motor eficiente: gasta la mitad.', 'Switch to the efficient motor: it uses half the energy.'), evidencia: tr('Se acabó la energía aun con la batería grande.', 'The battery ran out even with the large battery.'), cambio: { ranuras: ['motor'], pieza: 'motor_eficiente' } });
     }
   }
   if (contar('chasis_destruido') > 0 && !usaPieza(d, 'chasis_reforzado')) {
-    recs.push({ id: 'chasis_reforzado', texto: 'Usa el chasis reforzado.', evidencia: 'El chasis se destruyó por los golpes.', cambio: { ranuras: ['chasis'], pieza: 'chasis_reforzado' } });
+    recs.push({ id: 'chasis_reforzado', texto: tr('Usa el chasis reforzado.', 'Use the reinforced chassis.'), evidencia: tr('El chasis se destruyó por los golpes.', 'The chassis was destroyed by impacts.'), cambio: { ranuras: ['chasis'], pieza: 'chasis_reforzado' } });
   }
   if (contar('volcado') > 0) {
-    recs.push({ id: 'manejo', texto: 'Baja la velocidad antes de las bajadas y los saltos.', evidencia: 'El robot volcó.' });
+    recs.push({ id: 'manejo', texto: tr('Baja la velocidad antes de las bajadas y los saltos.', 'Slow down before descents and jumps.'), evidencia: tr('El robot volcó.', 'The robot flipped over.') });
   }
   return recs;
 }

@@ -7,6 +7,8 @@ import { perfilDeDestino } from '../fisica/perfil.js';
 import { DISENO_POR_DEFECTO } from '../fisica/diseno.js';
 import { exponerParaPruebas } from '../fisica/depuracion.js';
 import { cargarArte } from '../fisica/aspecto.js';
+import { tr } from '../i18n.js';
+import { nombreDestino } from '../fisica/nombres_en.js';
 
 // Dueño: frente juego. Misión en el destino elegido (Luna o Marte) con su gravedad real: entregar el suministro.
 // Victoria: carga en la zona con integridad ≥ UMBRAL_INTEGRIDAD y robot detenido 2 s. Ver ESPECIFICACION.md §10.
@@ -32,8 +34,9 @@ export default class Mision extends Phaser.Scene {
       diseno,
       piezas: PIEZAS,
       modo: 'mision',
-      titulo: `Misión · ${destino.nombre}`,
-      subtitulo: `Gravedad ${destino.gravedad_ms2} m/s² · entrega con carga ≥ ${Math.round(UMBRAL_INTEGRIDAD * 100)} % · intento ${intentos}`,
+      titulo: tr(`Misión · ${destino.nombre}`, `Mission · ${nombreDestino(destino)}`),
+      subtitulo: tr(`Gravedad ${destino.gravedad_ms2} m/s² · entrega con carga ≥ ${Math.round(UMBRAL_INTEGRIDAD * 100)} % · intento ${intentos}`,
+        `Gravity ${destino.gravedad_ms2} m/s² · deliver with payload ≥ ${Math.round(UMBRAL_INTEGRIDAD * 100)} % · attempt ${intentos}`),
       sitioId: partida.sitio?.id ?? null,
       destinoId: destino.id,
       intentos,
