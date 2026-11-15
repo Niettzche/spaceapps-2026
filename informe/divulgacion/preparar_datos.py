@@ -39,6 +39,10 @@ SALIDA = pathlib.Path(__file__).resolve().parent / "public" / "datos"
 DATOS = RAIZ / "ciencia_datos" / "datos"
 FICHAS = RAIZ / "ciencia_datos" / "salidas" / "fichas_integradas.csv"
 SITIOS_RELIEVE = {"MX0008": "El Elegante (Pinacate, Sonora)", "MX0155": "Peñasquito (Zacatecas)"}
+PRUEBAS = pathlib.Path(__file__).resolve().parent / "pruebas"
+# Ejemplos reales del clasificador «Pruébalo»: (clave, tabla, columna). Cráter volcánico, 3 impactos y un tajo minero.
+EJEMPLOS = [("MX0008", lambda f, i: f, "id"), ("Meteor Crater", lambda f, i: i, "nombre"), ("Lonar", lambda f, i: i, "nombre"),
+            ("Pingualuit", lambda f, i: i, "nombre"), ("G00219", lambda f, i: f, "id")]
 # Los 8 impactos que model/VALIDATION.md (sección B) usa como control positivo de forma: Xiuyan se excluye y Brent no se detecta.
 IMPACTOS = ["Meteor Crater", "Lonar", "Wolfe Creek", "Tenoumer", "Pingualuit", "Tswaing", "Roter Kamm", "Talemzane"]
 
@@ -58,6 +62,13 @@ CIFRAS = {
         "Xiuyan (el detector le mide 0.81 km y el diámetro esperado es 1.8 km",
         "Pasan solo con la ventana ancha: Lonar, Talemzane",
         "De los 62 sitios de `data/sites` con un cráter medido",
+        # Bloque «Los análogos»: por qué no pasan los análogos famosos que no pasan
+        "No pasan los que son análogos por otra razón que estas variables no ven: frío polar, lava en clima húmedo, química "
+        "del agua (Río Tinto), microbialitos y cenotes, cuevas, o estructuras sepultadas",
+    ],
+    "data/sites/pinacate.json": [
+        "viajes de entrenamiento de geología de 1965–1967",
+        "tripulación del Apolo 14 (Shepard y Mitchell) del 14 al 18 de febrero de 1970 (Phinney 2015, NASA SP-2015-626)",
     ],
     "model/NIVEL2.md": ["0.027 (284)", "0.019 (53)", "unos 463 m", "Para D ≥ 2 km la diferencia no es instrumental"],
     "docs/METODOLOGIA.md": [
@@ -78,8 +89,48 @@ def comprobar_cifras() -> None:
     forma_pin = (pin.get("similitud", {}).get("por_dimension") or {}).get("forma")
     if pin.get("destino_ref") != "polo_sur_lunar" or forma_pin is None or round(float(forma_pin), 2) != 0.97:
         faltan.append(f"data/sites/pinacate.json: destino {pin.get('destino_ref')}, forma {forma_pin} (la página dice polo sur lunar, 0.97)")
+    faltan += comprobar_analogos()
     if faltan:
         sys.exit("Estas cifras de la página ya no aparecen en su fuente; actualiza src/textos.js:\n  " + "\n  ".join(faltan))
+
+
+# Bloque «Los análogos» (index.html #analogos): qué análogos famosos pasan el prefiltro y cuáles quedan fuera por lluvia,
+# con los nombres de la tabla de model/VALIDATION.md. Los demás que no pasan se agrupan en la página por la razón que da
+# la «Lectura» de esa tabla (frío polar, lava en clima húmedo, química del agua y vida microbiana, cuevas, sepultados).
+ANALOGOS_PASAN = {
+    "Desierto de Atacama, núcleo hiperárido de Yungay (Chile)", "Cráter Haughton (isla Devon, Canadá)",
+    "Death Valley, Badwater Basin (EE. UU.)", "Desierto de Mojave (EE. UU.)", "Mars Desert Research Station (Utah, EE. UU.)",
+    "El Pinacate, cráter El Elegante (Sonora, México)", "Gran Desierto de Altar, dunas (Sonora, México)",
+    "Salinas de Guerrero Negro, tapetes microbianos (Baja California Sur, México)",
+    "Mina de Naica / Cueva de los Cristales (Chihuahua, México)",
+}
+ANALOGOS_LLUVIA = {
+    "Meteor Crater (Arizona, EE. UU.)", "Maar Rincón de Parangueo (Valle de Santiago, Guanajuato, México)",
+    "Colton Crater (Crater 160), campo volcánico de San Francisco (Arizona, EE. UU.)",
+}
+
+
+def comprobar_analogos() -> list[str]:
+    texto = (RAIZ / "model" / "VALIDATION.md").read_text(encoding="utf-8")
+    bloque = texto.split("### Análogos conocidos", 1)[1].split("**Lectura.**", 1)[0]
+    filas = [[c.strip() for c in l.strip().strip("|").split("|")] for l in bloque.splitlines() if l.startswith("| ") and "---" not in l]
+    cab, filas = filas[0], filas[1:]
+    i_nom, i_lluvia, i_pasa = cab.index("nombre"), cab.index("precipitacion"), cab.index("pasa")
+    pasan = {f[i_nom] for f in filas if f[i_pasa] == "sí"}
+    lluvia = {f[i_nom]: float(f[i_lluvia]) for f in filas}
+    errores = []
+    if len(filas) != 21 or pasan != ANALOGOS_PASAN:
+        errores.append(f"model/VALIDATION.md: pasan {sorted(pasan)} de {len(filas)} (la página dice 9 de 21: {sorted(ANALOGOS_PASAN)})")
+    tope = max(lluvia[n] for n in ANALOGOS_PASAN if n in lluvia)
+    for n in ANALOGOS_LLUVIA:
+        if n in pasan or n not in lluvia or not (lluvia[n] > 1.0 > tope):
+            errores.append(f"model/VALIDATION.md: {n} (la página dice que no pasa y que llueve más de 1 mm/día, más que en los que pasan)")
+    # «Ninguno se presenta como descubrimiento»: ningún sitio de data/sites marcado como novedoso
+    nov = [p.stem for p in (RAIZ / "data" / "sites").glob("*.json")
+           if json.loads(p.read_text(encoding="utf-8")).get("novedoso") is True]
+    if nov:
+        errores.append(f"data/sites: {nov} marcados como novedosos (la página dice que ninguno es descubrimiento)")
+    return errores
 
 
 def r4(x) -> float | None:
@@ -117,6 +168,30 @@ def nube() -> dict:
     impactos = [{"nombre": str(f.nombre), "x": [r4(x[0]), r4(x[1]), r4(x[2])], "P_Luna": r4(p), "dentro_95": bool(dn)}
                 for f, x, p, dn in zip(imp.itertuples(), Xi, pi.P_Luna, pi.dentro_95)]
 
+    # Modelo completo, con precisión total, para el clasificador «Pruébalo» (src/modelo_forma.js hace la misma cuenta que
+    # model/forma.puntuar: P_Luna con la regresión estandarizada y la distancia de Mahalanobis robusta, al cuadrado).
+    modelo = {"variables": forma.VARIABLES, "media": sc.mean_.tolist(), "escala": sc.scale_.tolist(),
+              "coef_luna": (signo * lr.coef_[0]).tolist(), "intercepto_luna": float(signo * lr.intercept_[0]),
+              "nube_media": esc.mean_.tolist(), "nube_escala": esc.scale_.tolist(), "nube_centro": mcd.location_.tolist(),
+              "nube_precision": mcd.get_precision().tolist(), "corte95": float(corte)}
+    casos = comprobar_modelo(modelo, [
+        (ref.diam_km.to_numpy()[::20], ref.prof_m.to_numpy()[::20], ref.borde_m.to_numpy()[::20]),
+        (fichas.diam_km.to_numpy(), fichas.prof_m.to_numpy(), fichas.borde_m.to_numpy()),
+        (imp.diam_km.to_numpy(), imp.prof_m.to_numpy(), imp.borde_m.to_numpy()),
+    ])
+    PRUEBAS.mkdir(parents=True, exist_ok=True)
+    (PRUEBAS / "casos_modelo.json").write_text(json.dumps({"fuente": "model/forma.puntuar", "casos": casos}, ensure_ascii=False),
+                                               encoding="utf-8")
+
+    # Ejemplos reales para el clasificador: x con precisión total (las cuentas de la página parten de aquí).
+    ejemplos = []
+    for clave, tabla, col in EJEMPLOS:
+        f = tabla(fichas, imp).set_index(col).loc[clave]
+        x = forma._preparar([f.diam_km], [f.prof_m], [f.borde_m])[0]
+        p = forma.puntuar(f.diam_km, f.prof_m, f.borde_m).iloc[0]
+        ejemplos.append({"id": clave, "x": x.tolist(), "P_Luna": r4(p.P_Luna), "dentro_95": bool(p.dentro_95)})
+    medianas = {c: np.median(X[ref.cuerpo.to_numpy() == c], axis=0).tolist() for c in ("Luna", "Marte")}
+
     dd = {c: np.array([p[1] for p in puntos[c]]) for c in puntos}
     return {
         "fuente": ("ciencia_datos/datos/hoyas_referencia.csv (LOLA ldem_80s_80m llevado a 200 m; HRSC+MOLA 200 m), "
@@ -125,9 +200,33 @@ def nube() -> dict:
                       "borde_rel": "borde / diámetro"},
         "n": {"Luna": len(puntos["Luna"]), "Marte": len(puntos["Marte"]), "Tierra": len(tierra), "impactos": len(impactos)},
         "mediana_prof_diam": {c: r4(np.median(v)) for c, v in dd.items()},
-        "corte95": round(corte, 3), "plano": plano,
+        "corte95": round(corte, 3), "plano": plano, "modelo": modelo, "ejemplos": ejemplos, "medianas": medianas,
         "luna": puntos["Luna"], "marte": puntos["Marte"], "tierra": tierra, "impactos": impactos,
     }
+
+
+def evaluar(modelo: dict, X: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """La misma cuenta que src/modelo_forma.js, en numpy: P_Luna y distancia robusta al cuadrado."""
+    m = {k: np.asarray(v) for k, v in modelo.items() if k != "variables"}
+    z = (X - m["media"]) / m["escala"]
+    p_luna = 1 / (1 + np.exp(-(m["intercepto_luna"] + z @ m["coef_luna"])))
+    u = (X - m["nube_media"]) / m["nube_escala"] - m["nube_centro"]
+    return p_luna, np.einsum("ij,jk,ik->i", u, m["nube_precision"], u)
+
+
+def comprobar_modelo(modelo: dict, grupos) -> list[dict]:
+    """Se detiene si los parámetros exportados no reproducen model/forma.puntuar; devuelve los casos para la prueba de JS."""
+    casos = []
+    for d, p, b in grupos:
+        X = forma._preparar(d, p, b)
+        ref = forma.puntuar(d, p, b)
+        p_luna, dist = evaluar(modelo, X)
+        dp, dd = np.abs(p_luna - ref.P_Luna).max(), np.abs(dist - ref.dist).max()
+        if dp > 1e-9 or dd > 1e-6:
+            sys.exit(f"El modelo exportado no reproduce model/forma.py (ΔP {dp:.2e}, Δdist {dd:.2e})")
+        casos += [{"x": x.tolist(), "P_Luna": float(pl), "dist": float(di), "dentro_95": bool(dn)}
+                  for x, pl, di, dn in zip(X, ref.P_Luna, ref.dist, ref.dentro_95)]
+    return casos
 
 
 def relieves(vista3d: pathlib.Path) -> dict:
