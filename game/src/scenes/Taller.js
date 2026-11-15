@@ -282,7 +282,7 @@ export default class Taller extends Phaser.Scene {
         : []),
       // El agarre que muestra el taller es el de la PIEZA; en la física se multiplica por el del suelo (fisica/suelos.js).
       `Agarre rueda (prom. ejes): arena ${f2(a.arena)} · roca ${f2(a.roca)} · compacto ${f2(a.compacto)}`,
-      'En la prueba: agarre² × agarre del suelo (P).',
+      'En la prueba: agarre² × agarre del suelo (P)', // fisica/robot.js: friccionDeAgarre = agarre²
       `Resistencia ${res.resistencia ?? '—'} · Protección de carga ${res.proteccion != null ? Math.round(res.proteccion * 100) + ' %' : '—'}`,
       `Fuerza/masa ${res.fuerza_por_masa != null ? res.fuerza_por_masa.toFixed(2) : '—'} · `
         + `Autonomía ≈ ${res.autonomia_s != null ? Math.round(res.autonomia_s) + ' s a fondo' : '—'} con carga (P)`,
