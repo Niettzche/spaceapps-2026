@@ -39,6 +39,20 @@
 - **Cómo volver a publicar:** compilar `origin/main` en un worktree aparte (nunca la rama local), subir a `releases/game-<commit>`,
   cambiar el enlace `current` y probar `/` y `/?lang=en`.
 
+## Hecho (15 nov, mañana: los tajos ya no salen como novedosos)
+- **Los tajos mineros ya no se marcan como novedosos** (`model/scan.py`, regla 5): 17 sitios pasan de `novedoso: true` a `null`,
+  con la razón en la nota. El juego mostraba la etiqueta NOVEDOSO en Cananea, Peñasquito y La Herradura, y Cananea era el primer
+  sitio sugerido para la Luna; eso contradecía al guion («no son descubrimientos nuevos»). Ahora ningún sitio del catálogo es
+  novedoso. Solo cambian `novedoso` y la frase correspondiente de la nota en esos 17 archivos; ningún total, destino ni nivel.
+- El modo `--solo-ia` ya respeta la revisión de literatura (antes habría marcado g00266 como novedoso) y no reescribe los sitios
+  cuya nota queda igual. Tres pruebas nuevas (`model/tests/test_novedoso.py`).
+- `model/VALIDATION.md` regenerado con los datos de `main`: ahora cuenta 62 sitios con cráter medido (entraron los cinco cráteres
+  de impacto documentados), y el intervalo del prefiltro pasa de 0.32–0.51 a 0.32–0.52. La guía y su README ya dicen 0.52.
+  Aparece un aviso nuevo de medición: ORNL rechaza la consulta de NDVI de los Valles Secos de McMurdo (antes ese NDVI ya era nulo).
+- **Para otros frentes:** el orden de la lista del Expediente sigue siendo por similitud, así que el primer sugerido lunar sigue
+  siendo un tajo (Cananea, 0.59). Si se quiere que encabece un cráter verificado, hay que ordenar por categoría en el juego.
+  Y el umbral del Explorador va en un PR aparte (0.6 → 0.4, igual que la API).
+
 ## Hecho (borde levantado, 14 nov, noche)
 - **`model/borde.py`: evidencia medida de que una depresión es un cráter.** `h/D` = altura máxima del perfil radial promedio a
   80 m entre 0.83 y 1.67 radios, sobre el terreno lejano (1.67 a 2 radios). Usa `ciencia_datos/datos/perfiles_radiales.json`

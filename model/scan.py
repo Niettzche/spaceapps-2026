@@ -10,9 +10,11 @@ ciencia_datos/datos/hoyas_mexico.csv). Aquí:
    cráteres conocidos (ciencia_datos/datos/crateres_conocidos_mx.csv) o con una mina de OpenStreetMap.
 4. destino_ref = el cuerpo al que más se parece su forma (Luna → polo_sur_lunar, Marte → jezero).
 5. novedoso = no coincide con data/known_analogs.json (a menos de 50 km) Y la etiqueta de IA verificada
-   (ciencia_datos/datos/etiquetas_ia.csv) dice cráter volcánico, cráter de impacto o mina con confianza ≥ 0.7.
+   (ciencia_datos/datos/etiquetas_ia.csv) dice cráter volcánico o cráter de impacto con confianza ≥ 0.7.
    Si la IA dice valle, presa, duna o "no se puede decir", o no hay etiqueta, novedoso = null: no se presume
    novedoso lo que no sabemos que es un cráter. El tipo y la confianza de la IA van en la nota del sitio.
+   Los tajos mineros tampoco se marcan como novedosos (novedoso = null): son minas conocidas y análogos operativos,
+   no hallazgos. Antes sí se marcaban y el juego los mostraba con la etiqueta NOVEDOSO.
 
 6. Categoría (lo que ES el sitio, independiente del puntaje): cráter natural verificado (catálogo de México, o etiqueta de IA
    cráter volcánico o de impacto con confianza ≥ 0.7), tajo minero (cantera de OpenStreetMap a ≤ 2 km, o etiqueta de IA
@@ -145,7 +147,7 @@ LITERATURA_REVISADA = {
 }
 
 # Regla 5: solo es novedoso lo que la IA verificada reconoce como cráter o mina (AGENTS.md: no presumir)
-TIPOS_IA_NOVEDOSO = {"crater_volcanico", "crater_impacto", "mina_o_cantera"}
+TIPOS_IA_NOVEDOSO = {"crater_volcanico", "crater_impacto"}     # las minas no: son análogos operativos, no hallazgos
 CONF_IA_MIN = 0.7
 NOTA_IA = re.compile(r" ?Etiqueta de IA:[^\n]*?(?=$| Exportado| Nivel jugable)")
 
@@ -167,7 +169,10 @@ def novedoso_por_ia(sid: str, novedoso_distancia, etiquetas: dict):
         return novedoso_distancia, frase
     if tipo in TIPOS_IA_NOVEDOSO and conf >= CONF_IA_MIN:
         return True, frase
-    motivo = "sin etiqueta" if tipo is None else (f"tipo según IA: {tipo.replace('_', ' ').replace('canada', 'cañada')}" if tipo not in TIPOS_IA_NOVEDOSO
+    if tipo == "mina_o_cantera" and conf >= CONF_IA_MIN:
+        return None, frase + " novedoso: null (tajo minero según la IA: análogo operativo, no se presenta como hallazgo)."
+    motivo = "sin etiqueta" if tipo is None else (f"tipo según IA: {tipo.replace('_', ' ').replace('canada', 'cañada')}"
+                                                  if tipo not in TIPOS_IA_NOVEDOSO | {"mina_o_cantera"}
                                                   else f"confianza de la IA {conf:.2f} < {CONF_IA_MIN}")
     return None, frase + f" novedoso: null ({motivo}; no verificado como cráter)."
 
@@ -197,7 +202,7 @@ def aplicar_regla_ia() -> list[dict]:
         sid = s["id"]
         # Orden: análogo conocido a < 50 km (False) > análogo de otro cuerpo o por verificar (None) > lejos de todo (True)
         dist = None if not conocidos else not any(km(s["lat"], s["lon"], la, lo) <= RADIO_ANALOGO_KM for _, la, lo in conocidos)
-        if dist is not False and (sid in POR_VERIFICAR or sid in ANALOGO_OTRO_CUERPO):
+        if dist is not False and (sid in POR_VERIFICAR or sid in ANALOGO_OTRO_CUERPO or sid in LITERATURA_REVISADA):
             dist = None
         nuevo, frase = novedoso_por_ia(sid, dist, etiquetas)
         nota = NOTA_IA.sub("", s.get("nota") or "").rstrip()
@@ -207,11 +212,13 @@ def aplicar_regla_ia() -> list[dict]:
             nota += (f" novedoso: false; a {d_k:.0f} km de un análogo conocido de data/known_analogs.json ({nom})"
                      + ("." if d_k <= 5 else "; no es el mismo lugar: solo cae dentro del radio de 50 km de la regla, y su propio tipo "
                                              "es el de la etiqueta de IA."))
-        nota = re.sub(r" novedoso: null \((sin etiqueta|tipo según IA|confianza de la IA)[^)]*\)\.", "", nota)
+        nota = re.sub(r" novedoso: null \((sin etiqueta|tipo según IA|confianza de la IA|tajo minero según la IA)[^)]*\)\.", "", nota)
         antes = s.get("novedoso")
+        cambios.append({"id": sid, "antes": antes, "ahora": nuevo, "ia": etiquetas.get(sid, (None, None))[0]})
+        if nuevo == antes and sorted((nota + frase).split(". ")) == sorted((s.get("nota") or "").split(". ")):
+            continue                               # mismo resultado y mismas frases (a lo más en otro orden): no se reescribe
         s["novedoso"], s["nota"] = nuevo, nota + frase
         f.write_text(json.dumps(s, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-        cambios.append({"id": sid, "antes": antes, "ahora": nuevo, "ia": etiquetas.get(sid, (None, None))[0]})
     return cambios
 N_GLOBAL = 12   # (P) cuántos candidatos globales se exportan (AGENTS.md §6.4 c: pocos sitios finales, México destacado)
 
