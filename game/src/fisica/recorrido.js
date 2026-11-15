@@ -82,7 +82,17 @@ export class Recorrido {
     // Instrucciones al empezar: objetivo + controles (teclado y táctil). Esc abandona.
     const controles = '→ / D acelerar   ← / A frenar   (táctil: ▶ ◀)   Esc pausa';
     if (o.modo === 'prueba') this.hud.instrucciones('Prueba en la Tierra: llega a la META con la carga', [controles]);
-    else this.hud.instrucciones('Misión: entrega el suministro', ['Frena y detente 2 s dentro de la ZONA DE ENTREGA con la carga ≥ 60 %', controles]);
+    else {
+      // Llegada al destino: fundido desde negro y el cambio de mundo explicado con el dato de gravedad.
+      scene.cameras.main.fadeIn(900, 0, 0, 0);
+      const nombreMundo = { luna: 'la Luna', marte: 'Marte' }[o.mundo] ?? 'el destino';
+      const pct = Math.round((o.gravedad / 9.81) * 100);
+      this.hud.instrucciones(`Llegada a ${nombreMundo} · gravedad ${o.gravedad} m/s² (${pct} % de la Tierra)`, [
+        'Pesas menos: las ruedas agarran menos y el robot rebota más',
+        'Frena y detente 2 s dentro de la ZONA DE ENTREGA con la carga ≥ 60 %',
+        controles,
+      ]);
+    }
     // Esc pausa (un toque accidental ya no abandona la partida). En la pausa: Esc/Enter continúa, X abandona.
     scene.input.keyboard.on('keydown-ESC', () => (this.pausado ? this.reanudar() : this.pausar()));
     scene.input.keyboard.on('keydown-ENTER', () => { if (this.pausado) this.reanudar(); });
