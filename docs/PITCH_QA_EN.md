@@ -3,8 +3,8 @@
 > For Alan and the pitch. Each answer is two sentences you can say out loud, then the source. Numbers come from
 > `docs/taller/Space_Apps_Game_Data.xlsx` (tabs **Judges** and **Ambiente**); "(P)" marks a game value, not a measurement.
 
-**1. Real rovers crawl. Why does your robot drive at 6 m/s?**
-On purpose: speed is a game value (P), so a 266 m test takes about a minute instead of about 44 minutes at VIPER's 0.1 m/s. Real rovers are far slower: Perseverance tops out at 152 meters per hour (0.042 m/s), and VIPER is designed for 0.1–0.2 m/s in transit (it has not flown yet).
+**1. Real rovers crawl. Why does your robot drive at up to 7 m/s?**
+On purpose: speed is a game value (P), so a 250 m test takes under a minute instead of about 42 minutes at VIPER's 0.1 m/s. Real rovers are far slower: Perseverance tops out at 152 meters per hour (0.042 m/s), and VIPER is designed for 0.1–0.2 m/s in transit (it has not flown yet).
 *Sources: [NASA, Perseverance rover components](https://science.nasa.gov/mission/mars-2020-perseverance/rover-components/); [NASA, VIPER lunar operations](https://science.nasa.gov/mission/viper/lunar-operations/).*
 
 **2. Why did the Spirit rover get stuck?**
@@ -32,8 +32,8 @@ Yes: sinking uses Bekker's soil constants, but NASA notes that no true Bekker pa
 *Sources: [NASA/TM-20250006958, An Overview of Tire-Ground Contact Modeling Approaches (2025)](https://ntrs.nasa.gov/citations/20250006958); [Lunar Sourcebook ch. 9](https://www.lpi.usra.edu/publications/books/lunar_sourcebook/pdf/Chapter09.pdf); [Oravec et al., NTRS 20200003046, Table 3](https://ntrs.nasa.gov/citations/20200003046).*
 
 **8. Why a wide wheel for sand?**
-A wider wheel spreads the robot's weight over more area, so it presses less on loose sand and sinks less; that is a general principle, and the exact grip number in the game is a game value (P). Real designs follow the same idea: Apollo's lunar rover used 23 cm wide wire-mesh tires, and Perseverance's wheels are 52.5 cm across.
-*Sources: [NASA NSSDC, Apollo Lunar Roving Vehicle](https://nssdc.gsfc.nasa.gov/planetary/lunar/apollo_lrv.html); [NASA, Perseverance rover components](https://science.nasa.gov/mission/mars-2020-perseverance/rover-components/).*
+A wider wheel spreads the robot's weight over more area, so it presses less on loose sand, sinks less and can push more. In the game this comes out of the soil equations, not a grip bonus: on the generic dry sand of the dune level, the 20 cm wheel presses about 8 kPa and sinks about 1.3 cm, the 40 cm wheel about 5 kPa and 0.9 cm, and its maximum thrust per unit of weight rises from 0.66 to 0.74 (the robot's mass and wheel sizes are game values, P; the sand is Wong's generic dry sand, not measured at Samalayuca). Real designs follow the same idea: Apollo's lunar rover used 23 cm wide wire-mesh tires, and Perseverance's wheels are 52.5 cm across.
+*Sources: [NASA NSSDC, Apollo Lunar Roving Vehicle](https://nssdc.gsfc.nasa.gov/planetary/lunar/apollo_lrv.html); [NASA, Perseverance rover components](https://science.nasa.gov/mission/mars-2020-perseverance/rover-components/); [NASA/TM-20250006958, Table 1 (Wong dry sand)](https://ntrs.nasa.gov/citations/20250006958).*
 
 **9. Why does the battery lose capacity on Mars or the Moon?**
 Cold makes a battery deliver less energy, and the sourced temperatures are what the game uses: −83 °C measured at Jezero (two sols) and −53 °C on the sunlit lunar rim. The game applies a deliberately mild rule (P): 0.03 % less usable battery per degree below 0 °C, never below 97 %; we chose it because a harsher rule left missions without energy in playtests, and it does not model a battery heater, since we have not found a primary source for one. Rovers protect their electronics with waste heat from their power source (MSL's fluid loop keeps them between −40 and +50 °C).
@@ -69,3 +69,23 @@ The same crater detector runs on NASA and ESA elevation data for Earth, the Moon
 **17. Is snow a good lunar analog?**
 We cannot say it is: we found no source that uses snow as an analog of lunar soil, and the Lunar Sourcebook recalls "lunar soil like fresh snow" as a pre-Apollo belief that proved wrong. Compacted snow is about 0.37–0.56 g/cm³ against 1.50–1.66 g/cm³ for lunar soil and holds together by bonded grains, so in our data it is a Gap, and a snowy level is presented as soft ground on Earth, not as the Moon.
 *Sources: [Lunar Sourcebook ch. 9, pp. 476–477](https://www.lpi.usra.edu/publications/books/lunar_sourcebook/pdf/Chapter09.pdf); [Shenvi, Sandu & Untaroiu, J. Terramechanics 100 (2022)](https://doi.org/10.1016/j.jterra.2021.11.006).*
+
+**18. Why 1,000 credits? Are the part prices real?**
+No: the budget and every price are game values (P), set so that the choice matters, not real costs. The cheapest complete robot costs 730 and the wide-wheel design of the demo 890, every featured level can be passed with some design under 1,000, and the team fixed the same 1,000 for all levels on 15 November.
+*Sources: `docs/DECISIONES.md` (15 Nov); `docs/juego/PRESUPUESTO.md`; `game/src/content/parts.json`.*
+
+**19. Does the score reward the cheapest robot?**
+Only a little: delivering gives 500 points, cargo integrity up to 300, energy left up to 100 and money saved up to 100, so a cheap robot that damages the cargo loses more than it saves. The score is a game rule (P) that shows trade-offs; it is not scientific evidence that a design would work on the Moon or Mars.
+*Source: `game/src/feedback/puntuacion.js`.*
+
+**20. If gravity is real, why does it feel faster than the Moon?**
+The physics engine multiplies the three gravities by the same factor, 1.5 (P), so the game does not feel slow; the ratios stay real (Mars 38 %, Moon 16.5 % of Earth). The soil equations use the real values: each wheel's load is mass × 9.81, 3.71 or 1.62 m/s² divided by the number of wheels.
+*Sources: [NASA JPL, planetary physical parameters](https://ssd.jpl.nasa.gov/planets/phys_par.html); `game/src/fisica/escala.js`, `suelo_v2.js`.*
+
+**21. What does your traction model leave out?**
+We do not model how thrust builds up with slip (the Janosi–Hanamoto shear modulus), the soil pushed ahead of a sinking wheel (bulldozing), or weight shifting between axles on a slope. A slipping wheel digs itself deeper, as Spirit did at Troy, but the rate is a game value (P), and grip on bare rock (μ ≈ 0.7) has no measured tire-on-rock value behind it.
+*Sources: [NASA/TM-20250006958](https://ntrs.nasa.gov/citations/20250006958); [NASA/JPL, Spirit at Troy (2009)](https://www.jpl.nasa.gov/news/nasa-to-begin-attempts-to-free-sand-trapped-mars-rover/); [NAVFAC DM-7.02 (1986)](https://vulcanhammer.net/wp-content/uploads/2017/01/dm7_02.pdf).*
+
+**22. Is the Earth test harder or easier than the real mission?**
+For sinking it is harder: with the same robot, each wheel carries 2.6 times more weight on Earth than on Mars, so in our model it sinks about 1.3 cm in dry sand against about 0.5 cm in Martian drift. Martian drift has a lower friction angle (18° against 28°), but at Mars's light load its cohesion makes up for it, so the maximum thrust per unit of weight comes out about the same (0.67 against 0.66); what Earth cannot reproduce is the low gravity itself, so the robot must still pass the mission, not only the test (robot mass is a game value, P).
+*Sources: [Moore 1991, NTRS 19910017759](https://ntrs.nasa.gov/citations/19910017759); [NASA/TM-20250006958](https://ntrs.nasa.gov/citations/20250006958); [Oravec et al., NTRS 20200003046](https://ntrs.nasa.gov/citations/20200003046).*
