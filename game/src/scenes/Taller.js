@@ -1373,6 +1373,8 @@ export default class Taller extends Phaser.Scene {
     this.btnDeshacer.setHabilitado(this.hist.puedeDeshacer);
     this.btnRehacer.setHabilitado(this.hist.puedeRehacer);
     this.btnQuitar.setHabilitado(Boolean(this.mapa[ORDEN_RANURAS[this.sel]]));
+    // Ejes con ruedas distintas (Mayús al soltar, deshacer, diseño guardado) = modo separado: el botón ofrece «Unir ejes».
+    if (this.mapa.rueda_del && this.mapa.rueda_tras && this.mapa.rueda_del !== this.mapa.rueda_tras) this.ejesSeparados = true;
     this.btnEjes.setHabilitado(true);
     if (this.btnEjes.etiqueta !== this.etiquetaEjes()) this.btnEjes.setEtiqueta(this.etiquetaEjes());
   }
@@ -1429,17 +1431,17 @@ export default class Taller extends Phaser.Scene {
     capa.on('pointerdown', () => this.alternarAyuda());
     const t = [
       tr('Cómo armar', 'How to build'),
-      tr('Para probar necesitas: chasis, rueda en los 2 ejes, motor, batería y soporte de carga. El módulo es opcional.',
-        'To test you need: chassis, a wheel on both axles, motor, battery and payload mount. The module is optional.'),
-      tr('Arrastra una tarjeta a un socket verde; saca una pieza del robot (o clic derecho) para quitarla.',
-        'Drag a card onto a green socket; drag a part off the robot (or right-click) to remove it.'),
-      tr('Ruedas: al soltar una, va a los 2 ejes. Para mezclar: Mayús al soltar, o «Separar ejes» (A).',
-        'Wheels: drop one and it goes on both axles. To mix: hold Shift as you drop, or «Split axles» (A).'),
+      tr('Para probar: chasis, ruedas en 2 ejes, motor, batería y carga; módulo opcional.',
+        'To test you need chassis, both axles, motor, battery, payload; module optional.'),
+      tr('Arrastra a un socket verde; para quitar, saca la pieza del robot o clic derecho.',
+        'Drag a card onto a green socket; drag a part off (or right-click) to remove it.'),
+      tr('Ruedas: van a los 2 ejes. Para mezclar: Mayús al soltar o «Separar ejes» (A).',
+        'Wheels go on both axles. To mix: Shift as you drop, or «Split axles» (A).'),
       tr('Toque: tarjeta y luego socket (dos toques en la tarjeta la ponen).', 'Tap: card, then socket (tap the card twice to fit it).'),
-      tr('Tab: pestañas → piezas → sockets → botones · ←→ dentro · Enter poner · Supr quitar · 1–6 pestaña',
-        'Tab: tabs → parts → sockets → buttons · ←→ inside · Enter fit · Del remove · 1–6 tab'),
-      tr('A separar/unir ejes · C probar · R restablecer · P pintura · N nombre · L leer · ? guía · Ctrl+Z/Y · Esc regresar',
-        'A split/join axles · C test · R reset · P paint · N name · L read aloud · ? guide · Ctrl+Z/Y · Esc back'),
+      tr('Tab: pestañas→piezas→sockets→botones · Enter poner · Supr quitar · 1–6 pestaña',
+        'Tab: tabs→parts→sockets→buttons · ←→ inside · Enter fit · Del remove · 1–6 tab'),
+      tr('A ejes · C probar · R restablecer · P pintura · N nombre · L leer · ? guía · Ctrl+Z/Y',
+        'A axles · C test · R reset · P paint · N name · L read · ? guide · Ctrl+Z/Y · Esc back'),
       '',
       tr('Detalle del diseño · (P) = valor de juego, no dato de ingeniería', 'Design detail · (P) = game value, not engineering data'),
       ...this.lineasDetalle(),
