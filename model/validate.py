@@ -7,7 +7,10 @@ A. Comparador de variables (dimensiones complementarias) en puntos sin cráter m
 B. Forma (dimensión principal), con resultados ya medidos en ciencia_datos/:
    - cráteres de impacto terrestres (ciencia_datos/datos/impactos_tierra.csv) → deben caer dentro de la nube Luna+Marte;
    - catálogo de cráteres volcánicos conocidos de México → cuántos encuentra el detector;
-   - generalización del modelo Luna contra Marte a sitios de Marte que no vio.
+   - generalización del modelo Luna contra Marte a sitios de Marte que no vio;
+   - tasa base: qué fracción de CUALQUIER depresión cae dentro de la nube (la nube descarta extremos, no confirma cráteres);
+   - control negativo de forma: depresiones que la IA etiqueta como presa, valle o duna frente a cráteres naturales;
+   - precisión del detector según la etiqueta de IA.
 
 Uso:  uv run python -m model.validate
 """
@@ -106,6 +109,80 @@ def parte_forma() -> list[str]:
                f"No detectados: {c['lago']} con lago (el DEM ve el espejo de agua), {c['chico']} menores de 0.6 km y {c['otra']} por otras "
                "razones (islas, coordenadas desplazadas, poca profundidad). Mismo cotejo que `ciencia_datos/03_etiquetas_por_fuentes.ipynb` "
                "(radio de 2.5 km; una depresión cuenta una sola vez).")
+    out += [""] + parte_discriminacion()
+    return out
+
+
+def auc(pos, neg) -> float:
+    """Área bajo la curva ROC por Mann-Whitney: probabilidad de que un positivo puntúe más que un negativo (0.5 = no separa)."""
+    pos, neg = np.asarray(pos, float), np.asarray(neg, float)
+    return float(((pos[:, None] > neg[None, :]).sum() + 0.5 * (pos[:, None] == neg[None, :]).sum()) / (len(pos) * len(neg)))
+
+
+def p_permutacion(pos, neg, n: int = 5000, semilla: int = 0) -> float:
+    """Prueba de permutación de dos colas para el AUC: qué tan seguido el azar da un AUC tan lejos de 0.5 como el observado."""
+    pos, neg = np.asarray(pos, float), np.asarray(neg, float)
+    obs, todo, k = abs(auc(pos, neg) - 0.5), np.concatenate([pos, neg]), len(pos)
+    rng = np.random.default_rng(semilla)
+    hits = sum(abs(auc(z[:k], z[k:]) - 0.5) >= obs for z in (rng.permutation(todo) for _ in range(n)))
+    return (hits + 1) / (n + 1)
+
+
+NATURALES_IA = ["crater_volcanico", "crater_impacto"]
+NEGATIVOS_IA = ["presa_o_lago", "valle_o_canada", "hondonada_eolica_o_duna"]
+
+
+def parte_discriminacion() -> list[str]:
+    out = ["### ¿La forma distingue un cráter de otra depresión cerrada?", ""]
+    # 1. Tasa base de la nube: todas las depresiones de México que encontró el detector (sin filtro de cráter ni de aridez)
+    h = pd.read_csv(DATOS / "hoyas_mexico.csv")
+    pf = forma.puntuar(h.diam_km, h.prof_m, h.borde_m)
+    h = h.assign(dentro=pf.dentro_95.values, entorno=pd.cut(h.ndvi_p90, [-1, 0.35, 0.7, 1.01], labels=["árido", "intermedio", "húmedo"]),
+                 filtro=np.where(h.crater.astype(bool), "pasa el filtro de cráter", "no lo pasa"))
+    tb = h.groupby(["filtro", "entorno"], observed=True).agg(n=("dentro", "size"), dentro_95=("dentro", "mean")).reset_index()
+    tb["dentro_95"] = (tb.dentro_95 * 100).round(0).astype(int).astype(str) + " %"
+    out += [f"**Tasa base de la nube Luna+Marte.** De las {len(h):,} depresiones cerradas que el detector encontró en México "
+            f"(cualquier forma, cualquier vegetación), el {h.dentro.mean():.0%} cae dentro del 95 % de la nube. Es decir: **la nube "
+            "descarta formas extremas (sobre todo tajos muy hondos), pero no confirma que algo sea un cráter**. Los 8 de 8 impactos de "
+            "arriba son una condición necesaria, no una prueba.", "", tabla_md(tb, ["filtro", "entorno", "n", "dentro_95"]), ""]
+    # 2. Control negativo de forma, con la etiqueta de IA (confianza ≥ 0.7)
+    f = pd.read_csv(RAIZ / "ciencia_datos" / "salidas" / "fichas_integradas.csv")
+    f = f[f.conf_ia >= 0.7].dropna(subset=["diam_km", "prof_m", "borde_m"]).copy()
+    pf = forma.puntuar(f.diam_km, f.prof_m, f.borde_m)
+    f = f.assign(P_Luna_m=pf.P_Luna.values, forma_luna=pf.forma_polo_sur_lunar.values, forma_mejor=np.maximum(pf.forma_polo_sur_lunar, pf.forma_jezero).values,
+                 dentro=pf.dentro_95.values)
+    f["grupo"] = np.where(f.etiqueta_ia.isin(NATURALES_IA), "cráter natural (IA)", np.where(f.etiqueta_ia.isin(NEGATIVOS_IA), "presa, valle o duna (IA)", None))
+    g = f[f.grupo.notna()]
+    res = g.groupby("grupo").agg(n=("forma_mejor", "size"), forma_mejor_mediana=("forma_mejor", "median"), P_Luna_mediana=("P_Luna_m", "median"),
+                                 dentro_95=("dentro", "mean"), dD_mediana=("prof_diam", "median"), dif_perfil_mediana=("dif_media", "median")).reset_index()
+    res["dentro_95"] = (res.dentro_95 * 100).round(0).astype(int).astype(str) + " %"
+    nat, neg = g[g.grupo.str.startswith("cráter")], g[~g.grupo.str.startswith("cráter")]
+    a_forma, a_dd = auc(nat.forma_mejor, neg.forma_mejor), auc(nat.prof_diam, neg.prof_diam)
+    nat_p, neg_p = nat.dif_media.dropna(), neg.dif_media.dropna()
+    a_perfil = auc(-nat_p, -neg_p) if len(nat_p) and len(neg_p) else float("nan")
+    out += ["**Control negativo de forma.** Candidatos áridos con etiqueta de IA de confianza ≥ 0.7: cráteres naturales (volcánico o de impacto) "
+            "frente a depresiones que no son cráteres (presa o lago, valle o cañada, hondonada eólica o duna). Si la forma distinguiera, "
+            "los cráteres tendrían puntajes claramente más altos. El AUC mide eso: 0.5 = no separa, 1 = separa perfecto.", "",
+            tabla_md(res, ["grupo", "n", "forma_mejor_mediana", "P_Luna_mediana", "dentro_95", "dD_mediana", "dif_perfil_mediana"]), "",
+            f"AUC de separación cráter natural frente a presa/valle/duna ({len(nat)} contra {len(neg)} casos; p = prueba de permutación de dos colas, "
+            f"5,000 repeticiones): puntaje de forma {a_forma:.2f} (p = {p_permutacion(nat.forma_mejor, neg.forma_mejor):.2f}); "
+            f"d/D {a_dd:.2f} (p = {p_permutacion(nat.prof_diam, neg.prof_diam):.2f}); diferencia de perfil con el gemelo lunar {a_perfil:.2f} "
+            f"(p = {p_permutacion(-nat_p, -neg_p):.2f}; menor diferencia = más lunar). Un AUC por debajo de 0.5 quiere decir que las presas, "
+            "valles y dunas puntúan **más** lunar que los cráteres: son más planas; el puntaje de forma las toma por marcianas (en Marte los cráteres son planos) y la diferencia de perfil absoluta premia lo plano (eso lo corrige el PR de la diferencia relativa).", "",
+            "**Límite declarado.** La forma sola (3 medidas a 200 m) no distingue un cráter de otra depresión cerrada de tamaño parecido. "
+            "Por eso el catálogo usa la **etiqueta verificada** (IA sobre imagen de satélite y relieve, revisada contra fuentes) para decidir "
+            "qué es un cráter, y la forma solo para decir **qué tan lunar o marciano** es un cráter ya identificado.", ""]
+    # 3. Precisión del detector según la IA
+    todas = pd.read_csv(RAIZ / "ciencia_datos" / "salidas" / "fichas_integradas.csv")
+    vc = todas.etiqueta_ia.value_counts()
+    n_nat = int(vc.reindex(NATURALES_IA).fillna(0).sum()); n_mina = int(vc.get("mina_o_cantera", 0))
+    out += [f"**Precisión del detector según la IA.** De los {len(todas)} candidatos áridos del detector (México + Atacama, Arizona y Arabia), "
+            f"la IA etiqueta {n_nat} como cráteres naturales ({n_nat / len(todas):.0%}) y {n_mina} como minas o canteras ({n_mina / len(todas):.0%}); "
+            "el resto son valles, presas, dunas, otras formas o casos que no se pueden decidir: "
+            + ", ".join(f"{k} {v}" for k, v in vc.items() if k not in NATURALES_IA + ["mina_o_cantera"]) + ". "
+            "Ojo: la IA solo está validada en 33 casos (29 aciertos, IC 95 % 72–97 %) y esos casos son minas, volcanes y Meteor Crater; "
+            "valles, presas y dunas no tienen casos validados. El detector es un **detector de depresiones cerradas con forma de cráter**, "
+            "no un detector de cráteres.", ""]
     return out
 
 
