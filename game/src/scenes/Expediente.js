@@ -87,7 +87,8 @@ export default class Expediente extends Phaser.Scene {
 
   seleccionar(s) {
     this.seleccion = s;
-    this.foco = 'seleccion';
+    // Elegir un sitio (número, Enter o toque) lleva el foco a "Gastar 1 ticket": el siguiente Enter confirma.
+    this.foco = 'probar';
     this.filaActual = null;
     this.dibujarLista();
     this.dibujarDetalle();
@@ -212,13 +213,15 @@ export default class Expediente extends Phaser.Scene {
     const s = this.seleccion;
     const pagado = s && sitioPagado(s.id);
     let etiqueta = 'Gastar 1 ticket y probar';
-    let ayuda = 'Al probar, este sitio queda pagado: puedes volver a probarlo sin gastar otro ticket.';
-    if (pagado) { etiqueta = 'Probar de nuevo'; ayuda = 'Ya pagaste este sitio: no gasta ticket.'; }
+    let ayuda = 'Enter confirma. Al probar, el sitio queda pagado: puedes volver a probarlo sin gastar otro ticket.';
+    if (pagado) { etiqueta = 'Probar de nuevo'; ayuda = 'Enter confirma. Ya pagaste este sitio: no gasta ticket.'; }
     else if (!n) { etiqueta = 'Sin tickets'; ayuda = 'Sin tickets: elige un sitio ya pagado o empieza una Nueva partida desde el menú.'; }
-    const probar = add(boton(this, 800, 506, etiqueta, () => this.probar(), { size: 16, habilitado: !!s && (pagado || n > 0) }));
+    const puede = !!s && (pagado || n > 0);
+    // Opción sugerida (⏎, como en Resultados.js): es la que confirma el paso del camino dorado.
+    const probar = add(boton(this, 800, 506, etiqueta, () => this.probar(), { size: 16, habilitado: puede, sugerido: puede }));
     add(texto(this, 150, 526, ayuda, { size: 10, color: COLOR.muyTenue }));
     const url = urlFicha(s);
-    const ficha = add(boton(this, 560, 506, url ? 'Ficha completa ↗' : 'Ficha web: sin enlace', () => this.abrirFicha(url),
+    const ficha = add(boton(this, 535, 506, url ? 'Ficha completa ↗' : 'Ficha web: sin enlace', () => this.abrirFicha(url),
       { size: 13, habilitado: !!url }));
     this.botonesDetalle = [probar, ficha];
     this.botonVolver = volver;
@@ -245,6 +248,7 @@ export default class Expediente extends Phaser.Scene {
     };
     const preferido = {
       seleccion: this.botonesLista.find((b) => b.sitioId === this.seleccion?.id),
+      probar: this.botonesDetalle?.[0]?.habilitado ? this.botonesDetalle[0] : this.botonesLista.find((b) => b.sitioId === this.seleccion?.id),
       anterior: this.botonAnterior.habilitado ? this.botonAnterior : this.botonSiguiente,
       siguiente: this.botonSiguiente.habilitado ? this.botonSiguiente : this.botonAnterior,
       lista: this.botonesLista[0],
