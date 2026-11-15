@@ -4,6 +4,7 @@ import { PRESUPUESTO_INICIAL } from '../config/world.js';
 import { DESTINOS } from '../data.js';
 import { partida } from '../main.js';
 import { recomendar } from '../feedback/reglas.js';
+import { diagnosticar } from '../feedback/diagnostico.js';
 import { puntuar } from '../feedback/puntuacion.js';
 import { compararAnalogia } from '../feedback/analogia.js';
 import { exponerParaPruebas } from '../fisica/depuracion.js';
@@ -56,59 +57,79 @@ export default class Resultados extends Phaser.Scene {
       : (exito ? tr('Prueba superada', 'Test passed') : tr('La prueba falló', 'Test failed'));
     titulo(this, encabezado, MOTIVOS()[motivo] ?? motivo);
 
-    // Marco de arte (assets/ui/ui_panel.png, 9 partes de 16 × 16) detrás del contenido; las esquinas se escalan × 3 enteras.
-    if (this.textures.exists('ui/ui_panel')) this.add.nineslice(480, 282, 'ui/ui_panel', undefined, 306, 104, 5, 5, 5, 5).setScale(3).setDepth(-1);
-
-    let y = 130;
-    const linea = (texto, color = '#cfd6ff') => { this.add.text(70, y, texto, { ...ESTILO, color }); y += 22; };
-    const lineaChica = (texto, color = '#9aa4c7') => {
-      const t = this.add.text(70, y, texto, { ...ESTILO, fontSize: '12px', color });
-      y += t.height + 3;
-    };
+    // Fondo sólido: el arte del marco nunca determina el contraste del texto.
+    this.add.rectangle(480, 284, 864, 228, 0x101827, 0.98).setStrokeStyle(2, 0x526782);
     const carga = Math.round(resultado.integridad_carga * 100);
     const energia = Math.round(resultado.energia_restante * 100);
-    linea(tr(`Distancia ${resultado.distancia_m} m · carga ${carga} % · energía ${energia} % · costo ${resultado.costo} créditos · intento ${resultado.intentos}`,
-      `Distance ${resultado.distancia_m} m · payload ${carga} % · energy ${energia} % · cost ${resultado.costo} credits · attempt ${resultado.intentos}`));
-
+    this.add.text(64, 126, tr(
+      `Distancia ${resultado.distancia_m} m · carga ${carga} % · energía ${energia} %\nCosto ${resultado.costo} créditos · intento ${resultado.intentos}`,
+      `Distance ${resultado.distancia_m} m · payload ${carga} % · energy ${energia} %\nCost ${resultado.costo} credits · attempt ${resultado.intentos}`),
+    { ...ESTILO, wordWrap: { width: 650 }, lineSpacing: 4 });
     if (esMision) {
       const p = puntuar(resultado, PRESUPUESTO_INICIAL);
-      // Estrellas de arte (assets/ui/ui_estrella_*.png, 16 × 16 × 3); si no hay arte, texto.
-      if (this.textures.exists('ui/ui_estrella_llena') && this.textures.exists('ui/ui_estrella_vacia')) {
-        this.add.text(890, 124, `${p.total}`, { ...ESTILO, fontSize: '28px', color: '#ffd166' }).setOrigin(1, 0);
-        for (let i = 0; i < 3; i++) {
-          this.add.image(890 - (2 - i) * 52, 182, i < p.estrellas ? 'ui/ui_estrella_llena' : 'ui/ui_estrella_vacia').setOrigin(1, 0.5).setScale(3);
-        }
-      } else {
-        const estrellas = '★'.repeat(p.estrellas) + '☆'.repeat(3 - p.estrellas);
-        this.add.text(890, 130, `${p.total}\n${estrellas}`, { ...ESTILO, fontSize: '28px', color: '#ffd166', align: 'right' }).setOrigin(1, 0);
-      }
-      const d = p.desglose;
-      if (resultado.entrega) {
-        linea(tr(`Entrega ${d.entrega} + carga ${d.integridad} + energía ${d.energia} + ahorro ${d.ahorro}`,
-          `Delivery ${d.entrega} + payload ${d.integridad} + energy ${d.energia} + savings ${d.ahorro}`), '#9aa4c7');
-      }
+      const estrellas = '★'.repeat(p.estrellas) + '☆'.repeat(3 - p.estrellas);
+      this.add.text(896, 122, `${p.total} / 1000\n${estrellas}`, {
+        ...ESTILO, fontSize: '22px', color: '#ffd166', align: 'right',
+      }).setOrigin(1, 0);
     }
 
-    // Misión: qué probó la Tierra y qué no (comparando con la última prueba terrestre de esta partida).
+    const diagnostico = diagnosticar(registro);
+    const recs = recomendar(resultado, motivo);
+    const paginas = [{
+      titulo: exito ? tr('Qué ocurrió · siguiente paso', 'What happened · next step') : tr('Por qué terminó · qué puedes hacer', 'Why it ended · what you can do'),
+      texto: diagnostico.detalle,
+      evidencia: diagnostico.consejo,
+    }, ...recs.map((r) => ({
+      titulo: tr('Consejo basado en este intento', 'Advice based on this run'),
+      texto: r.texto, evidencia: r.evidencia,
+    }))];
+    let indiceAnalogia = -1;
     if (esMision) {
-      y += 6;
-      linea(tr('Dónde se rompe la analogía:', 'Where the analogy breaks down:'), '#ffffff');
+      const p = puntuar(resultado, PRESUPUESTO_INICIAL);
+      if (resultado.entrega) {
+        const d = p.desglose;
+        paginas.push({ titulo: tr('Cómo se calculó la puntuación', 'How the score was calculated'),
+          texto: tr(`Entrega ${d.entrega} + carga ${d.integridad} + energía ${d.energia} + ahorro ${d.ahorro}`,
+            `Delivery ${d.entrega} + payload ${d.integridad} + energy ${d.energia} + savings ${d.ahorro}`),
+          evidencia: tr('Valores de juego, no certificación de una misión real.', 'Game values, not certification of a real mission.') });
+      }
       const prueba = [...partida.resultados].reverse().find((r) => r.tipo === 'prueba');
       const destino = DESTINOS[resultado.destino] ?? DESTINOS[partida.destino];
-      for (const l of compararAnalogia(prueba, registro, destino)) lineaChica(`• ${l}`);
+      indiceAnalogia = paginas.length;
+      for (const l of compararAnalogia(prueba, registro, destino)) paginas.push({
+        titulo: tr('Dónde se rompe la analogía', 'Where the analogy breaks down'), texto: l,
+      });
     }
-
-    y += 10;
-    const recs = recomendar(resultado);
-    const encabezadoRecs = recs.length
-      ? tr('Recomendaciones (según lo que pasó en este intento):', 'Recommendations (based on what happened in this attempt):')
-      : (exito ? tr('Sin problemas que corregir en este intento.', 'Nothing to fix in this attempt.')
-        : tr('Sin una recomendación de piezas: revisa el manejo.', 'No part to recommend: check your driving.'));
-    linea(encabezadoRecs, '#ffffff');
-    for (const r of recs.slice(0, esMision ? 2 : 4)) {
-      linea(`• ${r.texto}`, '#ffd166');
-      linea(`   ${r.evidencia}`, '#9aa4c7');
+    let pagina = 0;
+    const contenido = this.add.container(0, 0);
+    const contador = this.add.text(480, 418, '', { ...ESTILO, fontSize: '16px' }).setOrigin(0.5);
+    const mostrar = (indice) => {
+      pagina = (indice + paginas.length) % paginas.length;
+      contenido.removeAll(true);
+      const p = paginas[pagina];
+      const encabezado = this.add.text(68, 186, p.titulo, { ...ESTILO, fontSize: '18px', color: '#ffffff', wordWrap: { width: 820 } });
+      const texto = this.add.text(68, encabezado.y + encabezado.height + 14, p.texto, {
+        ...ESTILO, fontSize: '16px', color: '#ffd166', lineSpacing: 5, wordWrap: { width: 820 },
+      });
+      contenido.add([encabezado, texto]);
+      if (p.evidencia) contenido.add(this.add.text(68, texto.y + texto.height + 14, p.evidencia, {
+        ...ESTILO, fontSize: '16px', color: '#e1e8f0', lineSpacing: 5, wordWrap: { width: 820 },
+      }));
+      contador.setText(`${pagina + 1} / ${paginas.length}`);
+    };
+    const navegar = (x, texto, accion) => {
+      this.add.rectangle(x, 421, 232, 38, 0x20314a).setStrokeStyle(1, 0x526782)
+        .setInteractive({ useHandCursor: true }).on('pointerdown', () => { sonarBoton(); accion(); });
+      this.add.text(x, 421, texto, { ...ESTILO, color: '#ffffff' }).setOrigin(0.5);
+    };
+    navegar(186, tr('← Consejo anterior', '← Previous advice'), () => mostrar(pagina - 1));
+    navegar(774, tr('Siguiente consejo →', 'Next advice →'), () => mostrar(pagina + 1));
+    if (indiceAnalogia >= 0) {
+      this.add.text(480, 443, tr('A · Ver límites de la analogía', 'A · View analogy limits'), { ...ESTILO, color: '#80e0dc' })
+        .setOrigin(0.5).setInteractive({ useHandCursor: true })
+        .on('pointerdown', () => mostrar(indiceAnalogia));
     }
+    mostrar(0);
 
     // Botones con atajo de teclado (1, 2, 3) y Enter = siguiente paso sugerido del camino dorado.
     const yb = 470;
@@ -120,10 +141,13 @@ export default class Resultados extends Phaser.Scene {
     const xs = [190, 480, 770];
     const ir = (escena) => { sonarBoton(); irA(this, escena); };
     opciones.forEach(([texto, escena], i) => {
-      const b = boton(this, xs[i], yb, `${i + 1} · ${texto}${i === sugerida ? ' ⏎' : ''}`, () => ir(escena));
+      const b = boton(this, xs[i], yb, `${i + 1} · ${texto}${i === sugerida ? ' ⏎' : ''}`, () => ir(escena)).setFontSize(14);
       if (i === sugerida) b.setColor('#4cc38a');
     });
     this.input.keyboard.on('keydown', (ev) => {
+      if (ev.key === 'ArrowLeft') { ev.preventDefault(); mostrar(pagina - 1); return; }
+      if (ev.key === 'ArrowRight') { ev.preventDefault(); mostrar(pagina + 1); return; }
+      if (ev.key.toLowerCase() === 'a' && indiceAnalogia >= 0) { mostrar(indiceAnalogia); return; }
       const n = Number(ev.key);
       if (n >= 1 && n <= opciones.length) ir(opciones[n - 1][1]);
       else if (ev.key === 'Enter') ir(opciones[sugerida][1]);

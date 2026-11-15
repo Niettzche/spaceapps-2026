@@ -10,9 +10,10 @@ export const INTEGRIDAD_SIN_AVISO = 0.9;
 
 /**
  * @param {object} resultado  Result (eventos, diseno, integridad_carga, ...)
+ * @param {string} [motivo] Condición final del registro, si está disponible.
  * @returns {Array<{ id, texto, evidencia, cambio? }>}  recomendaciones, de la más importante a la menos
  */
-export function recomendar(resultado) {
+export function recomendar(resultado, motivo) {
   const ev = resultado.eventos ?? [];
   const contar = (tipo, detalle) => ev.filter((e) => e.tipo === tipo && (detalle === undefined || e.detalle === detalle)).length;
   const d = resultado.diseno ?? [];
@@ -49,29 +50,39 @@ export function recomendar(resultado) {
   const golpesCarga = contar('golpe_carga');
   // Con el daño por sacudidas casi todo recorrido registra algún golpe_carga: solo se recomienda si el daño importa.
   const cargaDanada = golpesCarga > 0 && (resultado.integridad_carga ?? 1) < INTEGRIDAD_SIN_AVISO;
-  if ((cargaDanada || contar('carga_perdida') > 0) && !usaPieza(d, 'soporte_amortiguado')) {
+  if ((cargaDanada || ['carga_perdida', 'carga_danada'].includes(motivo) || contar('carga_perdida') > 0) && !usaPieza(d, 'soporte_amortiguado')) {
     recs.push({
       id: 'soporte_amortiguado',
       texto: tr('Usa el soporte de carga amortiguado.', 'Use the cushioned payload mount.'),
-      evidencia: contar('carga_perdida') > 0
+      evidencia: motivo === 'carga_perdida' || contar('carga_perdida') > 0
         ? tr('La carga se cayó del soporte.', 'The payload fell off its mount.')
-        : tr(`La carga recibió ${golpesCarga} ${golpesCarga === 1 ? 'golpe' : 'golpes'} (integridad final ${Math.round(resultado.integridad_carga * 100)} %).`,
-          `The payload took ${golpesCarga} ${golpesCarga === 1 ? 'hit' : 'hits'} (final integrity ${Math.round(resultado.integridad_carga * 100)} %).`),
+        : cargaDanada
+          ? tr(`La carga recibió ${golpesCarga} ${golpesCarga === 1 ? 'golpe' : 'golpes'} (integridad final ${Math.round(resultado.integridad_carga * 100)} %).`,
+            `The payload took ${golpesCarga} ${golpesCarga === 1 ? 'hit' : 'hits'} (final integrity ${Math.round(resultado.integridad_carga * 100)} %).`)
+          : tr('La carga llegó por debajo de la integridad requerida.', 'The payload arrived below the required integrity.'),
       cambio: { ranuras: ['carga'], pieza: 'soporte_amortiguado' },
     });
   }
-  if (contar('energia_agotada') > 0) {
+  if (motivo === 'energia_agotada' || contar('energia_agotada') > 0) {
     if (!usaPieza(d, 'bateria_grande')) {
       recs.push({ id: 'bateria_grande', texto: tr('Lleva la batería grande.', 'Bring the large battery.'), evidencia: tr('Se acabó la energía antes de terminar.', 'The battery ran out before the end.'), cambio: { ranuras: ['bateria'], pieza: 'bateria_grande' } });
     } else if (usaPieza(d, 'motor_potente')) {
       recs.push({ id: 'motor_eficiente', texto: tr('Cambia al motor eficiente: gasta la mitad.', 'Switch to the efficient motor: it uses half the energy.'), evidencia: tr('Se acabó la energía aun con la batería grande.', 'The battery ran out even with the large battery.'), cambio: { ranuras: ['motor'], pieza: 'motor_eficiente' } });
     }
   }
-  if (contar('chasis_destruido') > 0 && !usaPieza(d, 'chasis_reforzado')) {
+  if ((motivo === 'chasis_destruido' || contar('chasis_destruido') > 0) && !usaPieza(d, 'chasis_reforzado')) {
     recs.push({ id: 'chasis_reforzado', texto: tr('Usa el chasis reforzado.', 'Use the reinforced chassis.'), evidencia: tr('El chasis se destruyó por los golpes.', 'The chassis was destroyed by impacts.'), cambio: { ranuras: ['chasis'], pieza: 'chasis_reforzado' } });
   }
   if (contar('volcado') > 0) {
     recs.push({ id: 'manejo', texto: tr('Baja la velocidad antes de las bajadas y los saltos.', 'Slow down before descents and jumps.'), evidencia: tr('El robot volcó.', 'The robot flipped over.') });
   }
-  return recs;
+  // La condición que terminó el intento tiene prioridad sobre problemas secundarios.
+  const prioridad = {
+    energia_agotada: ['bateria_grande', 'motor_eficiente'],
+    chasis_destruido: ['chasis_reforzado'],
+    carga_perdida: ['soporte_amortiguado'],
+    carga_danada: ['soporte_amortiguado'],
+    volcado: ['manejo'],
+  }[motivo] ?? [];
+  return recs.sort((a, b) => Number(prioridad.includes(b.id)) - Number(prioridad.includes(a.id)));
 }

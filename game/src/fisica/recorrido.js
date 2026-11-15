@@ -10,6 +10,7 @@ import { notaSuelo } from './suelos.js';
 import { Telemetria, construirResultado } from './telemetria.js';
 import { Efectos } from './efectos.js';
 import { Sonido } from './sonido.js';
+import { Ambiente } from './ambiente.js';
 import { tr } from '../i18n.js';
 import { AspectoRobot, crearFondo, claveDeFondo, sprite, tira } from './aspecto.js';
 
@@ -74,12 +75,14 @@ export class Recorrido {
     const cam = scene.cameras.main;
     cam.setBounds(izq, this.terreno.arriba - m(25), der - izq, this.terreno.abajo - this.terreno.arriba + m(25));
     crearFondo(scene, claveDeFondo(o.mundo, o.sitioId), { x: izq, ancho: der - izq });
+    this.ambiente = new Ambiente(scene, o);
     cam.startFollow(this.robot, false, 0.12, 0.12, -m(6), m(1));
 
     this.controles = new Controles(scene);
     // Origen del agarre del suelo + aviso del nivel. El suelo va primero: es corto y el HUD corta el aviso a 3 líneas,
     // así los valores provisionales (P) siempre se declaran en pantalla.
-    const avisoNivel = o.perfil.ilustrativo ? `⚠ ${o.perfil.nota}` : o.perfil.nota;
+    const avisoNivel = [o.perfil.ilustrativo ? `⚠ ${o.perfil.nota}` : o.perfil.nota,
+      tr('Aves, polvo distante y roca espacial: decoración recreada, sin efecto físico.', 'Birds, distant dust and space rock: recreated decoration, no physical effect.')].filter(Boolean).join(' ');
     const avisoSuelo = notaSuelo(o.mundo, o.perfil.superficies);
     this.hud = new Hud(scene, { titulo: o.titulo, subtitulo: o.subtitulo, aviso: [avisoSuelo && `${avisoSuelo}.`, avisoNivel].filter(Boolean).join(' ') });
     this._botonAbandonar();
@@ -152,6 +155,7 @@ export class Recorrido {
     const delta = runner?.isFixed ? runner.delta : deltaCuadro;
     const r = this.robot;
     if (this.pausado) return; // mundo de física detenido; nada avanza
+    this.ambiente.actualizar(deltaCuadro);
     const acelerador = this.terminado ? 0 : this.controles.acelerador();
     if (acelerador !== 0) this.hud.ocultarInstrucciones();
     r.actualizar(delta, acelerador, this.superficieDe);
@@ -253,6 +257,7 @@ export class Recorrido {
   }
 
   destruir() {
+    this.ambiente?.destruir();
     this.efectos?.destruir();
     this.sonido?.destruir();
     this.robot.destruir();
