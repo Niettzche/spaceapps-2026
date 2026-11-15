@@ -39,6 +39,16 @@
 - Bloquea activarla por defecto: g00281 nuevo (main) deja pasar a la estándar también con física 1; 1 de 4 corridas de Jezero
   pierde la carga con física 2.
 
+## Retro de Leo, playtest de las 5 am (15 nov) — hecho
+- Fondo vivo del Menú: nada aparece ni desaparece a media pantalla (trayectorias puras y probadas en `ambiente_plan.js`).
+- Cambiar de idioma no reinicia nada: inicio (el video sigue), opciones (solo la consola), números y cómo jugar (fondo vivo conservado).
+- Expediente con selector `ES · EN (L)`: redibuja con el mismo sitio y la misma vista.
+- Taller: soltar una rueda la pone en los 2 ejes; mezclar = Mayús al soltar o «Separar ejes» (A).
+- Textos: los 18 hallazgos Alta de `docs/taller/REVISION_EN.md` y las Media rápidas; español más natural.
+- `docs/juego/PRESUPUESTO.md`: diseño más barato por nivel y propuesta de presupuesto por nivel (sin aplicar: decide Edmundo).
+- Pendiente del modelo: `data/sites/g00266.json` aún dice «Cono de toba» (el juego lo corrige al mostrarlo) y `mx0023.json` `proceso`
+  dice «Probable tajo… por verificar» (el tajo está verificado: Buenavista del Cobre, S137).
+
 ## En curso
 - Niveles críticos: el tramo más exigente que siga siendo superable, en la dirección correcta (subir la pared del maar, bancos de la mina,
   Jezero con relieve).
