@@ -1,9 +1,9 @@
 # Estado — Arte
 
-> Lo actualiza SOLO este frente. Ramas: `feat/arte` (#26) y `feat/arte-b` (#37), `feat/arte-c` (#49), `feat/arte-d` (#58), `feat/arte-e` (#64), `feat/arte-f` (#67), `feat/arte-g` (#72), `feat/arte-h` (#77), mergeadas; `feat/arte-i` (rediseño: keywords, botones, chips y planetas).
+> Lo actualiza SOLO este frente. Ramas: `feat/arte` (#26) y `feat/arte-b` (#37), `feat/arte-c` (#49), `feat/arte-d` (#58), `feat/arte-e` (#64), `feat/arte-f` (#67), `feat/arte-g` (#72), `feat/arte-h` (#77), `feat/arte-i` (#79), mergeadas; `feat/arte-j` (fuente pixel, más kit y pantalla de carga).
 
 **Responsable:** Mauricio  ·  **Agente:** Claude Code / Codex
-**Última actualización:** 15 nov 2026, 05:00
+**Última actualización:** 15 nov 2026, 06:30
 
 ## Hecho
 - **Prioridad A y B completas** (#26 y #37, en `main`):
@@ -96,6 +96,13 @@
   - **`ui_boton` en 4 estados** (normal, `_encima`, `_presionado` y `_desactivado`): 12 × 12 con cortes de 4 px y borde visible (lavanda, amarillo, ámbar y gris). El relleno es oscuro para que se lea el texto claro.
   - **Chips** `ui_chip_rojo` (`#ff7a93`, límite) y `ui_chip_cian` (`#80e0dc`, dato): 8 × 8 con cortes de 3 px.
   - **Planetas** `menu/planeta_marte` y `menu/planeta_luna`: 48 cuadros de 48 × 48 (2304 × 48), una vuelta sin costura. Marte trae casquete polar, mares, un cañón y cráteres; la Luna, mares y cráteres de borde claro.
+- **Fuente pixel y kit (`feat/arte-j`):**
+  - **`assets/fuentes/pixel`** (cuerpo) y **`pixel_titulo`** (estilo del logo), en BMFont XML + PNG para `load.bitmapFont`:
+    - 145 caracteres: ASCII, á é í ó ú ü ñ y sus mayúsculas, ¿ ¡ « » … y los símbolos del juego.
+    - Celda de 11 filas, con mayúscula de 7 px: a × 2 mide 14 px.
+    - Comprobado con un lector de BMFont propio y con el `DOMParser` del navegador.
+  - **Kit:** `ui_tarjeta`, `ui_barra_relleno_<amarillo|verde|rojo>` (entra en `ui_marco_barra`), `ui_ayuda` + `ui_ayuda_flecha` y `ui_titulo_placa`.
+  - **`pantallas/carga_fondo.png`:** fondo del título con el logo y el marco vacío de la barra. El hueco queda en x 64..255, y 147..150 de arte (× 3: x 192..767, y 441..452).
 - `node assets/fuente/fx/exportar.mjs` regenera con pixelfx las 22 hojas de efectos.
 
 ## En curso
