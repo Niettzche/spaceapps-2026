@@ -54,9 +54,10 @@ export class Recorrido {
     this.obstaculos = generarObstaculos(o.perfil, { mundo: o.mundo, semilla: (o.modo === 'prueba' ? o.sitioId : o.destinoId) ?? o.mundo });
     crearObstaculos(scene, o.perfil, this.terreno, this.obstaculos, { mundo: o.mundo, sprite, hayArte });
 
-    // Límites: paredes a los lados, sin techo ni piso (el suelo es el terreno).
-    const izq = xMundo(0) - m(2);
-    const der = xMundo(o.perfil.largo_m) + m(2);
+    // Límites: paredes a los lados, sin techo ni piso (el suelo es el terreno). Las paredes van justo donde empieza y termina
+    // el terreno: con 2 m de margen quedaba un hueco sin suelo al principio y el robot caía en reversa sin que pasara nada.
+    const izq = xMundo(0);
+    const der = xMundo(o.perfil.largo_m);
     scene.matter.world.setBounds(izq, this.terreno.arriba - m(60), der - izq, this.terreno.abajo - this.terreno.arriba + m(80), 64, true, true, false, false);
 
     // Meta de la prueba o zona de entrega de la misión, en el plano final.
@@ -182,6 +183,8 @@ export class Recorrido {
     if (r.destruido) return this._terminar(false, 'chasis_destruido');
     if (r.cargaPerdida) return this._terminar(false, 'carga_perdida');
     if (r.volcado) return this._terminar(false, 'volcado');
+    // Respaldo: si el robot sale por debajo del terreno (no debería con las paredes), la partida termina en vez de colgarse.
+    if (r.chasis.position.y > this.terreno.abajo + m(3)) return this._terminar(false, 'caida');
     this.tSinEnergia = r.sinEnergia ? this.tSinEnergia + delta / 1000 : 0;
     if (r.sinEnergia && (r.quieto(0.4) || this.tSinEnergia >= SEG_SIN_ENERGIA_FIN)) return this._terminar(false, 'energia_agotada');
     // Atasco: sin avanzar a pesar de seguir en marcha (p. ej. patinando contra una duna).
@@ -247,11 +250,11 @@ export class Recorrido {
     const textos = tr({
       meta: '¡Prueba superada!', entrega: '¡Entrega completada!', chasis_destruido: 'Chasis destruido',
       carga_perdida: 'Se perdió la carga', volcado: 'El robot volcó', energia_agotada: 'Sin energía', atascado: 'El robot quedó atascado',
-      carga_danada: 'La carga llegó muy dañada', abandono: 'Prueba abandonada',
+      carga_danada: 'La carga llegó muy dañada', abandono: 'Prueba abandonada', caida: 'El robot se cayó del terreno',
     }, {
       meta: 'Test passed!', entrega: 'Delivery complete!', chasis_destruido: 'Chassis destroyed',
       carga_perdida: 'Payload lost', volcado: 'The robot flipped over', energia_agotada: 'Out of energy', atascado: 'The robot got stuck',
-      carga_danada: 'Payload arrived too damaged', abandono: 'Run abandoned',
+      carga_danada: 'Payload arrived too damaged', abandono: 'Run abandoned', caida: 'The robot fell off the terrain',
     });
     this.hud.mostrar(textos[motivo] ?? motivo);
     this.scene.time.delayedCall(ESPERA_FIN_MS, () => this.o.alTerminar({

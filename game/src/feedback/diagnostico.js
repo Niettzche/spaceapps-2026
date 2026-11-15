@@ -22,6 +22,10 @@ export function diagnosticar({ motivo, exito, resultado = {} }) {
           ? tr('Revisa la fuerza del motor y la masa del robot antes de repetir la subida.', 'Check motor force and rover mass before retrying the climb.')
           : tr('Prueba retroceder para tomar impulso y revisa la pendiente y el diseño en el taller.', 'Try reversing to gain momentum; review the slope and your design in the workshop.'),
     };
+    case 'caida': return {
+      detalle: tr('El robot se salió del terreno.', 'The rover fell off the terrain.'),
+      consejo: tr('Vuelve a probar; si se repite, avísanos: es un error del nivel, no de tu diseño.', 'Try again; if it happens again, tell us: it is a level bug, not your design.'),
+    };
     case 'volcado': return {
       detalle: tr('El robot quedó volcado.', 'The rover overturned.'),
       consejo: tr('Suelta el acelerador antes de los saltos y las bajadas. Prueba un diseño más estable.', 'Release the throttle before jumps and descents. Test a more stable design.'),

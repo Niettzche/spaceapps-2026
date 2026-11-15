@@ -24,6 +24,7 @@ const MOTIVOS = () => tr({
   atascado: 'Quedó atascado: no avanzó en 15 s.',
   carga_danada: 'Llegó, pero la carga está por debajo del mínimo.',
   abandono: 'Se abandonó el recorrido.',
+  caida: 'El robot se cayó del terreno.',
 }, {
   meta: 'Reached the finish with chassis and payload.',
   entrega: 'Delivered the supplies.',
@@ -34,6 +35,7 @@ const MOTIVOS = () => tr({
   atascado: 'Got stuck: no progress in 15 s.',
   carga_danada: 'Arrived, but the payload is below the minimum.',
   abandono: 'The run was abandoned.',
+  caida: 'The robot fell off the terrain.',
 });
 const ESTILO = { fontFamily: 'monospace', fontSize: '15px', color: '#cfd6ff', wordWrap: { width: 820 } };
 
