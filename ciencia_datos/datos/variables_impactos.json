@@ -1,0 +1,187 @@
+{
+ "meteor_crater": {
+  "cid": "G00195",
+  "lat": 35.0275,
+  "lon": -111.0226,
+  "medido": "2026-11-15",
+  "variables": {
+   "oscilacion_termica": {
+    "valor": 14.49,
+    "unidad": "K",
+    "fuente": "NASA POWER T2M_RANGE (climatología anual)",
+    "fecha": "2001-2025",
+    "nota": "25-year Meteorological and Solar Monthly & Annual Climatologies (January 2001 - December 2025)"
+   },
+   "precipitacion": {
+    "valor": 1.14,
+    "unidad": "mm/día",
+    "fuente": "NASA POWER PRECTOTCORR (climatología anual)",
+    "fecha": "2001-2025",
+    "nota": "25-year Meteorological and Solar Monthly & Annual Climatologies (January 2001 - December 2025)"
+   },
+   "ndvi": {
+    "valor": 0.2007,
+    "unidad": "-",
+    "fuente": "MODIS MOD13Q1 (Google Earth Engine, MODIS/061/MOD13Q1)",
+    "fecha": "2021-2025",
+    "nota": "media del píxel de 250 m"
+   },
+   "pendiente": {
+    "valor": 1.083,
+    "unidad": "grados",
+    "fuente": "Copernicus DEM GLO-30 (ESA, versión 2024_1) promediado a 200 m, Google Earth Engine",
+    "fecha": null,
+    "nota": "media de la pendiente en un cuadro de 10 km centrado en el punto"
+   }
+  },
+  "errores": []
+ },
+ "tenoumer": {
+  "cid": "I03",
+  "lat": 22.918,
+  "lon": -10.4062,
+  "medido": "2026-11-15",
+  "variables": {
+   "oscilacion_termica": {
+    "valor": 15.43,
+    "unidad": "K",
+    "fuente": "NASA POWER T2M_RANGE (climatología anual)",
+    "fecha": "2001-2025",
+    "nota": "25-year Meteorological and Solar Monthly & Annual Climatologies (January 2001 - December 2025)"
+   },
+   "precipitacion": {
+    "valor": 0.11,
+    "unidad": "mm/día",
+    "fuente": "NASA POWER PRECTOTCORR (climatología anual)",
+    "fecha": "2001-2025",
+    "nota": "25-year Meteorological and Solar Monthly & Annual Climatologies (January 2001 - December 2025)"
+   },
+   "ndvi": {
+    "valor": 0.0727,
+    "unidad": "-",
+    "fuente": "MODIS MOD13Q1 (Google Earth Engine, MODIS/061/MOD13Q1)",
+    "fecha": "2021-2025",
+    "nota": "media del píxel de 250 m"
+   },
+   "pendiente": {
+    "valor": 0.801,
+    "unidad": "grados",
+    "fuente": "Copernicus DEM GLO-30 (ESA, versión 2024_1) promediado a 200 m, Google Earth Engine",
+    "fecha": null,
+    "nota": "media de la pendiente en un cuadro de 10 km centrado en el punto"
+   }
+  },
+  "errores": []
+ },
+ "roter_kamm": {
+  "cid": "I06",
+  "lat": -27.7671,
+  "lon": 16.2887,
+  "medido": "2026-11-15",
+  "variables": {
+   "oscilacion_termica": {
+    "valor": 13.01,
+    "unidad": "K",
+    "fuente": "NASA POWER T2M_RANGE (climatología anual)",
+    "fecha": "2001-2025",
+    "nota": "25-year Meteorological and Solar Monthly & Annual Climatologies (January 2001 - December 2025)"
+   },
+   "precipitacion": {
+    "valor": 0.18,
+    "unidad": "mm/día",
+    "fuente": "NASA POWER PRECTOTCORR (climatología anual)",
+    "fecha": "2001-2025",
+    "nota": "25-year Meteorological and Solar Monthly & Annual Climatologies (January 2001 - December 2025)"
+   },
+   "ndvi": {
+    "valor": 0.1235,
+    "unidad": "-",
+    "fuente": "MODIS MOD13Q1 (Google Earth Engine, MODIS/061/MOD13Q1)",
+    "fecha": "2021-2025",
+    "nota": "media del píxel de 250 m"
+   },
+   "pendiente": {
+    "valor": 1.709,
+    "unidad": "grados",
+    "fuente": "Copernicus DEM GLO-30 (ESA, versión 2024_1) promediado a 200 m, Google Earth Engine",
+    "fecha": null,
+    "nota": "media de la pendiente en un cuadro de 10 km centrado en el punto"
+   }
+  },
+  "errores": []
+ },
+ "talemzane": {
+  "cid": "I07",
+  "lat": 33.3147,
+  "lon": 4.0346,
+  "medido": "2026-11-15",
+  "variables": {
+   "oscilacion_termica": {
+    "valor": 13.89,
+    "unidad": "K",
+    "fuente": "NASA POWER T2M_RANGE (climatología anual)",
+    "fecha": "2001-2025",
+    "nota": "25-year Meteorological and Solar Monthly & Annual Climatologies (January 2001 - December 2025)"
+   },
+   "precipitacion": {
+    "valor": 0.29,
+    "unidad": "mm/día",
+    "fuente": "NASA POWER PRECTOTCORR (climatología anual)",
+    "fecha": "2001-2025",
+    "nota": "25-year Meteorological and Solar Monthly & Annual Climatologies (January 2001 - December 2025)"
+   },
+   "ndvi": {
+    "valor": 0.1241,
+    "unidad": "-",
+    "fuente": "MODIS MOD13Q1 (Google Earth Engine, MODIS/061/MOD13Q1)",
+    "fecha": "2021-2025",
+    "nota": "media del píxel de 250 m"
+   },
+   "pendiente": {
+    "valor": 1.016,
+    "unidad": "grados",
+    "fuente": "Copernicus DEM GLO-30 (ESA, versión 2024_1) promediado a 200 m, Google Earth Engine",
+    "fecha": null,
+    "nota": "media de la pendiente en un cuadro de 10 km centrado en el punto"
+   }
+  },
+  "errores": []
+ },
+ "pingualuit": {
+  "cid": "I04",
+  "lat": 61.2773,
+  "lon": -73.6619,
+  "medido": "2026-11-15",
+  "variables": {
+   "oscilacion_termica": {
+    "valor": 7.07,
+    "unidad": "K",
+    "fuente": "NASA POWER T2M_RANGE (climatología anual)",
+    "fecha": "2001-2025",
+    "nota": "25-year Meteorological and Solar Monthly & Annual Climatologies (January 2001 - December 2025)"
+   },
+   "precipitacion": {
+    "valor": 1.75,
+    "unidad": "mm/día",
+    "fuente": "NASA POWER PRECTOTCORR (climatología anual)",
+    "fecha": "2001-2025",
+    "nota": "25-year Meteorological and Solar Monthly & Annual Climatologies (January 2001 - December 2025)"
+   },
+   "ndvi": {
+    "valor": -0.026,
+    "unidad": "-",
+    "fuente": "MODIS MOD13Q1 (Google Earth Engine, MODIS/061/MOD13Q1)",
+    "fecha": "2021-2025",
+    "nota": "media del píxel de 250 m"
+   },
+   "pendiente": {
+    "valor": 1.968,
+    "unidad": "grados",
+    "fuente": "Copernicus DEM GLO-30 (ESA, versión 2024_1) promediado a 200 m, Google Earth Engine",
+    "fecha": null,
+    "nota": "media de la pendiente en un cuadro de 10 km centrado en el punto"
+   }
+  },
+  "errores": []
+ }
+}

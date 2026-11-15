@@ -16,6 +16,8 @@ Qué es y qué no es:
   no muestra borde levantado (no comprobamos por qué; quizá porque son viejos y están encimados). AGENTS.md §6.2 ya advierte
   que el borde no sirve como criterio de parecido con la Luna.
 - La ventana y el umbral son provisionales (P). La sensibilidad a los dos está en model/VALIDATION.md.
+- Prueba fuera de muestra: tabla_impactos() mide, con la ventana y el umbral ya fijados, cráteres de impacto de otros países que
+  no intervinieron al fijarlos (perfiles de analisis/25_perfiles_impactos.py).
 
 Uso:  uv run python -m model.borde     (escribe variables.borde_levantado en los JSON de data/sites que tienen un cráter medido;
                                         sin red; idempotente)
@@ -33,6 +35,7 @@ RAIZ = pathlib.Path(__file__).resolve().parents[1]
 DATOS = RAIZ / "ciencia_datos" / "datos"
 SITES = RAIZ / "data" / "sites"
 PERFILES = DATOS / "perfiles_radiales.json"
+PERFILES_IMPACTOS = DATOS / "perfiles_impactos.json"     # analisis/25_perfiles_impactos.py
 FICHAS = RAIZ / "ciencia_datos" / "salidas" / "fichas_integradas.csv"
 
 CLAVE = "borde_levantado"
@@ -41,6 +44,9 @@ UMBRAL = 0.0             # (P) h/D por encima del cual se dice que hay borde lev
 RADIO_COTEJO_KM = 2.5    # mismo radio que el cotejo del catálogo en model/validate.py y ciencia_datos/03
 FUENTE = ("Copernicus DEM GLO-30 (ESA) llevado a 80 m; perfil radial promedio del cráter "
           "(analisis/18_perfiles_radiales.py, ciencia_datos/datos/perfiles_radiales.json)")
+
+FUENTE_IMPACTOS = ("Copernicus DEM GLO-30 (ESA) llevado a 80 m; perfil radial promedio del cráter "
+                   "(analisis/25_perfiles_impactos.py, ciencia_datos/datos/perfiles_impactos.json)")
 
 # Cráteres identificados por literatura, con la distancia entre la detección y la coordenada de la fuente (model/NIVEL2.md §A).
 # Los del catálogo de México y Meteor Crater no van aquí: se cotejan por coordenada en crateres_con_fuente().
@@ -81,10 +87,22 @@ def altura(perfil, r: np.ndarray | None = None, ventana: tuple[float, float] = V
     return float(p[(r >= ventana[0]) & (r < ventana[1])].max())
 
 
+@functools.lru_cache(maxsize=1)
+def perfiles_impactos() -> dict:
+    """{id de impactos_tierra.csv (I00…): registro con el perfil tierra} de analisis/25, con los mismos anillos que perfiles()."""
+    js = json.loads(PERFILES_IMPACTOS.read_text(encoding="utf-8"))
+    if not np.array_equal(np.array(js["r"], float), perfiles()[0]):
+        raise ValueError("perfiles_impactos.json no usa los mismos anillos que perfiles_radiales.json")
+    return {str(s["id"]).upper(): s for s in js["sitios"]}
+
+
 def medir(cid: str, cuerpo: str = "tierra", ventana: tuple[float, float] = VENTANA) -> float | None:
-    """h/D del cráter `cid` del detector (p. ej. MX0008, G00263). `cuerpo`: tierra, o el perfil de su gemelo (luna, marte)."""
+    """h/D del cráter `cid` del detector (p. ej. MX0008, G00263, o I03 de impactos_tierra.csv). `cuerpo`: tierra, o el perfil
+    de su gemelo (luna, marte; los cráteres de impacto de analisis/25 solo tienen el de la Tierra)."""
     r, sitios = perfiles()
     s = sitios.get(str(cid).upper())
+    if s is None and cuerpo == "tierra":
+        s = perfiles_impactos().get(str(cid).upper())
     return None if s is None else altura(s.get(cuerpo), r, ventana)
 
 
@@ -99,9 +117,10 @@ def variable_borde(cid: str, diam_km: float | None) -> dict:
         return {"valor": None, "unidad": "m", "fuente": FUENTE, "fecha": None,
                 "nota": "Sin perfil radial a 80 m para este cráter: el borde levantado no se midió."}
     a, b, lejos = limites_ventana()
+    fuente = FUENTE_IMPACTOS if str(cid).upper() in perfiles_impactos() else FUENTE
     lectura = ("positiva: el borde queda más alto que el terreno lejano, lo que es evidencia de cráter de impacto o de explosión"
                if levantado(h) else "no positiva: sin borde levantado en esta medida")
-    return {"valor": round(h * float(diam_km) * 1000, 1) + 0.0, "unidad": "m", "fuente": FUENTE, "fecha": None,
+    return {"valor": round(h * float(diam_km) * 1000, 1) + 0.0, "unidad": "m", "fuente": fuente, "fecha": None,
             "nota": (f"h/D = {h:+.4f}, {lectura}. Altura máxima del perfil radial promedio entre {a:.2f} y {b:.2f} radios, sobre el "
                      f"terreno lejano ({lejos:.2f} a 2 radios). No mide parecido con la Luna ni con Marte: dice si la depresión "
                      "tiene borde de cráter (model/VALIDATION.md, sección B). Ventana y umbral provisionales (P).")}
@@ -128,7 +147,9 @@ def crater_de(sitio: dict) -> str | None:
     if "forma" not in (sitio.get("variables") or {}):
         return None                         # sin cráter medido (p. ej. las dunas de Samalayuca)
     from model import curados               # import perezoso: curados importa scan, y scan importa este módulo
-    return curados.CURADOS.get(sitio["id"], {}).get("crater_cid") or sitio["id"].upper()
+    from model import niveles               # cráteres de impacto creados por model/niveles.py (id del sitio ≠ id del detector)
+    return (curados.CURADOS.get(sitio["id"], {}).get("crater_cid") or niveles.CRATER_DE_SITIO.get(sitio["id"])
+            or sitio["id"].upper())
 
 
 def _km(lat1, lon1, lat2, lon2):
@@ -166,6 +187,30 @@ def tabla_candidatos() -> pd.DataFrame:
     f["h"] = [medir(i) for i in f.id]
     f["con_fuente"] = f.id.map(crateres_con_fuente(f))
     return f
+
+
+def tabla_impactos() -> pd.DataFrame:
+    """Prueba fuera de muestra: los cráteres de impacto de impactos_tierra.csv que el detector encuentra, con su h/D.
+
+    `visto` dice si el cráter ya estaba entre los candidatos áridos con los que se fijaron la ventana y el umbral (mismo radio de
+    cotejo que crateres_con_fuente): esos no cuentan como nuevos. Centro y diámetro son los del detector, como en los candidatos.
+    """
+    js = json.loads(PERFILES_IMPACTOS.read_text(encoding="utf-8"))
+    r = np.array(js["r"], float)
+    if not np.array_equal(r, perfiles()[0]):
+        raise ValueError("perfiles_impactos.json no usa los mismos anillos que perfiles_radiales.json")
+    imp = pd.read_csv(DATOS / "impactos_tierra.csv").set_index("hid")
+    f = pd.read_csv(FICHAS)
+    filas = []
+    for s in js["sitios"]:
+        c = imp.loc[s["id"]]
+        d = _km(c.lat, c.lon, f.lat.to_numpy(), f.lon.to_numpy())
+        k = int(np.argmin(d))
+        visto = bool(d[k] <= RADIO_COTEJO_KM)
+        filas.append({"id": s["id"], "nombre": c.nombre, "lat": float(c.lat), "lon": float(c.lon), "diam_km": float(c.diam_km),
+                      "diam_esperado_km": float(c.diam_esperado_km), "h": altura(s["tierra"], r), "perfil": s["tierra"],
+                      "visto": visto, "candidato": str(f.id.iloc[k]) if visto else None})
+    return pd.DataFrame(filas)
 
 
 def perfiles_referencia(cuerpo: str) -> list[tuple]:

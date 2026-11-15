@@ -3,22 +3,41 @@
 > Lo actualiza SOLO este frente. Rama: `feat/modelo`.
 
 **Responsable:** Mario  ·  **Agente:** Claude Code / Codex
-**Última actualización:** 15 nov 2026, madrugada (API del modelo publicada en https://v1.marsception.us/api/)
+**Última actualización:** 15 nov 2026, madrugada (demo publicada en https://v1.marsception.us/)
 
-## Hecho (API publicada, 15 nov, madrugada)
-- **API del modelo en línea: https://v1.marsception.us/api/** (`/health`, `/score`, `/submit`, `/feedback`). Es FastAPI con
-  `api/`, `model/` y `data/` de `main` cd939c0, como servicio del sistema detrás de nginx, que quita el prefijo `/api`. CORS solo
-  para `https://v1.marsception.us`. Las propuestas (`/submit`) se guardan en una SQLite fuera de la carpeta de cada versión,
-  así que sobreviven a una nueva publicación.
-- **El juego se compila con `VITE_API_URL=https://v1.marsception.us/api`** (main cd939c0, publicado). Comprobado en navegador:
-  el Explorador ve la API (`/health` 200) y una consulta desde la interfaz devuelve la comparación (Samalayuca contra Jezero).
-- **Límite actual en el servidor:** no hay Earth Engine, así que la **pendiente** sale sin dato. El NDVI depende de ORNL DAAC,
-  que respondía 400 por un error nuestro (pedía 23 compuestos y acepta 10). Corregido en el PR #71
-  (`fix/modelo-ndvi-ornl`): tramos en paralelo y fuentes de `/score` en paralelo. La API publicada corre desde main, así
-  que el arreglo entra cuando se fusione el PR y se vuelva a publicar.
-- Una consulta tarda ~60 s (ORNL de 36 a 50 s por tramo). Cloudflare corta a los 100 s y el juego espera 90 s.
-- Umbral para proponer: la API usa 0.4 (`UMBRAL_PROPUESTA`, ver `VALIDATION.md`), pero el texto del Explorador dice 60 % y
-  `game/src/scenes/expediente/config.js` tiene 0.6. **Hay que alinearlos** (lo decide el frente expediente o el integrador).
+## Hecho (15 niveles jugables, 15 nov, madrugada; rama `feat/modelo-niveles-15`)
+- **11 niveles nuevos con relieve real** (antes 4: samalayuca, pinacate, g00281, mx0207). Cráteres con fuente: g00266,
+  g00263, g00176, mx0261. Cráteres de impacto (sitios nuevos): meteor_crater, tenoumer, roter_kamm, talemzane. Tajos: mx0023,
+  mx0019, mx0155. Reparto: 10 Luna, 5 Marte (Jezero: samalayuca, g00266, tenoumer, roter_kamm, talemzane, por la regla 4).
+- `analisis/26_niveles_15.py`: celdas 21 y 23 pasadas a script local. `--comprobar` reproduce idénticos los niveles de g00281 y
+  mx0207 antes de medir. `model/niveles.py` escribe data/sites sin red. Corrido dos veces: la segunda no cambia nada.
+- En los sitios existentes solo cambia `nivel`. Los 4 de impacto son controles positivos del detector, no hallazgos:
+  `estado: documentado`, borde levantado positivo en los 4, novedoso false (Meteor) o null.
+- `model/borde.py` ahora lee también `perfiles_impactos.json`. `python -m model.borde` no cambia ningún sitio.
+- Sin obstáculos (`obstaculos: []`). Pendiente máxima del transecto: tajos 49–63°; en la ventana de 250 m que juega el juego, 34–37°.
+- Pendiente: `model/VALIDATION.md` (lo genera `model/validate.py` desde data/sites) no se regeneró; sus cuentas de sitios
+  no incluyen los 4 nuevos.
+
+## Hecho (publicación de la demo, 15 nov, madrugada)
+- **Demo pública: https://v1.marsception.us/**, en inglés con https://v1.marsception.us/?lang=en. Este frente es el
+  **único que publica** (pedido del integrador, para que dos sesiones no se pisen).
+- **Disposición final (decisión de Mario): solo el juego MARSCEPTION, en la raíz.** La web Cráter Gemelo ya no se publica.
+  `/game/` y `/game/?lang=en` redirigen a `/` y conservan los parámetros, así que los enlaces viejos siguen funcionando.
+  **Pendiente para Alan:** el README, `web/DEPLOY.md` y `docs/ENTREGA_EN.md` todavía dicen "web en `/` y juego en `/game/`"
+  y "pending VPS publication". Hay que cambiarlos al enlace de arriba.
+- Versión publicada: el juego de `main` 0ad3b47 (PR #63, el último fusionado a las 03:35 UTC del 15 nov), bilingüe; pruebas del juego en verde (física 35, diseño 14, historial 10). Build: `cd game && npm ci && VITE_API_URL=/api npx vite build --base /`.
+  No hay API publicada: `/api` da 404 y el juego usa los JSON que trae (regla 7).
+- **Servidor:** nginx sirve una carpeta por versión (`releases/game-<commit>`) y un enlace `current` apunta a la activa. Publicar o
+  volver atrás es cambiar ese enlace. El dominio entra por un túnel de Cloudflare.
+  Ajustes en nginx: `.mjs` y `.vtt` con su tipo MIME (sin eso, el mapa de MapLibre de la web no cargaba su worker) y redirecciones
+  relativas (`absolute_redirect off`), porque detrás del túnel nginx no sabe que la conexión es https.
+- **Comprobado:** en Chromium sin ventana, en escritorio y con un teléfono emulado en vertical y horizontal, carga sin errores
+  de consola ni peticiones fallidas; con `?lang=en` sale en inglés. **Falta:** probarlo en un teléfono físico y jugar el
+  camino dorado completo en producción (`game/e2e/camino_dorado.mjs` solo corre contra el servidor de desarrollo).
+- El video de 25 s (`web/public/media/`) ya no está publicado, porque venía con la web. Si la entrega lo necesita en línea, hay
+  que subirlo aparte o publicarlo junto al juego.
+- **Cómo volver a publicar:** compilar `origin/main` en un worktree aparte (nunca la rama local), subir a `releases/game-<commit>`,
+  cambiar el enlace `current` y probar `/` y `/?lang=en`.
 
 ## Hecho (borde levantado, 14 nov, noche)
 - **`model/borde.py`: evidencia medida de que una depresión es un cráter.** `h/D` = altura máxima del perfil radial promedio a
@@ -35,14 +54,40 @@
   `novedoso` cambió.**
 - **Límites:** no mide parecido con la Luna ni con Marte (solo 22 % de los gemelos lunares y 15 % de los marcianos tienen borde
   con esta medida); 11 casos con fuente, uno solo de impacto; la ventana ancha se eligió después de ver los datos (con la
-  estrecha pasan 7 de 11). Falta la prueba independiente: perfiles a 80 m de los cráteres de impacto de `impactos_tierra.csv`.
+  estrecha pasan 7 de 11). La prueba independiente que faltaba ya está hecha (viñeta «Prueba fuera de muestra», abajo).
 - Corregido en `VALIDATION.md`: los totales frente al polo sur lunar son más bajos por la pendiente (objetivo 8.63° contra 3.56°),
   no por la oscilación térmica, que se recorta igual en los dos destinos. Los tajos someros (mx0088, mx0457) ya no dicen
   "pendientes extremas".
 - Comandos: `python -m model.borde` (todos los sitios) y `python -m model.scan --solo-categoria` (notas); los dos son idempotentes.
-- **Guía para exponer el modelo:** `informe/guia_exposicion_modelo.pdf` (4 páginas; generador `informe/generar_guia_exposicion.py`):
-  guion propuesto de 30 s para el bloque «Evidencia y límites», figura del borde, 12 preguntas de jueces con respuesta y respaldo,
-  y lo que no hay que decir. El generador se detiene si una cifra copiada ya no está en `model/VALIDATION.md`.
+- **Carpeta para exponer el modelo:** `informe/exposicion_modelo/` (con `README.md`). Trae la guía de estudio
+  `guia_exposicion_modelo.pdf` (6 páginas; generador `informe/generar_guia_exposicion.py`): guion propuesto de 30 s para el bloque
+  «Evidencia y límites», lo que nos distingue, el borde en todos los grupos, 17 preguntas de jueces con respuesta y respaldo, y
+  lo que no hay que decir. Y dos cuadernos ya ejecutados que vuelven a calcular sus cifras sin descargar nada:
+  `01_borde_levantado.ipynb` y `02_cifras_de_la_guia.ipynb`. El generador y la última celda de cada cuaderno fallan si una cifra
+  ya no coincide con `model/VALIDATION.md`.
+- **Figura «¿cráter o mina?» (14 nov, 23:40):** `informe/exposicion_modelo/figura_crater_o_mina_es.png` y `_en.png` (también
+  `.svg`), para diapositivas y para la página en inglés. Corte de El Elegante (puesto 10 de 296 por el puntaje de forma) y del
+  tajo G00219 de Arizona (puesto 3): solo el cráter sube sobre el terreno lejano. Los ejemplos salen de una regla (el mejor
+  puesto por forma de cada clase), no de elegirlos a ojo; el perfil es el promedio por anillos, reflejado. La acompaña la cuenta
+  que ya estaba en `VALIDATION.md`: entre los 25 primeros por forma hay 14 minas y 3 cráteres; por borde, 11 cráteres y 1 mina
+  (etiquetas de IA). **No cambia el modelo, los datos ni ningún total.** Respaldo: cuaderno 01, secciones 4 y 6.
+- **Prueba fuera de muestra del borde (15 nov, madrugada):** con la zona del borde y el umbral ya fijados, se midieron los
+  cráteres de impacto de `impactos_tierra.csv` que el detector encuentra y que no intervinieron al fijarlos. **De los 8 que la
+  regla no había visto, 7 tienen borde levantado** (Lonar, Wolfe Creek, Tenoumer, Pingualuit, Tswaing, Roter Kamm y Talemzane;
+  no Xiuyan, al que el detector le mide 0.81 km de 1.8). Meteor Crater no cuenta: ya era el candidato G00195. Con la zona
+  estrecha pasan 5 y con umbral 0.002 pasan 6. No es una muestra al azar: son cráteres conocidos elegidos como control positivo.
+  Archivos: `analisis/25_perfiles_impactos.py` (corre en local con Earth Engine; `--comprobar` exige reproducir idénticos 4
+  perfiles ya guardados), `ciencia_datos/datos/perfiles_impactos.json`, `model/borde.py` (`tabla_impactos`), apartado nuevo en
+  `model/VALIDATION.md` (regenerado: la sección A no cambió) y una prueba más (14 pasan).
+- **Revisión de literatura cerrada (Ryan et al. 2024, *Geosphere*):** Harrat Hutaymah **sí está** en esa base global de
+  ambientes relevantes para Marte, así que Al Hutaymah (g00263) no es un análogo nuevo para Marte. Jabal Bayda (g00266) y Al
+  Wahbah (g00281) no están, pero la base solo reúne campos basálticos y no es exhaustiva. Ninguno se presenta como
+  descubrimiento; `novedoso` sigue en `null` en los tres. Detalle en `model/NIVEL2.md` §A. La nota de g00263 y g00266 se
+  reescribió con `python -m model.scan --solo-literatura` (modo nuevo: solo cambia esa frase de la nota).
+- **Probado y descartado: gemelo por perfil completo.** Comparar el corte entero de cada sitio con el de su gemelo lunar no
+  sirve como evidencia: entre los 25 que mejor encajan hay 1 cráter natural según la IA y el resto son valles, presas, minas y
+  casos sin decidir (somero contra somero), y los 11 cráteres con fuente quedan entre los puestos 62 y 289 de 296 (El Elegante:
+  84 m por km de diámetro de diferencia cuadrática media; Meteor Crater: 76). Fue una exploración rápida; no se agregó al repo.
 
 ## Hecho (auditoría del 14 nov, noche)
 - **Pinacate** ahora usa la misma regla que `scan.py` (destino = cuerpo al que más se parece su forma): `polo_sur_lunar`,
@@ -116,3 +161,17 @@
   independientes" no se sostiene (la IA también vio el relieve); la correcta está ahí.
 - Juego y web: la variable nueva `variables.borde_levantado` sale sin etiqueta propia ("Borde levantado" solo en español en el
   Expediente; `borde_levantado` en la ficha de la web). Propuesta de etiqueta: "Borde levantado (80 m)" / "Raised rim (80 m)".
+- **Decisión del equipo:** ¿entra Harrat Hutaymah a `data/known_analogs.json`? Con eso g00263 pasaría a `novedoso: false` y los
+  análogos conocidos serían 22, no 21 (cambia la cifra «9 de 21» del guion y de la validación). Mientras, queda en `null`.
+- `docs/GUION_PITCH.md`: además de la frase de las minas, propongo «Fijamos la regla y después la probamos en ocho cráteres de
+  impacto de otros países que nunca había visto: siete la pasan» (texto y cuidados en `model/NIVEL2.md` §D).
+- `docs/GUION_PITCH.md`, bloque «Evidencia y límites»: propongo decir «Ordenados solo por forma, entre los 25 primeros hay 14
+  minas y 3 cráteres. Ordenados por el borde levantado, 11 cráteres y 1 mina.» Es lo que distingue al proyecto y hoy el guion no
+  menciona el borde. Texto y cuidados en `model/NIVEL2.md` §D; figura lista en `informe/exposicion_modelo/`.
+- `game/src/scenes/expediente/config.js`: `UMBRAL_PROPUESTA` sigue en 0.6 en `main` (la API ya usa 0.4). Con 0.6 ningún análogo
+  conocido puede proponerse desde el Explorador (el más alto da 0.556).
+- `docs/METODOLOGIA.md` dice «9/20 análogos conocidos»; lo correcto es 9 de 21, como ya dice el guion.
+- `site.schema.json`: valor de `estado` nuevo `control_positivo` para los cráteres de impacto conocidos (meteor_crater,
+  tenoumer, roter_kamm, talemzane). Hoy van como `documentado` con la explicación en la nota.
+- Pinacate: sumar MacDougal (MX0007), Sykes (MX0010) y Cerro Colorado (MX0012) como niveles alternos del sitio curado
+  (p. ej. `nivel` por cráter); hoy el contrato tiene un solo `nivel` por sitio.

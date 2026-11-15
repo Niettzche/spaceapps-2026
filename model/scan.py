@@ -24,6 +24,8 @@ ciencia_datos/datos/hoyas_mexico.csv). Aquí:
 Uso extra:  python -m model.scan --solo-categoria   (aplica solo la regla 6 a los JSON existentes, sin consultar nada;
                                                      también escribe variables.borde_levantado en los candidatos)
             python -m model.scan --global --ids G00263,G00266   (exporta esos candidatos globales, no los N mejores)
+Uso extra:  python -m model.scan --solo-literatura   (reescribe en la nota de g00263 y g00266 el resultado de la revisión de
+            literatura, sin consultar nada y sin tocar novedoso, nivel, variables ni similitud)
 Uso extra:  python -m model.scan --solo-ia   (aplica solo la regla 5 a los JSON de data/sites/ que ya existen, sin
             consultar NASA POWER ni Earth Engine y sin tocar nivel, variables ni similitud)
 
@@ -131,11 +133,15 @@ NOMBRES_GLOBALES = {
                "el detector mide ~1.0 km a 200 m"),
 }
 
-# Revisión de literatura incompleta: novedoso queda null hasta revisar la fuente pendiente (no se presentan como descubrimientos)
-LITERATURA_PENDIENTE = {
-    sid: ("no encontrado como análogo lunar o marciano en la literatura revisada; falta revisar Ryan et al. 2024 "
-          "(doi:10.1130/GES02712.1)")
-    for sid in ("g00263", "g00266")
+# Resultado de la revisión de literatura (model/NIVEL2.md §A): novedoso queda null y la nota dice qué se encontró. Ninguno se
+# presenta como descubrimiento. Si el equipo agrega Harrat Hutaymah a known_analogs.json, g00263 pasa a false por la regla 5.
+RYAN_2024 = "Ryan et al. 2024, Geosphere 20(2):547–576, doi:10.1130/GES02712.1"
+LITERATURA_REVISADA = {
+    "g00263": (f"Harrat Hutaymah aparece en la base global de ambientes hidrovolcánicos relevantes para Marte ({RYAN_2024}), como "
+               "campo con 16 conos o anillos de toba: no es un análogo nuevo para Marte; para la Luna no se encontró uso en la "
+               "literatura revisada"),
+    "g00266": (f"no encontrado como análogo lunar o marciano en la literatura revisada; tampoco está en la base de {RYAN_2024}, "
+               "aunque esa base solo reúne campos basálticos y no es exhaustiva"),
 }
 
 # Regla 5: solo es novedoso lo que la IA verificada reconoce como cráter o mina (AGENTS.md: no presumir)
@@ -164,6 +170,21 @@ def novedoso_por_ia(sid: str, novedoso_distancia, etiquetas: dict):
     motivo = "sin etiqueta" if tipo is None else (f"tipo según IA: {tipo.replace('_', ' ').replace('canada', 'cañada')}" if tipo not in TIPOS_IA_NOVEDOSO
                                                   else f"confianza de la IA {conf:.2f} < {CONF_IA_MIN}")
     return None, frase + f" novedoso: null ({motivo}; no verificado como cráter)."
+
+
+def aplicar_literatura() -> list[dict]:
+    """Modo --solo-literatura: reescribe en la nota de los sitios de LITERATURA_REVISADA la frase de la revisión. No toca nada más."""
+    cambios = []
+    for sid, texto in LITERATURA_REVISADA.items():
+        f = SITES / f"{sid}.json"
+        s = json.loads(f.read_text(encoding="utf-8"))
+        nota, n = re.subn(r" novedoso: null; .*?(?= Categoría:)", f" novedoso: null; {texto}.", s["nota"], count=1)
+        if n != 1:
+            raise SystemExit(f"{sid}: no encontré la frase de la revisión de literatura en la nota; no se escribe nada.")
+        cambios.append({"id": sid, "novedoso": s.get("novedoso"), "cambio": nota != s["nota"]})
+        s["nota"] = nota
+        f.write_text(json.dumps(s, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return cambios
 
 
 def aplicar_regla_ia() -> list[dict]:
@@ -384,9 +405,9 @@ def construir_sitio(r: pd.Series, targets: dict, ref: pd.DataFrame, conocidos: l
     if novedoso is not False and str(r.cid).lower() in ANALOGO_OTRO_CUERPO:
         novedoso = None
         aviso_novedoso = f" novedoso: null; {ANALOGO_OTRO_CUERPO[str(r.cid).lower()]}."
-    if novedoso is not False and str(r.cid).lower() in LITERATURA_PENDIENTE:
+    if novedoso is not False and str(r.cid).lower() in LITERATURA_REVISADA:
         novedoso = None
-        aviso_novedoso = f" novedoso: null; {LITERATURA_PENDIENTE[str(r.cid).lower()]}."
+        aviso_novedoso = f" novedoso: null; {LITERATURA_REVISADA[str(r.cid).lower()]}."
     novedoso, frase_ia = novedoso_por_ia(str(r.cid).lower(), novedoso, etiquetas_ia())
     aviso_novedoso += frase_ia
     g = gemelo(cuerpo, float(r.diam_km), float(r.prof_diam), ref)
@@ -413,6 +434,10 @@ def main():
     if "--solo-categoria" in sys.argv:
         t = pd.DataFrame(aplicar_regla_categoria())
         print(t.groupby(["categoria", "novedoso"], dropna=False).size().to_string())
+        return t
+    if "--solo-literatura" in sys.argv:
+        t = pd.DataFrame(aplicar_literatura())
+        print(t.to_string(index=False))
         return t
     if "--solo-ia" in sys.argv:
         t = pd.DataFrame(aplicar_regla_ia())

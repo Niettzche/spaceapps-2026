@@ -96,3 +96,100 @@ Revisé el bundle publicado (`/assets/index-B7-1DKRo.js`, el que carga `https://
 **Conclusión:** la demo es más nueva que la de la auditoría 1, pero se publicó **antes** de que entraran sus correcciones. Hay que
 **volver a publicar con `main` actual** (1698854 o posterior) para que los jueces no vean "measured value", "SRTM" ni "75–77 %".
 Después basta con buscar de nuevo esos textos en el bundle publicado.
+
+## 4. Accesibilidad (15 nov, `main` 6d85e3b)
+
+> Recorrido en inglés con Edge sin ventana a 960×540, **solo con teclado**, auditando 33 pantallas (menú, Números, Explorador,
+> Cómo jugar, destino, Expediente, Taller, Prueba, pausa, Resultados y Misión, en Marte y en la Luna). Por pantalla guardé cada
+> texto (tamaño en px del juego, color) y cada control tocable (ancho × alto). Contraste: oculté los textos, tomé el lienzo y
+> comparé el color de cada texto con los píxeles de fondo de su caja (uno de cada 2 px): **p10** = percentil 10 (el peor fondo),
+> **mediana** = fondo típico. La caja incluye el relleno, así que el p10 sale pesimista junto a un borde o un marco de foco.
+> Criterios de `docs/juego/DISENO.md` §2 y §5: letra ≥ 14 px; contraste ≥ 4.5:1; teclado completo; zona táctil ≥ 64×44 (`ZONA_MIN`,
+> `expediente/interfaz.js:25`). La auditoría tomaba también objetos de escenas que corren debajo, así que cuento **objetos únicos**
+> (escena + texto), no repeticiones. Aparte, el camino dorado en español con ratón (`game/e2e/camino_dorado.mjs ambos`): 25/25 OK.
+> En un teléfono horizontal el lienzo se reduce ×0.72 (390/540): 14 px del juego ≈ 10 px CSS y 44 ≈ 32 px CSS.
+>
+> **`main` ya avanzó a 542a621:** después de medir entró el rediseño en pixel art de **Taller, HUD de Prueba/Misión y Resultados**
+> (78b0f3e; cambian `Taller.js`, `hud.js`, `recorrido.js`, `sonido.js`, `Resultados.js` y el kit nuevo `comun/pixel.js`). Menú,
+> Números, Explorador, Cómo jugar, destino y Expediente no cambiaron (el arte nuevo de #84–#86, como postales, fuente pixel y nave,
+> todavía no lo usa el código; solo `ui_barra_relleno_*`). Para esas tres pantallas revisé el código de 542a621 (tamaños y zonas);
+> **su contraste no está medido** después del rediseño.
+
+✓ cumple · ✗ no cumple, hay que corregir · ⚠ cumple a medias o falta confirmarlo
+
+| Criterio | Resultado | Números |
+|---|---|---|
+| Letra ≥ 14 px | ⚠ | 6d85e3b: 7 objetos de 11–12 px (17 textos únicos en 14 pantallas), todos en el HUD de Prueba/Misión y en Resultados; 0 en menús, Explorador y Expediente. En 542a621 los 7 ya van a 14–18 px; quedan 3 textos visibles de 12 px que la corrida no capturó (META, ZONA DE ENTREGA, carga del Boot) y 2 que solo salen a veces |
+| Contraste ≥ 4.5:1 | ⚠ | 370 textos únicos: 8 con p10 < 4.5 y 4 con mediana < 4.5. Falla de verdad y sigue en 542a621: «Continuar» de la pausa (p10 3.62, mediana 3.99). Explorador (HTML): mínimo 6.26 |
+| Juego completo con teclado | ✓ | Partida completa sin ratón en los dos destinos, con entrega: Marte 819/1000, Luna 821/1000. 35/37 pasos OK; los 2 «FALLA entrega» son del script (4.4) |
+| Zona táctil ≥ 64×44 | ✗ | 90 controles únicos; 29 bajo 64×44 en 6d85e3b. El rediseño arregló 13 (botones de Resultados y «Quit» del HUD, ahora con `K.boton`, que garantiza 64×44 en `pixel.js:200-201`); siguen 16, más las flechas ▲▼ del catálogo del Taller |
+
+### 4.1 Letra mínima (14 px del juego)
+
+| Pantalla | Texto u objeto | Medido | ✓/✗ en 542a621 | Corrección propuesta | Frente |
+|---|---|---|---|---|---|
+| HUD de Prueba y Misión | Nota «Soil: … · [I] data», «⚑», «♪», «[ Quit ]» | 12 px | ✓ 14 px (nota y ⚑, `hud.js`), ♪ 18 px (`sonido.js:199`), «Quit» botón de arte de 14 px (`recorrido.js:177`) | — | Juego (Edmundo) |
+| HUD de Prueba y Misión | «Motor» y su temperatura («18 °C», «-55 °C») | 11 px | ✓ 14 px (`hud.js`, `ESTILO`) | — | Juego (Edmundo) |
+| Resultados de misión | «First record for this destination · 81 to ★★★» (es: «Primera marca en este destino · faltan 86 para ★★★») | 12 px y **encimado bajo las estrellas** (capturas `42_…resultados_mision`, `85_…`, `e2e-es/marte_57_…`) | ✓ 14 px, centrado bajo las estrellas (`Resultados.js:105`: estrellas en y 172–220, texto desde y 224) | Confirmar con captura | Juego (Edmundo) |
+| Misión (en el terreno) | «DELIVERY ZONE · stop and wait 2 s» / «ZONA DE ENTREGA · frena y espera 2 s» | 12 px (`recorrido.js:161`); se ve en `40_mision_x252m.png` | ✗ | 14–16 px, con el mismo borde oscuro | Juego (Edmundo) |
+| Prueba (en el terreno) | «FINISH» / «META» sobre la bandera | 12 px (`recorrido.js:171`) | ✗ | 14–16 px | Juego (Edmundo) |
+| Pantalla de carga | «Data: N sites · M destinations · K art files» | 12 px (`Boot.js:46`) | ✗ | 14 px | Expediente (Diego, dueño del Boot según DISENO §4) |
+| Pantalla de carga | Avisos «Not preloaded / Could not load / Missing data» | 12 px (`Boot.js:93, 97, 101`), solo si falla algo | ⚠ | 14 px | Expediente (Diego) |
+| Prueba y Misión | Nombre del robot sobre el chasis | 13 px (`aspecto.js:206`), solo si el jugador le pone nombre | ⚠ | 14 px | Juego (Edmundo) |
+
+### 4.2 Contraste (AA, 4.5:1)
+
+| Pantalla | Texto u objeto | Medido (p10 · mediana) | Criterio | ✓/✗ | Corrección propuesta | Frente |
+|---|---|---|---|---|---|---|
+| Pausa (Prueba y Misión) | «[ Resume · Esc / Enter ]» `#4cc38a`, 21 px, sobre el terreno oscurecido al 70 % | 3.62 · 3.99 | 4.5 | ✗ código igual en 542a621 (`hud.js:107-116`) | Poner los botones de la pausa sobre `K.panel` o como `K.boton` (fondo opaco) y volver a medir | Juego (Edmundo) |
+| HUD | «⚑» blanco al final de la barra de progreso | 1.78 · 1.78 (Prueba) | 4.5 | ⚠ en 542a621 pasó a 14 px en x ≈ 922; falta medir | Volver a medir; si sigue bajo, ponerlo sobre la franja oscura del HUD | Juego (Edmundo) |
+| HUD | «♪» `#9aa4c7` | 4.29 · 4.76 | 4.5 | ⚠ en 542a621 es `#a3abcc` de 18 px; falta medir | Volver a medir | Juego (Edmundo) |
+| Taller | «[ Undo ]» / «[ Redo ]» `#a3abcc` (desactivados) | 3.63 · 3.63 | 4.5 (WCAG no lo exige en controles inactivos) | ⚠ ahora son botones de arte; falta medir | Volver a medir el estado desactivado | Taller (Leo) |
+| Menú | «2 · Continue» `#a3abcc` (desactivado, sin partida guardada) | 3.38 · 5.16 | 4.5 | ⚠ | — (inactivo; la mediana pasa) | Juego |
+| Menú | «1 · New game ⏎» `#4cc38a` | 4.27 · 5.69 | 4.5 | ⚠ | — (el p10 baja por el marco amarillo de foco dentro de la caja) | Juego |
+
+### 4.3 Zona táctil (≥ 64×44 px del juego)
+
+| Pantalla | Control | Medido | ✓/✗ en 542a621 | Corrección propuesta | Frente |
+|---|---|---|---|---|---|
+| Expediente (lista, sitio, detalle, condiciones) | 5 filas de variables («Crater shape», «Daily temperature range», «Precipitation», «Vegetation (NDVI)», «Mean slope») | 653×39 | ✗ sin cambios (`ALTO_FILA = 42`, caja de 39: `Expediente.js:33, 186`) | Zona táctil de ≥ 44 de alto sin cambiar el dibujo (como `zonaExtra` de `pixel.js`) o `ALTO_FILA` 47 | Expediente (Diego) |
+| Pausa | «[ Resume · Esc / Enter ]», «[ Quit · X ]» (solo texto) | 278×21, 139×21 | ✗ sin cambios (`hud.js:112-115`) | `K.boton` (zona ≥ 64×44) | Juego (Edmundo) |
+| HUD | Nota de suelo (abre el panel de datos) | 515×13 | ✗ ahora 14 px, pero la zona sigue siendo el texto (`hud.js:38`) | Zona de ≥ 44 de alto; la tecla I ya es alternativa | Juego (Edmundo) |
+| HUD | «♪» (silenciar) | 7×13 | ✗ 18 px con relleno 10×8 (`sonido.js:200`), aún < 64 de ancho | `K.boton` o zona 64×44; la tecla M ya es alternativa | Juego (Edmundo) |
+| Taller | 6 muestras de pintura | 30×30 (una de 35×35) | ✗ igual (`Taller.js:693`) | Separarlas a 44 px o abrir un selector; la tecla P ya es alternativa | Taller (Leo) |
+| Taller | «[ Name ]» (ahora «Name») | 87×28 | ✗ zona de 28 de alto (`Taller.js:701`) | `K.boton` como Regresar y Deshacer; la tecla N ya es alternativa | Taller (Leo) |
+| Taller | «[ Remove ]» (ahora «Remove») | 135×34 | ✗ igual (`Taller.js:218`) | Zona de ≥ 44 de alto; Supr y Retroceso ya son alternativa | Taller (Leo) |
+| Taller | Flechas ▲ ▼ del catálogo (solo con más piezas que filas) | 34×32 por código; no salieron en la corrida | ✗ (`Taller.js:209`) | Zona 64×44; ↑ ↓ ya son alternativa | Taller (Leo) |
+| Resultados y HUD | 6 opciones «[ n · … ]», «← Previous / Next advice →», «A · analogy limits», «[ Quit ]» | 120–243 × 16, 232×38, 190×16, 53×13 | ✓ ahora `K.boton` (zona ≥ 64×44, `pixel.js:200-201`) | Confirmar con captura | Juego (Edmundo) |
+| Menú, Números, Cómo jugar, destino, Explorador | Todos los botones | ≥ 64×44 (Explorador, HTML: alto 44) | ✓ | — | — |
+
+### 4.4 Teclado
+
+**Ruta completa sin ratón (Marte y luego Luna, 35/37 pasos OK):** Boot (tecla) → Menú → **3** Explorador → Tab + Enter «← Menu»
+→ Menú → **1** Nueva partida → Cómo jugar (Enter ×4) → destino (foco + Enter) → Expediente (foco en el sitio + Enter; **I**
+detalle, Esc; **C** condiciones, Esc; foco en «Probar» + Enter) → Taller (**C**) → Prueba (Esc pausa y reanuda; flechas reales;
+falla con ruedas estándar) → Resultados (**Enter** = «Aplicar y al taller») → Taller (ruedas anchas ya puestas; **C**) → Prueba
+(pasa) → Resultados (**Enter** = «Lanzar misión») → Misión (flechas reales; entrega con 8 % y 10 % de energía) → Resultados
+(**3** = Menú). En 542a621 siguen esas teclas (`Taller.js:249-264`, `Resultados.js:209-216`), pero no repetí la corrida.
+
+- Los 2 «FALLA entrega {}» son un error del script: leía `rm.entrega` y el registro trae `tipo` y `exito` (`recorrido.js:287-289`).
+  Las capturas `42_audit_marte_resultados_mision.png` y `85_audit_luna_resultados_mision.png` muestran «Mission accomplished»
+  (819 y 821 / 1000).
+- **Flecha al empezar la misión: funciona.** Medido en 6d85e3b, en español: sin presionar Enter, → mueve el robot de inmediato
+  (x 6.01 → 8.36 m, 3.3 m/s a los 1.1 s de juego). El panel de instrucciones no bloquea nada: `Controles.acelerador()` lee las
+  teclas en cada cuadro (`controles.js:37-41`) y el panel se quita al acelerar o solo a los 6 s (`recorrido.js:195`, `hud.js:152`).
+- Nota para quien mantenga `game/e2e/camino_dorado.mjs` (no es error del juego): en las dos misiones la e2e usó su respaldo
+  `controles.forzado` porque revisa el movimiento 1.5 s de reloj después de presionar (`:184`), a ~16 fps sin ventana; en la
+  misión presiona en cuanto existe el robot (`:307-312`), mientras que en la prueba antes toma una captura (`:329`).
+
+### 4.5 Lo que no se midió
+
+- **Contraste y tamaños reales del rediseño (Taller, HUD, Resultados) en 542a621:** solo los revisé en el código. Hay que repetir la
+  auditoría en pantalla.
+- **Pantallas en español:** el contraste y los tamaños se midieron en inglés; en español solo corrió la e2e con ratón. El español
+  es más largo (DISENO §2.8) y `encoger` del HUD recorta con «…».
+- **Teléfono real** (×0.72, dedos de verdad) y **lector de pantalla**: no se probaron.
+- **`prefers-reduced-motion`:** el código lo consulta en los menús (`expediente/efectos.js`) y en la decoración del recorrido
+  (`fisica/decoracion.js:11`); no corrí el juego con la preferencia activa. `fisica/efectos.js` (polvo) y el fundido de la misión
+  no la consultan.
+- **«Nada solo por color»** (DISENO §2.5) y el foco visible en cada control: no se revisaron uno por uno.
