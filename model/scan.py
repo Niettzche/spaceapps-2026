@@ -151,10 +151,12 @@ def aplicar_regla_ia() -> list[dict]:
             dist = None
         nuevo, frase = novedoso_por_ia(sid, dist, etiquetas)
         nota = NOTA_IA.sub("", s.get("nota") or "").rstrip()
-        nota = re.sub(r" novedoso: (por verificar|false); [^\n]*?\)\.(?= |$)", "", nota)
+        nota = re.sub(r" novedoso: (por verificar|false); [^\n]*?\)(; no es el mismo lugar: [^\n]*?etiqueta de IA)?\.(?= |$)", "", nota)
         if dist is False:                          # decir con qué análogo conocido coincide
             d_k, nom = min((km(s["lat"], s["lon"], la, lo), n) for n, la, lo in conocidos)
-            nota += f" novedoso: false; a {d_k:.0f} km de un análogo conocido de data/known_analogs.json ({nom})."
+            nota += (f" novedoso: false; a {d_k:.0f} km de un análogo conocido de data/known_analogs.json ({nom})"
+                     + ("." if d_k <= 5 else "; no es el mismo lugar: solo cae dentro del radio de 50 km de la regla, y su propio tipo "
+                                             "es el de la etiqueta de IA."))
         nota = re.sub(r" novedoso: null \((sin etiqueta|tipo según IA|confianza de la IA)[^)]*\)\.", "", nota)
         antes = s.get("novedoso")
         s["novedoso"], s["nota"] = nuevo, nota + frase
