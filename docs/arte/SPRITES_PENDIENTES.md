@@ -101,3 +101,11 @@ Sin arte el juego ya funciona (usa el respaldo indicado). Nombres exactos:
 | `obstaculos/obstaculo_lodo.png` | 16 × 4 (tile) | `obstaculo_arena_blanda` teñido gris pardo | Lodo del lago donde la costra de sal se rompe |
 
 El juego elige el fondo en `game/src/content/niveles_destacados.js` (`fondo: 'maar'` → cambiar a `'salar'` cuando exista).
+
+## 9. Cara de la astronauta guía (15 nov, retro de Leo en el playtest de las 5 am; para Mauricio)
+
+- **Archivo:** `assets/tutorial/guia.png` (144 × 48, los cuadros de la guía de los tutoriales).
+- **Retro:** la cara «se ve extraña». Leo pide que se vea **más amable y asequible**: ojos más abiertos y redondos,
+  una sonrisa clara, menos sombra dura en la cara y el visor más despejado para que se lea la expresión a 2× y 3×.
+- **No cambiar:** el tamaño del archivo ni el número y orden de cuadros (el código lo corta igual); solo el dibujo.
+- **Dueño:** arte (Mauricio). Juego no la toca.
