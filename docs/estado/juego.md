@@ -3,7 +3,7 @@
 > Lo actualiza SOLO este frente. Rama: `feat/juego`.
 
 **Responsable:** Edmundo  ·  **Agente:** Claude Code / Codex
-**Última actualización:** 14 nov, 19:40
+**Última actualización:** 15 nov, 11:00
 
 ## Hecho
 - **Física y niveles** (`game/src/fisica/`): tramo real de 250 m de los perfiles de `data/`, agarre por pieza × agarre real del suelo
@@ -54,6 +54,18 @@
   Samalayuca: 3 parches de arena blanda en los valles + rizaduras y matorral (dibujo); Al Hutaymah: 5 bloques de toba bajos.
 - Rocas, bloques y parches visibles (mínimo 3 px de arte, contorno, borde de luz); avisos la primera vez de cada tipo (`fisica/avisos.js`).
 - Camino dorado 5/5 en el simulador por pasos (FISICA_V2.md §5.3). Detalle: NIVELES_DESTACADOS.md «Obstáculos v2».
+
+## Feedback de batería (15 nov, playtest de Leo B2 y B8) — hecho
+- `feedback/reglas.js`: con la energía agotada, las ruedas van primero solo si el patinaje fue la causa dominante
+  (`patinajeDomina`: ≥ 5 patinajes en esa superficie, no menos que en la otra y ≥ 40 % del intento patinando, P); si no, primero
+  la batería grande (evidencia con la distancia), luego motor eficiente, calentador o panel solar. «Ruedas con tacos para roca»
+  solo con evidencia en roca: atascado justo tras patinar en roca, o ≥ 3 patinajes en roca y no menos que en arena (≥ 5 tras una
+  prueba superada). Sin patinaje dominante tampoco se sugiere el auto-rescate. Nueva: si una prueba o misión se supera con
+  < 15 % de energía (P), primero «Lleva una batería más grande» (la siguiente talla; con la grande, el panel solar).
+- El camino dorado no cambia: atasco en arena con rueda estándar → primera «Cambia a ruedas anchas para arena».
+- Pruebas: `game/src/feedback/bateria.test.mjs` (9 casos). Docs: PRESUPUESTO.md §1 y §4, NIVELES_DESTACADOS.md (Tenoumer,
+  Rincón) con las cifras del playtest de Leo. Limitación: los umbrales son valores de juego (P), probados con eventos sintéticos;
+  no se volvió a correr la simulación por pasos ni la e2e en navegador.
 
 ## En curso
 - Niveles críticos: el tramo más exigente que siga siendo superable, en la dirección correcta (subir la pared del maar, bancos de la mina,
