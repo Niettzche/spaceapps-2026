@@ -297,7 +297,7 @@ async function corrida(c) {
       await clic('Taller', '○ Rueda ancha para arena', async () => (await taller()).mapa[ranura] === 'rueda_ancha');
     }
     await captura('taller_ancha');
-    const txt = (await textosDe('Taller')).find((t) => t.startsWith('✓') || t.startsWith('✗'));
+    const txt = (await textosDe('Taller')).find((t) => t.startsWith('✓') || t.startsWith('✗') || t.startsWith('✕'));
     await clic('Taller', 'Probar el robot', activa('Prueba'));
     const d = await page.evaluate(() => window.__mc.partida.diseno.filter((x) => x.ranura.startsWith('rueda')).map((x) => x.pieza).join('/'));
     if (d !== 'rueda_ancha/rueda_ancha') return `FALLA: partida.diseno ruedas = ${d}`;
