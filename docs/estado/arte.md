@@ -1,9 +1,9 @@
 # Estado — Arte
 
-> Lo actualiza SOLO este frente. Ramas: `feat/arte` (#26) y `feat/arte-b` (#37), `feat/arte-c` (#49), `feat/arte-d` (#58), `feat/arte-e` (#64), `feat/arte-f` (#67), `feat/arte-g` (#72), `feat/arte-h` (#77), `feat/arte-i` (#79), mergeadas; `feat/arte-j` (fuente pixel, más kit y pantalla de carga).
+> Lo actualiza SOLO este frente. Ramas: `feat/arte` (#26) y `feat/arte-b` (#37), `feat/arte-c` (#49), `feat/arte-d` (#58), `feat/arte-e` (#64), `feat/arte-f` (#67), `feat/arte-g` (#72), `feat/arte-h` (#77), `feat/arte-i` (#79), `feat/arte-j` (#80), `feat/arte-k` (#84), mergeadas; `feat/arte-m` (nave del menú, piezas de 32 px y Marte grande). `feat/arte-l`: diapositivas, íconos y fuente para la web (va encima de `feat/arte-m`).
 
 **Responsable:** Mauricio  ·  **Agente:** Claude Code / Codex
-**Última actualización:** 15 nov 2026, 06:30
+**Última actualización:** 15 nov 2026, 10:00
 
 ## Hecho
 - **Prioridad A y B completas** (#26 y #37, en `main`):
@@ -103,12 +103,32 @@
     - Comprobado con un lector de BMFont propio y con el `DOMParser` del navegador.
   - **Kit:** `ui_tarjeta`, `ui_barra_relleno_<amarillo|verde|rojo>` (entra en `ui_marco_barra`), `ui_ayuda` + `ui_ayuda_flecha` y `ui_titulo_placa`.
   - **`pantallas/carga_fondo.png`:** fondo del título con el logo y el marco vacío de la barra. El hueco queda en x 64..255, y 147..150 de arte (× 3: x 192..767, y 441..452).
+- **Postales, logo y HUD (`feat/arte-k`):**
+  - **Postales del Expediente** (96 × 64, con el marco de las viñetas):
+    - `sitio_samalayuca` (dunas), `sitio_pinacate` (cráter El Elegante en el llano de lava), `sitio_mx0207` (tajo de la mina), `sitio_g00281` (maar con sal) y `sitio_generico` (desierto).
+    - `destino_jezero` (delta en capas y piso del cráter) y `destino_polo_sur_lunar` (borde iluminado y sombra permanente).
+    - Son ilustraciones del tipo de paisaje.
+  - **`menu/logo_brillo.png`:** 32 cuadros de 65 × 10, el logo con el estilo de `pixel_titulo` y un brillo que lo cruza.
+  - **`ui/ui_hud_panel.png`:** 9-slice para la barra de arriba de la prueba y la misión.
+- **Nave, piezas y Marte (`feat/arte-m`):**
+  - **`pantallas/menu_nave.png`** (320 × 180): estación en órbita con la Tierra y Marte al fondo.
+    - Escotilla en el centro exacto (160, 92), con anillo de franjas de seguridad.
+    - 4 ventanas iluminadas, paneles solares y antena.
+  - **`menu/nave.png`:** la estación sola, 4 cuadros de 264 × 76 con las luces parpadeando. Se encima en x 28, y 46.
+  - **`piezas/<id>.png`:** las 19 piezas a 32 × 32, que son los íconos ampliados × 2.
+  - **`menu/marte_grande.png`:** 48 cuadros de 152 × 152 en cuadrícula de 8 × 6 (1216 × 912) para no pasar de 4096 px.
+- **Presentación y web (`feat/arte-l`):**
+  - **`docs/media/slides/slide_<1..7>_<portada|reto|modelo|juego|mision|limites|cierre>.png`:** 1920 × 1080, dibujadas a 240 × 135 × 8.
+    - El mapa del modelo usa las costas de Natural Earth 1:110m (dominio público) y las coordenadas de los 58 sitios de `data/sites`. Los 4 sitios jugables van resaltados.
+  - **Fuente web:** `docs/media/fuentes_web/marsception-pixel.otf` y `.woff2`, más `fuentes.css`. Comprobada en Edge con texto real.
+  - **Íconos para la web:** `docs/media/iconos/32|48/`.
 - `node assets/fuente/fx/exportar.mjs` regenera con pixelfx las 22 hojas de efectos.
 
 ## En curso
 - Nada.
 
 ## Siguiente
+- [ ] Piezas nuevas (chasis de titanio, chasis de fibra de carbono, llanta de Nitinol, módulo de auto-rescate, sellos antipolvo) y candado, cuando estén los ids en `SPRITES_PENDIENTES.md`.
 - [ ] Meter el clip de 5 s del juego en inglés en el video cuando Alan lo grabe (6 × 5 s = 30 s).
 - [ ] Ajustar nombres de obstáculos si juego los cambia al integrarlos (solo renombrar).
 - [ ] Ver el arte con el juego corriendo (todavía no lo he revisado en pantalla): ruedas en el taller y en la prueba, calcomanías, posición de efectos y polvo.
