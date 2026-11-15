@@ -1,4 +1,5 @@
-// Niveles destacados: los 5 sitios de mayor similitud, todos distintos (docs/juego/NIVELES_DESTACADOS.md).
+// Niveles destacados: los 5 sitios de mayor similitud, todos distintos, más Samalayuca (camino dorado de Marte, solo ambiente)
+// y la Hoya Rincón de Parangueo (maar con lago seco salino) (docs/juego/NIVELES_DESTACADOS.md).
 // Dueño: frente juego. Cada nivel declara qué agrega al perfil real del DEM: bloques (cuerpos físicos), parches de superficie
 // (agarre o hundimiento), viento con su partícula y eventos de fondo. Todo lo agregado es RECREACIÓN (`recreacion: true` al
 // generarse) y todo número que no trae fuente es valor de juego (P). Los datos del clima salen de content/clima_niveles.js.
@@ -6,24 +7,29 @@
 // Parches: `superficie` = superficie equivalente que ve la física (arena | roca | compacto: lo único que acepta el esquema y
 // suelo_v2.js) y `agarre` = factor sobre la fricción de la rueda en el parche (P). Bloques: radio, cuánto asoma (fracción del
 // radio) y separación en metros (P). `danio` = puntos de resistencia del chasis por m/s de golpe sobre `umbral_ms` (P).
+// `soloSobre` = el parche solo se pone donde el perfil del DEM tiene esa superficie (p. ej. el piso «compacto» de un lago seco).
+// `solo_visual: true` = el nivel solo agrega ambiente: sin cuerpos ni parches, el viento no empuja (`viento.empuja: false`) y
+// los eventos no tocan la física (el remolino no baja la luz del panel). Es el caso del camino dorado (Samalayuca).
 
 export const NIVELES_DESTACADOS = {
   g00266: {
-    lugar: { es: 'Cono de toba Jabal Bayda', en: 'Jabal Bayda tuff cone' },
+    lugar: { es: 'Anillo de toba Jabal Bayda', en: 'Jabal Bayda tuff ring' },
     tipo: 'volcan_toba',
     destino: 'jezero',
     fondo: 'maar',
     entrena: {
-      es: 'Cruzar toba y ceniza blanda con viento y bombas volcánicas, como en el suelo suelto de Marte',
-      en: 'Cross soft tuff and ash with wind and volcanic bombs, like loose soil on Mars',
+      es: 'Cruzar lapilli sueltos y bombas volcánicas con viento, como en el suelo suelto de Marte',
+      en: 'Cross loose lapilli and volcanic bombs in the wind, like loose soil on Mars',
     },
     analogia: {
-      es: 'Depresión tipo cráter en un campo volcánico (Harrat Khaybar). En Marte el viento mueve polvo y arena, pero con aire 1 % de denso empuja mucho menos.',
-      en: 'Crater-like depression in a volcanic field (Harrat Khaybar). On Mars wind moves dust and sand, but with 1 % of the air density it pushes far less.',
+      es: 'Anillo de toba de comendita (una riolita) en Harrat Khaybar, con depósitos ricos en lapilli y bombas en coliflor (S106, S108). En Marte el viento mueve polvo y arena, pero con aire ~1.4 % de denso empuja mucho menos.',
+      en: 'Comendite (a rhyolite) tuff ring in Harrat Khaybar, with lapilli-rich deposits and cauliflower bombs (S106, S108). On Mars wind moves dust and sand, but with air ~1.4 % as dense it pushes far less.',
     },
     parches: [
-      // Toba y ceniza sin consolidar: arena para la física (se hunde, Bekker de arena seca genérica) y −40 % de agarre (P).
-      // Ángulo de reposo de ceniza y escoria 25–32° (NPS, S61): solo en tramos de ≤ 18° (más empinado, la ceniza no se queda).
+      // Lapilli de toba sueltos (S108; antes decía «ceniza blanda», que ninguna fuente dice). Material granular sin consolidar:
+      // arena para la física (se hunde, Bekker de arena seca genérica, P) y −40 % de agarre (P), igual que en el balance medido
+      // (no hay Bekker de lapilli con fuente). Ángulo de reposo de ceniza y escoria 25–32° (NPS, S61): solo en tramos de ≤ 18°.
+      // La clase interna sigue siendo 'toba' para no mover los parches (su semilla usa la clase).
       { clase: 'toba', arte: 'obstaculo_toba', cada: [18, 24], largo: [9, 13], pendienteMax: 18, superficie: 'arena', agarre: 0.6 },
     ],
     bloques: [
@@ -45,14 +51,15 @@ export const NIVELES_DESTACADOS = {
       en: 'Cross sand and climb a crater rim among ejecta blocks: big wheels and a well-strapped payload',
     },
     analogia: {
-      es: 'Cráter de impacto real (Earth Impact Database) en desierto: borde levantado, eyecta y arena, como los cráteres de Marte. Jezero tiene más remolinos de polvo que cualquier otro sitio visitado (S21).',
-      en: 'Real impact crater (Earth Impact Database) in a desert: raised rim, ejecta and sand, like craters on Mars. Jezero has more dust devils than any other site visited (S21).',
+      es: 'Cráter de impacto real de 1.9 km y 1.57 millones de años (S125–S127) en desierto: borde levantado, eyecta muy erosionada y arena, como los cráteres de Marte. Jezero tiene más remolinos de polvo que cualquier otro sitio visitado (S21).',
+      en: 'Real 1.9 km impact crater, 1.57 million years old (S125–S127), in a desert: raised rim, heavily eroded ejecta and sand, like craters on Mars. Jezero has more dust devils than any other site visited (S21).',
     },
     parches: [],
     bloques: [
       // Bloques de eyecta (0.6–1 m), más altos que una roca suelta. Una rueda más grande (malla, 0.55 m de radio) los pasa
-      // mejor; las correas (paredes de 0.35 m) retienen la carga en los saltos (probado con la física 2). La densidad de bloques junto a cráteres no
-      // tiene fuente en el libro de datos (Golombek y Rapp 1997 no está cargado): separación y tamaño son (P).
+      // mejor; las correas (paredes de 0.35 m) retienen la carga en los saltos (probado con la física 2). Gap para Tenoumer (solo
+      // hay bloques de brecha de cm a dm, docs/taller/FUENTES_NIVELES.md): separación y tamaño son (P). Regla general disponible:
+      // Golombek y Rapp 1997, reformulado en Golombek et al. 2012 (S86, S129; MR-071).
       { clase: 'eyecta', arte: ['obstaculo_eyecta_1', 'obstaculo_eyecta_2', 'obstaculo_eyecta_3'], cada: [12, 18], radio: [0.3, 0.5], asoma: 0.8, pendienteMax: 22 },
     ],
     viento: { particula: 'polvo' },
@@ -66,18 +73,18 @@ export const NIVELES_DESTACADOS = {
     destino: 'polo_sur_lunar',
     fondo: 'mina',
     entrena: {
-      es: 'Subir paredes de 25° con talud suelto que se hunde y piedras que ruedan, como una mina lunar (ISRU)',
-      en: 'Climb 25° walls with loose talus that sinks and rolling stones, like a lunar mine (ISRU)',
+      es: 'Subir las rampas de un tajo con talud suelto que se hunde y piedras que ruedan, como una mina lunar (ISRU)',
+      en: 'Climb the ramps of an open pit with loose talus that sinks and rolling stones, like a lunar mine (ISRU)',
     },
     analogia: {
-      es: 'Análogo operativo, no geológico: un tajo escalonado como los que excavaría la minería de recursos en la Luna. En la Luna no hay viento.',
-      en: 'Operational, not geological, analog: a stepped pit like the ones resource mining would dig on the Moon. There is no wind on the Moon.',
+      es: 'Análogo operativo, no geológico, y encuadre nuestro: un tajo escalonado como los que excavaría la minería de recursos en la Luna (la NASA dice que las lecciones de la minería se transfieren, pero no nombra un tajo como análogo, S140). El recorrido sigue el DEM de 30 m, que suaviza el tajo: las paredes reales tienen 40–50° (S138). En la Luna no hay viento.',
+      en: 'Operational, not geological, analog and our own framing: a stepped pit like the ones resource mining would dig on the Moon (NASA says mining lessons transfer, but names no pit as an analog, S140). The route follows the 30 m DEM, which smooths the pit: the real walls are 40–50° (S138). There is no wind on the Moon.',
     },
     parches: [
       // Talud de roca suelta en las paredes de los bancos: material granular sin cohesión. Sin parámetros de Bekker de talud con
       // fuente, se trata como arena suelta que se hunde (P) con −30 % de agarre (los fragmentos ruedan bajo la rueda) (P).
       // Probado (física 2): como «roca» con menos agarre no cambia nada, porque en roca la fricción de Matter no limita la subida.
-      // Solo en tramos con algo de 12–30°: el talud reposa por debajo de su ángulo de reposo (25–32° para material suelto, S61).
+      // Solo en tramos con algo de 12–30°: por debajo del ángulo de reposo de la roca suelta, 34–41° (típico 37°; Call 1985, S138).
       { clase: 'talud', arte: 'obstaculo_talud', cada: [16, 24], largo: [6, 10], pendienteMin: 12, pendienteMax: 30, superficie: 'arena', agarre: 0.7 },
     ],
     bloques: [],
@@ -92,16 +99,17 @@ export const NIVELES_DESTACADOS = {
     destino: 'polo_sur_lunar',
     fondo: 'lava',
     entrena: {
-      es: 'Pasar bloques de lava aa que cortan el chasis: frena o blinda el robot',
-      en: 'Cross aa lava blocks that cut the chassis: slow down or armor the robot',
+      es: 'Pasar bloques de lava aa donde la NASA entrenó a la tripulación del Apolo 14 (1970): frena o blinda el robot',
+      en: 'Cross aa lava blocks where NASA trained the Apollo 14 crew (1970): slow down or armor the robot',
     },
     analogia: {
-      es: 'Basalto y cráteres volcánicos (maar El Elegante). Los mares lunares son basalto; la Tierra no reproduce el vacío ni la gravedad.',
-      en: 'Basalt and volcanic craters (El Elegante maar). The lunar maria are basalt; Earth does not reproduce the vacuum or the gravity.',
+      es: 'Campo basáltico donde la NASA entrenó a la tripulación del Apolo 14 (feb. 1970) en cráteres y coladas (S115); la mayoría de sus flujos son aa (S110, S111). Los mares lunares son basalto, pero cubierto de regolito; la Tierra no reproduce el vacío ni la gravedad.',
+      en: 'Basalt field where NASA trained the Apollo 14 crew (Feb. 1970) on craters and lava flows (S115); most of its flows are aa (S110, S111). The lunar maria are basalt, but covered in regolith; Earth does not reproduce the vacuum or the gravity.',
     },
     parches: [],
     bloques: [
-      // Bloques de lava aa (escoria áspera y cortante): golpearlos a más de 3.5 m/s (el mismo umbral del daño del chasis, danio.js)
+      // Bloques de lava aa (escoria áspera y cortante). Tamaño (P): Gap para Pinacate; en aa en general la mayoría mide < 0.3 m
+      // y el máximo 0.1–0.6 m (S113, S114): los de 0.5–0.8 m del juego son grandes a propósito. Golpearlos a más de 3.5 m/s (el mismo umbral del daño del chasis, danio.js)
       // quita 2 puntos de resistencia por m/s extra, también con las ruedas (P). Despacio no hay daño.
       { clase: 'lava_aa', arte: ['obstaculo_lava_aa_1', 'obstaculo_lava_aa_2'], cada: [16, 24], radio: [0.25, 0.4], asoma: 0.75, pendienteMax: 26, danio: { umbral_ms: 3.5, por_ms: 2 } },
     ],
@@ -120,12 +128,12 @@ export const NIVELES_DESTACADOS = {
       en: 'Cross deep snow and ice in Arctic cold and the strongest wind of the five',
     },
     analogia: {
-      es: 'Cráter de impacto real en el Ártico, con nieve en el suelo los 12 meses (NASA POWER). Marte tiene hielo y frío, pero su aire 1 % de denso casi no empuja.',
-      en: 'Real impact crater in the Arctic, with snow on the ground all 12 months (NASA POWER). Mars has ice and cold, but its 1 %-dense air barely pushes.',
+      es: 'Cráter de impacto real de 3.4 km en el Ártico (S131), con nieve la mayor parte del año (en julio y agosto, 2–3 cm; NASA POWER). Marte tiene hielo y frío, pero su aire ~1.4 % de denso casi no empuja. La nieve como análogo de Marte es abstracción de juego (P): ningún rover se probó en nieve para Marte (Gap).',
+      en: 'Real 3.4 km impact crater in the Arctic (S131), with snow most of the year (2–3 cm in July and August; NASA POWER). Mars has ice and cold, but its air, ~1.4 % as dense, barely pushes. Snow as a Mars analog is a game abstraction (P): no rover was tested on snow for Mars (Gap).',
     },
     parches: [
       // Nieve: sin parámetros de nieve con fuente (FISICA_V2.md §3), se trata como arena suelta que se hunde (P).
-      // Casi continua: SNODP medio 38.5 cm, con nieve los 12 meses (2.5–70 cm de media mensual, NASA POWER). −50 % de agarre (P).
+      // Casi continua: SNODP medio 38.5 cm (2.5–70 cm de media mensual; julio y agosto solo 2–3 cm, NASA POWER). −50 % de agarre (P).
       { clase: 'nieve', arte: 'obstaculo_arena_blanda', tinte: 0xf2f6ff, cada: [11, 12], largo: [10, 11], pendienteMax: 30, superficie: 'arena', agarre: 0.5 },
       // Hielo: compacto con −65 % de agarre (P; ningún dato de fricción de hielo en el libro de datos).
       { clase: 'hielo', arte: 'obstaculo_hielo', cada: [34, 46], largo: [5, 8], pendienteMax: 8, superficie: 'compacto', agarre: 0.35 },
@@ -134,6 +142,63 @@ export const NIVELES_DESTACADOS = {
     viento: { particula: 'nieve' },
     eventos: ['nieve_sopla'],
     pieza_clave: ['rueda_ancha', 'rueda_malla'], // el calentador quita la pérdida por frío (1 %, ambiente.js), no decide
+  },
+
+  // 6. Camino dorado de Marte (AGENTS.md §11): la estándar se hunde en las dunas y la ancha pasa. Está calibrado con la física 2
+  // (FISICA_V2.md §5), así que aquí SOLO se agrega ambiente: nada de parches, bloques ni fuerza del viento sobre el robot.
+  samalayuca: {
+    lugar: { es: 'Médanos de Samalayuca', en: 'Samalayuca dunes' },
+    tipo: 'dunas',
+    destino: 'jezero',
+    fondo: 'dunas',
+    solo_visual: true,
+    entrena: {
+      es: 'Subir y bajar dunas de arena suelta sin hundirse, como en la arena que mueve el viento en Marte',
+      en: 'Climb up and down loose-sand dunes without sinking, like the wind-blown sand on Mars',
+    },
+    analogia: {
+      es: 'Dunas formadas por el viento: las de la Tierra y las de Marte tienen la misma forma y los mismos procesos (Curiosity en las dunas Bagnold, S143, S144); ningún artículo usa Samalayuca por nombre (Gap). Aquí la arena es de cuarzo (S141); la de Marte es basáltica y necesita ~7 veces más viento para moverse (S145, S146). El viento que se ve es el real del sitio (NASA POWER), pero en este nivel no empuja al robot: la prueba está calibrada sin él.',
+      en: 'Wind-built dunes: Earth and Mars dunes share the same shapes and processes (Curiosity at the Bagnold dunes, S143, S144); no paper uses Samalayuca by name (Gap). The sand here is quartz (S141); Mars sand is basaltic and needs ~7 times more wind to move (S145, S146). The wind you see is the site\'s real wind (NASA POWER), but in this level it does not push the robot: the test is calibrated without it.',
+    },
+    parches: [],
+    bloques: [],
+    viento: { particula: 'arena', empuja: false },
+    // Remolinos solo visuales (no bajan la luz del panel aquí) y arena que se vuela de las crestas de duna con las ráfagas.
+    eventos: ['remolino', 'cresta_humea'],
+    pieza_clave: ['rueda_ancha'],
+  },
+
+  // 7. Maar con lago desecado. Su gemelo de forma es un cráter del polo sur lunar (data/sites/mx0261.json: destino_ref).
+  // Fuentes del lago: Aranda-Gómez et al. 2013 (Bol. Soc. Geol. Mex. 65(1): lago perenne hasta los años ochenta, desecado por
+  // la sobreexplotación del acuífero, hoy lago-playa con evaporitas abundantes —trona, termonatrita, eitelita, halita, silvita—;
+  // el más salino de la región) y Sánchez-Sánchez et al. 2021 (RMCG 38(3): capa de lodo saturado y móvil bajo el piso seco).
+  mx0261: {
+    lugar: { es: 'Hoya Rincón de Parangueo', en: 'Rincón de Parangueo maar' },
+    tipo: 'maar_salino',
+    destino: 'polo_sur_lunar',
+    fondo: 'maar', // Al Wahbah: maar con fondo de costra blanca de sal (docs/estado/arte.md). Falta un fondo de salar propio.
+    entrena: {
+      es: 'Cruzar costra de sal y lodo blando del fondo de un cráter y subir su pared, en un recorrido largo que pide energía',
+      en: 'Cross salt crust and soft mud on a crater floor and climb its wall, on a long route that asks for energy',
+    },
+    analogia: {
+      es: 'Maar real (cráter volcánico) con un lago desecado desde los años ochenta: hoy es una playa con costra de sales (Aranda-Gómez et al. 2013) y lodo bajo la costra (Sánchez-Sánchez et al. 2021). El parecido con el polo sur lunar es la forma del cráter (1.4 km y 104 m de hondo, medidos por el detector); en la Luna no hay sal, agua ni aire. Comparación nuestra (ningún artículo usa Rincón como análogo): Marte también tiene sales de lagos que se evaporaron (sulfatos en Gale; cloruros, sulfatos y percloratos en Jezero; S121–S124), pero distintas de los carbonatos de sodio de aquí.',
+      en: 'Real maar (volcanic crater) with a lake dried up since the 1980s: today it is a playa with a salt crust (Aranda-Gómez et al. 2013) and mud under the crust (Sánchez-Sánchez et al. 2021). The likeness to the lunar south pole is the crater shape (1.4 km and 104 m deep, measured by the detector); the Moon has no salt, water or air. Our own comparison (no paper uses Rincón as an analog): Mars also has salts from evaporated lakes (sulfates at Gale; chlorides, sulfates and perchlorates at Jezero; S121–S124), but they differ from the sodium carbonates here.',
+    },
+    parches: [
+      // Lodo del lago donde la costra se rompe: sin parámetros de Bekker de lodo lacustre con fuente, se trata como arena suelta
+      // que se hunde (P) con −40 % de agarre (P).
+      { clase: 'lodo', arte: 'obstaculo_arena_blanda', tinte: 0x9a8f80, cada: [18, 22], largo: [4, 6], pendienteMax: 6, soloSobre: 'compacto', superficie: 'arena', agarre: 0.6 },
+      // Costra de evaporitas sobre el piso del lago seco (solo donde el DEM tiene el piso «compacto»): dura, no se hunde; −30 %
+      // de agarre (P; sin dato de fricción de costra salina en el libro de datos).
+      { clase: 'sal', arte: 'obstaculo_sal', cada: [5, 6], largo: [3, 5], pendienteMax: 6, soloSobre: 'compacto', superficie: 'compacto', agarre: 0.7 },
+    ],
+    bloques: [],
+    viento: { particula: 'sal' },
+    // Espejismo sobre la playa caliente y polvo salino con las ráfagas: visuales (el empuje lo hace el viento).
+    eventos: ['espejismo', 'polvo_salino'],
+    // El cráter es ancho (546 m de recorrido, sube 96 m): con la batería chica ninguna rueda llega (física 2); pide batería.
+    pieza_clave: ['bateria_mediana', 'bateria_grande'],
   },
 };
 

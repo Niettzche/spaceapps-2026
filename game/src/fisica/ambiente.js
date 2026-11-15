@@ -237,13 +237,13 @@ function textoAire(amb) {
   if (rho === 0) return tr('sin aire (vacío): el motor solo se enfría por radiación', 'no air (vacuum): the motor only cools by radiation');
   const pct = porcentajeAire(amb);
   if (pct < 10) {
-    return tr(`aire ${fmtDensidad(rho)} kg/m³ (${Math.max(1, Math.round(pct))} % de la Tierra): el motor se enfría poco`,
-      `air ${fmtDensidad(rho)} kg/m³ (${Math.max(1, Math.round(pct))} % of Earth's): the motor barely cools`);
+    return tr(`aire ${fmtDensidad(rho)} kg/m³ (${pct.toFixed(1)} % de la Tierra): el motor se enfría poco`,
+      `air ${fmtDensidad(rho)} kg/m³ (${pct.toFixed(1)} % of Earth's): the motor barely cools`);
   }
   return tr(`aire ${fmtDensidad(rho)} kg/m³: enfría bien el motor`, `air ${fmtDensidad(rho)} kg/m³: cools the motor well`);
 }
 
-/** Resumen de una línea para las instrucciones: "Marte: −83 a −22 °C (dos soles, MEDA) · aire 0.017 kg/m³ (1 % de la Tierra): el motor se enfría poco". */
+/** Resumen de una línea para las instrucciones: "Marte: −83 a −22 °C (dos soles, MEDA) · aire 0.017 kg/m³ (1.4 % de la Tierra): el motor se enfría poco". */
 export function resumenAmbiente(amb) {
   if (!amb) return null;
   return `${NOMBRE_MUNDO()[amb.mundo] ?? amb.mundo}: ${textoTemperatura(amb)} · ${textoAire(amb)}`;
