@@ -60,10 +60,17 @@ const COND = { x0: 10, x1: 950, y0: 76, y1: 492, col: 445, letra: 16 };
 // Tarjeta «¿Por qué el modelo eligió este lugar?» (tecla M): panel a todo lo ancho; título a la izquierda, valor a la derecha.
 const PQ = { x0: 10, x1: 950, y0: 62, y1: 496, xTit: 66, xVal: 318, paso: 40 };
 // Modo «Descubrir»: filtros, minimapa (160 × 60 celdas de 4 px = 640 × 240) y ficha del sitio elegido debajo.
-const DESC = { yFiltros: 64, yMapa: 92, yFicha: 340 };
+const DESC = { yFiltros: 64, yMapa: 92, yFicha: 340, yNota: 454 };
 // Vista SIMPLE (por defecto, vista_simple.js): postales ×2 (192 × 128), «Se parece X %», una frase, 3 íconos, límites,
 // botones pequeños (Ver detalles · Tutora · Descubrir) y el botón grande de probar.
 const SIM = { yPostal: 46, yFrase: 210, yIconos: 240, altoIcono: 84, yLimites: 340, yBotones: 412, yProbar: 496 };
+// Cabecera del Expediente (B4 del playtest de Leo): «Luna · Región candidata d…» se cortaba en 274 px. Nombre corto del
+// destino, sacado de su nombre en data/targets (sin agregar nada); los demás destinos usan su nombre completo (con «…»).
+const NOMBRE_CORTO_DESTINO = {
+  polo_sur_lunar: () => tr('Polo sur (Artemis)', 'South pole (Artemis)'),
+  jezero: () => tr('Cráter Jezero', 'Jezero Crater'),
+};
+const nombreCortoDestino = (d) => NOMBRE_CORTO_DESTINO[d.id]?.() ?? trDato(d, 'nombre');
 const color = (k) => ({ bien: P.bien, riesgo: P.riesgo, dato: P.dato, sec: P.sec, texto: P.texto, accion: P.accion }[k] ?? P.texto);
 // Lo que se recuerda entre visitas a la escena (volver del Explorador a Descubrir con los mismos filtros).
 const recuerdo = { modo: 'sugeridos', filtros: { jugables: false, novedosos: false, tipo: 'todos' }, sel: null };
@@ -93,6 +100,7 @@ export default class Expediente extends Phaser.Scene {
     this.todos = sitiosParaDestino(TODOS_LOS_SITIOS, partida.destino);
     this.resumenD = resumenDescubrir(this.todos, (s) => this.jugable(s));
     this.filtros = { ...recuerdo.filtros };
+    if (!this.resumenD.novedosos) this.filtros.novedosos = false; // sin novedosos, el filtro N no existe (B6)
     this.modo = pedido == null && recuerdo.modo === 'descubrir' ? 'descubrir' : 'sugeridos';
     this.selD = this.todos.find((s) => s.id === recuerdo.sel) || this.todos[0] || null;
     this.paginaD = 0;
@@ -153,7 +161,7 @@ export default class Expediente extends Phaser.Scene {
     const d = this.destino;
     const mundo = d ? MUNDOS[d.mundo] || d.mundo : sinDato();
     texto(this, 14, 6, tr('EXPEDIENTE', 'SITE FILE'), { size: 22, titulo: true });
-    ajustarAncho(txt(this, 15, 36, `${mundo} · ${d ? trDato(d, 'nombre') : sinDato()}`, { size: 14, color: P.sec }), 274);
+    ajustarAncho(txt(this, 15, 36, `${mundo} · ${d ? nombreCortoDestino(d) : sinDato()}`, { size: 14, color: P.sec }), 274);
     cajaArte(this, 'ui/ui_panel', 10, LISTA.panelY, 282, LISTA.panelAlto);
     this.dibujarIdioma();
   }
@@ -369,8 +377,11 @@ export default class Expediente extends Phaser.Scene {
       return b;
     };
     this.filtroJugables = filtro(`J · ${f.jugables ? '●' : '○'} ${tr('Con nivel', 'Playable')}`, () => this.cambiarFiltro({ jugables: !f.jugables }), f.jugables);
-    this.filtroNovedosos = filtro(`N · ${f.novedosos ? '★' : '☆'} ${tr('Novedosos', 'Novel')}`, () => this.cambiarFiltro({ novedosos: !f.novedosos }), f.novedosos);
+    this.filtroNovedosos = r.novedosos > 0
+      ? filtro(`N · ${f.novedosos ? '★' : '☆'} ${tr('Novedosos', 'Novel')}`, () => this.cambiarFiltro({ novedosos: !f.novedosos }), f.novedosos)
+      : null;
     this.filtroTipo = filtro(`T · ${tr('Tipo', 'Type')}: ${nombreTipo(f.tipo)}`, () => this.cambiarFiltro({ tipo: siguienteTipo(f.tipo, r.porTipo) }), f.tipo !== 'todos');
+
     const visibles = this.listaD();
     // Minimapa: un punto por sitio (amarillo = con nivel, cian = solo catálogo, gris = fuera del filtro).
     const caja = cajaMapa(X0, DESC.yMapa, 4);
@@ -390,6 +401,15 @@ export default class Expediente extends Phaser.Scene {
     add(txt(this, caja.x + caja.w - 8, caja.y + caja.h - 28, tr(`${visibles.length} de ${r.total} en el mapa`, `${visibles.length} of ${r.total} on the map`),
       { size: 14, color: P.texto, origen: [1, 0] }));
     this.dibujarFichaD(add, addTodos, DESC.yFicha);
+    if (!this.filtroNovedosos) {
+      // Hoy ningún sitio trae novedoso: true (model/scan.py solo lo marca si está lejos de data/known_analogs.json Y la
+      // etiqueta verificada dice cráter; las minas no cuentan). Se explica en vez de ofrecer un filtro que vacía la lista.
+      const nota = [
+        tr('Novedoso = no está en la lista de análogos conocidos', 'Novel = not on the list of known analogs,'),
+        tr(`y está verificado. Para ${enFrase}: ninguno aún.`, `and verified. For ${enFrase}: none yet.`),
+      ];
+      nota.forEach((linea, k) => ajustarAncho(add(txt(this, X0, DESC.yNota + k * 16, linea, { size: 12, color: P.sec })), X1 - X0));
+    }
     this.dibujarAcciones(add);
   }
 
