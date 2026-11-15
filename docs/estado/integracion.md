@@ -6,12 +6,13 @@ Responsable: Alan · Agente: Codex · Actualización: 2026-11-15
 
 - Rama `feat/slides-web-pixel`, desde main 34e6b3b. #75 convertido a borrador; el video sigue en pausa.
 - PDF de siete páginas en inglés en `docs/media/marsception_slides.pdf`, fuente editable PPTX y generador MJS/Python. Orden solicitado, cifras separadas 9/11 / ~78% / 296, fuentes en notas y arte ilustrativo de Mauricio identificado como asistido por IA. Revisadas las siete páginas renderizadas, sin capturas ficticias ni afirmaciones de misión completada.
-- Web: paleta del juego, botones/paneles 9-slice, fuente TrueType derivada del atlas MIT del juego, títulos/keywords, datos amplios en detalles, planetas animados con movimiento reducido. Textos mínimos de 16 px y zonas táctiles de al menos 44 px; cuadrículas pasan a una columna en móvil.
+- Web: paleta del juego, botones/paneles 9-slice, fuente OTF/WOFF2 de Mauricio del #86, títulos/keywords, datos amplios en detalles, planetas animados con movimiento reducido. Cuerpo de 22 px, textos mínimos de 16 px y zonas táctiles de al menos 44 px; cuadrículas pasan a una columna en móvil.
 - Contenido ES/EN: piezas con fuente (LRV, radiador y panel grande), condiciones por nivel, API disponible con catálogo sin API, menú vivo, límites y acceso al PDF. Se conservan quiz, fichas, mapa, fuentes y metodología; la navegación abre los detalles del quiz/método.
 - Auditoría de los roles de texto en las tres superficies sólidas: mínimo 5.87:1. `node web/scripts/check-contrast.mjs`. Build y lint sin errores; permanecen dos advertencias previas de hooks en MapView.
 - No se verificó visualmente esta web en navegador/teléfono: la sesión previa detectó bloqueo EACCES de loopback y no hay preview local activo. La revisión móvil real sigue pendiente; no se presenta CSS responsive como prueba de dispositivo físico.
 - Por indicación del usuario, se omiten por ahora las seis capturas del juego y los checks publicados de /, /game/?lang=en y /api/health. El issue #60 queda abierto; no se cierra sin comprobar esa versión publicada.
 - Entrega inglesa enlaza las siete diapositivas como alternativa al video. No se guarda ni se envía el formulario: Edmundo confirma el envío.
+- Rama actualizada con main 542a621, sin conflictos; se usa directamente la fuente web recién subida por Mauricio. Atributos Git preservan los bytes de los PDF/PPTX en Windows.
 
 ## Entrega, metadatos y guion
 

@@ -1,6 +1,6 @@
-Marsception Pixel is a TrueType conversion of assets/fuentes/pixel.png and
-pixel.xml. The game's bitmap glyphs use the pixelfx mini font.
-The optional conversion source is web/scripts/build-pixel-font.py.
+Marsception Pixel uses Mauricio's OTF/WOFF2 files from
+docs/media/fuentes_web/. The same glyphs appear in the game's bitmap atlas.
+Source: assets/fuente/fuente_web.mjs. The glyphs use the MIT pixelfx mini font.
 
 MIT License
 
