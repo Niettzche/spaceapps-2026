@@ -9,9 +9,9 @@ import { ZOOM_ARTE } from './escala.js';
 import { UMBRAL_INTEGRIDAD } from '../config/world.js';
 import { personalizacionActual, pinturaPorId } from '../scenes/Taller/personalizacion.js'; // cosmética (frente taller)
 
-// Sin assets/iconos/: son los íconos 16 × 16 del taller (los carga Taller.js) y se llaman igual que las piezas
+// Sin assets/iconos/ ni assets/piezas/: son los íconos 16 × 16 y el arte 32 × 32 del taller (los carga Taller.js) y se llaman igual que las piezas
 // (rueda_tacos, chasis_reforzado...). Si entraran aquí, una pieza sin sprite propio usaría su ícono como sprite.
-const archivos = import.meta.glob(['../../../assets/**/*.{png,json}', '!../../../assets/iconos/**'], { eager: true, query: '?url', import: 'default' });
+const archivos = import.meta.glob(['../../../assets/**/*.{png,json}', '!../../../assets/iconos/**', '!../../../assets/piezas/**'], { eager: true, query: '?url', import: 'default' });
 
 const PREFIJO = 'arte:'; // las texturas de Phaser son globales: el prefijo evita choques con otras escenas
 const FPS = 8; // velocidad de las animaciones de tira (P)
@@ -77,7 +77,7 @@ const PARALAJE = [0, 0.2, 0.5]; // capas 1 (cielo fijo), 2 (lejana), 3 (cercana)
 const indice = {};
 for (const [ruta, url] of Object.entries(archivos)) {
   // Íconos del taller (iconos/) y pantalla de título (titulo/) los cargan otras escenas y repiten nombres de piezas.
-  if (/\/(iconos|titulo)\//.test(ruta)) continue;
+  if (/\/(iconos|piezas|titulo)\//.test(ruta)) continue; // piezas/: arte 32 × 32 de la bandeja del Taller (#85)
   const [, nombre, ext] = ruta.match(/([^/]+)\.(png|json)$/) ?? [];
   if (!nombre) continue;
   indice[nombre] ??= {};

@@ -126,3 +126,50 @@ ponen el nombre sobre el robot (`fisica/aspecto.js`); Resultados lo muestra. Des
 - El catálogo muestra 3 piezas a la vez (layout de Diego, filas de 68 px); los ejes y el módulo tienen 4 y se recorren con ▲ / ▼, ↑/↓ o la rueda del ratón.
 
 Pruebas: `node game/src/scenes/Taller/piezas.test.mjs` (13 casos).
+
+## 7. Taller por arrastre y piezas del libro (15 nov, agente del frente taller)
+
+**Cómo se arma.** El robot grande (sprites de la prueba ×8) tiene 7 sockets: chasis, 2 ejes, motor, batería, carga y módulo.
+La bandeja de abajo tiene pestañas por sistema (Movilidad · Estructura · Energía [baterías y motores] · Protección · Módulo ·
+Bloqueadas) con tarjetas de 6 en 6. Tres formas equivalentes (AGENTS.md §12):
+- **Arrastrar** una tarjeta a un socket (los válidos se iluminan en verde; uno inválido la regresa). Arrastrar una pieza del
+  robot hacia afuera la **quita**; a otro socket válido, la **mueve**. Clic derecho en un socket = quitar.
+- **Tocar** una tarjeta y luego el socket (dos toques en la tarjeta la ponen en su socket).
+- **Teclado:** ←/→ socket · ↑/↓ pieza · Enter poner · Supr quitar · Tab pestaña · A «igual en ambos ejes» · Ctrl+Z/Y.
+El presupuesto se anima con «+N / −N» y, si se excede o falta una pieza obligatoria, «Probar el robot» se deshabilita.
+Reglas puras: `game/src/scenes/Taller/arrastre.js` (prueba: `arrastre.test.mjs`).
+
+**Piezas nuevas jugables** (todas (P); fuente en el campo `fuente` de `parts.json`):
+
+| Pieza (`id`) | Ranura | Costo | Masa | Efecto en la física | Fuente |
+|---|---|---|---|---|---|
+| `chasis_titanio` | chasis | 300 | 33 | Resistencia 120 (= 40 × 828/276). Masa = 20 × 4430/2700 | Materials MT-002 (Verified, S36, S14) |
+| `chasis_carbono` | chasis | 240 | 12 | Resistencia 35 **sin fuente** (el libro no da límite elástico). Masa = 20 × 1590/2700 → gasta menos energía | Materials MT-004 (Draft, S41) |
+| `rueda_nitinol` | eje (× 2) | 140 | 7 | Agarre 0.55 / 0.85 / 0.85 (P) y `amortiguacion` 0.5: la carga recibe la mitad de las sacudidas | Abilities AB-004 / MT-005 (Draft, S18) |
+| `auto_rescate` | módulo | 100 | 4 | Acelerando 1.5 s a < 0.5 m/s: gasta 6 de energía y +50 % de agarre durante 2 s; espera 4 s. Evento `auto_rescate` | Abilities AB-002 (Verified, S34, S20) |
+
+Combinaciones dentro de 1,000: Nitinol en los dos ejes (970), carbono + anchas (980), auto-rescate + anchas (990),
+titanio + malla (960). Titanio + anchas (1,040) **no cabe**. Con ruedas estándar, el auto-rescate no basta para Samalayuca
+(se atasca igual a 41 m tras 2 rescates): no reemplaza a las ruedas anchas. Feedback: `rueda_nitinol` (carga dañada aun con
+soporte amortiguado), `auto_rescate` (patinó ≥ 3 veces con ruedas ya adecuadas y sin módulo) y aviso de uso del rescate.
+
+**Bloqueadas** (`game/src/scenes/Taller/bloqueadas.js`, no están en `parts.json`): se ven con candado y su razón para que
+estén todas las filas del libro, sin inventar física.
+
+| Excel | Pieza | Razón |
+|---|---|---|
+| RT-002 | Orugas | sin referencia espacial verificada (Gap) |
+| RT-003 | Patas | sin referencia espacial verificada (Gap) |
+| RT-004 · AB-006 | Rappel (Axel) | otro tipo de misión (bajar paredes) |
+| RT-005 · AB-007 | Rotor (Ingenuity) | otro tipo de misión (explora, no lleva carga; no vuela en la Luna) |
+| RT-006 · AB-008 | Serpiente (EELS) | otro tipo de misión (cuevas, hielo) |
+| AB-001 | Dirección independiente | sin mecánica: la prueba es lateral (2D), no hay giros |
+| AB-003 · MT-007 | Sellos antipolvo | sin mecánica de desgaste por polvo |
+| AB-009 | Ruta con sol | sin mecánica: el recorrido es fijo |
+| AB-010 | Hibernación | sin mecánica: no hay tormentas |
+| AB-011 · MT-009 | Blindaje de radiación | la radiación es un límite declarado, no se simula |
+| MT-012 | Rueda de goma | sin fuente (Gap), solo para la Tierra |
+
+Del libro quedan fuera como pieza: MT-001 (aluminio, base de las piezas actuales), MT-003 (acero inoxidable: sería un chasis
+más pesado y débil que el ligero, sin uso en rover en el libro), MT-006/MT-008 (Kapton y aerogel: ya representados por el
+calentador/aislamiento), MT-010/MT-011 (celdas solares y Li-ion: ya son paneles y baterías), AB-005 (= calentador).

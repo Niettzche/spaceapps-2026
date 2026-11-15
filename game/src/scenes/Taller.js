@@ -84,9 +84,10 @@ const etiquetaSocket = (id) => (ETIQUETA_SOCKET[id] ? tr(...ETIQUETA_SOCKET[id])
 // Si al volver partida.diseno es otro ("Aplicar y al taller" en Resultados), ese cambio queda como primer paso del historial.
 let memoria = null;
 
-// Íconos 16 × 16 de las piezas (frente arte): assets/iconos/<id>.png, clave "iconos/<id>". Sin ícono propio: RESPALDO_ICONO.
-const ICONOS = import.meta.glob('../../../assets/iconos/*.png', { eager: true, query: '?url', import: 'default' });
-const URL_ICONO = Object.fromEntries(Object.entries(ICONOS).map(([ruta, url]) => [ruta.split('/').pop().replace(/\.png$/, ''), url]));
+// Arte de las piezas para la bandeja y el arrastre (frente arte): assets/piezas/<id>.png de 32 × 32 (#85), clave "piezas/<id>";
+// si falta, el ícono 16 × 16 assets/iconos/<id>.png al doble; sin ninguno, RESPALDO_ICONO (otra pieza teñida).
+const ARTE_PIEZAS = import.meta.glob('../../../assets/{piezas,iconos}/*.png', { eager: true, query: '?url', import: 'default' });
+const URL_ARTE = Object.fromEntries(Object.entries(ARTE_PIEZAS).map(([ruta, url]) => [ruta.split('/').slice(-2).join('/').replace(/\.png$/, ''), url]));
 const RESPALDO_ICONO = {
   chasis_titanio: ['chasis_ligero', 0xb4c0d4], chasis_carbono: ['chasis_ligero', 0x5c6274],
   rueda_nitinol: ['rueda_malla', 0xc8dcff], auto_rescate: ['ico_subida', null],
@@ -155,19 +156,25 @@ export default class Taller extends Phaser.Scene {
 
   preload() {
     // Normalmente el Boot ya los precargó; aquí solo se cargan los que falten.
-    for (const p of PIEZAS) {
-      const url = URL_ICONO[p.id];
-      if (url && !this.textures.exists(`iconos/${p.id}`)) this.load.image(`iconos/${p.id}`, url);
-    }
+    for (const [clave, url] of Object.entries(URL_ARTE)) if (!this.textures.exists(clave)) this.load.image(clave, url);
     cargarArte(this); // sprites del robot (fisica/aspecto.js): los mismos de la prueba
   }
 
-  /** Ícono de una pieza (o del bloqueado): { clave, tinte } o null. */
+  /**
+   * Arte de una pieza (o de una bloqueada) a 32 px: { clave, tinte, escala } o null. Primero assets/piezas (32 × 32, escala 1),
+   * luego assets/iconos (16 × 16, escala 2); sin arte propio, el de RESPALDO_ICONO teñido.
+   */
   icono(p) {
-    if (p.bloqueada) return this.textures.exists(p.icono) ? { clave: p.icono, tinte: null } : null;
-    if (this.textures.exists(`iconos/${p.id}`)) return { clave: `iconos/${p.id}`, tinte: null };
+    const buscar = (id, tinte = null) => {
+      if (this.textures.exists(`piezas/${id}`)) return { clave: `piezas/${id}`, tinte, escala: 1 };
+      if (this.textures.exists(`iconos/${id}`)) return { clave: `iconos/${id}`, tinte, escala: 2 };
+      return null;
+    };
+    if (p.bloqueada) return this.textures.exists(p.icono) ? { clave: p.icono, tinte: null, escala: 2 } : null;
+    const propio = buscar(p.id);
+    if (propio) return propio;
     const r = RESPALDO_ICONO[p.id];
-    return r && this.textures.exists(`iconos/${r[0]}`) ? { clave: `iconos/${r[0]}`, tinte: r[1] } : null;
+    return r ? buscar(r[0], r[1]) : null;
   }
 
   create() {
@@ -358,7 +365,7 @@ export default class Taller extends Phaser.Scene {
       if (hayArte(this, `deco_${pz.id}`)) this.partes[id] = sprite(`deco_${pz.id}`, x, y);
       else {
         const ic = this.icono(pz);
-        this.partes[id] = ic ? add(this.add.image(x, y, ic.clave).setScale(2)) : add(this.add.rectangle(x, y, 5 * S, 4 * S, 0x80e0dc));
+        this.partes[id] = ic ? add(this.add.image(x, y, ic.clave).setScale(ic.escala)) : add(this.add.rectangle(x, y, 5 * S, 4 * S, 0x80e0dc));
         if (ic?.tinte != null) this.partes[id].setTint(ic.tinte);
       }
     }
@@ -412,7 +419,7 @@ export default class Taller extends Phaser.Scene {
       if (valido) s.caja.setAlpha(0.8 + 0.2 * Math.sin(t * 8)); else s.caja.setAlpha(1);
       const ic = pz ? this.icono(pz) : null;
       s.img.setVisible(Boolean(ic));
-      if (ic) { s.img.setTexture(ic.clave); if (ic.tinte != null) s.img.setTint(ic.tinte); else s.img.clearTint(); }
+      if (ic) { s.img.setTexture(ic.clave).setScale(ic.escala); if (ic.tinte != null) s.img.setTint(ic.tinte); else s.img.clearTint(); }
       s.l1.setText(etiquetaSocket(r.id)).setColor(elegido ? C.acento : C.claro);
       s.l2.setText(pz ? corto(pz) : (r.obligatoria ? tr('(vacío)', '(empty)') : tr('(opcional)', '(optional)')))
         .setColor(falta ? C.error : pz ? C.texto : C.apagado);
@@ -593,7 +600,7 @@ export default class Taller extends Phaser.Scene {
       const objs = [fondo, marco];
       const ic = this.icono(p);
       if (ic) {
-        const img = this.add.image(x + 22, y + 22, ic.clave).setScale(2);
+        const img = this.add.image(x + 22, y + 22, ic.clave).setScale(ic.escala);
         if (ic.tinte != null) img.setTint(ic.tinte);
         if (p.bloqueada) img.setAlpha(0.45);
         objs.push(img);
@@ -735,7 +742,7 @@ export default class Taller extends Phaser.Scene {
     const c = this.add.container(0, 0).setDepth(50);
     const ic = this.icono(p);
     if (ic) {
-      const img = this.add.image(0, 0, ic.clave).setScale(3);
+      const img = this.add.image(0, 0, ic.clave).setScale(ic.escala * 2); // 64 px
       if (ic.tinte != null) img.setTint(ic.tinte);
       c.add(img);
     } else c.add(this.add.rectangle(0, 0, 40, 40, 0x80e0dc));
