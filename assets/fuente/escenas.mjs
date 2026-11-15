@@ -8,8 +8,11 @@
 //   pantallas/menu_fondo.png y pantallas/taller_fondo.png (320 × 180, sin texto, se dibujan × 3)
 //   pantallas/resultado_<motivo>.png (96 × 64): una viñeta por cada motivo de fin de Resultados.js
 //   pantallas/sitio_<id>.png y pantallas/destino_<id>.png (96 × 64): postales del Expediente (Tierra a la izquierda, destino a la derecha)
+//   pantallas/menu_nave.png (320 × 180): estación en órbita para el menú de opciones (escotilla en el centro: 160, 92)
+//   menu/nave.png: la misma estación sola (fondo transparente), 4 cuadros con luces que parpadean
+//   piezas/<id>.png (32 × 32): piezas del Taller de arrastrar y soltar (los 19 ids de game/src/content/parts.json)
 // Correr después de los demás grupos: lee sus PNG del disco.
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { inflateSync } from 'node:zlib';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -155,6 +158,8 @@ export function generar() {
   favicons();
   pantallas();
   postales();
+  menuNave();
+  piezasGrandes();
 }
 
 const T = PALETAS.titulo, B = '#e8e2ff';
@@ -631,6 +636,111 @@ function postales() {
     });
     pintar(f, 0, 56, 96, 8, (x, y) => tramado(L.slice(2, 6), 0.55 - (y - 56) / 12 + ((x * 3 + y * 5) % 7 === 0 ? 0.2 : 0), x, y));
   });
+}
+
+
+// ---------------------------------------------------------------- nave del menú de opciones
+// Estación en órbita con la Tierra y Marte al fondo. La escotilla queda en el centro exacto de la pantalla (160, 92 en px
+// de arte; 480, 276 a × 3) para que la cámara haga zoom hacia ella; las 4 ventanas están en (124, 80), (138, 80), (182, 80)
+// y (196, 80). La estación sola ocupa x 28..291, y 46..121 (NAVE_CAJA): ahí se encima menu/nave.png.
+const NAVE_CAJA = { x: 28, y: 46, w: 264, h: 76 };
+const ESCOTILLA = [160, 92], VENTANAS = [[124, 80], [138, 80], [182, 80], [196, 80]];
+
+/** Dibuja la estación en f con su origen de pantalla en (-ox, -oy). luces: 0 apagadas, 1 encendidas (puntas y antena). */
+function estacion(f, ox, oy, luces = 1) {
+  const Mt = rampa(PALETAS.base.metal), px = (x, y, c) => { const X = x - ox, Y = y - oy; if (X >= 0 && Y >= 0 && X < f.w && Y < f.h) f.color[Y * f.w + X] = c; };
+  const rect = (x0, y0, w, h, fn) => { for (let y = y0; y < y0 + h; y++) for (let x = x0; x < x0 + w; x++) { const c = fn(x, y); if (c) px(x, y, c); } };
+  // armadura horizontal con travesaños en zigzag
+  rect(30, 89, 260, 6, (x, y) => (y === 89 || y === 94 ? K : y === 90 ? Mt[3] : Math.abs(((x - 30) % 8) - (y - 90) * 2) < 1.2 ? Mt[2] : Mt[0]));
+  // alas de paneles solares (arriba y abajo de la armadura, a cada lado)
+  for (const x0 of [36, 226]) for (const [y0, h] of [[70, 18], [96, 18]]) {
+    rect(x0, y0, 58, h, (x, y) => {
+      if (x === x0 || x === x0 + 57 || y === y0 || y === y0 + h - 1) return K;
+      if (x === x0 + 1 || y === y0 + 1) return Mt[2];
+      const cx = (x - x0 - 2) % 7, cy = (y - y0 - 2) % 5;
+      if (cx === 6 || cy === 4) return hex('#172a78');
+      return cx < 2 && cy < 2 ? hex('#7cc8ff') : hex('#2550d0');
+    });
+    rect(x0 + 27, y0 + (y0 < 90 ? h : -1), 3, y0 < 90 ? 89 - (y0 + h) : (y0 - 95) + 1, () => Mt[1]);   // poste al centro del ala
+  }
+  // módulo central: cilindro horizontal con extremos redondeados, sombreado de arriba abajo
+  const MOD = { x0: 110, x1: 210, y0: 66, y1: 118 };
+  rect(MOD.x0 - 4, MOD.y0, MOD.x1 - MOD.x0 + 8, MOD.y1 - MOD.y0, (x, y) => {
+    const ry = (MOD.y1 - MOD.y0) / 2, cy = MOD.y0 + ry, dy = (y + 0.5 - cy) / ry;
+    const tapa = Math.sqrt(Math.max(0, 1 - dy * dy)) * 6;                        // extremos redondeados
+    if (x < MOD.x0 - tapa + 2 || x > MOD.x1 + tapa - 2) return null;
+    if (x < MOD.x0 - tapa + 3 || x > MOD.x1 + tapa - 3 || y === MOD.y0 || y === MOD.y1 - 1) return K;
+    if ((x - MOD.x0) % 25 === 0) return Mt[1];                                    // juntas entre segmentos
+    if (y >= 104 && y <= 106) return y === 105 ? hex('#f2701f') : hex('#a8301a');   // franja naranja de la misión
+    const t = 1 - (y - MOD.y0) / (MOD.y1 - MOD.y0);
+    return tramado([Mt[1], Mt[2], Mt[3], Mt[4]], clamp(0.15 + t * 0.8, 0, 1), x, y);
+  });
+  // antena y plato arriba
+  rect(158, 52, 4, 14, (x) => (x === 158 ? Mt[3] : Mt[1]));
+  rect(150, 48, 20, 5, (x, y) => { const d = Math.abs(x + 0.5 - 160) / 10; if (y - 48 < 4 * d * d) return null; return y === 52 ? K : d < 0.3 ? Mt[4] : Mt[2]; });
+  // ventanas: marco oscuro, vidrio con luz cálida y brillo arriba a la izquierda
+  for (const [vx, vy] of VENTANAS) rect(vx - 4, vy - 4, 9, 9, (x, y) => {
+    const d = Math.hypot(x + 0.5 - vx - 0.5, y + 0.5 - vy - 0.5);
+    if (d > 4.3) return null;
+    if (d > 3.3) return K;
+    if (d > 2.5) return Mt[1];
+    return x - vx + y - vy < -1 ? hex('#fff08a') : hex('#ffd166');
+  });
+  // escotilla al centro: anillo de franjas de seguridad, puerta metálica con manija y luz de estado
+  const [ex, ey] = ESCOTILLA;
+  rect(ex - 13, ey - 13, 27, 27, (x, y) => {
+    const dx = x + 0.5 - ex - 0.5, dy = y + 0.5 - ey - 0.5, d = Math.hypot(dx, dy), a = Math.atan2(dy, dx);
+    if (d > 12.6) return null;
+    if (d > 11.6) return K;
+    if (d > 9.4) return Math.floor((a + Math.PI) / (Math.PI / 8)) % 2 ? hex('#ffd23c') : K;     // franjas amarillas y negras
+    if (d > 8.4) return K;
+    if (Math.abs(dx) < 1 && d < 6 || Math.abs(dy) < 1 && d < 6) return Mt[4];                    // manija en cruz
+    if (d < 1.6) return Mt[1];
+    return tramado([Mt[1], Mt[2], Mt[3]], clamp(0.7 - (dx + dy) / 20, 0, 1), x, y);
+  });
+  px(ex + 7, ey - 7, luces ? hex('#3ec466') : hex('#17663e'));                                 // luz verde de la escotilla
+  // luces de navegación: roja a la izquierda, verde a la derecha, blanca en la antena
+  const luz = (x, y, on, off) => { px(x, y, luces ? on : off); if (luces) for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) px(x + dx, y + dy, on === hex('#ffffff') ? hex('#9fd8ff') : off); };
+  luz(32, 91, hex('#ff5a4a'), hex('#6a101c'));
+  luz(288, 91, hex('#3ec466'), hex('#17663e'));
+  luz(160, 47, hex('#ffffff'), Mt[1]);
+}
+
+function menuNave() {
+  const f = createFrame(320, 180), ESP = rampa(T.espacio);
+  pintar(f, 0, 0, 320, 180, (x, y) => {
+    const n = tileFbm(x / 70, y / 70, 0, 0, 311, 4), h = Math.sin(x * 127.1 + y * 311.7 + 5) * 43758.5453, r = h - Math.floor(h);
+    if (r > 0.992) return r > 0.997 ? hex('#ffffff') : hex(T.estrella);
+    return tramado(ESP.slice(0, 5), clamp(0.08 + (n + 0.25) * 0.45, 0, 0.8), x, y);
+  });
+  const OC = rampa(['#0c1a4a', '#16307e', '#2550d0', '#3f8cff', '#7cc8ff']), TI = rampa(['#173a1e', '#2f5a34', '#3ec466', '#9ad06a']);
+  planeta(f, 46, 232, 118, (nx, ny, luz, x, y) => {
+    const tierra = tileFbm(nx * 3 + 4, ny * 3, 0, 0, 303, 4) > 0.08, nube = tileFbm(nx * 5, ny * 9, 0, 0, 304, 3) > 0.28;
+    if (nube && luz > 0.15) return tramado([hex('#b4c4e0'), hex('#ffffff')], luz, x, y);
+    return tramado(tierra ? TI : OC, luz * 0.95, x, y);
+  });
+  planeta(f, 276, 38, 20, (nx, ny, luz, x, y) => tramado(rampa(T.marte), luz * 0.95 - (tileFbm(nx * 2.5, ny * 2.5, 0, 0, 306, 3) > 0.12 ? 0.18 : 0), x, y));
+  estacion(f, 0, 0, 1);
+  guardar('pantallas/menu_nave.png', f);
+  // sprite aparte: 4 cuadros (encendidas, encendidas, apagadas, encendidas) para un parpadeo a 4 fps
+  const N = [1, 1, 0, 1], spr = createFrame(NAVE_CAJA.w * N.length, NAVE_CAJA.h);
+  N.forEach((on, i) => {
+    const tmp = createFrame(NAVE_CAJA.w, NAVE_CAJA.h);
+    estacion(tmp, NAVE_CAJA.x, NAVE_CAJA.y, on);
+    pegar(spr, { w: tmp.w, h: tmp.h, color: tmp.color }, i * NAVE_CAJA.w, 0);
+  });
+  guardar('menu/nave.png', spr);
+}
+
+// ---------------------------------------------------------------- piezas grandes del Taller (32 × 32)
+// Los íconos de 16 × 16 de assets/iconos/ ampliados × 2 (vecino más cercano): mismo dibujo, para la bandeja de arrastrar y soltar.
+function piezasGrandes() {
+  const partes = JSON.parse(readFileSync(join(ASSETS, '../game/src/content/parts.json'), 'utf8'));
+  for (const { id } of partes.piezas ?? partes) {
+    const img = leer(`iconos/${id}.png`), f = createFrame(img.w, img.h);
+    f.color.set(img.color);
+    guardar(`piezas/${id}.png`, escalar(f, 2));
+  }
 }
 
 export { leer as leerPNG };
