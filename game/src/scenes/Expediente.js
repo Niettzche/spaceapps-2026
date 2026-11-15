@@ -254,7 +254,7 @@ export default class Expediente extends Phaser.Scene {
     const fichas = '●'.repeat(n) + '○'.repeat(total - n);
     add(texto(this, 150, 506, `${tr('Tickets de prueba', 'Test tickets')} ${fichas} ${n}/${total}`, { size: 13, color: n ? COLOR.acento : COLOR.alerta }));
     const s = this.seleccion;
-    const pagado = s && sitioPagado(s.id);
+    const pagado = s && sitioPagado(partida, s.id);
     let etiqueta = tr('Gastar 1 ticket y probar', 'Spend 1 ticket and test');
     let ayuda = tr('Enter confirma. Al probar, el sitio queda pagado: puedes volver a probarlo sin gastar otro ticket.',
       'Enter confirms. Once tested, the site is paid for: you can test it again without spending another ticket.');

@@ -14,6 +14,8 @@ export const COLOR = {
   borde: 0x2a3160,
   resalte: 0x1f2550,
   sugerido: '#4cc38a', // mismo verde que la opción sugerida de Resultados.js
+  sobre: '#ffffff', // texto bajo el ratón
+  fondoSobre: '#2a3160', // fondo del texto bajo el ratón
 };
 export const FUENTE = 'monospace';
 // Zona táctil mínima (px del juego). En horizontal en un teléfono (escala ≈ 0.72) 44 px del juego ≈ 32 px reales.
@@ -44,21 +46,26 @@ export function boton(scene, x, y, etiqueta, alPulsar, {
 } = {}) {
   const t = texto(scene, x, y, '', { size, color, origen, ancho });
   const b = {
-    obj: t, etiqueta, habilitado, enfocado: false, color, numero, sugerido,
-    activar() { if (b.habilitado) alPulsar(); },
+    obj: t, etiqueta, habilitado, enfocado: false, sobre: false, color, numero, sugerido,
+    // Durante el fundido de salida no se aceptan más pulsaciones (evita, p. ej., gastar un segundo ticket).
+    activar() { if (b.habilitado && !enTransicion(scene)) alPulsar(); },
     setHabilitado(v) { b.habilitado = v; b.pintar(); return b; },
     setEtiqueta(s) { b.etiqueta = s; b.pintar(); return b; },
     setNumero(n) { b.numero = n; b.pintar(); return b; },
     setSugerido(v) { b.sugerido = v; b.pintar(); return b; },
     setColor(c) { b.color = c; b.pintar(); return b; },
     enfocar(v) { b.enfocado = v; b.pintar(); },
+    marcarSobre(v) { if (b.sobre === v) return; b.sobre = v; b.pintar(); },
     rotulo() {
       const s = `${b.numero ? `${b.numero} · ` : ''}${b.etiqueta}${b.sugerido ? ' ⏎' : ''}`;
       return marco ? `[ ${s} ]` : s;
     },
     pintar() {
-      const c = !b.habilitado ? COLOR.muyTenue : b.enfocado ? COLOR.foco : b.sugerido ? COLOR.sugerido : b.color;
+      // Foco de teclado (▶, verde) y ratón encima (blanco con fondo) son estados distintos: el ratón no mueve el foco.
+      const sobre = b.sobre && b.habilitado;
+      const c = !b.habilitado ? COLOR.muyTenue : b.enfocado ? COLOR.foco : sobre ? COLOR.sobre : b.sugerido ? COLOR.sugerido : b.color;
       t.setColor(c);
+      t.setBackgroundColor(sobre ? COLOR.fondoSobre : null);
       t.setText((b.enfocado ? '▶ ' : '') + b.rotulo());
       b.ajustarZona();
     },
@@ -72,9 +79,17 @@ export function boton(scene, x, y, etiqueta, alPulsar, {
   };
   t.setInteractive({ hitArea: new Phaser.Geom.Rectangle(0, 0, 1, 1), hitAreaCallback: Phaser.Geom.Rectangle.Contains, useHandCursor: true });
   t.on('pointerdown', () => b.activar());
-  t.on('pointerover', () => { if (b.habilitado && scene.teclado) scene.teclado.enfocar(b); });
+  // Antes 'pointerover' movía el foco de teclado y nada lo quitaba al salir: el resaltado quedaba pegado hasta que
+  // otra opción tomaba el foco. Ahora el ratón solo marca/desmarca su propio estado.
+  t.on('pointerover', () => b.marcarSobre(true));
+  t.on('pointerout', () => b.marcarSobre(false));
   b.pintar();
   return b;
+}
+
+/** true mientras la cámara de la escena hace el fundido de salida de irA (ui.js). */
+export function enTransicion(scene) {
+  return !!scene.cameras?.main?.fadeEffect?.isRunning;
 }
 
 /**
@@ -140,6 +155,7 @@ export class Teclado {
   tecla(ev) {
     const el = typeof document !== 'undefined' ? document.activeElement : null;
     if (el && /^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(el.tagName)) return;
+    if (enTransicion(this.scene)) return;
     // Con Shift presionado, Phaser vuelve a emitir el mismo evento nativo varias veces: se atiende una sola vez.
     if (this.vistos?.has(ev)) return;
     (this.vistos ??= new WeakSet()).add(ev);

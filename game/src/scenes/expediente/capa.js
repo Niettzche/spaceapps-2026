@@ -53,6 +53,7 @@ export const ESTILOS = `
 #mc-explorador .estado { color: #ffd166; min-height: 1.2em; }
 #mc-explorador .aviso { border: 1px solid #ef476f; background: #2a0f18; padding: 10px 14px; border-radius: 4px; }
 #mc-explorador .aviso p { margin: 6px 0 0; }
+#mc-explorador .aviso button { margin-top: 12px; }
 #mc-explorador .ok { border: 1px solid #06d6a0; background: #0d2a22; padding: 10px 14px; border-radius: 4px; }
 #mc-explorador .total { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
 #mc-explorador .grande { font-size: 30px; color: #ffd166; font-weight: 600; }

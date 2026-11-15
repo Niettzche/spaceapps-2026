@@ -1,27 +1,35 @@
 // Dueño: frente expediente. Guardado de la partida en localStorage para "Continuar" (AGENTS.md §8: sin cuenta).
-// No cambia la forma de `partida` (main.js, del integrador): solo copia sus campos y los restaura en el mismo objeto.
-// Los sitios ya pagados con ticket viven aquí (estado propio del frente), no en `partida`.
+// Copia los campos de `partida` (main.js, del integrador) y los restaura en el mismo objeto.
+// Los sitios ya pagados con ticket viven en `partida.desbloqueados`: así `reiniciarPartida()` (main.js), que borra
+// todas las claves de `partida`, también los borra. Antes vivían aparte en este módulo y sobrevivían al reinicio:
+// la partida volvía a 3 tickets pero conservaba los sitios pagados (y el guardado mezclaba ambos).
 
 import { serializarPartida, leerGuardado, usarTicket } from './logica.js';
+import { TICKETS_POR_PARTIDA } from '../../config/world.js';
 
 const CLAVE = 'mision_cero.partida.v1';
 
-const estado = { desbloqueados: [], activa: false, autoguardado: false };
+const estado = { activa: false, autoguardado: false };
 
 function almacen() {
   try { return window.localStorage; } catch { return null; }
 }
 
+/** Sitios pagados de la partida (lista vacía si la partida es nueva o se reinició). */
+export function desbloqueadosDe(partida) {
+  return Array.isArray(partida?.desbloqueados) ? partida.desbloqueados : [];
+}
+
 export function guardar(partida) {
   const ls = almacen();
   if (!ls || !estado.activa) return false;
-  try { ls.setItem(CLAVE, JSON.stringify(serializarPartida(partida, estado.desbloqueados))); return true; } catch { return false; }
+  try { ls.setItem(CLAVE, JSON.stringify(serializarPartida(partida, desbloqueadosDe(partida)))); return true; } catch { return false; }
 }
 
 export function guardadoDisponible(destinos) {
   const ls = almacen();
   if (!ls) return null;
-  try { return leerGuardado(ls.getItem(CLAVE), { destinos }); } catch { return null; }
+  try { return leerGuardado(ls.getItem(CLAVE), { destinos, maxTickets: TICKETS_POR_PARTIDA }); } catch { return null; }
 }
 
 export function borrarGuardado() {
@@ -38,12 +46,12 @@ export function restaurar(partida, sitios, destinos) {
   partida.diseno = g.diseno;
   partida.resultados = g.resultados;
   partida.sitio = sitios.find((s) => s.id === g.sitio) || null;
-  estado.desbloqueados = g.desbloqueados;
+  partida.desbloqueados = g.desbloqueados;
   activar(partida);
   return true;
 }
 
-/** Reinicia la partida: restaura tickets y presupuesto, vacía diseño, sitio y resultados (sin duplicar recursos). */
+/** Reinicia la partida: restaura tickets y presupuesto, vacía diseño, sitio, resultados y sitios pagados. */
 export function nuevaPartida(partida, destino, { presupuesto, tickets }) {
   partida.destino = destino;
   partida.presupuesto = presupuesto;
@@ -51,21 +59,21 @@ export function nuevaPartida(partida, destino, { presupuesto, tickets }) {
   partida.diseno = [];
   partida.sitio = null;
   partida.resultados = [];
-  estado.desbloqueados = [];
+  partida.desbloqueados = [];
   activar(partida);
   guardar(partida);
 }
 
-export function sitioPagado(sitioId) {
-  return estado.desbloqueados.includes(sitioId);
+export function sitioPagado(partida, sitioId) {
+  return desbloqueadosDe(partida).includes(sitioId);
 }
 
 /** Gasta un ticket (si hace falta) y fija el sitio de la partida. Devuelve el resultado de `usarTicket`. */
 export function elegirSitio(partida, sitio) {
-  const r = usarTicket({ tickets: partida.tickets, desbloqueados: estado.desbloqueados }, sitio.id);
+  const r = usarTicket({ tickets: partida.tickets, desbloqueados: desbloqueadosDe(partida) }, sitio.id);
   if (!r.ok) return r;
   partida.tickets = r.tickets;
-  estado.desbloqueados = r.desbloqueados;
+  partida.desbloqueados = r.desbloqueados;
   partida.sitio = sitio;
   guardar(partida);
   return r;

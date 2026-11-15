@@ -1,6 +1,7 @@
 // Dueño: frente expediente. Cliente mínimo de la API del modelo (api/main.py). El juego NO depende de ella:
 // cualquier fallo se devuelve como { ok: false, tipo, mensaje } para que la interfaz lo explique.
-import { API_URL, ESPERA_API_MS } from './config.js';
+import { API_URL, API_CONFIGURADA, ESPERA_API_MS, ESPERA_SONDEO_API_MS } from './config.js';
+import { apiSinPublicar } from './logica.js';
 import { tr } from '../../i18n.js';
 
 async function post(ruta, cuerpo, { espera = ESPERA_API_MS, senal } = {}) {
@@ -36,5 +37,24 @@ export const consultarPunto = ({ lat, lon, destino }, opciones) => post('/score'
 /** POST /submit → guarda la propuesta como `propuesto_usuario` (pendiente de revisión). */
 export const proponerSitio = ({ lat, lon, destino, nombre, autor }, opciones) =>
   post('/submit', { lat, lon, destino, nombre, ...(autor ? { autor } : {}) }, opciones);
+
+/**
+ * ¿Hay API del modelo? Sin VITE_API_URL y fuera de localhost responde al instante que no (demo pública); si no,
+ * GET /health con espera corta. Devuelve { ok: true } o { ok: false, tipo: 'no_publicada' | 'espera' | 'red' | 'http' | 'cancelado' }.
+ */
+export async function apiDisponible({ espera = ESPERA_SONDEO_API_MS, senal, host = globalThis.location?.hostname } = {}) {
+  if (apiSinPublicar({ configurada: API_CONFIGURADA, host })) return { ok: false, tipo: 'no_publicada' };
+  const ctrl = new AbortController();
+  const reloj = setTimeout(() => ctrl.abort('espera'), espera);
+  if (senal) senal.addEventListener('abort', () => ctrl.abort('cancelado'), { once: true });
+  try {
+    const r = await fetch(`${API_URL}/health`, { signal: ctrl.signal });
+    return r.ok ? { ok: true } : { ok: false, tipo: 'http', estado: r.status };
+  } catch {
+    return { ok: false, tipo: ctrl.signal.aborted ? ctrl.signal.reason : 'red' };
+  } finally {
+    clearTimeout(reloj);
+  }
+}
 
 export { API_URL };
