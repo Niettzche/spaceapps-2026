@@ -26,6 +26,13 @@
 - **Pruebas:** `node game/src/fisica/fisica.test.mjs` (24 casos) y la prueba de punta a punta `game/e2e/camino_dorado.mjs`
   (Marte y Luna con clics y teclado reales; 22/23 en la última corrida, la falla fue una recarga de página ajena al juego).
 
+## Física 2 (15 nov, experimental, `?fisica=2`)
+- Terramecánica Bekker–Wong en `game/src/fisica/suelo_v2.js` (pruebas `suelo_v2.test.mjs`), rama `v2` de robot.js, bandera en
+  `version.js` (por defecto 1). Ecuaciones, fuentes, (P), calibración y tabla de niveles: `docs/juego/FISICA_V2.md`.
+- Feedback: «Tus ruedas se hundieron N cm: presión X kPa; con ruedas anchas sería Y kPa»; atasco en reversa recomienda avanzar.
+- Bloquea activarla por defecto: g00281 nuevo (main) deja pasar a la estándar también con física 1; 1 de 4 corridas de Jezero
+  pierde la carga con física 2.
+
 ## En curso
 - Niveles críticos: el tramo más exigente que siga siendo superable, en la dirección correcta (subir la pared del maar, bancos de la mina,
   Jezero con relieve).
