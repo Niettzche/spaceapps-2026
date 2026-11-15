@@ -14,6 +14,7 @@ import { tr, trDato, idioma, alternarIdioma } from '../i18n.js';
 import { debeMostrarComoJugar } from './expediente/como_jugar.js';
 import { vistaComoJugar, reiniciarPaginaComoJugar } from './expediente/como_jugar_vista.js';
 import { estrellas, planetaGirando } from './expediente/efectos.js';
+import { FondoMenu } from './expediente/fondo_menu.js';
 
 // A dónde ir al terminar o saltar "Cómo jugar" (se conserva si el Menú se reinicia al cambiar de idioma).
 let trasComoJugar = 'principal';
@@ -85,6 +86,9 @@ export default class Menu extends Phaser.Scene {
     }
     else this.vistaPrincipal();
     estrellas(this); // titilan detrás de todo y lejos del texto (quietas con prefers-reduced-motion)
+    // Fondo vivo de Leo (#76): asteroides, cometa, planetas detrás de Marte, galaxia, destellos y agujero negro al volver.
+    this.fondoMenu?.destruir();
+    this.fondoMenu = new FondoMenu(this, { resultados: partida.resultados?.length ?? 0 });
   }
 
   vistaPrincipal() {
