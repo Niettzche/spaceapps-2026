@@ -7,7 +7,7 @@
   "estado": "candidato_modelo",
   "destino_ref": "polo_sur_lunar",
   "prueba_util": null,
-  "uso_exploracion": "Análogo operativo, no geológico: probar navegación y movilidad de rovers en paredes empinadas, excavación (ISRU) y operación con sombra en el fondo del tajo",
+  "uso_exploracion": "Análogo operativo, no geológico: probar navegación y movilidad de rovers en paredes empinadas, excavación (ISRU) y operación con sombra en el fondo del tajo. La analogía se rompe por exceso de profundidad, sobre todo en el fondo: su d/D (0.174) supera al 99 % de los 3,086 cráteres lunares de diámetro parecido (mitad a doble) medidos a 200 m.",
   "proceso": "Probable tajo minero a cielo abierto (cantera de OpenStreetMap a ≤ 2 km; por verificar)",
   "novedoso": null,
   "variables": {
@@ -107,5 +107,5 @@
     "exageracion_vertical": null,
     "obstaculos": []
   },
-  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Anillo 80-85°S (Luna), 1.48 km, 255 m, d/D 0.172, en -81.122, -118.498. Etiqueta de IA: no_se_puede_decir, confianza 0.40 (claude -p sobre Sentinel-2 y relieve; 29 de 33 aciertos en la validación, ciencia_datos/etiquetado_ia). novedoso: null (tipo según IA: no se puede decir; no verificado como cráter)."
+  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Anillo 80-85°S (Luna), 1.48 km, 255 m, d/D 0.172, en -81.122, -118.498. Categoría: tajo minero (cantera de OpenStreetMap a ≤ 2 km; etiqueta de IA no_se_puede_decir, confianza 0.40). Análogo operativo de pendientes extremas, no geológico. La analogía se rompe por exceso de profundidad, sobre todo en el fondo: su d/D (0.174) supera al 99 % de los 3,086 cráteres lunares de diámetro parecido (mitad a doble) medidos a 200 m (ciencia_datos/salidas/lista_corta.md). novedoso se refiere a data/known_analogs.json, no a un hallazgo geológico. Etiqueta de IA: no_se_puede_decir, confianza 0.40 (claude -p sobre Sentinel-2 y relieve; 29 de 33 aciertos en la validación, ciencia_datos/etiquetado_ia). novedoso: null (tipo según IA: no se puede decir; no verificado como cráter)."
 }

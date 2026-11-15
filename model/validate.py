@@ -1,13 +1,15 @@
 """Validación del modelo (AGENTS.md §6.3): escribe model/VALIDATION.md.
 
 Dos partes:
-A. Comparador de variables (dimensiones complementarias) en puntos sin cráter medido:
+A. Prefiltro ambiental (dimensiones complementarias: árido, sin vegetación, relieve comparable) en puntos sin cráter medido.
+   Descarta (veto por NDVI) pero no ordena: se reporta qué fracción de los sitios del detector lo pasa y qué tan juntos quedan:
    - controles negativos (data/negative_controls.json): selvas y zonas agrícolas húmedas → deben dar cerca de 0;
    - análogos conocidos (data/known_analogs.json): desiertos hiperáridos, campos de lava, cráteres → deben dar alto.
 B. Forma (dimensión principal), con resultados ya medidos en ciencia_datos/:
    - cráteres de impacto terrestres (ciencia_datos/datos/impactos_tierra.csv) → deben caer dentro de la nube Luna+Marte;
    - catálogo de cráteres volcánicos conocidos de México → cuántos encuentra el detector;
    - generalización del modelo Luna contra Marte a sitios de Marte que no vio;
+   - la misma validación por grupos espaciales de ciencia_datos/03, solo con cráteres de 2 km o más (objeción del instrumento);
    - tasa base: qué fracción de CUALQUIER depresión cae dentro de la nube (la nube descarta extremos, no confirma cráteres);
    - control negativo de forma: depresiones que la IA etiqueta como presa, valle o duna frente a cráteres naturales;
    - precisión del detector según la etiqueta de IA.
@@ -32,6 +34,95 @@ DATOS = RAIZ / "ciencia_datos" / "datos"
 DESTINOS = ["polo_sur_lunar", "jezero"]
 UMBRAL_NEGATIVO = 0.10     # (P) un control negativo debe quedar por debajo
 UMBRAL_POSITIVO = 0.40     # (P) un análogo conocido debería quedar por encima
+
+
+def cv_grupos(d: pd.DataFrame, feats: list[str], reps: int = 10) -> dict:
+    """Réplica de ciencia_datos/03 (celda 10): logística balanceada, StratifiedGroupKFold(5) con grupos de 250 × 250 píxeles."""
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.metrics import balanced_accuracy_score
+    from sklearn.model_selection import StratifiedGroupKFold
+    from sklearn.pipeline import make_pipeline
+    from sklearn.preprocessing import StandardScaler
+    X, y, g = d[feats].to_numpy(float), d.cuerpo.to_numpy(object), d.grupo.to_numpy(object)
+    ba, rl, rm = [], [], []
+    for s in range(reps):
+        pred = np.empty(len(y), object)
+        for tr, te in StratifiedGroupKFold(5, shuffle=True, random_state=s).split(X, y, g):
+            m = make_pipeline(StandardScaler(), LogisticRegression(class_weight="balanced", max_iter=3000)).fit(X[tr], y[tr])
+            pred[te] = m.predict(X[te])
+        ba.append(balanced_accuracy_score(y, pred))
+        rl.append((pred[y == "Luna"] == "Luna").mean()); rm.append((pred[y == "Marte"] == "Marte").mean())
+    return {"ba": float(np.mean(ba)), "sd": float(np.std(ba)), "luna": float(np.mean(rl)), "marte": float(np.mean(rm)),
+            "n_luna": int((y == "Luna").sum()), "n_marte": int((y == "Marte").sum()), "reps": reps}
+
+
+def parte_2km() -> list[str]:
+    ref = pd.read_csv(DATOS / "hoyas_referencia.csv")
+    r = ref[ref.crater.astype(bool) & ~ref.sitio.str.contains("|".join(forma.SITIOS_EXCLUIDOS))].copy()
+    r["log_diam"] = np.log10(r.diam_km); r["borde_rel"] = r.borde_m / (r.diam_km * 1000)
+    r["grupo"] = r.cuerpo + "|" + r.sitio + "|" + (r.i // 250).astype(int).astype(str) + "_" + (r.j // 250).astype(int).astype(str)
+    filas = []
+    for nombre, d in [("todos los tamaños", r), ("D ≥ 2 km", r[r.diam_km >= 2])]:
+        for vs, feats in [("3 variables", forma.VARIABLES), ("solo d/D", ["prof_diam"])]:
+            c = cv_grupos(d, feats)
+            filas.append({"cráteres": nombre, "variables": vs, "n Luna": c["n_luna"], "n Marte": c["n_marte"],
+                          "exactitud balanceada": f"{c['ba']:.1%} ± {c['sd']:.1%}", "acierto Luna": f"{c['luna']:.0%}",
+                          "acierto Marte": f"{c['marte']:.0%}"})
+    t = pd.DataFrame(filas)
+    a, b = t.iloc[0]["exactitud balanceada"], t.iloc[2]["exactitud balanceada"]
+    return ["**Exactitud con cráteres de 2 km o más** (respuesta a la objeción del instrumento). Misma validación que "
+            "`ciencia_datos/03` (celda 10): regresión logística balanceada, `StratifiedGroupKFold(5)` con grupos espaciales de "
+            "250 × 250 píxeles (50 × 50 km) por sitio, 10 repeticiones; aquí solo se filtra por diámetro. Con todos los tamaños da "
+            f"{a}; con D ≥ 2 km, {b}. La separación Luna contra Marte se mantiene en los cráteres grandes, donde la resolución de MOLA "
+            "pesa menos; con d/D sola baja, porque en los grandes el diámetro y el borde aportan más.", "",
+            tabla_md(t, list(t.columns)), ""]
+
+
+def parte_prefiltro(targets: dict) -> list[str]:
+    """Qué fracción de los sitios del detector (todos áridos) pasa el prefiltro, y qué tan juntos quedan sus totales sin forma."""
+    sin_forma = {k: v for k, v in DIMENSIONES.items() if k != "forma"}
+    tot, vet = [], 0
+    for f in sorted((RAIZ / "data" / "sites").glob("*.json")):
+        s = json.loads(f.read_text(encoding="utf-8"))
+        if "forma" not in s.get("variables", {}):
+            continue
+        r = comparar(s["variables"], targets[s["destino_ref"]]["variables"], sin_forma)
+        vet += r["vetado"]
+        if r["total"] is not None:
+            tot.append(r["total"])
+    a = np.array(tot)
+    return [f"**Tasa del prefiltro en los sitios del detector.** De los {len(a)} sitios de `data/sites` con un cráter medido (todos de zonas "
+            f"áridas, NDVI p90 < 0.35), {vet} quedan vetados y el {(a >= UMBRAL_POSITIVO).mean():.0%} da {UMBRAL_POSITIVO} o más sin la forma "
+            f"(mediana {np.median(a):.2f}, percentiles 10–90: {np.percentile(a, 10):.2f}–{np.percentile(a, 90):.2f}, máximo {a.max():.2f}). "
+            "Es decir: casi todo lo árido pasa y queda en una franja estrecha. El prefiltro **descarta** (selvas, cultivos, nieve) pero "
+            "**no ordena** sitios áridos entre sí; lo que dice qué es cada sitio es la etiqueta verificada (sección B).", ""]
+
+
+UMBRALES_EXPLORADOR = (0.6, 0.5, 0.45, 0.4)   # 0.6 = valor provisional de AGENTS.md §6.4; api/main.py usa 0.4 (P)
+
+
+def parte_umbral(dn: pd.DataFrame, dp: pd.DataFrame) -> list[str]:
+    """Explorador libre: qué umbral de propuesta deja pasar los análogos conocidos sin dejar pasar los controles negativos.
+    Los totales son los mismos que devuelve POST /score (api/main.py llama a features.variables_tierra y score.comparar)."""
+    hiper = dp.nombre.str.contains("Yungay|Death Valley|Mojave|Gran Desierto|Mars Desert")
+    filas = []
+    for u in UMBRALES_EXPLORADOR:
+        f = {"umbral": u}
+        for d in DESTINOS:
+            f[f"conocidos {d}"] = f"{int((dp[f'total_{d}'] >= u).sum())} de {len(dp)}"
+            f[f"hiperáridos {d}"] = f"{int((dp.loc[hiper, f'total_{d}'] >= u).sum())} de {int(hiper.sum())}"
+        f["controles negativos"] = f"{int((dn[['total_polo_sur_lunar', 'total_jezero']].max(axis=1) >= u).sum())} de {len(dn)}"
+        filas.append(f)
+    t = pd.DataFrame(filas)
+    mx = dp[[f"total_{d}" for d in DESTINOS]].max().max()
+    return ["**Umbral del explorador libre** (POST /score; un punto libre no tiene cráter medido, así que la forma no entra). "
+            f"El total más alto de un análogo conocido es {mx:.3f}: con el umbral provisional de 0.6 (AGENTS.md §6.4) nadie puede "
+            "proponer un sitio. Hiperáridos = Yungay, Death Valley, Mojave, Gran Desierto de Altar y la Mars Desert Research Station.", "",
+            tabla_md(t, list(t.columns)), "",
+            "Con 0.4 (el mismo umbral que usa esta validación para decir que un análogo conocido pasa) los cinco hiperáridos pasan frente "
+            "a Jezero y ningún control negativo pasa. Frente al polo sur lunar los totales son más bajos (la oscilación térmica de 176 K "
+            "está más lejos del máximo terrestre), así que pasan menos. `api/main.py` usa 0.4 (P); como el prefiltro no ordena sitios "
+            "áridos, una propuesta que lo pasa queda `propuesto_usuario`, pendiente de revisión, no validada.", ""]
 
 
 def puntos(archivo: str, clave: str) -> list[dict]:
@@ -113,7 +204,8 @@ def parte_forma() -> list[str]:
                f"No detectados: {c['lago']} con lago (el DEM ve el espejo de agua), {c['chico']} menores de 0.6 km y {c['otra']} por otras "
                "razones (islas, coordenadas desplazadas, poca profundidad). Mismo cotejo que `ciencia_datos/03_etiquetas_por_fuentes.ipynb` "
                "(radio de 2.5 km; una depresión cuenta una sola vez).")
-    out += [""] + parte_discriminacion()
+    out += [""] + parte_2km()
+    out += parte_discriminacion()
     return out
 
 
@@ -204,9 +296,10 @@ def main():
            "Ojo: `oscilacion_termica` vale entre 0.20 y 0.33 en todos los sitios (mediana 0.28), porque los dos destinos (Luna 176 K, "
            "Jezero 55 K) superan el máximo terrestre de 40 K y se recortan ahí. Es una dimensión que la Tierra no alcanza: rebaja todos los "
            "totales casi por igual y no ordena sitios. No se cambia el peso antes de la entrega (`model/NIVEL2.md` §C).", "",
-           "## A. Comparador de variables (dimensiones complementarias)", "",
-           "En estos puntos no hay un cráter medido, así que la forma no aplica: la similitud usa clima (NASA POWER), "
-           "vegetación (MODIS) y pendiente (Copernicus DEM a 200 m), y la confianza baja en consecuencia.", ""]
+           "## A. Prefiltro ambiental (dimensiones complementarias)", "",
+           "Las dimensiones complementarias funcionan como un **prefiltro ambiental**: dicen si un punto es árido, sin vegetación y de "
+           "relieve comparable. **Descartan pero no ordenan.** En estos puntos no hay un cráter medido, así que la forma no aplica: la "
+           "similitud usa clima (NASA POWER), vegetación (MODIS) y pendiente (Copernicus DEM a 200 m), y la confianza baja en consecuencia.", ""]
     cols = ["nombre", "oscilacion_termica", "precipitacion", "ndvi", "pendiente", "total_polo_sur_lunar", "total_jezero", "vetado_jezero"]
     for titulo, df, ok in [("Controles negativos", dn, lambda d: (d[["total_polo_sur_lunar", "total_jezero"]].max(axis=1) < UMBRAL_NEGATIVO)),
                            ("Análogos conocidos", dp, lambda d: (d[["total_polo_sur_lunar", "total_jezero"]].max(axis=1) > UMBRAL_POSITIVO))]:
@@ -216,13 +309,16 @@ def main():
         df["pasa"] = ok(df)
         out += [f"### {titulo}: {int(df.pasa.sum())} de {len(df)} pasan", "", tabla_md(df, cols + ["pasa"]), ""]
         if titulo == "Análogos conocidos" and (~df.pasa).any():
-            out += ["**Lectura.** El comparador complementario mide clima árido, suelo desnudo y relieve suave. Pasan los análogos "
+            out += ["**Lectura.** El prefiltro ambiental mide clima árido, suelo desnudo y relieve suave. Pasan los análogos "
                     "elegidos por eso mismo (desiertos hiperáridos, dunas, cráteres en zonas secas). No pasan los que son análogos por "
                     "otra razón que estas variables no ven: frío polar, lava en clima húmedo, química del agua (Río Tinto), "
                     "microbialitos y cenotes, cuevas, o estructuras sepultadas. Que no pasen es esperable y marca el alcance del "
-                    "comparador: no reemplaza a la forma ni a la composición. No pasan: " + ", ".join(df.loc[~df.pasa, "nombre"]) + ".", ""]
+                    "prefiltro: no reemplaza a la forma ni a la composición. No pasan: " + ", ".join(df.loc[~df.pasa, "nombre"]) + ".", ""]
+        if titulo == "Análogos conocidos":
+            out += parte_umbral(dn, df)
         if df.errores.str.len().gt(0).any():
             out += ["Errores de medición: " + " · ".join(f"{n}: {e}" for n, e in zip(df.nombre, df.errores) if e), ""]
+    out += parte_prefiltro(targets)
     out += parte_forma()
     out += ["", "## Límites que siempre se declaran", "",
             "Gravedad, presión atmosférica, radiación y vacío lunar no se reproducen en la Tierra; ningún puntaje los incluye."]

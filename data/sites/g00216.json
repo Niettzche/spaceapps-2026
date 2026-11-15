@@ -7,7 +7,7 @@
   "estado": "candidato_modelo",
   "destino_ref": "polo_sur_lunar",
   "prueba_util": null,
-  "uso_exploracion": "Análogo operativo, no geológico: probar navegación y movilidad de rovers en paredes empinadas, excavación (ISRU) y operación con sombra en el fondo del tajo",
+  "uso_exploracion": "Análogo operativo, no geológico: probar navegación y movilidad de rovers en paredes empinadas, excavación (ISRU) y operación con sombra en el fondo del tajo. La analogía se rompe por exceso de profundidad, sobre todo en el fondo: su d/D (0.156) supera al 97 % de los 2,329 cráteres lunares de diámetro parecido (mitad a doble) medidos a 200 m.",
   "proceso": "Probable tajo minero a cielo abierto (cantera de OpenStreetMap a ≤ 2 km; por verificar)",
   "novedoso": true,
   "variables": {
@@ -107,5 +107,5 @@
     "exageracion_vertical": null,
     "obstaculos": []
   },
-  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Anillo 80-85°S (Luna), 1.93 km, 302 m, d/D 0.157, en -82.714, 31.952. Etiqueta de IA: mina_o_cantera, confianza 0.90 (claude -p sobre Sentinel-2 y relieve; 29 de 33 aciertos en la validación, ciencia_datos/etiquetado_ia)."
+  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Anillo 80-85°S (Luna), 1.93 km, 302 m, d/D 0.157, en -82.714, 31.952. Categoría: tajo minero (cantera de OpenStreetMap a ≤ 2 km; etiqueta de IA mina_o_cantera, confianza 0.90). Análogo operativo de pendientes extremas, no geológico. La analogía se rompe por exceso de profundidad, sobre todo en el fondo: su d/D (0.156) supera al 97 % de los 2,329 cráteres lunares de diámetro parecido (mitad a doble) medidos a 200 m (ciencia_datos/salidas/lista_corta.md). novedoso se refiere a data/known_analogs.json, no a un hallazgo geológico. Etiqueta de IA: mina_o_cantera, confianza 0.90 (claude -p sobre Sentinel-2 y relieve; 29 de 33 aciertos en la validación, ciencia_datos/etiquetado_ia)."
 }

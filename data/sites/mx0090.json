@@ -105,5 +105,5 @@
     "exageracion_vertical": null,
     "obstaculos": []
   },
-  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Cráter Gale (Marte), 0.71 km, 23 m, d/D 0.032. Etiqueta de IA: sin etiqueta (no se etiquetó este candidato); tipo no verificado. novedoso: null (sin etiqueta; no verificado como cráter)."
+  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Cráter Gale (Marte), 0.71 km, 23 m, d/D 0.032. Categoría: sin verificar; la etiqueta no está verificada (sin etiqueta de IA): no se sabe si es un cráter, una presa, un valle o una duna. El puntaje de forma no lo decide (model/VALIDATION.md). Etiqueta de IA: sin etiqueta (no se etiquetó este candidato); tipo no verificado. novedoso: null (sin etiqueta; no verificado como cráter)."
 }

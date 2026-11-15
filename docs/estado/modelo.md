@@ -3,7 +3,19 @@
 > Lo actualiza SOLO este frente. Rama: `feat/modelo`.
 
 **Responsable:** Mario  ·  **Agente:** Claude Code / Codex
-**Última actualización:** 14 nov 2026, 14:30
+**Última actualización:** 14 nov 2026, noche (PR de la auditoría del modelo)
+
+## Hecho (auditoría del 14 nov, noche)
+- **Pinacate** ahora usa la misma regla que `scan.py` (destino = cuerpo al que más se parece su forma): `polo_sur_lunar`,
+  forma 0.972, total 0.529 (antes `jezero`, 0.028 y 0.149). El total frente a Jezero queda en la nota. `model/curados.py --sin-perfil`
+  conserva el nivel jugable. El sitio del camino lunar sigue siendo decisión del equipo (§16).
+- **Categoría de cada candidato** (`scan.py`, regla 6; modo `--solo-categoria`): cráter natural verificado 5, tajo minero 22, sin
+  verificar 29. Va en `nota`; en los tajos también en `uso_exploracion` (dónde se rompe la analogía, con el percentil de d/D lunar).
+- **G00263** (maar Al Hutaymah) y **G00266** (cono de toba Jabal Bayda) exportados con `scan.py --global --ids`, `novedoso: null`
+  hasta revisar Ryan et al. 2024.
+- `VALIDATION.md`: comparador presentado como **prefiltro ambiental** con su tasa en los sitios del detector; exactitud con
+  D ≥ 2 km (77.6 % ± 0.7 %, 788 lunares y 125 marcianos); tabla de umbral del explorador. Análogos conocidos: 9 de 21 (no 9 de 20: Colton se agregó después).
+- `api/main.py`: umbral de propuesta 0.6 → 0.4 (P); con 0.6 ningún análogo conocido podía proponerse.
 
 ## Hecho
 - Detector de cráteres (núcleo del modelo, AGENTS.md §6.1 y §8.1): `analisis/00–15`. Corre igual sobre México (5,208 depresiones),
@@ -28,7 +40,7 @@
   del Pinacate o de Rincón de Parangueo.
 - **Samalayuca** con variables reales y perfil de dunas de 3 km (coordenada de Domínguez-Acosta et al. 2023). No hay literatura
   que la trate como análogo planetario, así que va como `candidato_modelo` con `novedoso: true`.
-- `model/VALIDATION.md`: controles negativos 3 de 3 en 0 (veto por NDVI). Análogos conocidos: 9 de 20 por encima de 0.4; los que
+- `model/VALIDATION.md`: controles negativos 3 de 3 en 0 (veto por NDVI). Análogos conocidos: 9 de 21 por encima de 0.4; los que
   no pasan son análogos por razones que el comparador no ve (frío, lava húmeda, química, cuevas). Impactos terrestres: 8 de 8
   dentro de la nube de forma.
 
