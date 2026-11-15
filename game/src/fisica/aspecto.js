@@ -28,7 +28,9 @@ const TABLA = {
   rueda_estandar: { ancho: 7, cuadros: [1, 4] },
   rueda_ancha: { ancho: 8, cuadros: [1, 4] },
   rueda_tacos: { ancho: 7, cuadros: [1, 4] },
+  rueda_malla: { ancho: 9, cuadros: [1, 4] }, // pendiente de arte (docs/arte/SPRITES_PENDIENTES.md): hoy usa la figura
   soporte_basico: { ancho: 10, cuadros: [1] },
+  soporte_correas: { ancho: 10, cuadros: [1] }, // pendiente de arte
   soporte_amortiguado: { ancho: 10, cuadros: [1] },
   carga: { ancho: 7, cuadros: [1, 3] },
   astronauta: { ancho: 8, cuadros: [1, 4, 8, 14], animaciones: { reposo: [0, 3], saluda: [4, 7], celebra: [8, 13] } },

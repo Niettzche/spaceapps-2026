@@ -56,3 +56,20 @@ Origen al centro, 1 cuadro, contorno de 1 px. Giran con el chasis. Si falta un a
 
 ## Cómo verificar
 `cd game && npm run dev` (reiniciar Vite al agregar archivos nuevos) y jugar el camino dorado en Marte y Luna; `npm run build`.
+
+## 6. Piezas nuevas del taller (15 nov, frente taller) — media
+Siete piezas nuevas (`docs/taller/PIEZAS.md` §6). Sin arte, el juego ya funciona: las ruedas y el soporte se dibujan con
+figuras y el Taller muestra la pieza solo con texto. Nombres = id de la pieza (el juego los encuentra solo, sin tocar código).
+
+| Archivo | Medida (px de arte) | Descripción |
+|---|---|---|
+| `iconos/rueda_malla.png` … `iconos/radiador_motor.png` (7) | 16 × 16 | Íconos del taller de `rueda_malla`, `bateria_mediana`, `motor_equilibrado`, `soporte_correas`, `panel_solar_grande`, `aislante_bateria`, `radiador_motor` |
+| `entidades/rueda_malla.png` | 9 × 9, tira de 4 cuadros (36 × 9) | Rueda de malla tipo LRV: aro grande y calado (malla), cubo pequeño, chevrones claros. Más grande que la estándar (radio 0.55 m) |
+| `entidades/soporte_correas.png` | 10 de ancho, 1 cuadro | Soporte de carga con paredes medianas (0.35 m, entre el básico y el amortiguado) y correas cruzadas |
+| `entidades/deco_motor_equilibrado.png`, `entidades/deco_bateria_mediana.png` | ~4 × 3 | Calcomanías como las del motor y la batería actuales (x −8 y x +6 del chasis) |
+| `entidades/deco_panel_solar_grande.png` | ~10 × 2 | Panel más ancho que `deco_panel_solar` (encima, adelante: x +5, y −4) |
+| `entidades/deco_aislante_bateria.png`, `entidades/deco_radiador_motor.png` | ~6 × 3 | Mismo lugar del módulo (x +5, y −4): manta térmica dorada / aletas de radiador |
+
+**Pintura del chasis:** el juego tiñe `chasis_ligero` y `chasis_reforzado` con `setTint` (multiplica el color). Se ve mejor
+si el cuerpo del chasis es gris claro o blanco y los detalles oscuros quedan en el contorno. Colores: `assets/paletas.json`
+(base.acento, borde_luz, titulo.rojo y lavanda).
