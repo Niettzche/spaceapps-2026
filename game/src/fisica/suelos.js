@@ -38,7 +38,7 @@ export const SUELOS = {
 export const AGARRE_PROVISIONAL = 1;
 
 // Interruptor de balance (P), APAGADO por defecto. Con la arena real (φ medio 31° → 0.60) la rueda ancha queda en
-// 0.9² × 0.60 ≈ 0.49 (límite ≈ 26°) y las caras de duna recreadas son de ~30–34° (perfil.js, DUNA.anguloRef): lo más
+// 0.9² × 0.60 ≈ 0.49 (límite ≈ 26°) y las caras de duna recreadas llegan a 30° (perfil.js, DUNA.anguloMax): lo más
 // probable es que la ancha ya no suba y el camino dorado se rompa. Es coherente con la física real (ninguna rueda sube una
 // cara al ángulo de reposo de la arena), pero hay que rebalancear antes (p. ej. caras más suaves o otra curva de agarre).
 // Mientras esté en false, la arena de la Tierra usa AGARRE_PROVISIONAL y el HUD lo declara como (P).
