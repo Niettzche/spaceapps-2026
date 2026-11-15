@@ -63,7 +63,9 @@ export class Recorrido {
     // Meta de la prueba o zona de entrega de la misión, en el plano final.
     const inicioFinal = o.perfil.largo_m - PLANO_FINAL_M;
     this.meta_m = o.modo === 'prueba' ? inicioFinal + 4 : inicioFinal + 6;
-    this.zona = o.modo === 'mision' ? { desde: inicioFinal + 4, hasta: o.perfil.largo_m - 4 } : null;
+    // La zona llega hasta la pared del final: antes terminaba 4 m antes y un robot que se pasaba quedaba contra la pared,
+    // fuera de la zona y sin atasco (se apagaba al alcanzar la zona): la misión se quedaba colgada.
+    this.zona = o.modo === 'mision' ? { desde: inicioFinal + 4, hasta: o.perfil.largo_m } : null;
     this._dibujarMeta(yMundo(alturaEn(o.perfil, this.meta_m)));
 
     // Robot sobre el plano de inicio.
@@ -191,16 +193,14 @@ export class Recorrido {
     // Atasco: sin avanzar a pesar de seguir en marcha (p. ej. patinando contra una duna).
     if (x_m > this.mejorX + M_AVANCE_ATASCO) { this.mejorX = x_m; this.tMejorX = r.t; }
     else if (acelerador === 0) this.tMejorX += delta / 1000; // quieto a propósito no cuenta como atasco
-    if (!this.zonaAlcanzada(x_m) && r.t - this.tMejorX > SEG_ATASCO) return this._terminar(false, 'atascado');
+    if (!this.enZona(r, x_m) && r.t - this.tMejorX > SEG_ATASCO) return this._terminar(false, 'atascado');
 
     if (this.o.modo === 'prueba') {
       if (x_m >= this.meta_m) this._terminar(true, 'meta');
       return;
     }
     // Misión: carga y robot en la zona, quietos 2 s.
-    const cargaX_m = (r.carga.position.x - this.xMundo(0)) / PX_POR_M;
-    const enZona = x_m >= this.zona.desde && x_m <= this.zona.hasta && cargaX_m >= this.zona.desde && cargaX_m <= this.zona.hasta;
-    this.tQuieto = enZona && r.quieto() ? this.tQuieto + delta / 1000 : 0;
+    this.tQuieto = this.enZona(r, x_m) && r.quieto() ? this.tQuieto + delta / 1000 : 0;
     if (this.tQuieto >= SEG_QUIETO_ENTREGA) {
       if (estado.integridad >= this.o.umbralIntegridad) this._terminar(true, 'entrega');
       else this._terminar(false, 'carga_danada');
@@ -226,6 +226,13 @@ export class Recorrido {
   /** ¿Está en la zona de entrega (misión)? Ahí detenerse es lo esperado, no un atasco. */
   zonaAlcanzada(x_m) {
     return Boolean(this.zona) && x_m >= this.zona.desde - 2;
+  }
+
+  /** Robot y carga dentro de la zona de entrega (hasta la pared del final). Con tolerancia de 1 m en la entrada. */
+  enZona(r, x_m) {
+    if (!this.zona) return false;
+    const cargaX_m = (r.carga.position.x - this.xMundo(0)) / PX_POR_M;
+    return x_m >= this.zona.desde - 1 && cargaX_m >= this.zona.desde - 1;
   }
 
   _terminar(exito, motivo) {

@@ -62,11 +62,14 @@ export function boton(scene, x, y, etiqueta, alPulsar, {
     },
     pintar() {
       // Foco de teclado (▶, verde) y ratón encima (blanco con fondo) son estados distintos: el ratón no mueve el foco.
+      // El foco de teclado solo se dibuja en modo teclado (después de usar flechas/Tab): con ratón, un solo resaltado,
+      // el de la opción bajo el cursor. Antes quedaba «Continuar» en verde mientras el ratón marcaba otra (retro de Leo).
       const sobre = b.sobre && b.habilitado;
-      const c = !b.habilitado ? COLOR.muyTenue : b.enfocado ? COLOR.foco : sobre ? COLOR.sobre : b.sugerido ? COLOR.sugerido : b.color;
+      const foco = b.enfocado && scene.modoTeclado;
+      const c = !b.habilitado ? COLOR.muyTenue : foco ? COLOR.foco : sobre ? COLOR.sobre : b.sugerido ? COLOR.sugerido : b.color;
       t.setColor(c);
       t.setBackgroundColor(sobre ? COLOR.fondoSobre : null);
-      t.setText((b.enfocado ? '▶ ' : '') + b.rotulo());
+      t.setText((foco ? '▶ ' : '') + b.rotulo());
       b.ajustarZona();
     },
     // La zona táctil crece desde el punto de origen del texto (centrada, o hacia la derecha/abajo si el origen es 0).
@@ -81,7 +84,14 @@ export function boton(scene, x, y, etiqueta, alPulsar, {
   t.on('pointerdown', () => b.activar());
   // Antes 'pointerover' movía el foco de teclado y nada lo quitaba al salir: el resaltado quedaba pegado hasta que
   // otra opción tomaba el foco. Ahora el ratón solo marca/desmarca su propio estado.
-  t.on('pointerover', () => b.marcarSobre(true));
+  t.on('pointerover', () => {
+    // El ratón manda: sale del modo teclado y el foco sigue al cursor (Enter activa lo que está bajo el ratón).
+    const cambio = scene.modoTeclado;
+    scene.modoTeclado = false;
+    if (b.habilitado && scene.teclado?.items.includes(b)) scene.teclado.enfocar(b);
+    b.marcarSobre(true);
+    if (cambio) scene.teclado?.items.forEach((x) => x.pintar());
+  });
   t.on('pointerout', () => b.marcarSobre(false));
   b.pintar();
   return b;
@@ -164,6 +174,14 @@ export class Teclado {
     if (/^[1-9]$/.test(k)) {
       const b = this.atajos[Number(k) - 1];
       if (b?.habilitado) { ev.preventDefault?.(); this.enfocar(b); b.activar(); }
+      return;
+    }
+    if (/^(Arrow(Up|Down|Left|Right)|Tab)$/.test(k) && !this.scene.modoTeclado) {
+      // Primera tecla de navegación: se muestra el foco donde está, sin moverlo todavía.
+      ev.preventDefault?.();
+      this.scene.modoTeclado = true;
+      this.items.forEach((b) => b.pintar());
+      if (!this.actual) this.mover(1);
       return;
     }
     if (k === 'ArrowDown' || k === 'ArrowRight' || (k === 'Tab' && !ev.shiftKey)) { ev.preventDefault?.(); this.mover(1); }
