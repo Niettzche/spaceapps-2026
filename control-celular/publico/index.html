@@ -25,9 +25,8 @@
     <span id="escena" class="escena"></span>
     <span class="relleno"></span>
     <span id="ping" class="ping"></span>
-    <button id="bModo" class="chip" type="button"></button>
-    <button id="bPiel" class="chip" type="button"></button>
-    <button id="bPantalla" class="chip" type="button" aria-label="Pantalla completa">⛶</button>
+    <!-- Estilo, modo y pantalla completa viven en un menú: un toque sin querer en la barra ya no cambia nada. -->
+    <button id="bAjustes" class="chip" type="button" aria-label="Ajustes" aria-haspopup="dialog">⚙</button>
   </header>
 
   <main id="pad" data-modo="navegar">
@@ -84,6 +83,17 @@
       <input id="campoSala" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off" placeholder="0000" />
       <button type="submit" class="chip grande-chip" data-t="entrar"></button>
     </form>
+  </div>
+
+  <div id="ajustes" class="velo oculto" role="dialog" aria-modal="true">
+    <div class="tarjeta hoja">
+      <div class="logo chico" data-t="ajustes"></div>
+      <div class="fila-op"><span class="etq" data-t="estilo"></span>
+        <div class="seg" data-grupo="piel"><button type="button" class="op" data-v="glass" data-t="glass"></button><button type="button" class="op" data-v="general" data-t="general"></button></div></div>
+      <div class="fila-op"><span class="etq" data-t="controles"></span>
+        <div class="seg" data-grupo="modo"><button type="button" class="op" data-v="auto" data-t="auto"></button><button type="button" class="op" data-v="conducir" data-t="modoConducir"></button><button type="button" class="op" data-v="navegar" data-t="modoNavegar"></button></div></div>
+      <div class="fila-op fin"><button id="bPantalla" type="button" class="op" data-t="pantallaCompleta"></button><button id="bCerrarAjustes" type="button" class="op activa" data-t="listo2"></button></div>
+    </div>
   </div>
 
   <div id="girar" class="velo"><div class="tarjeta"><div class="ico-girar">⟳</div><div data-t="girar"></div></div></div>

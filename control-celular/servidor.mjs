@@ -9,7 +9,7 @@
 //   WS   /ws?rol=pad&sala=NNNN    celular
 //   WS   /ws?rol=pantalla         juego (solo desde esta compu)
 //
-// El celular manda {t:'k', k:'ArrowRight', d:1|0, r:0|1}. El relay lleva la cuenta de qué tiene presionado cada
+// El celular manda {t:'k', k:'ArrowRight', d:1|0, r:0|1}, o {t:'accion', a:'principal'} para el botón principal de la escena. El relay lleva la cuenta de qué tiene presionado cada
 // celular y, si uno se desconecta, suelta sus teclas: así nunca se queda "pegado" el acelerador.
 // El juego no depende de esto: si el relay no corre, el puente no carga y el juego sigue igual.
 import http from 'node:http';
@@ -178,7 +178,12 @@ function conectarPantalla(ws) {
   estadoPantalla();
   ws.on('message', (datos) => {
     let m; try { m = JSON.parse(datos); } catch { return; }
-    if (m.t === 'escena') { ultimaEscena = { clave: String(m.clave ?? ''), pausado: !!m.pausado }; estadoPantalla(); }
+    if (m.t === 'escena') {
+      const p = m.principal && typeof m.principal === 'object'
+        ? { texto: String(m.principal.texto ?? '').slice(0, 48), habilitado: !!m.principal.habilitado } : null; // el puente ya lo acorta
+      ultimaEscena = { clave: String(m.clave ?? '').slice(0, 30), pausado: !!m.pausado, principal: p?.texto ? p : null };
+      estadoPantalla();
+    }
     else if (m.t === 'vibrar') aPads({ t: 'vibrar', ms: Math.min(400, Number(m.ms) || 30) });
   });
   ws.on('close', () => {
@@ -199,6 +204,7 @@ function conectarPad(ws) {
     let m; try { m = JSON.parse(datos); } catch { return; }
     if (m.t === 'k' && PERMITIDAS.has(m.k)) tecla(pad, m.k, !!m.d, !!m.r);
     else if (m.t === 'soltar') [...pad.teclas].forEach((k) => tecla(pad, k, false));
+    else if (m.t === 'accion' && m.a === 'principal') aPantallas({ t: 'accion', a: 'principal' }); // botón principal de la escena
     else if (m.t === 'p') enviar(ws, { t: 'p', ts: m.ts });
   });
   ws.on('close', () => {

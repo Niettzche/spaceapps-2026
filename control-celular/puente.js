@@ -88,12 +88,45 @@
   let ultima = '';
   window.__controlCelular.escena = () => escenaActual(); // para pruebas automáticas
   window.__controlCelular.juego = () => juego;
-  function escenaActual() {
+  function escenaPhaser() {
     if (!juego) return null;
     const activas = juego.scene.getScenes(true).filter((s) => s.sys.settings.key !== 'Boot');
-    const s = activas[activas.length - 1];
+    return activas[activas.length - 1] ?? null;
+  }
+  // Botón principal de la escena: el que el juego marca como sugerido (⏎), p. ej. «Gastar 1 ticket y probar» en el
+  // Expediente. Con teclado, Enter activa el botón con foco, que no siempre es ese (al volver del Taller el foco queda en
+  // la lista); el celular lo muestra aparte y lo activa directo. Si el juego cambia esa estructura, simplemente no aparece.
+  function botonPrincipal(s) {
+    try {
+      const items = s?.teclado?.items;
+      if (!Array.isArray(items)) return null;
+      const b = items.find((x) => x?.sugerido && x.obj?.active);
+      if (!b) return null;
+      const texto = String(b.rotulo?.() ?? b.obj?.text ?? '').replace(/[⏎▶]/g, '').replace(/^\s*\d\s*·\s*/, '').trim();
+      // Máximo 40 caracteres, cortando en una palabra completa y con «…» (no «…probar el ro»).
+      const corto = texto.length <= 40 ? texto : `${texto.slice(0, 39).replace(/\s+\S*$/, '')}…`;
+      return texto ? { b, texto: corto, habilitado: !!b.habilitado } : null;
+    } catch { return null; }
+  }
+  // Una sola regla para «se ve activo» y «se puede activar»: el celular nunca muestra activo un botón que no haría nada.
+  // Igual que el teclado del juego: nada durante un fundido ni con un panel HTML abierto (tutora, nombre del robot).
+  // (Con el tutorial del Expediente abierto, el botón sugerido es «Siguiente», y activarlo avanza el tutorial.)
+  function puedeActivar(s, p) {
+    return !!p?.habilitado && !s.cameras?.main?.fadeEffect?.isRunning && s.input?.keyboard?.enabled !== false;
+  }
+  function escenaActual() {
+    const s = escenaPhaser();
     if (!s) return null;
-    return { clave: s.sys.settings.key, pausado: !!s.recorrido?.pausado };
+    const p = botonPrincipal(s);
+    return { clave: s.sys.settings.key, pausado: !!s.recorrido?.pausado,
+      principal: p ? { texto: p.texto, habilitado: puedeActivar(s, p) } : null };
+  }
+  function activarPrincipal() {
+    const s = escenaPhaser();
+    const p = botonPrincipal(s);
+    if (!puedeActivar(s, p)) return;
+    s.teclado.enfocar?.(p.b);
+    p.b.activar();
   }
   setInterval(() => {
     const e = escenaActual();
@@ -111,6 +144,7 @@
     ws.onmessage = (e) => {
       let m; try { m = JSON.parse(e.data); } catch { return; }
       if (m.t === 'k') tecla(m.k, m.d, m.r);
+      else if (m.t === 'accion' && m.a === 'principal') activarPrincipal();
       else if (m.t === 'pads') {
         if (m.n > pads) { ui.aviso(tr('📱 Control conectado', '📱 Phone controller connected')); ui.cerrar(); }
         else if (m.n < pads) ui.aviso(tr('📱 Control desconectado', '📱 Phone controller disconnected'));

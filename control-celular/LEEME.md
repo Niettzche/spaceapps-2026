@@ -37,12 +37,15 @@ Sin QR: abre la URL que muestra el panel y escribe el código de sala. El QR tam
 
 ## Dos versiones del control
 
-Se elige sola por dispositivo; el botón de la barra la cambia (se recuerda). Forzar: `?piel=glass` o `?piel=general`.
+Se elige sola por dispositivo. Para cambiarla: botón **⚙** de la barra → Estilo (se recuerda en el celular). Ahí también
+están el modo (Auto / Conducir / Menús) y la pantalla completa. Van en un menú a propósito: antes eran botones sueltos en la
+barra y un toque sin querer cambiaba el estilo o fijaba el modo. Forzar por URL: `?piel=glass` o `?piel=general`.
+Si el modo se fija a mano, la barra lo indica con 🔒.
 
 | | Glass (Apple) | Clásico (Android y todos) |
 |---|---|---|
 | Estilo | "liquid glass" con WebGL: refracción, aberración cromática, luz que sigue al dedo, rebote de gelatina | consola de juego: botones con relieve que se hunden, onda de luz desde el dedo, cruceta de una pieza, pedales con estrías, OK naranja Marte |
-| Rendimiento | baja la resolución del shader si el celular va lento; sin WebGL usa vidrio de CSS | solo CSS (sin blur ni WebGL) |
+| Rendimiento | baja la resolución del shader si el celular va lento; sin WebGL usa vidrio de CSS. Si iOS quita el WebGL (al bloquear o cambiar de app), el vidrio se reconstruye solo al volver | solo CSS (sin blur ni WebGL) |
 | Vibración | tic háptico en iOS 18+ | `vibrate` |
 | Pantalla completa | "Compartir → Agregar a inicio" | automática al primer toque |
 
@@ -53,6 +56,11 @@ El control cambia solo según la escena ("Auto"; también se puede fijar Conduci
 - **Conducir** (Prueba y Misión): Frenar ◀ / Acelerar ▶ (mitades grandes), Pausa, Datos (I), Sonido (M). En pausa: Seguir y Abandonar.
 - **Menús**: cruceta, OK (Enter), Atrás (Esc) y atajos de la escena, cada uno con su tecla real:
   Taller (Pestaña, Quitar, Igualar ejes, Ayuda, Probar), Expediente (1–5, Datos, Condiciones), Resultados (1–3, Analogía), Menú (1–5, Idioma).
+
+**Botón principal (verde, arriba de los atajos):** el celular muestra el botón que el juego marca con ⏎ en esa pantalla, con
+el mismo texto («Nueva partida», «Gastar 1 ticket y probar», «Probar de nuevo (gratis)», «Siguiente» en un tutorial) y lo
+activa directo. OK (Enter) activa el botón que tiene el foco, y al volver del Taller el foco queda en la lista de sitios: por
+eso a veces OK no llevaba a probar. Si el juego lo tiene desactivado o está en un fundido, se ve apagado.
 
 Son las teclas que el juego ya entiende. La **cruceta es una sola zona**, como un control físico: la dirección sale del ángulo
 del dedo, así que las diagonales y el borde también cuentan. Deslizar el dedo cambia de flecha sin parpadear, y mantenerla la
@@ -66,6 +74,12 @@ Con relay y juego corriendo, y `npm i --no-save playwright-core` (usan Edge; otr
   Taller solo con OK, Probar, acelerar mueve el robot, pausa, y cerrar el celular con el acelerador presionado lo suelta.
 - `npm run prueba:flechas`: cada toque de la cruceta llega al juego y mueve algo (centro, esquinas, diagonales, margen, toques
   de 0 ms, toques seguidos, dedo en movimiento, deslizar en círculo, soltar fuera del control) en el Taller y el Expediente.
+- `npm run prueba:botones`: botón principal en Menú y Expediente (también con el foco del juego en la lista y al volver
+  del Taller), la barra no cambia el estilo, el menú ⚙ sí, y el vidrio WebGL vuelve tras perder el contexto.
+- Para no chocar con un relay en uso: `RELAY=http://localhost:8790 JUEGO=http://localhost:5180/` (las pruebas cargan el
+  puente desde ese relay y nunca hablan con el 8787).
+- Las pruebas dan por vistos los tutoriales del Taller y la Prueba (como la e2e del juego). Con el celular se pasan igual:
+  en el Taller con OK o Atrás; en la Prueba, Acelerar avanza y Pausa los salta.
 - `npm run prueba:visual`: capturas en 5 tamaños (640×360 a iPad) y las dos pieles; revisa que ningún botón se salga, se
   encime o sea demasiado chico.
 

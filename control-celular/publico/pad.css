@@ -108,6 +108,32 @@ button { font: inherit; color: inherit; }
 @keyframes girar { 50% { transform: rotate(90deg); } }
 @media (orientation: portrait) { #girar { display: flex; } }
 
+/* menú de ajustes (⚙) */
+#bAjustes { font-size: 16px; padding: 4px 12px; }
+.hoja { gap: 14px; min-width: min(460px, 92vw); padding: 18px 20px; border-radius: 20px; background: rgba(18,21,42,.96);
+  border: 1px solid rgba(255,255,255,.1); box-shadow: 0 18px 50px rgba(0,0,0,.5); }
+.logo.chico { font-size: 18px; }
+.fila-op { display: flex; align-items: center; justify-content: space-between; gap: 14px; width: 100%; }
+.fila-op.fin { justify-content: flex-end; }
+.etq { color: var(--tenue); font-size: 14px; }
+.seg { display: flex; gap: 4px; padding: 4px; border-radius: 14px; background: rgba(255,255,255,.06); }
+.op { border: 0; border-radius: 11px; padding: 10px 16px; min-height: 42px; background: transparent; color: var(--texto); font-size: 14px; }
+.fila-op.fin .op { background: rgba(255,255,255,.08); }
+.op.activa { background: var(--acento) !important; color: #12152a; font-weight: 800; }
+html.glass .hoja { background: rgba(255,255,255,.12); -webkit-backdrop-filter: blur(24px) saturate(170%); backdrop-filter: blur(24px) saturate(170%);
+  border-color: rgba(255,255,255,.3); }
+html.glass .op.activa { background: rgba(255,255,255,.85) !important; }
+
+/* botón principal de la escena (el «⏎» del juego): ocupa toda la fila de atajos */
+.atajo.principal { flex-basis: 100%; min-height: 50px; gap: 8px; }
+.atajo.principal .ico { font-size: 18px; }
+/* El texto viene del juego y puede ser largo: hasta 3 líneas en vez de cortarse («GASTAR 1 TI…» a 640 px). */
+.atajo.principal .txt { font-size: 13px; font-weight: 800; line-height: 1.15; text-align: left; text-transform: none; letter-spacing: 0;
+  white-space: normal; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+html.glass .atajo.principal { background: linear-gradient(160deg, rgba(6,214,160,.45), rgba(6,214,160,.12)); }
+.atajo.apagado { opacity: .38; }
+html.general .atajo.principal { --c1: #1f6b55; --c2: #145040; --labio: #062019; --acc: #3df0b8; --brillo: rgba(61,240,184,.38); }
+
 #haptico { position: fixed; left: 0; top: 0; width: 1px; height: 1px; opacity: 0; overflow: hidden; pointer-events: none; }
 
 /* atajos: texto + tecla real (las dos pieles) */

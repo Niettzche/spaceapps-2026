@@ -338,7 +338,10 @@ export default class Taller extends Phaser.Scene {
 
   // ───────────────────────── tutorial (primera vez) ─────────────────────────
   abrirTutorial() {
-    if (this.tutorial || !this.scene.isActive()) return;
+    // Si el jugador ya salió (Esc o «Atrás» antes de los 500 ms del tutorial), no se abre a media salida: se abría
+    // durante el fundido y, al cerrarse la escena, el tutorial redibujaba objetos ya destruidos.
+    const fundido = this.cameras.main.fadeEffect;
+    if (this.tutorial || !this.scene.isActive() || (fundido.isRunning && fundido.direction)) return; // direction = salida
     if (this.ayuda) this.alternarAyuda();
     this.cerrarPersonalizar();
     this.soltarMano();
@@ -346,7 +349,8 @@ export default class Taller extends Phaser.Scene {
     this.tutorial = abrirTutorialTaller(this, {
       pasos: pasosTutorialTaller(this.suelo),
       zonas: (n) => this.zonaTutorial(n),
-      alCerrar: () => { this.tutorial = null; this.refrescarAyuda(); this.pintarFoco(); },
+      // Al cerrar la escena también se cierra el tutorial: entonces no hay nada que redibujar.
+      alCerrar: () => { this.tutorial = null; if (!this.sys.isActive()) return; this.refrescarAyuda(); this.pintarFoco(); },
     });
   }
 

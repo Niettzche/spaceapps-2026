@@ -9,6 +9,7 @@
     "todo": "node iniciar.mjs",
     "prueba": "node prueba_e2e.mjs",
     "prueba:flechas": "node prueba_flechas.mjs",
+    "prueba:botones": "node prueba_botones.mjs",
     "prueba:visual": "node prueba_visual.mjs"
   },
   "dependencies": {

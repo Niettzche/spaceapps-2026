@@ -5,18 +5,15 @@
 // que dobla el fondo en los bordes (refracción), separa un poco los colores (aberración cromática), tiene un filo de luz
 // que mira hacia el dedo (especular) y sombra suave. Al presionar, el botón se infla y rebota con un resorte (gelatina).
 //
-// Los botones siguen siendo elementos HTML: los toques, el texto y la accesibilidad no cambian. Si no hay WebGL, el
-// shader no compila o el contexto se pierde, se queda el vidrio de CSS (pad.css) sin hacer nada más.
+// Los botones siguen siendo elementos HTML: los toques, el texto y la accesibilidad no cambian. Si no hay WebGL o el
+// shader no compila, se queda el vidrio de CSS (pad.css). Si el sistema quita el contexto (iOS lo hace al bloquear el
+// celular o cambiar de app), se muestra el vidrio de CSS solo mientras tanto y el WebGL se reconstruye al volver.
 (() => {
   const MAX = 24;
   const raiz = document.documentElement;
-  const lienzo = document.createElement('canvas');
-  lienzo.id = 'vidrio';
-  lienzo.setAttribute('aria-hidden', 'true');
-
-  const gl = lienzo.getContext('webgl', { alpha: false, antialias: false, depth: false, stencil: false,
-    premultipliedAlpha: false, preserveDrawingBuffer: false, powerPreference: 'low-power' });
-  if (!gl) return;
+  const OPCIONES = { alpha: false, antialias: false, depth: false, stencil: false,
+    premultipliedAlpha: false, preserveDrawingBuffer: false, powerPreference: 'low-power' };
+  let lienzo = null, gl = null, U = {};
 
   const VS = `attribute vec2 p; void main(){ gl_Position = vec4(p, 0.0, 1.0); }`;
   const FS = `
@@ -139,23 +136,29 @@ void main() {
     if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) { console.warn('[vidrio]', gl.getShaderInfoLog(s)); return null; }
     return s;
   }
-  const vs = compilar(gl.VERTEX_SHADER, VS);
-  const fs = compilar(gl.FRAGMENT_SHADER, FS);
-  if (!vs || !fs) return;
-  const prog = gl.createProgram();
-  gl.attachShader(prog, vs);
-  gl.attachShader(prog, fs);
-  gl.linkProgram(prog);
-  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) { console.warn('[vidrio]', gl.getProgramInfoLog(prog)); return; }
-  gl.useProgram(prog);
-  const buf = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-  const loc = gl.getAttribLocation(prog, 'p');
-  gl.enableVertexAttribArray(loc);
-  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-  const U = {};
-  for (const n of ['uRes', 'uT', 'uE', 'uN', 'uR', 'uP', 'uC', 'uL']) U[n] = gl.getUniformLocation(prog, n);
+  /** Crea (o recrea tras perder el contexto) el programa, el triángulo y los uniformes. false = sin WebGL. */
+  function prepararGL() {
+    gl = lienzo.getContext('webgl', OPCIONES);
+    if (!gl || gl.isContextLost()) return false;
+    const vs = compilar(gl.VERTEX_SHADER, VS);
+    const fs = compilar(gl.FRAGMENT_SHADER, FS);
+    if (!vs || !fs) return false;
+    const prog = gl.createProgram();
+    gl.attachShader(prog, vs);
+    gl.attachShader(prog, fs);
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) { console.warn('[vidrio]', gl.getProgramInfoLog(prog)); return false; }
+    gl.useProgram(prog);
+    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    const loc = gl.getAttribLocation(prog, 'p');
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    U = {};
+    for (const n of ['uRes', 'uT', 'uE', 'uN', 'uR', 'uP', 'uC', 'uL']) U[n] = gl.getUniformLocation(prog, n);
+    ancho = alto = 0; // fuerza a fijar tamaño y viewport en el siguiente cuadro
+    return true;
+  }
   const datosR = new Float32Array(MAX * 4);
   const datosP = new Float32Array(MAX * 4);
   const datosC = new Float32Array(MAX * 3);
@@ -166,7 +169,7 @@ void main() {
     verde: [0.45, 1.0, 0.80], rojo: [1.0, 0.45, 0.50], violeta: [0.80, 0.62, 1.0],
   };
   function tinte(el) {
-    if (el.classList.contains('verde')) return TINTE.verde;
+    if (el.classList.contains('verde') || el.classList.contains('principal')) return TINTE.verde;
     if (el.classList.contains('rojo')) return TINTE.rojo;
     if (el.classList.contains('a')) return TINTE.azul;
     if (el.classList.contains('b')) return TINTE.rosa;
@@ -275,10 +278,48 @@ void main() {
     raiz.classList.remove('gl');
   }
   const decidir = () => (raiz.classList.contains('glass') && !document.hidden ? encender() : apagar());
+
+  // ---------------------------------------------------------------- contexto perdido → recuperarlo
+  // Antes, al perder el contexto el control se quedaba con el vidrio de CSS (otro aspecto) para siempre: parecía que
+  // cambiaba de estilo solo. Ahora: 1) se espera el evento de restauración; 2) si no llega, al volver a la página (o a
+  // los 1.5 s) se crea un lienzo nuevo. Máximo 6 intentos por visita para no insistir con un GPU que no responde.
+  let intentos = 0, tReintento = 0;
+  function crearLienzo() {
+    const c = document.createElement('canvas');
+    c.id = 'vidrio';
+    c.setAttribute('aria-hidden', 'true');
+    c.addEventListener('webglcontextlost', (e) => {
+      e.preventDefault(); // permite que el navegador lo restaure
+      perdido = true;
+      apagar();
+      programarReintento();
+    }, false);
+    c.addEventListener('webglcontextrestored', () => { if (c === lienzo && prepararGL()) recuperado(); }, false);
+    return c;
+  }
+  // Los intentos se cuentan por cada pérdida: bloquear y desbloquear el celular muchas veces no agota los reintentos.
+  function recuperado() { perdido = false; intentos = 0; decidir(); }
+  function reconstruir() {
+    if (!perdido || intentos >= 6) return;
+    intentos++;
+    lienzo?.remove();
+    lienzo = crearLienzo();
+    if (prepararGL()) recuperado(); else programarReintento();
+  }
+  function programarReintento() {
+    clearTimeout(tReintento);
+    if (!document.hidden) tReintento = setTimeout(reconstruir, 1500);
+  }
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && perdido) programarReintento(); });
+
+  lienzo = crearLienzo();
+  if (!prepararGL()) return; // sin WebGL: vidrio de CSS
   new MutationObserver(decidir).observe(raiz, { attributes: true, attributeFilter: ['class'] });
   document.addEventListener('visibilitychange', decidir);
-  // Si el sistema le quita el contexto WebGL (poca memoria), se vuelve al vidrio de CSS para siempre en esta visita.
-  lienzo.addEventListener('webglcontextlost', (e) => { e.preventDefault(); perdido = true; apagar(); lienzo.remove(); }, false);
-  window.__vidrio = { encendido: () => activo, escala: () => esc };
+  window.__vidrio = {
+    encendido: () => activo, escala: () => esc,
+    // para pruebas: simula que el sistema quita el contexto (y opcionalmente lo devuelve)
+    perder: (devolver) => { const x = gl?.getExtension('WEBGL_lose_context'); x?.loseContext(); if (devolver) setTimeout(() => x?.restoreContext(), 300); return !!x; },
+  };
   decidir();
 })();

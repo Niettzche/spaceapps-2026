@@ -21,6 +21,8 @@
     pestana: ['Pestaña', 'Tab'], quitar: ['Quitar', 'Remove'], igualar: ['Igualar ejes', 'Match axles'],
     ayuda: ['Ayuda', 'Help'], probar: ['Probar ▶', 'Test ▶'], analogia: ['Analogía', 'Analogy'], idioma: ['Idioma', 'Lang'],
     pausado: ['en pausa', 'paused'], condiciones: ['Condiciones', 'Conditions'],
+    ajustes: ['Ajustes', 'Settings'], estilo: ['Estilo', 'Style'], controles: ['Controles', 'Controls'],
+    pantallaCompleta: ['⛶ Pantalla completa', '⛶ Full screen'], listo2: ['Listo', 'Done'],
   };
   const t = (k) => (T[k] ? T[k][EN ? 1 : 0] : k);
   document.documentElement.lang = EN ? 'en' : 'es';
@@ -33,16 +35,14 @@
   const ES_APPLE = ES_IOS || (/Macintosh/.test(ua) && /Safari/.test(ua) && !/Chrome|Chromium|Edg/.test(ua));
   const STANDALONE = matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches
     || navigator.standalone === true;
+  const $ = (s) => document.querySelector(s);
   let piel = params.get('piel') ?? leer('mc.piel') ?? (ES_APPLE ? 'glass' : 'general');
   function ponerPiel(p) {
     piel = p === 'glass' ? 'glass' : 'general';
     document.documentElement.classList.toggle('glass', piel === 'glass');
     document.documentElement.classList.toggle('general', piel !== 'glass');
-    $('#bPiel').textContent = t(piel === 'glass' ? 'glass' : 'general');
+    marcarOpciones();
   }
-  const $ = (s) => document.querySelector(s);
-  ponerPiel(piel);
-  $('#bPiel').addEventListener('click', () => { ponerPiel(piel === 'glass' ? 'general' : 'glass'); guardar('mc.piel', piel); });
   if (!ES_IOS || STANDALONE) $('#consejoIOS').remove();
 
   // ------------------------------------------------------------ modo (auto según la escena del juego)
@@ -55,16 +55,33 @@
     const m = modoEfectivo();
     if (pad.dataset.modo !== m) { soltarTodo(); pad.dataset.modo = m; }
     pad.dataset.pausado = escena?.pausado ? '1' : '0';
-    $('#bModo').textContent = modo === 'auto' ? `${t('auto')} · ${t(m === 'conducir' ? 'modoConducir' : 'modoNavegar')}`
-      : t(modo === 'conducir' ? 'modoConducir' : 'modoNavegar');
-    $('#escena').textContent = escena?.clave ? `· ${escena.clave}${escena.pausado ? ` (${t('pausado')})` : ''}` : '';
+    // Si el modo está fijado a mano, se dice en la barra (si no, parecería que el control "no cambia solo").
+    $('#escena').textContent = (escena?.clave ? `· ${escena.clave}${escena.pausado ? ` (${t('pausado')})` : ''}` : '')
+      + (modo !== 'auto' ? ` · ${t(modo === 'conducir' ? 'modoConducir' : 'modoNavegar')} 🔒` : '');
+    marcarOpciones();
     pintarContexto();
   }
-  $('#bModo').addEventListener('click', () => {
-    modo = { auto: 'conducir', conducir: 'navegar', navegar: 'auto' }[modo];
-    guardar('mc.modo', modo);
-    aplicarModo();
-  });
+
+  // ------------------------------------------------------------ ajustes (⚙)
+  // Estilo y modo viven en un menú aparte: antes eran chips sueltos en la barra y un toque sin querer (buscando Atrás o
+  // la flecha de arriba) cambiaba el estilo o fijaba el modo, y parecía que el control cambiaba solo.
+  const hoja = $('#ajustes');
+  function marcarOpciones() {
+    hoja.querySelectorAll('[data-grupo="piel"] .op').forEach((b) => b.classList.toggle('activa', b.dataset.v === piel));
+    hoja.querySelectorAll('[data-grupo="modo"] .op').forEach((b) => b.classList.toggle('activa', b.dataset.v === modo));
+  }
+  const abrirAjustes = () => { soltarTodo(); hoja.classList.remove('oculto'); };
+  const cerrarAjustes = () => hoja.classList.add('oculto');
+  $('#bAjustes').addEventListener('click', abrirAjustes);
+  $('#bCerrarAjustes').addEventListener('click', cerrarAjustes);
+  hoja.addEventListener('click', (e) => { if (e.target === hoja) cerrarAjustes(); });
+  hoja.querySelectorAll('[data-grupo="piel"] .op').forEach((b) => b.addEventListener('click', () => {
+    ponerPiel(b.dataset.v); guardar('mc.piel', piel);
+  }));
+  hoja.querySelectorAll('[data-grupo="modo"] .op').forEach((b) => b.addEventListener('click', () => {
+    modo = b.dataset.v; guardar('mc.modo', modo); aplicarModo();
+  }));
+  ponerPiel(piel);
 
   // Atajos de la fila central según la escena (las mismas teclas que ya entiende el juego).
   const CONTEXTO = {
@@ -76,11 +93,26 @@
   let contextoPintado = '';
   function pintarContexto() {
     const lista = CONTEXTO[escena?.clave] ?? [['1', '1'], ['2', '2'], ['3', '3'], ['4', '4'], ['m', 'sonido']];
-    const firma = JSON.stringify(lista) + EN;
+    const principal = escena?.principal ?? null;
+    const firma = JSON.stringify([lista, principal]) + EN;
     if (firma === contextoPintado) return;
     contextoPintado = firma;
     const c = $('#contexto');
+    // Si el dedo estaba sobre un atajo que se va a borrar, se suelta antes (no queda una tecla presionada) y ese dedo
+    // queda «estacionado» hasta que se levante: si no, el botón nuevo que aparece bajo el dedo se activaría solo (una
+    // pulsación larga podía encadenar «Siguiente» → «¡Entendido!» → «Gastar 1 ticket»).
+    for (const [id, el] of dedos) if (el && c.contains(el)) { dedos.set(id, null); estacionados.add(id); }
+    recalcular();
     c.innerHTML = '';
+    // Botón principal de la escena (el «⏎» del juego, p. ej. «Gastar 1 ticket y probar»), con el texto del juego.
+    if (principal) {
+      const b = document.createElement('div');
+      b.className = `btn atajo principal${principal.habilitado ? '' : ' apagado'}`;
+      b.dataset.accion = 'principal';
+      b.innerHTML = '<span class="ico">▶</span><span class="txt"></span>';
+      b.lastChild.textContent = principal.texto;
+      c.append(b);
+    }
     for (const [k, etiqueta] of lista) {
       const b = document.createElement('div');
       b.className = 'btn atajo';
@@ -106,6 +138,7 @@
   // Cada dedo apunta a un botón; si el dedo se desliza a otro botón, cambia de tecla (como un control físico).
   const dedos = new Map(); // pointerId → elemento
   const activas = new Map(); // tecla → elemento
+  const estacionados = new Set(); // dedos cuyo botón desapareció: no toman otro hasta levantarse
   const cruz = $('.cruz');
   const FLECHAS = { ArrowRight: 0, ArrowDown: 90, ArrowLeft: 180, ArrowUp: 270 };
   // La cruceta es UNA zona (como un control físico): la dirección sale del ángulo del dedo respecto al centro, así que
@@ -126,25 +159,32 @@
     return cruz.querySelector(`[data-k="${elegida}"]`);
   }
   function botonEn(x, y, previa = null) {
-    const el = document.elementFromPoint(x, y)?.closest('[data-k]');
-    const directo = el && pad.contains(el) ? el : null;
+    const el = document.elementFromPoint(x, y)?.closest('[data-k], [data-accion]');
+    // Un botón apagado (p. ej. «Sin tickets») no hace nada, igual que en el juego.
+    const directo = el && pad.contains(el) && !el.classList.contains('apagado') ? el : null;
     // Un botón de otra zona (atajos, OK) gana sobre el margen de la cruceta.
     if (directo && !cruz.contains(directo)) return directo;
     const f = flechaEn(x, y, previa && cruz.contains(previa) ? previa : null);
     return f === undefined ? directo : f;
   }
+  // Un botón manda una tecla (data-k: abajo al tocar, arriba al soltar) o una acción (data-accion: una vez al tocar).
+  const idDe = (el) => el.dataset.k ?? `accion:${el.dataset.accion}`;
   function recalcular() {
     const quiero = new Map();
-    for (const el of dedos.values()) if (el) quiero.set(el.dataset.k, el);
+    for (const el of dedos.values()) if (el) quiero.set(idDe(el), el);
     for (const [k, el] of activas) {
-      if (!quiero.has(k)) { activas.delete(k); el.classList.remove('on'); mandar({ t: 'k', k, d: 0 }); }
+      if (quiero.has(k)) continue;
+      activas.delete(k);
+      el.classList.remove('on');
+      if (el.dataset.k) mandar({ t: 'k', k, d: 0 });
     }
     for (const [k, el] of quiero) {
       if (!activas.has(k)) {
         activas.set(k, el);
         el.classList.add('on');
         vibrar();
-        mandar({ t: 'k', k, d: 1, r: el.dataset.r === '1' ? 1 : 0 });
+        if (el.dataset.k) mandar({ t: 'k', k, d: 1, r: el.dataset.r === '1' ? 1 : 0 });
+        else mandar({ t: 'accion', a: el.dataset.accion });
       }
     }
   }
@@ -156,6 +196,7 @@
   }
   function soltarTodo() {
     dedos.clear();
+    estacionados.clear();
     for (const el of activas.values()) el.classList.remove('on');
     activas.clear();
     mandar({ t: 'soltar' });
@@ -172,17 +213,18 @@
   // Mover y soltar se escuchan en toda la ventana: si el dedo sale del control (a la barra o al borde) y se suelta
   // ahí, el pointerup no llega a #pad. Antes la tecla se quedaba presionada y ese botón dejaba de responder.
   window.addEventListener('pointermove', (e) => {
-    if (!dedos.has(e.pointerId)) return;
+    if (!dedos.has(e.pointerId) || estacionados.has(e.pointerId)) return;
     const el = botonEn(e.clientX, e.clientY, dedos.get(e.pointerId));
     luz(el, e);
     if (el !== dedos.get(e.pointerId)) { dedos.set(e.pointerId, el); recalcular(); }
   });
-  const fin = (e) => { if (dedos.delete(e.pointerId)) recalcular(); };
+  const fin = (e) => { estacionados.delete(e.pointerId); if (dedos.delete(e.pointerId)) recalcular(); };
   window.addEventListener('pointerup', fin);
   window.addEventListener('pointercancel', fin);
   // Respaldo: si un navegador pierde un pointerup, al no quedar ningún dedo en la pantalla se suelta todo.
-  window.addEventListener('touchend', (e) => { if (!e.touches.length && dedos.size) { dedos.clear(); recalcular(); } });
-  window.addEventListener('touchcancel', (e) => { if (!e.touches.length && dedos.size) { dedos.clear(); recalcular(); } });
+  const sinDedos = (e) => { if (e.touches.length) return; estacionados.clear(); if (dedos.size) { dedos.clear(); recalcular(); } };
+  window.addEventListener('touchend', sinDedos);
+  window.addEventListener('touchcancel', sinDedos);
   // iOS: sin lupa, sin menú de pulsación larga, sin zoom con dos dedos.
   pad.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
   document.addEventListener('gesturestart', (e) => e.preventDefault());

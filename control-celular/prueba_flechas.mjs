@@ -3,6 +3,7 @@
 // y desliza el dedo en círculo (debe cambiar de flecha sin parpadear). Luego repite en el Expediente.
 //   (relay + juego corriendo) node prueba_flechas.mjs     · PIEL=glass para la otra piel
 import { chromium } from 'playwright-core';
+import { puenteDePrueba } from './prueba_comun.mjs';
 
 const NAVEGADOR = process.env.NAVEGADOR ?? 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
 const JUEGO = process.env.JUEGO ?? 'http://localhost:5174/?lang=es';
@@ -20,7 +21,11 @@ await compu.addInitScript(() => {
   window.__k = [];
   window.addEventListener('keydown', (e) => window.__k.push(e.repeat ? 'repetida' : e.key), true);
 });
-await compu.goto(JUEGO);
+await puenteDePrueba(compu, RELAY);
+// Los tutoriales del Taller y de la Prueba (primera visita) se dan por vistos, como en la e2e del juego: aquí se prueba el
+// control. (Con el celular se pasan igual: en el Taller con OK/Atrás; en la Prueba, Acelerar avanza y Pausa los salta.)
+await compu.addInitScript(() => { try { for (const k of ['taller', 'prueba']) localStorage.setItem(`marsception.tutorial_${k}.visto`, '1'); } catch {} });
+await compu.goto(JUEGO, { waitUntil: 'domcontentloaded' });
 await compu.waitForFunction(() => window.__controlCelular?.escena?.()?.clave === 'Menu', null, { timeout: 30000 });
 await esperar(4000);
 

@@ -6,6 +6,7 @@
 // con eventos táctiles reales (CDP). Guarda capturas en ./capturas.
 import { mkdirSync } from 'node:fs';
 import { chromium } from 'playwright-core';
+import { puenteDePrueba } from './prueba_comun.mjs';
 
 const NAVEGADOR = process.env.NAVEGADOR ?? 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe';
 const JUEGO = process.env.JUEGO ?? 'http://localhost:5174/?lang=es';
@@ -29,7 +30,11 @@ await compu.addInitScript(() => {
   window.__teclas = [];
   window.addEventListener('keydown', (e) => window.__teclas.push(`${e.key}/${e.keyCode}`), true);
 });
-await compu.goto(JUEGO);
+await puenteDePrueba(compu, RELAY);
+// Los tutoriales del Taller y de la Prueba (primera visita) se dan por vistos, como en la e2e del juego: aquí se prueba el
+// control. (Con el celular se pasan igual: en el Taller con OK/Atrás; en la Prueba, Acelerar avanza y Pausa los salta.)
+await compu.addInitScript(() => { try { for (const k of ['taller', 'prueba']) localStorage.setItem(`marsception.tutorial_${k}.visto`, '1'); } catch {} });
+await compu.goto(JUEGO, { waitUntil: 'domcontentloaded' });
 await compu.waitForFunction(() => window.__controlCelular?.juego?.(), null, { timeout: 30000 });
 paso(true, 'puente cargado y juego enganchado');
 const escena = () => compu.evaluate(() => window.__controlCelular.escena());
