@@ -7,7 +7,7 @@
   "estado": "candidato_modelo",
   "destino_ref": "polo_sur_lunar",
   "prueba_util": null,
-  "uso_exploracion": "Análogo operativo, no geológico: probar navegación y movilidad de rovers en paredes empinadas, excavación (ISRU) y operación con sombra en el fondo del tajo",
+  "uso_exploracion": "Análogo operativo, no geológico: probar navegación y movilidad de rovers en paredes empinadas, excavación (ISRU) y operación con sombra en el fondo del tajo. La analogía se rompe por exceso de profundidad, sobre todo en el fondo: su d/D (0.111) supera al 91 % de los 3,418 cráteres lunares de diámetro parecido (mitad a doble) medidos a 200 m.",
   "proceso": "Probable tajo minero a cielo abierto (cantera de OpenStreetMap a ≤ 2 km; por verificar)",
   "novedoso": null,
   "variables": {
@@ -107,5 +107,5 @@
     "exageracion_vertical": null,
     "obstaculos": []
   },
-  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Polo sur (85-90°S) (Luna), 0.93 km, 103 m, d/D 0.111, en -86.986, -36.073. Etiqueta de IA: mina_o_cantera, confianza 0.60 (claude -p sobre Sentinel-2 y relieve; 29 de 33 aciertos en la validación, ciencia_datos/etiquetado_ia). novedoso: null (confianza de la IA 0.60 < 0.7; no verificado como cráter)."
+  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Polo sur (85-90°S) (Luna), 0.93 km, 103 m, d/D 0.111, en -86.986, -36.073. Categoría: tajo minero (cantera de OpenStreetMap a ≤ 2 km; etiqueta de IA mina_o_cantera, confianza 0.60). Análogo operativo de pendientes extremas, no geológico. La analogía se rompe por exceso de profundidad, sobre todo en el fondo: su d/D (0.111) supera al 91 % de los 3,418 cráteres lunares de diámetro parecido (mitad a doble) medidos a 200 m (ciencia_datos/salidas/lista_corta.md). novedoso se refiere a data/known_analogs.json, no a un hallazgo geológico. Etiqueta de IA: mina_o_cantera, confianza 0.60 (claude -p sobre Sentinel-2 y relieve; 29 de 33 aciertos en la validación, ciencia_datos/etiquetado_ia). novedoso: null (confianza de la IA 0.60 < 0.7; no verificado como cráter)."
 }

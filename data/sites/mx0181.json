@@ -105,5 +105,5 @@
     "exageracion_vertical": null,
     "obstaculos": []
   },
-  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Cráter Jezero (Marte), 2.47 km, 31 m, d/D 0.013. Etiqueta de IA: no_se_puede_decir, confianza 0.40 (claude -p sobre Sentinel-2 y relieve; 29 de 33 aciertos en la validación, ciencia_datos/etiquetado_ia). novedoso: null (tipo según IA: no se puede decir; no verificado como cráter)."
+  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Cráter Jezero (Marte), 2.47 km, 31 m, d/D 0.013. Categoría: sin verificar; la etiqueta no está verificada (la IA dice no_se_puede_decir con confianza 0.40 (< 0.7)): no se sabe si es un cráter, una presa, un valle o una duna. El puntaje de forma no lo decide (model/VALIDATION.md). Etiqueta de IA: no_se_puede_decir, confianza 0.40 (claude -p sobre Sentinel-2 y relieve; 29 de 33 aciertos en la validación, ciencia_datos/etiquetado_ia). novedoso: null (tipo según IA: no se puede decir; no verificado como cráter)."
 }

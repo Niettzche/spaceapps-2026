@@ -108,5 +108,5 @@
     "exageracion_vertical": null,
     "obstaculos": []
   },
-  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Anillo 80-85°S (Luna), 0.75 km, 100 m, d/D 0.134, en -83.615, 100.565. novedoso: false; a 0 km de un análogo conocido de data/known_analogs.json (Colton Crater (Crater 160), campo volcánico de San Francisco (Arizona, EE. UU.)). Etiqueta de IA: crater_volcanico, confianza 0.80 (claude -p sobre Sentinel-2 y relieve; 29 de 33 aciertos en la validación, ciencia_datos/etiquetado_ia)."
+  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Anillo 80-85°S (Luna), 0.75 km, 100 m, d/D 0.134, en -83.615, 100.565. novedoso: false; a 0 km de un análogo conocido de data/known_analogs.json (Colton Crater (Crater 160), campo volcánico de San Francisco (Arizona, EE. UU.)). Categoría: cráter natural verificado (etiqueta de IA crater_volcanico, confianza 0.80). El puntaje describe qué tan lunar o marciana es su forma; no decide qué es (model/VALIDATION.md). Etiqueta de IA: crater_volcanico, confianza 0.80 (claude -p sobre Sentinel-2 y relieve; 29 de 33 aciertos en la validación, ciencia_datos/etiquetado_ia)."
 }

@@ -7,7 +7,7 @@
   "estado": "candidato_modelo",
   "destino_ref": "polo_sur_lunar",
   "prueba_util": null,
-  "uso_exploracion": "Candidato a verificar en campo: navegación y movilidad dentro de una depresión tipo cráter",
+  "uso_exploracion": "Candidato a verificar en campo: navegación y movilidad dentro de una depresión tipo cráter. La analogía se rompe por exceso de profundidad, sobre todo en el fondo: su d/D (0.124) supera al 94 % de los 3,321 cráteres lunares de diámetro parecido (mitad a doble) medidos a 200 m.",
   "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
   "novedoso": true,
   "variables": {
@@ -107,5 +107,5 @@
     "exageracion_vertical": null,
     "obstaculos": []
   },
-  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Anillo 80-85°S (Luna), 0.87 km, 107 m, d/D 0.122, en -80.588, -81.348. Etiqueta de IA: mina_o_cantera, confianza 0.85 (claude -p sobre Sentinel-2 y relieve; 29 de 33 aciertos en la validación, ciencia_datos/etiquetado_ia)."
+  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Anillo 80-85°S (Luna), 0.87 km, 107 m, d/D 0.122, en -80.588, -81.348. Categoría: tajo minero (etiqueta de IA mina_o_cantera, confianza 0.85). Análogo operativo de pendientes extremas, no geológico. La analogía se rompe por exceso de profundidad, sobre todo en el fondo: su d/D (0.124) supera al 94 % de los 3,321 cráteres lunares de diámetro parecido (mitad a doble) medidos a 200 m (ciencia_datos/salidas/lista_corta.md). novedoso se refiere a data/known_analogs.json, no a un hallazgo geológico. Etiqueta de IA: mina_o_cantera, confianza 0.85 (claude -p sobre Sentinel-2 y relieve; 29 de 33 aciertos en la validación, ciencia_datos/etiquetado_ia)."
 }

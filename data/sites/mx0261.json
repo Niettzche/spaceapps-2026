@@ -107,5 +107,5 @@
     "exageracion_vertical": null,
     "obstaculos": []
   },
-  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Polo sur (85-90°S) (Luna), 1.37 km, 104 m, d/D 0.075, en -85.26, 13.401. novedoso: false; a 0 km de un análogo conocido de data/known_analogs.json (Maar Rincón de Parangueo (Valle de Santiago, Guanajuato, México)). Etiqueta de IA: crater_volcanico, confianza 0.70 (claude -p sobre Sentinel-2 y relieve; 29 de 33 aciertos en la validación, ciencia_datos/etiquetado_ia)."
+  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Polo sur (85-90°S) (Luna), 1.37 km, 104 m, d/D 0.075, en -85.26, 13.401. novedoso: false; a 0 km de un análogo conocido de data/known_analogs.json (Maar Rincón de Parangueo (Valle de Santiago, Guanajuato, México)). Categoría: cráter natural verificado (catálogo de cráteres conocidos de México (ciencia_datos/datos/crateres_conocidos_mx.csv)). El puntaje describe qué tan lunar o marciana es su forma; no decide qué es (model/VALIDATION.md). Etiqueta de IA: crater_volcanico, confianza 0.70 (claude -p sobre Sentinel-2 y relieve; 29 de 33 aciertos en la validación, ciencia_datos/etiquetado_ia)."
 }

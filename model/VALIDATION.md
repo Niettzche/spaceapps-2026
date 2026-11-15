@@ -4,9 +4,9 @@ Generado por `model/validate.py` el 2026-11-14. Pesos (P): forma 0.4, oscilacion
 
 Ojo: `oscilacion_termica` vale entre 0.20 y 0.33 en todos los sitios (mediana 0.28), porque los dos destinos (Luna 176 K, Jezero 55 K) superan el máximo terrestre de 40 K y se recortan ahí. Es una dimensión que la Tierra no alcanza: rebaja todos los totales casi por igual y no ordena sitios. No se cambia el peso antes de la entrega (`model/NIVEL2.md` §C).
 
-## A. Comparador de variables (dimensiones complementarias)
+## A. Prefiltro ambiental (dimensiones complementarias)
 
-En estos puntos no hay un cráter medido, así que la forma no aplica: la similitud usa clima (NASA POWER), vegetación (MODIS) y pendiente (Copernicus DEM a 200 m), y la confianza baja en consecuencia.
+Las dimensiones complementarias funcionan como un **prefiltro ambiental**: dicen si un punto es árido, sin vegetación y de relieve comparable. **Descartan pero no ordenan.** En estos puntos no hay un cráter medido, así que la forma no aplica: la similitud usa clima (NASA POWER), vegetación (MODIS) y pendiente (Copernicus DEM a 200 m), y la confianza baja en consecuencia.
 
 ### Controles negativos: 3 de 3 pasan
 
@@ -42,7 +42,20 @@ En estos puntos no hay un cráter medido, así que la forma no aplica: la simili
 | Maar Rincón de Parangueo (Valle de Santiago, Guanajuato, México) | 15.3 | 1.98 | 0.187 | 3.09 | 0.249 | 0.32 | no | no |
 | Colton Crater (Crater 160), campo volcánico de San Francisco (Arizona, EE. UU.) | 14.2 | 1.02 | 0.225 | 5.4 | 0.334 | 0.358 | no | no |
 
-**Lectura.** El comparador complementario mide clima árido, suelo desnudo y relieve suave. Pasan los análogos elegidos por eso mismo (desiertos hiperáridos, dunas, cráteres en zonas secas). No pasan los que son análogos por otra razón que estas variables no ven: frío polar, lava en clima húmedo, química del agua (Río Tinto), microbialitos y cenotes, cuevas, o estructuras sepultadas. Que no pasen es esperable y marca el alcance del comparador: no reemplaza a la forma ni a la composición. No pasan: Valles Secos de McMurdo, Wright Valley (Antártida), Islandia, campo de lava Holuhraun, Hawái, cima del Mauna Kea, Río Tinto, Peña de Hierro, sondeo BH-10 del proyecto IPBSL (Huelva, España), Meteor Crater (Arizona, EE. UU.), Laguna de Alchichica (Puebla, México), maar con microbialitos, Cuatro Ciénegas (Coahuila, México), Cueva de Villa Luz / Cueva del Azufre (Tabasco, México), Cráter de Chicxulub (Yucatán, México), sepultado, Cenote El Zacatón (Tamaulipas, México), Maar Rincón de Parangueo (Valle de Santiago, Guanajuato, México), Colton Crater (Crater 160), campo volcánico de San Francisco (Arizona, EE. UU.).
+**Lectura.** El prefiltro ambiental mide clima árido, suelo desnudo y relieve suave. Pasan los análogos elegidos por eso mismo (desiertos hiperáridos, dunas, cráteres en zonas secas). No pasan los que son análogos por otra razón que estas variables no ven: frío polar, lava en clima húmedo, química del agua (Río Tinto), microbialitos y cenotes, cuevas, o estructuras sepultadas. Que no pasen es esperable y marca el alcance del prefiltro: no reemplaza a la forma ni a la composición. No pasan: Valles Secos de McMurdo, Wright Valley (Antártida), Islandia, campo de lava Holuhraun, Hawái, cima del Mauna Kea, Río Tinto, Peña de Hierro, sondeo BH-10 del proyecto IPBSL (Huelva, España), Meteor Crater (Arizona, EE. UU.), Laguna de Alchichica (Puebla, México), maar con microbialitos, Cuatro Ciénegas (Coahuila, México), Cueva de Villa Luz / Cueva del Azufre (Tabasco, México), Cráter de Chicxulub (Yucatán, México), sepultado, Cenote El Zacatón (Tamaulipas, México), Maar Rincón de Parangueo (Valle de Santiago, Guanajuato, México), Colton Crater (Crater 160), campo volcánico de San Francisco (Arizona, EE. UU.).
+
+**Umbral del explorador libre** (POST /score; un punto libre no tiene cráter medido, así que la forma no entra). El total más alto de un análogo conocido es 0.556: con el umbral provisional de 0.6 (AGENTS.md §6.4) nadie puede proponer un sitio. Hiperáridos = Yungay, Death Valley, Mojave, Gran Desierto de Altar y la Mars Desert Research Station.
+
+| umbral | conocidos polo_sur_lunar | hiperáridos polo_sur_lunar | conocidos jezero | hiperáridos jezero | controles negativos |
+|---|---|---|---|---|---|
+| 0.6 | 0 de 21 | 0 de 5 | 0 de 21 | 0 de 5 | 0 de 3 |
+| 0.5 | 0 de 21 | 0 de 5 | 2 de 21 | 2 de 5 | 0 de 3 |
+| 0.45 | 1 de 21 | 1 de 5 | 7 de 21 | 5 de 5 | 0 de 3 |
+| 0.4 | 2 de 21 | 2 de 5 | 9 de 21 | 5 de 5 | 0 de 3 |
+
+Con 0.4 (el mismo umbral que usa esta validación para decir que un análogo conocido pasa) los cinco hiperáridos pasan frente a Jezero y ningún control negativo pasa. Frente al polo sur lunar los totales son más bajos (la oscilación térmica de 176 K está más lejos del máximo terrestre), así que pasan menos. `api/main.py` usa 0.4 (P); como el prefiltro no ordena sitios áridos, una propuesta que lo pasa queda `propuesto_usuario`, pendiente de revisión, no validada.
+
+**Tasa del prefiltro en los sitios del detector.** De los 57 sitios de `data/sites` con un cráter medido (todos de zonas áridas, NDVI p90 < 0.35), 0 quedan vetados y el 58% da 0.4 o más sin la forma (mediana 0.41, percentiles 10–90: 0.32–0.51, máximo 0.60). Es decir: casi todo lo árido pasa y queda en una franja estrecha. El prefiltro **descarta** (selvas, cultivos, nieve) pero **no ordena** sitios áridos entre sí; lo que dice qué es cada sitio es la etiqueta verificada (sección B).
 
 ## B. Forma (dimensión principal)
 
@@ -64,6 +77,15 @@ Modelo: regresión logística Luna contra Marte con 4,288 cráteres lunares y 57
 | Talemzane | 1.37 | 0.0199 | 0.205 | 3.37 | sí |
 
 **Detector frente a cráteres volcánicos conocidos de México** (`ciencia_datos/datos/crateres_conocidos_mx.csv`, 70 cráteres con fuente, 66 con coordenadas): de 62 en el rango del detector (0.6–10 km o sin diámetro), encuentra el 40% y el 32% pasa el filtro tipo cráter. No detectados: 15 con lago (el DEM ve el espejo de agua), 3 menores de 0.6 km y 22 por otras razones (islas, coordenadas desplazadas, poca profundidad). Mismo cotejo que `ciencia_datos/03_etiquetas_por_fuentes.ipynb` (radio de 2.5 km; una depresión cuenta una sola vez).
+
+**Exactitud con cráteres de 2 km o más** (respuesta a la objeción del instrumento). Misma validación que `ciencia_datos/03` (celda 10): regresión logística balanceada, `StratifiedGroupKFold(5)` con grupos espaciales de 250 × 250 píxeles (50 × 50 km) por sitio, 10 repeticiones; aquí solo se filtra por diámetro. Con todos los tamaños da 77.6% ± 0.2%; con D ≥ 2 km, 77.6% ± 0.7%. La separación Luna contra Marte se mantiene en los cráteres grandes, donde la resolución de MOLA pesa menos; con d/D sola baja, porque en los grandes el diámetro y el borde aportan más.
+
+| cráteres | variables | n Luna | n Marte | exactitud balanceada | acierto Luna | acierto Marte |
+|---|---|---|---|---|---|---|
+| todos los tamaños | 3 variables | 4288 | 573 | 77.6% ± 0.2% | 73% | 82% |
+| todos los tamaños | solo d/D | 4288 | 573 | 75.8% ± 0.1% | 68% | 83% |
+| D ≥ 2 km | 3 variables | 788 | 125 | 77.6% ± 0.7% | 72% | 83% |
+| D ≥ 2 km | solo d/D | 788 | 125 | 71.0% ± 0.3% | 57% | 85% |
 
 ### ¿La forma distingue un cráter de otra depresión cerrada?
 
