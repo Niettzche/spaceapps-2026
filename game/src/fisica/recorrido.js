@@ -6,14 +6,15 @@ import { superficieEn, alturaEn, PLANO_FINAL_M } from './perfil.js';
 import { Robot } from './robot.js';
 import { Controles } from './controles.js';
 import { Hud } from './hud.js';
-import { notaSuelo } from './suelos.js';
+import { notaSuelo, nombreSuperficie } from './suelos.js';
 import { Telemetria, construirResultado } from './telemetria.js';
 import { Efectos } from './efectos.js';
 import { Sonido } from './sonido.js';
 import { Decoracion } from './decoracion.js';
 import { tr } from '../i18n.js';
 import { AspectoRobot, crearFondo, claveDeFondo, sprite, tira, hayArte } from './aspecto.js';
-import { ambienteDe, resumenAmbiente, efectosAmbiente, notaAmbiente } from './ambiente.js';
+import { ambienteDe, notaAmbiente, factorFrio } from './ambiente.js';
+import * as K from '../scenes/comun/pixel.js'; // botón de arte (Abandonar)
 import { generarObstaculos, crearObstaculos, factorAgarreEn, notaObstaculos } from './obstaculos.js';
 
 const FONDO = { tierra: '#7f9fbf', marte: '#b98a6a', luna: '#05060b' }; // color si no hay fondo de arte (fisica/aspecto.js)
@@ -97,26 +98,41 @@ export class Recorrido {
     const avisoNivel = [`${o.perfil.ilustrativo ? '⚠ ' : ''}${o.perfil.nota}${notaObs ? ` · ${notaObs}` : ''}`, notaDecor].filter(Boolean).join(' ');
     const avisoSuelo = notaSuelo(o.mundo, o.perfil.superficies);
     const avisoAmbiente = notaAmbiente(this.ambiente);
-    this.hud = new Hud(scene, { titulo: o.titulo, subtitulo: o.subtitulo, aviso: [avisoSuelo && `${avisoSuelo}.`, `${avisoNivel.replace(/\.$/, '')}.`, avisoAmbiente].filter(Boolean).join(' ') });
+    const nombreMundo = tr({ luna: 'la Luna', marte: 'Marte' }[o.mundo] ?? 'el destino', { luna: 'the Moon', marte: 'Mars' }[o.mundo] ?? 'the destination');
+    const pctG = Math.round((o.gravedad / 9.81) * 100);
+    // En la misión, la explicación de la gravedad pasa al panel de datos (I); en las instrucciones queda la keyword.
+    const avisoGravedad = o.modo === 'mision'
+      ? tr(`Gravedad de ${nombreMundo}: ${o.gravedad} m/s² (${pctG} % de la Tierra). Pesas menos: las ruedas empujan con menos fuerza y el robot rebota más.`,
+        `Gravity on ${nombreMundo}: ${o.gravedad} m/s² (${pctG} % of Earth's). Less weight: the wheels push with less force and the robot bounces more.`)
+      : null;
+    // Nota corta del HUD (DISENO.md §3): «Suelo: arena · I datos». El texto completo va en el panel de la tecla I.
+    const tipos = [...new Set((o.perfil.superficies ?? []).map((x) => x.tipo))].map(nombreSuperficie).join(', ');
+    const notaCorta = tipos ? `${tr('Suelo', 'Soil')}: ${tipos}` : null;
+    this.hud = new Hud(scene, {
+      titulo: o.titulo, subtitulo: o.subtitulo, nota: notaCorta,
+      aviso: [avisoGravedad, avisoSuelo && `${avisoSuelo}.`, `${avisoNivel.replace(/\.$/, '')}.`, avisoAmbiente].filter(Boolean).join(' '),
+    });
     this._botonAbandonar();
-    // Instrucciones al empezar: objetivo + controles (teclado y táctil). Esc abandona.
-    const controles = tr('→ / D acelerar   ← / A frenar   (táctil: ▶ ◀)   Esc pausa', '→ / D accelerate   ← / A brake   (touch: ▶ ◀)   Esc pause');
-    const efectos = efectosAmbiente(this.ambiente);
-    const ambiente = [resumenAmbiente(this.ambiente), efectos && `(P) ${efectos}`].filter(Boolean);
-    if (o.modo === 'prueba') this.hud.instrucciones(tr('Prueba en la Tierra: llega a la META con la carga', 'Earth test: reach the FINISH with the payload'), [...ambiente, controles]);
-    else {
+    // Instrucciones al empezar: título + 3 keywords con ícono (objetivo · regla clave del lugar · controles). Esc pausa.
+    const frio = this.ambiente ? factorFrio(this.ambiente.temperatura_min_C) : 1;
+    const bateriaFria = frio < 0.95 ? tr(` · batería fría ${Math.round(frio * 100)} %`, ` · cold battery ${Math.round(frio * 100)} %`) : '';
+    const controles = { texto: tr('→/D acelerar · ←/A frenar · Esc pausa', '→/D accelerate · ←/A brake · Esc pause'), icono: 'ui/ui_boton_der', escala: 1, respaldo: '▶' };
+    const pista = tr('I · datos del ambiente y fuentes · táctil: ◀ ▶', 'I · environment data and sources · touch: ◀ ▶');
+    if (o.modo === 'prueba') {
+      this.hud.instrucciones(tr('Prueba en la Tierra', 'Earth test'), [
+        { texto: tr('Llega a la META con la carga', 'Reach the FINISH with the payload'), icono: 'ui/ui_icono_carga', escala: 3, respaldo: '⚑' },
+        { texto: `${notaCorta ?? tr('Suelo sin dato', 'Soil: no data')}${bateriaFria}`, icono: 'iconos/ico_suelo', respaldo: '≈' },
+        controles,
+      ], pista);
+    } else {
       // Llegada al destino: fundido desde negro y el cambio de mundo explicado con el dato de gravedad.
       scene.cameras.main.fadeIn(900, 0, 0, 0);
-      const nombreMundo = tr({ luna: 'la Luna', marte: 'Marte' }[o.mundo] ?? 'el destino', { luna: 'the Moon', marte: 'Mars' }[o.mundo] ?? 'the destination');
-      const pct = Math.round((o.gravedad / 9.81) * 100);
       const minimo = Math.round(o.umbralIntegridad * 100);
-      this.hud.instrucciones(tr(`Llegada a ${nombreMundo} · gravedad ${o.gravedad} m/s² (${pct} % de la Tierra)`,
-        `Arrival on ${nombreMundo} · gravity ${o.gravedad} m/s² (${pct} % of Earth's)`), [
-        tr('Pesas menos: las ruedas empujan con menos fuerza y el robot rebota más', 'Less weight: the wheels push with less force and the robot bounces more'),
-        tr(`Frena y detente 2 s dentro de la ZONA DE ENTREGA con la carga ≥ ${minimo} %`, `Brake and stay still 2 s inside the DELIVERY ZONE with payload ≥ ${minimo} %`),
-        ...ambiente,
+      this.hud.instrucciones(tr(`Llegada a ${nombreMundo}`, `Arrival on ${nombreMundo}`), [
+        { texto: tr(`Detente 2 s en la ZONA DE ENTREGA · carga ≥ ${minimo} %`, `Stop 2 s in the DELIVERY ZONE · payload ≥ ${minimo} %`), icono: 'ui/ui_icono_carga', escala: 3, respaldo: '⚑' },
+        { texto: tr(`Gravedad ${o.gravedad} m/s² (${pctG} %): rebota más${bateriaFria}`, `Gravity ${o.gravedad} m/s² (${pctG} %): more bounce${bateriaFria}`), icono: 'iconos/ico_gravedad', respaldo: '↓' },
         controles,
-      ]);
+      ], pista);
     }
     // Esc pausa (un toque accidental ya no abandona la partida). En la pausa: Esc/Enter continúa, X abandona.
     scene.input.keyboard.on('keydown-ESC', () => (this.pausado ? this.reanudar() : this.pausar()));
@@ -157,9 +173,12 @@ export class Recorrido {
   }
 
   _botonAbandonar() {
-    const t = this.scene.add.text(944, 54, tr('[ Abandonar ]', '[ Quit ]'), { fontFamily: 'monospace', fontSize: '12px', color: '#ff9b9b' })
-      .setOrigin(1, 0).setScrollFactor(0).setDepth(95).setInteractive({ useHandCursor: true });
-    t.on('pointerdown', () => this._terminar(false, 'abandono'));
+    // Botón de arte bajo la franja del HUD, a la derecha (antes texto de 12 px junto a la temperatura del motor).
+    const b = K.boton(this.scene, 944, 104, tr('Abandonar', 'Quit'), () => this._terminar(false, 'abandono'),
+      { size: 14, alto: 36, origen: [1, 0], color: '#ff9b9b', sonar: false });
+    K.fijarBoton(b, 95);
+    // El botón de sonido (fisica/sonido.js) va debajo.
+    this.sonido?.boton?.setPosition(944, 104 + b.alto + 22);
   }
 
   superficieDe = (xMundo) => superficieEn(this.o.perfil, (xMundo - this.xMundo(0)) / PX_POR_M);
