@@ -18,6 +18,18 @@
 - Pendiente: `model/VALIDATION.md` (lo genera `model/validate.py` desde data/sites) no se regeneró; sus cuentas de sitios
   no incluyen los 4 nuevos.
 
+## Hecho (pedidos del integrador para el remake del manejo, 15 nov, madrugada)
+- **Nivel ártico:** `pingualuit` (cráter de impacto, Nunavik, Canadá; Marte por la regla 4). El lago del centro se declara
+  como agua (JRC Global Surface Water, 99 de 167 puntos); el juego no tiene agua.
+- **Paredes en roca (regla de superficie v2):** la pendiente > 15° va antes que la arena del suelo. Solo cambian los puntos con
+  arena del suelo ≥ 65 % y pendiente > 15°. Samalayuca, Pinacate y mx0207 quedan idénticos (lo comprueba `analisis/26 --comprobar`).
+  Talemzane sigue en arena: su única pared mide 60 m.
+- **Perfiles de misión** (`analisis/27_perfiles_mision.py` → `ciencia_datos/datos/niveles_mision.json`):
+  - Jezero, frente del delta: ruta real de Perseverance, soles 432–477, CTX DTM a 20 m; 620 m, sube 30 m, máximo 9.5°.
+  - Shackleton, borde iluminado (Bussey 2010): LOLA a 20 m; 4 km, 338 m de relieve, máximo 21.4°.
+  - Alternativa: Connecting Ridge (Gläser 2014).
+  - **No se escribieron en data/targets:** cambiar la misión quita las `VENTANAS_JUEGO` del camino dorado. Lo decide el equipo.
+
 ## Hecho (publicación de la demo, 15 nov, madrugada)
 - **Demo pública: https://v1.marsception.us/**, en inglés con https://v1.marsception.us/?lang=en. Este frente es el
   **único que publica** (pedido del integrador, para que dos sesiones no se pisen).
