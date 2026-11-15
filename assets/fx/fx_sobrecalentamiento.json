@@ -1,0 +1,435 @@
+{
+ "frames": [
+  {
+   "filename": "sobrecalentamiento 0",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 40
+   },
+   "duration": 67
+  },
+  {
+   "filename": "sobrecalentamiento 1",
+   "frame": {
+    "x": 24,
+    "y": 0,
+    "w": 24,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 40
+   },
+   "duration": 67
+  },
+  {
+   "filename": "sobrecalentamiento 2",
+   "frame": {
+    "x": 48,
+    "y": 0,
+    "w": 24,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 40
+   },
+   "duration": 67
+  },
+  {
+   "filename": "sobrecalentamiento 3",
+   "frame": {
+    "x": 72,
+    "y": 0,
+    "w": 24,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 40
+   },
+   "duration": 67
+  },
+  {
+   "filename": "sobrecalentamiento 4",
+   "frame": {
+    "x": 96,
+    "y": 0,
+    "w": 24,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 40
+   },
+   "duration": 67
+  },
+  {
+   "filename": "sobrecalentamiento 5",
+   "frame": {
+    "x": 120,
+    "y": 0,
+    "w": 24,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 40
+   },
+   "duration": 67
+  },
+  {
+   "filename": "sobrecalentamiento 6",
+   "frame": {
+    "x": 0,
+    "y": 40,
+    "w": 24,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 40
+   },
+   "duration": 67
+  },
+  {
+   "filename": "sobrecalentamiento 7",
+   "frame": {
+    "x": 24,
+    "y": 40,
+    "w": 24,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 40
+   },
+   "duration": 67
+  },
+  {
+   "filename": "sobrecalentamiento 8",
+   "frame": {
+    "x": 48,
+    "y": 40,
+    "w": 24,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 40
+   },
+   "duration": 67
+  },
+  {
+   "filename": "sobrecalentamiento 9",
+   "frame": {
+    "x": 72,
+    "y": 40,
+    "w": 24,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 40
+   },
+   "duration": 67
+  },
+  {
+   "filename": "sobrecalentamiento 10",
+   "frame": {
+    "x": 96,
+    "y": 40,
+    "w": 24,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 40
+   },
+   "duration": 67
+  },
+  {
+   "filename": "sobrecalentamiento 11",
+   "frame": {
+    "x": 120,
+    "y": 40,
+    "w": 24,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 40
+   },
+   "duration": 67
+  },
+  {
+   "filename": "sobrecalentamiento 12",
+   "frame": {
+    "x": 0,
+    "y": 80,
+    "w": 24,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 40
+   },
+   "duration": 67
+  },
+  {
+   "filename": "sobrecalentamiento 13",
+   "frame": {
+    "x": 24,
+    "y": 80,
+    "w": 24,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 40
+   },
+   "duration": 67
+  },
+  {
+   "filename": "sobrecalentamiento 14",
+   "frame": {
+    "x": 48,
+    "y": 80,
+    "w": 24,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 40
+   },
+   "duration": 67
+  },
+  {
+   "filename": "sobrecalentamiento 15",
+   "frame": {
+    "x": 72,
+    "y": 80,
+    "w": 24,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 40
+   },
+   "duration": 67
+  },
+  {
+   "filename": "sobrecalentamiento 16",
+   "frame": {
+    "x": 96,
+    "y": 80,
+    "w": 24,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 40
+   },
+   "duration": 67
+  },
+  {
+   "filename": "sobrecalentamiento 17",
+   "frame": {
+    "x": 120,
+    "y": 80,
+    "w": 24,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 40
+   },
+   "duration": 67
+  }
+ ],
+ "meta": {
+  "app": "https://github.com/patch-gg/pixelfx",
+  "version": "1",
+  "image": "sobrecalentamiento.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 144,
+   "h": 120
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "sobrecalentamiento",
+    "from": 0,
+    "to": 17,
+    "direction": "forward"
+   }
+  ],
+  "pixelfx": {
+   "id": "marsception/sobrecalentamiento",
+   "name": "Sobrecalentamiento",
+   "fps": 15,
+   "loop": true,
+   "frames": 18,
+   "frameSize": [
+    24,
+    40
+   ],
+   "pivot": [
+    12,
+    20
+   ],
+   "columns": 6
+  }
+ }
+}
