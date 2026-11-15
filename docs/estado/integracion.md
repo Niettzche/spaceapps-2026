@@ -44,3 +44,10 @@ Responsable: Alan · Agente: Codex · Actualización: 2026-11-14
 ## Contratos / decisiones
 - superficies [{desde,hasta,tipo}] y paso_m en data/; geometría de origen puede conservar superficie_tramos. No mezclar sus nombres al exportar al esquema.
 - docs/DECISIONES.md registra fps, convención de gravedad, puntuación (1000 máximo; estrellas 750/900) y despliegue.
+
+## Video y créditos — revisión MARSCEPTION
+- Entrada (0–6 s) y cierre (24–29.9 s) con docs/media/video_entrada_1280x720.png y video_cierre_1280x720.png. Rótulos centrales actualizados a MARSCEPTION; marca visible de asistencia de IA y crédito de Mauricio con Claude.
+- Video explicativo de 29.90 s, H.264 1280×720, 30 fps, sin voz ni música. Se conservan ruta pública y tiempos WebVTT. No es una nueva grabación del camino dorado.
+- Crédito exacto de pixelfx añadido a docs/ENTREGA_EN.md.
+- Verificación: inspección visual de entrada/centro/cierre, decodificación completa del MP4, duración y dimensiones comprobadas, diff --check limpio. Sin cambios a física, piezas ni carpetas de juego.
+- Rama: feat/video-marsception-creditos; pendiente de revisión e integración por PR.

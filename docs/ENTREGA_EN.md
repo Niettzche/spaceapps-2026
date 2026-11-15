@@ -54,6 +54,8 @@ Site records and methodology retain the detailed article, unit, date and limitat
 
 Google Earth Engine, Python, NumPy, pandas, scikit-learn, JSON Schema, React, Vite, MapLibre, Phaser and Matter.js. Git/GitHub for collaboration; FFmpeg for the captioned MP4.
 
+Pixel art effects built with pixelfx (MIT License, © 2026 Patch and Hugo Duprez).
+
 ## AI disclosure · copy to the platform AI field
 
 We used Claude Code and OpenAI Codex to assist software development, debugging, integration, testing and documentation. Mauricio created the MARSCEPTION artwork with Claude; AI assisted its creation and iteration; artwork and effects are presentation assets, not scientific observations or topographic reconstructions.
