@@ -1,4 +1,4 @@
 # Preserve presentation bytes and PDF xref offsets on Windows checkouts.
-docs/media/marsception_slides.pdf -text
-docs/media/marsception_slides.pptx -text
-web/public/media/marsception_slides.pdf -text
+docs/media/marsception_slides.pdf -text -diff
+docs/media/marsception_slides.pptx -text -diff
+web/public/media/marsception_slides.pdf -text -diff
