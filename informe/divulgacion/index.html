@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Marsception · Entrena en la Tierra, aterriza en la Luna o en Marte</title>
-  <meta name="description" content="Un juego en el navegador para probar un rover en lugares reales de la Tierra parecidos a la Luna y a Marte, elegidos con datos abiertos de la NASA. Y la ciencia detrás, explicada en 3D.">
+  <meta name="description" content="Comparamos los cráteres de la Tierra con 4,288 de la Luna y 573 de Marte usando datos abiertos de la NASA. Clasifica un cráter tú mismo y prueba tu rover en esos lugares, en un juego en el navegador.">
   <meta name="color-scheme" content="dark light">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%23F08A4B' stroke-width='3'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23F08A4B'/%3E%3C/svg%3E">
   <script>
@@ -26,7 +26,7 @@
       <span>Marsception</span>
     </a>
     <nav class="indice" aria-label="Secciones" data-t-aria="indiceAria">
-      <a href="#como" data-t="navComo">Cómo se juega</a><a href="#destinos" data-t="navDestinos">Destinos</a><a href="#ciencia" data-t="navCiencia">La ciencia</a><a href="#pruebalo" data-t="navPruebalo">Pruébalo</a><a href="#detalles" data-t="navDetalles">Detalles técnicos</a><a href="#business" data-t="navBiz">For Business</a><a href="#metodo" data-t="navDatos">Datos</a>
+      <a href="#pruebalo" data-t="navPruebalo">Pruébalo</a><a href="#ciencia" data-t="navCiencia">La ciencia</a><a href="#como" data-t="navComo">Cómo se juega</a><a href="#destinos" data-t="navDestinos">Destinos</a><a href="#detalles" data-t="navDetalles">Detalles técnicos</a><a href="#business" data-t="navBiz">For Business</a><a href="#metodo" data-t="navDatos">Datos</a>
     </nav>
     <div class="ajustes">
       <a class="boton boton-chico" href="https://v1.marsception.us/" data-t="navJugar">Jugar</a>
@@ -57,10 +57,10 @@
         <p class="antetitulo inicio-entra" style="--orden:0" data-t="antetitulo">NASA Space Apps Challenge 2026 · Sede UDEM</p>
         <h1 id="t-inicio" class="inicio-logo"><img src="./arte/logo.png" width="191" height="25" alt="Marsception"></h1>
         <p class="inicio-lema" data-t="inicioLema">Entrena en la <b class="c-tierra">Tierra</b>. Aterriza en la <b class="c-luna">Luna</b> / <b class="c-marte">Marte</b>.</p>
-        <p class="inicio-sub inicio-entra" style="--orden:3" data-t="inicioSub">Usamos datos de la NASA para encontrar los lugares de la Tierra que se parecen a la Luna y a Marte. Ahí pruebas tu rover, y luego lo lanzas con la gravedad real.</p>
+        <p class="inicio-sub inicio-entra" style="--orden:3" data-t="inicioSub">Comparamos los cráteres de la Tierra con 4,288 de la Luna y 573 de Marte, medidos con la misma regla y con datos de la NASA. Los que más se parecen son los lugares donde pruebas tu rover antes de lanzarlo.</p>
         <div class="acciones inicio-entra" style="--orden:4">
           <a class="boton boton-grande boton-jugar" href="https://v1.marsception.us/"><span class="parpadeo" aria-hidden="true">▶</span><span data-t="jugarAhora">Jugar ahora</span></a>
-          <a class="boton-fantasma" href="#ciencia"><span data-t="verCiencia">Ver la ciencia</span> <span aria-hidden="true">↓</span></a>
+          <a class="boton-fantasma" href="#pruebalo"><span data-t="verCrater">Clasifica un cráter</span> <span aria-hidden="true">↓</span></a>
         </div>
         <ol class="pasos inicio-pasos" aria-label="Cómo se juega, en cuatro pasos" data-t-aria="pasosAria">
           <li class="inicio-entra" style="--orden:5" data-t="paso1c">Encuentra el análogo</li>
@@ -72,60 +72,14 @@
       </div>
     </section>
 
-    <!-- ───────────── Cómo se juega ───────────── -->
-    <section class="seccion" id="como" aria-labelledby="t-como">
+    <!-- ───────────── Pruébalo: el modelo de forma en el navegador (src/clasificador.js) ───────────── -->
+    <section class="seccion" id="pruebalo" aria-labelledby="t-pruebalo">
       <header class="cap-cabeza">
-        <p class="cap-num revela" data-t="comoAnte">Cómo se juega</p>
-        <h2 id="t-como" class="revela" data-t="comoTitulo">Prueba antes de lanzar</h2>
-        <p class="cap-entrada revela" data-t="comoEntrada">Llevar un rover a la Luna o a Marte cuesta demasiado como para equivocarse allá. Por eso primero se prueba aquí, en lugares de la Tierra que se parecen al destino.</p>
+        <p class="cap-num revela" data-t="pruAnte">Pruébalo tú</p>
+        <h2 id="t-pruebalo" class="revela" data-t="pruTitulo">¿Luna o Marte? Clasifica un cráter</h2>
+        <p class="cap-entrada revela" data-t="pruEntrada">Es el modelo real, el mismo que usa el juego, corriendo en tu navegador. Carga un cráter de verdad o mueve sus tres medidas, y mira de qué lado cae.</p>
       </header>
-      <ol class="pasos-juego">
-        <li class="paso revela">
-          <img class="captura" src="./arte/juego-expediente.webp" width="960" height="540" alt="" loading="lazy">
-          <div><span class="paso-n">01</span><h3 data-t="paso1t">Elige destino y un análogo</h3><p data-t="paso1">La Luna (polo sur) o Marte (cráter Jezero). Abre el expediente de un sitio de la Tierra: a la izquierda la Tierra, a la derecha el destino, la misma variable con la misma unidad, y lo que ahí no se puede probar.</p></div>
-        </li>
-        <li class="paso revela">
-          <img class="captura" src="./arte/juego-taller.webp" width="960" height="540" alt="" loading="lazy">
-          <div><span class="paso-n">02</span><h3 data-t="paso2t">Arma el rover</h3><p data-t="paso2">En el taller eliges ruedas, motor, chasis, soporte de la carga, batería y panel solar con un presupuesto de 1,000 créditos. Cambiar una pieza o su lugar cambia cómo se comporta el rover.</p></div>
-        </li>
-        <li class="paso revela">
-          <img class="captura" src="./arte/juego-prueba.webp" width="960" height="540" alt="" loading="lazy">
-          <div><span class="paso-n">03</span><h3 data-t="paso3t">Pruébalo en la Tierra</h3><p data-t="paso3">Manejas sobre el relieve real del sitio, medido por satélite. Si patina o pierde la carga, el juego te dice qué pasó y qué cambiar. Tienes tres boletos de prueba.</p></div>
-        </li>
-        <li class="paso revela">
-          <img class="captura" src="./arte/juego-mision.webp" width="960" height="540" alt="" loading="lazy">
-          <div><span class="paso-n">04</span><h3 data-t="paso4t">Lánzalo con la gravedad real</h3><p data-t="paso4">En la misión manda la gravedad del destino. Llega a la base, entrega el suministro con al menos el 60 % de la carga en buen estado y gana hasta tres estrellas.</p></div>
-        </li>
-      </ol>
-      <p class="nota centrada revela" data-t="comoNota">Precios, piezas y puntos son valores de juego: sirven para jugar, no son evidencia científica.</p>
-    </section>
-
-    <!-- ───────────── Destinos ───────────── -->
-    <section class="seccion" id="destinos" aria-labelledby="t-destinos">
-      <header class="cap-cabeza">
-        <p class="cap-num revela" data-t="destAnte">Dos destinos</p>
-        <h2 id="t-destinos" class="revela" data-t="destTitulo">La Luna o Marte: tú eliges</h2>
-      </header>
-      <div class="destinos">
-        <article class="destino revela" data-cuerpo="luna">
-          <img class="pixel" src="./arte/fondo_luna.png" width="320" height="180" alt="" loading="lazy">
-          <div class="destino-texto">
-            <p class="destino-ante"><i></i><span data-t="destLunaAnte">Luna · polo sur</span></p>
-            <h3 data-t="destLunaT">Donde quiere aterrizar Artemis</h3>
-            <p data-t="destLuna">Luz rasante, sombras largas y cráteres hondos. Un buen análogo de forma es El Elegante, un cráter volcánico del Pinacate (Sonora): se parece mucho a los cráteres del polo sur.</p>
-            <dl><div><dt>1.62</dt><dd>m/s²</dd></div><div><dt>176 K</dt><dd data-t="destOsc">oscilación térmica diaria del suelo</dd></div></dl>
-          </div>
-        </article>
-        <article class="destino revela" data-cuerpo="marte">
-          <img class="pixel" src="./arte/fondo_marte.png" width="320" height="180" alt="" loading="lazy">
-          <div class="destino-texto">
-            <p class="destino-ante"><i></i><span data-t="destMarteAnte">Marte · cráter Jezero</span></p>
-            <h3 data-t="destMarteT">Donde explora Perseverance</h3>
-            <p data-t="destMarte">Polvo, dunas y cráteres rellenos por el viento. Las dunas de Samalayuca (Chihuahua) sirven para probar el agarre de las ruedas en arena suelta.</p>
-            <dl><div><dt>3.71</dt><dd>m/s²</dd></div><div><dt>55 K</dt><dd data-t="destOsc2">oscilación térmica diaria del aire</dd></div></dl>
-          </div>
-        </article>
-      </div>
+      <div class="clasif" id="clasificador"><p class="nota" data-t="pruCargando">Cargando el modelo…</p></div>
     </section>
 
     <!-- ═════════════ La ciencia, como infografía de museo (pixel art del juego, se anima al aparecer) ═════════════ -->
@@ -180,36 +134,6 @@
           </div>
           <p class="museo-fuentes" data-t="museoFuentes">Datos: LRO LOLA, MOLA+HRSC, MODIS y NASA POWER (NASA); Copernicus DEM (ESA). Los cortes de El Elegante y Peñasquito son sus perfiles reales (exageración vertical ×2 y ×6). Los cráteres de la Luna y de Marte están dibujados a la escala de su profundidad entre diámetro mediana (×5). Cifras completas en los detalles técnicos.</p>
         </footer>
-      </article>
-    </section>
-
-    <!-- ───────────── Lo que encontramos y lo que aportamos ───────────── -->
-    <section class="museo-sec" data-grupo="ciencia" id="aportes" aria-labelledby="t-aportes">
-      <article class="museo museo-aportes keynote revela">
-        <header class="museo-cabeza">
-          <h2 id="t-aportes" data-t="apTitulo">Lo que encontramos y lo que aportamos</h2>
-        </header>
-        <div class="kn-filas">
-          <section class="kn-fila" aria-labelledby="t-encontramos">
-            <h3 class="kn-rotulo" id="t-encontramos" data-t="apEncT">Lo que encontramos</h3>
-            <ul class="kn-cifras">
-            <li><b class="kn-num c-marte"><span class="kn-valor" data-hasta="14" data-dec="0">14</span><span class="kn-unidad">/25</span></b><span class="kn-pie" data-t="knE1">de los hoyos más parecidos por forma son minas a cielo abierto</span></li>
-            <li><b class="kn-num c-acento"><span class="kn-valor" data-hasta="7" data-dec="0">7</span><span class="kn-unidad">/8</span></b><span class="kn-pie" data-t="knE2">cráteres de impacto que la regla nunca había visto tienen borde</span></li>
-            <li><b class="kn-num c-luna"><span class="kn-unidad">≥</span><span class="kn-valor" data-hasta="2" data-dec="0">2</span><span class="kn-unidad">km</span></b><span class="kn-pie" data-t="knE3">en esos cráteres, Marte es más plano de verdad: no es el instrumento</span></li>
-            <li><b class="kn-num c-tierra"><span class="kn-valor" data-hasta="0.97" data-dec="2">0.97</span></b><span class="kn-pie" data-t="knE4">de parecido en forma entre El Pinacate y el polo sur lunar</span></li>
-            </ul>
-          </section>
-          <section class="kn-fila" aria-labelledby="t-aportamos">
-            <h3 class="kn-rotulo" id="t-aportamos" data-t="apAporT">Lo que aportamos</h3>
-            <ul class="kn-cifras">
-            <li><b class="kn-num c-tierra"><span class="kn-valor" data-hasta="200" data-dec="0">200</span><span class="kn-unidad">m</span></b><span class="kn-pie" data-t="knA1">una sola regla para medir la Tierra, la Luna y Marte</span></li>
-            <li><b class="kn-num c-luna"><span class="kn-valor" data-hasta="78" data-dec="0">78</span><span class="kn-unidad">%</span></b><span class="kn-pie" data-t="knA2">de acierto, con un modelo que se lee: tres medidas y una ecuación</span></li>
-            <li><b class="kn-num c-acento"><span class="kn-valor" data-hasta="62" data-dec="0">62</span></b><span class="kn-pie" data-t="knA3">sitios abiertos, cada dato con su fuente, unidad y fecha</span></li>
-            <li><b class="kn-num c-marte"><span class="kn-valor" data-hasta="2" data-dec="0">2</span></b><span class="kn-pie" data-t="knA4">destinos en un juego donde cualquiera puede proponer sitios</span></li>
-            </ul>
-          </section>
-        </div>
-        <p class="museo-fuentes aportes-nota" data-t="apNota">Son candidatos para revisar, no sitios certificados. Cifras, fuentes y límites en los detalles técnicos.</p>
       </article>
     </section>
 
@@ -281,14 +205,90 @@
       </div>
     </section>
 
-    <!-- ───────────── Pruébalo: el modelo de forma en el navegador (src/clasificador.js) ───────────── -->
-    <section class="seccion" id="pruebalo" aria-labelledby="t-pruebalo">
+    <!-- ───────────── Lo que encontramos y lo que aportamos ───────────── -->
+    <section class="museo-sec" data-grupo="ciencia" id="aportes" aria-labelledby="t-aportes">
+      <article class="museo museo-aportes keynote revela">
+        <header class="museo-cabeza">
+          <h2 id="t-aportes" data-t="apTitulo">Lo que encontramos y lo que aportamos</h2>
+        </header>
+        <div class="kn-filas">
+          <section class="kn-fila" aria-labelledby="t-encontramos">
+            <h3 class="kn-rotulo" id="t-encontramos" data-t="apEncT">Lo que encontramos</h3>
+            <ul class="kn-cifras">
+            <li><b class="kn-num c-marte"><span class="kn-valor" data-hasta="14" data-dec="0">14</span><span class="kn-unidad">/25</span></b><span class="kn-pie" data-t="knE1">de los hoyos más parecidos por forma son minas a cielo abierto</span></li>
+            <li><b class="kn-num c-acento"><span class="kn-valor" data-hasta="7" data-dec="0">7</span><span class="kn-unidad">/8</span></b><span class="kn-pie" data-t="knE2">cráteres de impacto que la regla nunca había visto tienen borde</span></li>
+            <li><b class="kn-num c-luna"><span class="kn-unidad">≥</span><span class="kn-valor" data-hasta="2" data-dec="0">2</span><span class="kn-unidad">km</span></b><span class="kn-pie" data-t="knE3">en esos cráteres, Marte es más plano de verdad: no es el instrumento</span></li>
+            <li><b class="kn-num c-tierra"><span class="kn-valor" data-hasta="0.97" data-dec="2">0.97</span></b><span class="kn-pie" data-t="knE4">de parecido en forma entre El Pinacate y el polo sur lunar</span></li>
+            </ul>
+          </section>
+          <section class="kn-fila" aria-labelledby="t-aportamos">
+            <h3 class="kn-rotulo" id="t-aportamos" data-t="apAporT">Lo que aportamos</h3>
+            <ul class="kn-cifras">
+            <li><b class="kn-num c-tierra"><span class="kn-valor" data-hasta="200" data-dec="0">200</span><span class="kn-unidad">m</span></b><span class="kn-pie" data-t="knA1">una sola regla para medir la Tierra, la Luna y Marte</span></li>
+            <li><b class="kn-num c-luna"><span class="kn-valor" data-hasta="78" data-dec="0">78</span><span class="kn-unidad">%</span></b><span class="kn-pie" data-t="knA2">de acierto, con un modelo que se lee: tres medidas y una ecuación</span></li>
+            <li><b class="kn-num c-acento"><span class="kn-valor" data-hasta="62" data-dec="0">62</span></b><span class="kn-pie" data-t="knA3">sitios abiertos, cada dato con su fuente, unidad y fecha</span></li>
+            <li><b class="kn-num c-marte"><span class="kn-valor" data-hasta="2" data-dec="0">2</span></b><span class="kn-pie" data-t="knA4">destinos en un juego donde cualquiera puede proponer sitios</span></li>
+            </ul>
+          </section>
+        </div>
+        <p class="museo-fuentes aportes-nota" data-t="apNota">Son candidatos para revisar, no sitios certificados. Cifras, fuentes y límites en los detalles técnicos.</p>
+      </article>
+    </section>
+
+    <!-- ───────────── Cómo se juega ───────────── -->
+    <section class="seccion" id="como" aria-labelledby="t-como">
       <header class="cap-cabeza">
-        <p class="cap-num revela" data-t="pruAnte">Pruébalo tú</p>
-        <h2 id="t-pruebalo" class="revela" data-t="pruTitulo">¿Luna o Marte? Clasifica un cráter</h2>
-        <p class="cap-entrada revela" data-t="pruEntrada">Es el modelo real, el mismo que usa el juego, corriendo en tu navegador. Carga un cráter de verdad o mueve sus tres medidas, y mira de qué lado cae.</p>
+        <p class="cap-num revela" data-t="comoAnte">Cómo se juega</p>
+        <h2 id="t-como" class="revela" data-t="comoTitulo">Prueba antes de lanzar</h2>
+        <p class="cap-entrada revela" data-t="comoEntrada">Llevar un rover a la Luna o a Marte cuesta demasiado como para equivocarse allá. Por eso primero se prueba aquí, en lugares de la Tierra que se parecen al destino.</p>
       </header>
-      <div class="clasif" id="clasificador"><p class="nota" data-t="pruCargando">Cargando el modelo…</p></div>
+      <ol class="pasos-juego">
+        <li class="paso revela">
+          <img class="captura" src="./arte/juego-expediente.webp" width="960" height="540" alt="" loading="lazy">
+          <div><span class="paso-n">01</span><h3 data-t="paso1t">Elige destino y un análogo</h3><p data-t="paso1">La Luna (polo sur) o Marte (cráter Jezero). Abre el expediente de un sitio de la Tierra: a la izquierda la Tierra, a la derecha el destino, la misma variable con la misma unidad, y lo que ahí no se puede probar.</p></div>
+        </li>
+        <li class="paso revela">
+          <img class="captura" src="./arte/juego-taller.webp" width="960" height="540" alt="" loading="lazy">
+          <div><span class="paso-n">02</span><h3 data-t="paso2t">Arma el rover</h3><p data-t="paso2">En el taller eliges ruedas, motor, chasis, soporte de la carga, batería y panel solar con un presupuesto de 1,000 créditos. Cambiar una pieza o su lugar cambia cómo se comporta el rover.</p></div>
+        </li>
+        <li class="paso revela">
+          <img class="captura" src="./arte/juego-prueba.webp" width="960" height="540" alt="" loading="lazy">
+          <div><span class="paso-n">03</span><h3 data-t="paso3t">Pruébalo en la Tierra</h3><p data-t="paso3">Manejas sobre el relieve real del sitio, medido por satélite. Si patina o pierde la carga, el juego te dice qué pasó y qué cambiar. Tienes tres boletos de prueba.</p></div>
+        </li>
+        <li class="paso revela">
+          <img class="captura" src="./arte/juego-mision.webp" width="960" height="540" alt="" loading="lazy">
+          <div><span class="paso-n">04</span><h3 data-t="paso4t">Lánzalo con la gravedad real</h3><p data-t="paso4">En la misión manda la gravedad del destino. Llega a la base, entrega el suministro con al menos el 60 % de la carga en buen estado y gana hasta tres estrellas.</p></div>
+        </li>
+      </ol>
+      <p class="nota centrada revela" data-t="comoNota">Precios, piezas y puntos son valores de juego: sirven para jugar, no son evidencia científica.</p>
+    </section>
+
+    <!-- ───────────── Destinos ───────────── -->
+    <section class="seccion" id="destinos" aria-labelledby="t-destinos">
+      <header class="cap-cabeza">
+        <p class="cap-num revela" data-t="destAnte">Dos destinos</p>
+        <h2 id="t-destinos" class="revela" data-t="destTitulo">La Luna o Marte: tú eliges</h2>
+      </header>
+      <div class="destinos">
+        <article class="destino revela" data-cuerpo="luna">
+          <img class="pixel" src="./arte/fondo_luna.png" width="320" height="180" alt="" loading="lazy">
+          <div class="destino-texto">
+            <p class="destino-ante"><i></i><span data-t="destLunaAnte">Luna · polo sur</span></p>
+            <h3 data-t="destLunaT">Donde quiere aterrizar Artemis</h3>
+            <p data-t="destLuna">Luz rasante, sombras largas y cráteres hondos. Un buen análogo de forma es El Elegante, un cráter volcánico del Pinacate (Sonora): se parece mucho a los cráteres del polo sur.</p>
+            <dl><div><dt>1.62</dt><dd>m/s²</dd></div><div><dt>176 K</dt><dd data-t="destOsc">oscilación térmica diaria del suelo</dd></div></dl>
+          </div>
+        </article>
+        <article class="destino revela" data-cuerpo="marte">
+          <img class="pixel" src="./arte/fondo_marte.png" width="320" height="180" alt="" loading="lazy">
+          <div class="destino-texto">
+            <p class="destino-ante"><i></i><span data-t="destMarteAnte">Marte · cráter Jezero</span></p>
+            <h3 data-t="destMarteT">Donde explora Perseverance</h3>
+            <p data-t="destMarte">Polvo, dunas y cráteres rellenos por el viento. Las dunas de Samalayuca (Chihuahua) sirven para probar el agarre de las ruedas en arena suelta.</p>
+            <dl><div><dt>3.71</dt><dd>m/s²</dd></div><div><dt>55 K</dt><dd data-t="destOsc2">oscilación térmica diaria del aire</dd></div></dl>
+          </div>
+        </article>
+      </div>
     </section>
 
     <!-- ───────────── Detalles técnicos (para quien quiera revisar las cifras) ───────────── -->
