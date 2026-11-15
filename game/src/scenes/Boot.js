@@ -3,6 +3,8 @@ import { irA } from './ui.js';
 import { SITIOS, DESTINOS } from '../data.js';
 import { listaDeAssets } from './expediente/assets.js';
 import { COLOR, texto } from './expediente/interfaz.js';
+import { prepararIngles } from './expediente/datos_en.js';
+import { tr } from '../i18n.js';
 
 // Dueño: frente expediente. Pantalla de carga con progreso REAL:
 // la barra sigue los eventos del cargador de Phaser para el arte de /assets (ver expediente/assets.js).
@@ -16,12 +18,12 @@ export default class Boot extends Phaser.Scene {
     texto(this, 480, 200, 'MARSCEPTION', { size: 28, origen: [0.5, 0.5] });
     this.add.rectangle(180, 270, 600, 16).setOrigin(0, 0.5).setStrokeStyle(1, COLOR.borde);
     const barra = this.add.rectangle(180, 270, 0, 16, 0xffd166).setOrigin(0, 0.5);
-    const pct = texto(this, 480, 240, 'Cargando 0 %', { size: 16, origen: [0.5, 0.5] });
+    const pct = texto(this, 480, 240, tr('Cargando 0 %', 'Loading 0 %'), { size: 16, origen: [0.5, 0.5] });
     this.detalle = texto(this, 480, 300, '', { size: 12, color: COLOR.tenue, origen: [0.5, 0.5] });
 
-    const pintar = (p) => { barra.width = 600 * p; pct.setText(`Cargando ${Math.round(p * 100)} %`); };
+    const pintar = (p) => { barra.width = 600 * p; pct.setText(tr(`Cargando ${Math.round(p * 100)} %`, `Loading ${Math.round(p * 100)} %`)); };
     this.load.on('progress', pintar);
-    this.load.on('fileprogress', (f) => this.detalle.setText(`Arte: ${f.key}`));
+    this.load.on('fileprogress', (f) => this.detalle.setText(`${tr('Arte', 'Art')}: ${f.key}`));
     this.load.on('loaderror', (f) => this.errores.push(f.key));
     this.load.on('complete', () => pintar(1));
 
@@ -34,14 +36,17 @@ export default class Boot extends Phaser.Scene {
   }
 
   create() {
+    prepararIngles(); // agrega <campo>_en a los datos de data/ para trDato() en todas las escenas
     const destinos = Object.keys(DESTINOS).length;
-    this.detalle.setText(`Datos: ${SITIOS.length} sitios · ${destinos} destinos · ${this.assets.length} archivos de arte`);
+    this.detalle.setText(tr(`Datos: ${SITIOS.length} sitios · ${destinos} destinos · ${this.assets.length} archivos de arte`,
+      `Data: ${SITIOS.length} sites · ${destinos} destinations · ${this.assets.length} art files`));
     if (this.errores.length) {
-      texto(this, 480, 330, `No se pudo cargar: ${this.errores.slice(0, 4).join(', ')}${this.errores.length > 4 ? '…' : ''}`,
+      texto(this, 480, 330, `${tr('No se pudo cargar', 'Could not load')}: ${this.errores.slice(0, 4).join(', ')}${this.errores.length > 4 ? '…' : ''}`,
         { size: 12, color: COLOR.alerta, origen: [0.5, 0.5], ancho: 860, alinear: 'center' });
     }
     if (!SITIOS.length || !destinos) {
-      texto(this, 480, 350, 'Faltan datos en data/sites o data/targets: el Expediente mostrará "sin dato".',
+      texto(this, 480, 350, tr('Faltan datos en data/sites o data/targets: el Expediente mostrará "sin dato".',
+        'Missing data in data/sites or data/targets: the Site File will show "no data".'),
         { size: 12, color: COLOR.alerta, origen: [0.5, 0.5] });
     }
     const ir = () => { if (this.saliendo) return; this.saliendo = true; irA(this, 'Menu'); };
@@ -49,7 +54,7 @@ export default class Boot extends Phaser.Scene {
     if (this.textures.exists('titulo/titulo') && !this.errores.length) {
       this.children.list.slice().forEach((o) => o.destroy());
       this.add.image(480, 270, 'titulo/titulo').setScale(3);
-      const aviso = texto(this, 480, 515, 'Presiona una tecla o toca para empezar', { size: 14, origen: [0.5, 0.5] });
+      const aviso = texto(this, 480, 515, tr('Presiona una tecla o toca para empezar', 'Press any key or tap to start'), { size: 14, origen: [0.5, 0.5] });
       this.tweens.add({ targets: aviso, alpha: 0.35, duration: 700, yoyo: true, repeat: -1 });
       this.input.keyboard.once('keydown', ir);
       this.input.once('pointerdown', ir);

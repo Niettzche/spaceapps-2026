@@ -1,6 +1,7 @@
 // Dueño: frente expediente. Capa HTML sobre el lienzo para formularios (Explorador).
 // Se usa HTML en vez de texto de Phaser para tener campos reales, accesibles con teclado, toque y lector de pantalla.
 // No requiere `dom: { createContainer: true }` en main.js (archivo del integrador).
+import { tr } from '../../i18n.js';
 
 /** Crea un elemento. Los textos van siempre como textContent (nunca innerHTML): la API es una fuente externa. */
 export function el(etiqueta, atributos = {}, hijos = []) {
@@ -23,7 +24,7 @@ export function crearCapa(id, css) {
   if (css && !document.getElementById(`${id}-estilos`)) {
     document.head.append(el('style', { id: `${id}-estilos` }, css));
   }
-  const capa = el('div', { id, role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Explorador libre' });
+  const capa = el('div', { id, role: 'dialog', 'aria-modal': 'true', 'aria-label': tr('Explorador libre', 'Free explorer') });
   document.body.append(capa);
   return capa;
 }
