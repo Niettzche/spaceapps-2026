@@ -26,6 +26,13 @@
 - **Pruebas:** `node game/src/fisica/fisica.test.mjs` (24 casos) y la prueba de punta a punta `game/e2e/camino_dorado.mjs`
   (Marte y Luna con clics y teclado reales; 22/23 en la última corrida, la falla fue una recarga de página ajena al juego).
 
+- **Tutorial guiado (15 nov, PLAN_REMAKE §1):** módulo común `game/src/scenes/comun/tutorial.js` (marcas «ya visto», pasos,
+  burbuja; pruebas `node --test game/src/scenes/comun/`) y `comun/tutorial_vista.js` (`abrirTutorial` coach marks y `abrirResumen`).
+  Resumen de 4 viñetas al elegir Luna/Marte (? lo repite), primera prueba (controles + META) y primera misión («pesas menos: frena
+  antes» + ZONA DE ENTREGA resaltada en el terreno); el Expediente usa la misma vista. Arreglos de la auditoría de Leo §4 fuera del
+  Taller: META/ZONA a 16 px con caja oscura, «⚑» y «M · sonido» con caja oscura, nota del HUD y filas del Expediente con zona de 44 px,
+  Boot a 14 px.
+
 ## En curso
 - Niveles críticos: el tramo más exigente que siga siendo superable, en la dirección correcta (subir la pared del maar, bancos de la mina,
   Jezero con relieve).

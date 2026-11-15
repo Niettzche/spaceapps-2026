@@ -35,7 +35,8 @@ export class Hud {
       this._panelDatos(aviso);
       scene.input.keyboard.on('keydown-I', () => this.alternarDatos());
       t.setInteractive({ useHandCursor: true }).on('pointerdown', () => this.alternarDatos());
-      t.input.hitArea.setTo(0, -10, t.width, t.height + 20); // zona táctil ≥ 44 px de alto
+      const alto = Math.max(44, t.height + 20); // zona táctil ≥ 44 px de alto (auditoría §4.3)
+      t.input.hitArea.setTo(0, -(alto - t.height) / 2, t.width, alto);
     }
 
     this.barras = {};
@@ -64,7 +65,10 @@ export class Hud {
     // Progreso hacia la meta o la zona de entrega (franja bajo el encabezado).
     fijo(scene.add.rectangle(16, 94, ANCHO_PROGRESO, 4, 0x2b2d3a).setOrigin(0, 0.5));
     this.progreso = fijo(scene.add.rectangle(16, 94, 0, 4, 0x4cc38a).setOrigin(0, 0.5));
-    fijo(TXT(scene, 16 + ANCHO_PROGRESO + 6, 94, '⚑', { color: '#ffffff', origen: [0, 0.5] }));
+    // «⚑» (la fuente pixel lo dibuja «»») sobre una caja oscura: el terreno de fondo no le quita contraste (auditoría §4.2).
+    const meta = TXT(scene, 16 + ANCHO_PROGRESO + 8, 94, '⚑', { color: '#ffffff', origen: [0, 0.5] });
+    fijo(scene.add.rectangle(meta.x - 6, 94, meta.width + 12, Math.max(24, meta.height + 8), 0x0b0d17, 0.9).setOrigin(0, 0.5)).setDepth(89.5);
+    fijo(meta);
     this.lectura = fijo(TXT(scene, 944, 6, '', { alinear: 'right', origen: [1, 0] }));
     // Mensaje final grande con la fuente del logo (contorno propio): se lee sobre cualquier fondo.
     this.mensaje = fijo(K.txt(scene, 480, 200, '', { size: 33, titulo: true, alinear: 'center', ancho: 900, origen: [0.5, 0.5] }));

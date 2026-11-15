@@ -11,7 +11,8 @@ import { MUNDOS } from './expediente/textos.js';
 import { vistaNumeros } from './expediente/numeros.js';
 import { prepararIngles } from './expediente/datos_en.js';
 import { tr, trDato, idioma, alternarIdioma } from '../i18n.js';
-import { debeMostrarComoJugar } from './expediente/como_jugar.js';
+import { CLAVES_TUTORIAL, marcaTutorial, pasosResumen } from './comun/tutorial.js';
+import { abrirResumen } from './comun/tutorial_vista.js';
 import { vistaComoJugar, reiniciarPaginaComoJugar } from './expediente/como_jugar_vista.js';
 import { estrellas, planetaGirando, movimientoReducido } from './expediente/efectos.js';
 import { sonarBoton } from '../fisica/sonido.js';
@@ -90,6 +91,7 @@ export default class Menu extends Phaser.Scene {
 
   mostrar(vista, { llegada = false } = {}) {
     limpiar(this);
+    this.resumen = null; // limpiar() ya destruyó su capa
     this.vista = vista;
     if (this.alTocarInicio) { this.input.off('pointerdown', this.alTocarInicio); this.alTocarInicio = null; }
     // Después del zoom a la nave (o de un fundido) la pantalla quedó en negro: se aclara con la vista nueva.
@@ -284,10 +286,13 @@ export default class Menu extends Phaser.Scene {
     };
   }
 
-  /** "Nueva partida": la primera vez en este navegador muestra "Cómo jugar" antes de elegir destino. */
+  /**
+   * "Nueva partida" → elegir destino. La primera vez, al elegir Luna o Marte sale el resumen de 4 viñetas (tutorial
+   * guiado, comun/tutorial.js); por eso «Cómo jugar» ya no se abre solo antes (eran las mismas 4 viñetas dos veces).
+   * «Cómo jugar» sigue en el menú (versión larga) y la tecla ? repite el resumen en la elección de destino.
+   */
   alNuevaPartida() {
-    if (debeMostrarComoJugar()) this.verComoJugar('destino');
-    else this.mostrar('destino');
+    this.mostrar('destino');
   }
 
   verComoJugar(despues) {
@@ -320,8 +325,8 @@ export default class Menu extends Phaser.Scene {
     // Ayuda fija: sin nada resaltado muestra los recursos de inicio (valores de juego); al enfocar un destino, su nota de gravedad.
     const ayuda = ayudaFija(this, 480, 466, {
       ancho: 860,
-      porDefecto: tr(`${TICKETS_POR_PARTIDA} tickets · ${formato(PRESUPUESTO_INICIAL, 0)} créditos`,
-        `${TICKETS_POR_PARTIDA} tickets · ${formato(PRESUPUESTO_INICIAL, 0)} credits`),
+      porDefecto: tr(`${TICKETS_POR_PARTIDA} tickets · ${formato(PRESUPUESTO_INICIAL, 0)} créditos · ? cómo jugar`,
+        `${TICKETS_POR_PARTIDA} tickets · ${formato(PRESUPUESTO_INICIAL, 0)} credits · ? how to play`),
     });
     this.planetas = {};
     const botones = ids.map((id, i) => {
@@ -362,6 +367,20 @@ export default class Menu extends Phaser.Scene {
     this.teclado.numerar([...botones, volver]);
     preferido?.setSugerido(true);
     this.teclado.poner([...botones, volver, this.botonIdioma('destino')], preferido);
+    // ?: repite el resumen de 4 viñetas sin empezar (vuelve a esta vista).
+    this.teclado.extra = { ...this.teclado.extra, '?': () => this.verResumen(null, () => this.mostrar('destino')) };
+  }
+
+  /** Resumen de 4 viñetas (tutorial guiado): `destinoId` personaliza las frases; `luego` al terminar o saltar. */
+  verResumen(destinoId, luego) {
+    if (this.resumen?.abierto()) return;
+    const mundo = DESTINOS[destinoId]?.mundo ?? null;
+    const titulo = mundo === 'luna' ? tr('Rumbo a la Luna', 'Heading to the Moon')
+      : mundo === 'marte' ? tr('Rumbo a Marte', 'Heading to Mars') : tr('Tu misión', 'Your mission');
+    this.resumen = abrirResumen(this, {
+      vinetas: pasosResumen(mundo), titulo, marca: marcaTutorial(CLAVES_TUTORIAL.resumen),
+      alCerrar: () => { this.resumen = null; luego(); },
+    });
   }
 
   /** Giro rápido del planeta elegido y luego empieza la partida (una sola vez aunque se pulse varias veces). */
@@ -373,7 +392,13 @@ export default class Menu extends Phaser.Scene {
     else this.empezar(id);
   }
 
+  /** La primera vez en este navegador, antes de empezar, el resumen de 4 viñetas (saltable, se recuerda). */
   empezar(destinoId) {
+    if (marcaTutorial(CLAVES_TUTORIAL.resumen).debeMostrar()) this.verResumen(destinoId, () => this.arrancar(destinoId));
+    else this.arrancar(destinoId);
+  }
+
+  arrancar(destinoId) {
     nuevaPartida(partida, destinoId, { presupuesto: PRESUPUESTO_INICIAL, tickets: TICKETS_POR_PARTIDA });
     irA(this, 'Expediente');
   }
