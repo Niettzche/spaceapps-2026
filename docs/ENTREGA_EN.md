@@ -1,6 +1,6 @@
 # MARSCEPTION · Space Apps submission draft
 
-Status: final English copy for Edmundo's review. This document does not save or submit the Space Apps form. Edmundo confirms the final submission; verify the next deployment, final video and public repository access first.
+Status: final English copy for Edmundo's review. This document does not save or submit the Space Apps form. Edmundo confirms the final submission; verify the next deployment, seven-slide PDF and public repository access first.
 
 ## Project title
 
@@ -71,7 +71,7 @@ NASA, ESA and other source measurements were not invented or replaced by AI outp
 ## Final five-minute submission checklist
 
 1. Verify title MARSCEPTION and paste summary/description, sources, tools and AI disclosure.
-2. Open demo, game and video in a logged-out browser. Confirm the repository is public.
+2. Open demo, game and the selected seven-slide PDF in a logged-out browser. Confirm the repository is public after the team approves publication.
 3. Confirm the physical-phone and full-path checks in docs/PRUEBA_MOVIL.md; do not mark an unperformed check as passed.
-4. Save the draft; review every public URL and preview. Keep the video under 30 seconds.
+4. Save the draft; review every public URL and preview. Use the PDF with no more than seven slides. Video work remains paused.
 5. Edmundo confirms the final submission, completes it before the deadline and retains the confirmation. Do not submit on his behalf from this task.
