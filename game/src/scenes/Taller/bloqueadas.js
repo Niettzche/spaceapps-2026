@@ -7,9 +7,9 @@
 // por un recorrido lateral) o 'sin_mecanica' (el juego no simula ese efecto todavía).
 
 export const RAZONES = {
-  sin_referencia: { es: 'sin referencia espacial verificada', en: 'no verified space reference', corto: 'sin referencia', corto_en: 'no reference' },
-  otra_mision: { es: 'otro tipo de misión', en: 'a different kind of mission', corto: 'otra misión', corto_en: 'other mission' },
-  sin_mecanica: { es: 'el juego aún no simula este efecto', en: 'the game does not simulate this yet', corto: 'sin mecánica', corto_en: 'not simulated' },
+  sin_referencia: { es: 'sin referencia espacial verificada', en: 'no verified space reference', corto: 'sin fuente', corto_en: 'no source' },
+  otra_mision: { es: 'otro tipo de misión', en: 'a different kind of mission', corto: 'otra misión', corto_en: 'other job' },
+  sin_mecanica: { es: 'el juego aún no simula este efecto', en: 'the game does not simulate this yet', corto: 'no simulada', corto_en: 'not modeled' },
 };
 
 export const BLOQUEADAS = [
