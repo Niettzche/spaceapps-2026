@@ -1,7 +1,7 @@
 // Utilidades mínimas de interfaz compartidas (provisionales; el frente de arte las reemplaza).
 export function titulo(scene, texto, sub) {
-  scene.add.text(480, 60, texto, { fontFamily: 'monospace', fontSize: '32px', color: '#ffffff' }).setOrigin(0.5);
-  if (sub) scene.add.text(480, 100, sub, { fontFamily: 'monospace', fontSize: '14px', color: '#9aa4c7' }).setOrigin(0.5);
+  scene.add.text(480, 58, texto, { fontFamily: 'monospace', fontSize: '38px', fontStyle: 'bold', color: '#ffffff' }).setOrigin(0.5);
+  if (sub) scene.add.text(480, 100, sub, { fontFamily: 'monospace', fontSize: '16px', color: '#9aa4c7' }).setOrigin(0.5);
 }
 export function boton(scene, x, y, texto, alPulsar) {
   const b = scene.add.text(x, y, `[ ${texto} ]`, { fontFamily: 'monospace', fontSize: '18px', color: '#ffd166' })

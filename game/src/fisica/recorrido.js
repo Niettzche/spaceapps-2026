@@ -11,7 +11,9 @@ import { Telemetria, construirResultado } from './telemetria.js';
 import { Efectos } from './efectos.js';
 import { Sonido } from './sonido.js';
 import { tr } from '../i18n.js';
-import { AspectoRobot, crearFondo, claveDeFondo, sprite, tira } from './aspecto.js';
+import { AspectoRobot, crearFondo, claveDeFondo, sprite, tira, hayArte } from './aspecto.js';
+import { ambienteDe, resumenAmbiente, efectosAmbiente, notaAmbiente } from './ambiente.js';
+import { generarObstaculos, crearObstaculos, factorAgarreEn, notaObstaculos } from './obstaculos.js';
 
 const FONDO = { tierra: '#7f9fbf', marte: '#b98a6a', luna: '#05060b' }; // color si no hay fondo de arte (fisica/aspecto.js)
 const SEG_QUIETO_ENTREGA = 2; // la entrega exige 2 s detenido en la zona
@@ -46,6 +48,10 @@ export class Recorrido {
     this.terreno = construirTerreno(scene, o.perfil, { mundo: o.mundo, origenX: 0, baseY });
     const { xMundo, yMundo } = this.terreno;
     this.xMundo = xMundo;
+    // Ambiente real del nivel (temperatura, aire, luz) y obstáculos recreados (rocas, arena blanda). Ver ESPECIFICACION §5b.
+    this.ambiente = o.ambiente ?? ambienteDe({ modo: o.modo, mundo: o.mundo, sitioId: o.sitioId, destinoId: o.destinoId });
+    this.obstaculos = generarObstaculos(o.perfil, { mundo: o.mundo, semilla: (o.modo === 'prueba' ? o.sitioId : o.destinoId) ?? o.mundo });
+    crearObstaculos(scene, o.perfil, this.terreno, this.obstaculos, { mundo: o.mundo, sprite, hayArte });
 
     // Límites: paredes a los lados, sin techo ni piso (el suelo es el terreno).
     const izq = xMundo(0) - m(2);
@@ -65,7 +71,7 @@ export class Recorrido {
       this.telemetria.registrar(this.robot?.t ?? 0, tipo, detalle);
       this.efectos?.alTelemetria(tipo, detalle); // efectos en la rueda, el chasis o la carga
       this.sonido?.alTelemetria(tipo, detalle); // golpes, crujido, sin energía (fisica/sonido.js)
-    }, { mundo: o.mundo });
+    }, { mundo: o.mundo, ambiente: this.ambiente, factorAgarre: (x) => factorAgarreEn(this.obstaculos, (x - xMundo(0)) / PX_POR_M) });
     this.efectos = new Efectos(scene, { mundo: o.mundo, gravedad: o.gravedad, robot: this.robot, superficieDe: this.superficieDe });
     this.sonido = new Sonido(scene, { mundo: o.mundo }); // motor, arena, golpes y fin; M silencia
     this.g = scene.add.graphics().setDepth(10);
@@ -79,13 +85,16 @@ export class Recorrido {
     this.controles = new Controles(scene);
     // Origen del agarre del suelo + aviso del nivel. El suelo va primero: es corto y el HUD corta el aviso a 3 líneas,
     // así los valores provisionales (P) siempre se declaran en pantalla.
-    const avisoNivel = o.perfil.ilustrativo ? `⚠ ${o.perfil.nota}` : o.perfil.nota;
+    const notaObs = notaObstaculos(this.obstaculos);
+    const avisoNivel = `${o.perfil.ilustrativo ? '⚠ ' : ''}${o.perfil.nota}${notaObs ? ` · ${notaObs}` : ''}`;
     const avisoSuelo = notaSuelo(o.mundo, o.perfil.superficies);
-    this.hud = new Hud(scene, { titulo: o.titulo, subtitulo: o.subtitulo, aviso: [avisoSuelo && `${avisoSuelo}.`, avisoNivel].filter(Boolean).join(' ') });
+    const avisoAmbiente = notaAmbiente(this.ambiente);
+    this.hud = new Hud(scene, { titulo: o.titulo, subtitulo: o.subtitulo, aviso: [avisoSuelo && `${avisoSuelo}.`, `${avisoNivel.replace(/\.$/, '')}.`, avisoAmbiente].filter(Boolean).join(' ') });
     this._botonAbandonar();
     // Instrucciones al empezar: objetivo + controles (teclado y táctil). Esc abandona.
     const controles = tr('→ / D acelerar   ← / A frenar   (táctil: ▶ ◀)   Esc pausa', '→ / D accelerate   ← / A brake   (touch: ▶ ◀)   Esc pause');
-    if (o.modo === 'prueba') this.hud.instrucciones(tr('Prueba en la Tierra: llega a la META con la carga', 'Earth test: reach the FINISH with the payload'), [controles]);
+    const ambiente = [resumenAmbiente(this.ambiente), efectosAmbiente(this.ambiente)].filter(Boolean);
+    if (o.modo === 'prueba') this.hud.instrucciones(tr('Prueba en la Tierra: llega a la META con la carga', 'Earth test: reach the FINISH with the payload'), [...ambiente, controles]);
     else {
       // Llegada al destino: fundido desde negro y el cambio de mundo explicado con el dato de gravedad.
       scene.cameras.main.fadeIn(900, 0, 0, 0);
@@ -96,6 +105,7 @@ export class Recorrido {
         `Arrival on ${nombreMundo} · gravity ${o.gravedad} m/s² (${pct} % of Earth's)`), [
         tr('Pesas menos: las ruedas agarran menos y el robot rebota más', 'Less weight: the wheels grip less and the robot bounces more'),
         tr(`Frena y detente 2 s dentro de la ZONA DE ENTREGA con la carga ≥ ${minimo} %`, `Brake and stay still 2 s inside the DELIVERY ZONE with payload ≥ ${minimo} %`),
+        ...ambiente,
         controles,
       ]);
     }

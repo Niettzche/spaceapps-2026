@@ -3,27 +3,32 @@
 > Lo actualiza SOLO este frente. Rama: `feat/juego`.
 
 **Responsable:** Edmundo  ·  **Agente:** Claude Code / Codex
-**Última actualización:** 14 nov, 16:45
+**Última actualización:** 14 nov, 19:40
 
 ## Hecho
-- Especificación (`docs/juego/ESPECIFICACION.md`) y guía de arte (`docs/juego/ASSETS_ARTE.md`, con medidas, paleta y cómo entra el arte).
-- Lógica completa con figuras provisionales en `game/src/fisica/` y `game/src/feedback/`: terreno real (tramo de 250 m) o ilustrativo declarado,
-  robot de 4 ruedas (2 visibles), carga suelta, agarre por pieza × agarre real del suelo (Apolo, Viking), patinaje, energía, daño por sacudidas,
-  volcado, telemetría `Result`, controles teclado/táctil, HUD, cámara.
-- Recreaciones declaradas: caras de duna (~32°) en arena y bloques de roca en roca, solo en la Tierra.
-- Efectos (polvo, arena al patinar, golpes, explosión, celebración) y ganchos de sprites con respaldo a figuras.
-- Escenas Prueba, Mision y Resultados (puntuación máx. 1,000, estrellas, feedback por reglas, transiciones irA).
-- Diseño unificado con taller (una sola fuente de reglas).
-- Verificado sin interfaz con niveles reales de data/: Samalayuca estándar falla / ancha llega (59 s); Pinacate ancha se atasca en roca,
-  tacos pasa; Luna ancha entrega, estándar no; Marte entrega con ambas (Jezero casi plano). Soporte amortiguado: carga 94 % vs 82 %.
-- Pruebas: `node game/src/fisica/fisica.test.mjs` (20 casos).
+- **Física y niveles** (`game/src/fisica/`): tramo real de 250 m de los perfiles de `data/`, agarre por pieza × agarre real del suelo
+  (Apolo, Viking; Tierra provisional P), recreaciones declaradas (caras de duna, bloques de roca), daño a la carga por sacudidas,
+  patinaje, energía, volcado, fin por atasco, telemetría `Result`.
+- **Pantalla:** portada de MARSCEPTION, menú con fondo de arte, HUD con íconos y marcos de arte, barra de progreso, nota de datos en una
+  línea (panel completo con I), botones táctiles de arte, pausa con Esc, instrucciones al empezar y llegada a la misión con la gravedad.
+- **Sonido sintetizado** (motor, arena, golpes, entrega, falla; M silencia).
+- **Bilingüe español/inglés** en todo el juego (`game/src/i18n.js`; `?lang=en|es`, selector en el menú, tecla L).
+- **Resultados:** puntuación con estrellas de arte, "dónde se rompe la analogía" con la telemetría de prueba y misión, recomendaciones,
+  **"Aplicar y al taller"** (pone la pieza recomendada), mejor marca por destino, atajos 1–3 y Enter.
+- **Expediente:** recorrido de la prueba y de la misión (tramo, desnivel, pendientes, suelo y condición crítica), calculado con el mismo perfil.
+- Calcomanías de piezas sobre el robot, efectos con pixelfx, ganchos de arte con respaldo a figuras.
+- **Pruebas:** `node game/src/fisica/fisica.test.mjs` (24 casos) y la prueba de punta a punta `game/e2e/camino_dorado.mjs`
+  (Marte y Luna con clics y teclado reales; 22/23 en la última corrida, la falla fue una recarga de página ajena al juego).
 
 ## En curso
-- Prueba del camino completo con todas las escenas (Menú → Expediente → Taller → Prueba → Resultados → Misión).
+- Niveles críticos: el tramo más exigente que siga siendo superable, en la dirección correcta (subir la pared del maar, bancos de la mina,
+  Jezero con relieve).
+- Condiciones del lugar con datos y reglas explicables (P): temperatura → batería, densidad del aire → enfriamiento del motor, luz rasante
+  → panel; obstáculos recreados (rocas, arena blanda, cráteres pequeños).
 
 ## Siguiente
-- [ ] Integrar sprites y efectos de arte cuando lleguen a `assets/`.
-- [ ] Ajustes que salgan de la prueba del camino completo.
+- [ ] Integrar los dos puntos de "En curso", mostrar las condiciones en el Expediente y correr la prueba completa.
+- [ ] Corregir lo que reporten las pruebas de juego (retro de los dos probadores y de Alan).
 
 ## Bloqueos / necesito de otro frente
 - Taller (Leo): ranuras `chasis, rueda_del, rueda_tras, motor, bateria, carga, modulo`; ruedas cobran × 2

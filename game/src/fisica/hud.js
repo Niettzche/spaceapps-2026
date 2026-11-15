@@ -1,8 +1,9 @@
 // HUD de la prueba y la misión, fijo a la cámara. Usa la UI de arte (assets/ui) si existe; si no, figuras.
 import { tr } from '../i18n.js';
 import { nombreSuperficie } from './suelos.js';
+import { REGLAS } from './ambiente.js';
 
-const ESTILO = { fontFamily: 'monospace', fontSize: '13px', color: '#cfd6ff' };
+const ESTILO = { fontFamily: 'monospace', fontSize: '14px', color: '#cfd6ff' };
 const ANCHO_IZQ = 530;
 
 /** Reduce el tamaño de letra hasta que el texto quepa en `ancho` (sin bajar de `min` px). */
@@ -24,7 +25,7 @@ export class Hud {
     // maxLines corta en silencio a media frase: si no cabe, la tercera línea termina en "…" para que se note el recorte.
     // Nota de datos: en el HUD solo una línea (para no distraer al manejar); el texto completo se abre con la tecla I.
     if (aviso) {
-      const t = fijo(scene.add.text(16, 56, '', { ...ESTILO, fontSize: '11px', color: '#ffd166' }));
+      const t = fijo(scene.add.text(16, 56, '', { ...ESTILO, fontSize: '12px', color: '#ffd166' }));
       const pie = tr(' · [I] datos', ' · [I] data');
       let corto = aviso;
       t.setText(corto + pie);
@@ -48,17 +49,34 @@ export class Hud {
       this.barras[clave] = fijo(scene.add.rectangle(x + 86, y + 7, 144, 8, color).setOrigin(0, 0.5));
     });
 
+    // Temperatura del motor (ambiente.js, regla b): barra fina bajo las otras; se pone roja cerca del límite.
+    const iconoT = hay('ui/ui_icono_temperatura'); // arte 8 × 8 (mismo estilo que los otros íconos); si no, solo texto
+    if (iconoT) fijo(scene.add.image(560 + 8, 70, 'ui/ui_icono_temperatura').setScale(2));
+    fijo(scene.add.text(560 + (iconoT ? 22 : 0), 64, tr('Motor', 'Motor'), { ...ESTILO, fontSize: '11px' }));
+    fijo(scene.add.rectangle(560 + 70, 70, 160, 5, 0x2b2d3a).setOrigin(0, 0.5));
+    this.barraMotor = fijo(scene.add.rectangle(560 + 72, 70, 0, 3, 0x6fb3ff).setOrigin(0, 0.5));
+    this.textoMotor = fijo(scene.add.text(560 + 236, 64, '', { ...ESTILO, fontSize: '11px' }));
+
     // Progreso hacia la meta o la zona de entrega (franja bajo el encabezado).
     fijo(scene.add.rectangle(16, 92, 928, 4, 0x2b2d3a).setOrigin(0, 0.5));
     this.progreso = fijo(scene.add.rectangle(16, 92, 0, 4, 0x4cc38a).setOrigin(0, 0.5));
     fijo(scene.add.text(944, 98, '⚑', { ...ESTILO, fontSize: '12px', color: '#ffffff' }).setOrigin(1, 0));
     this.lectura = fijo(scene.add.text(944, 12, '', { ...ESTILO, align: 'right' }).setOrigin(1, 0));
-    this.mensaje = fijo(scene.add.text(480, 200, '', { ...ESTILO, fontSize: '26px', color: '#ffffff', align: 'center' }).setOrigin(0.5));
+    // Mensaje final grande y con contorno para que se lea sobre cualquier fondo (retro: textos más grandes).
+    this.mensaje = fijo(scene.add.text(480, 200, '', { ...ESTILO, fontSize: '44px', fontStyle: 'bold', color: '#ffffff', align: 'center', stroke: '#0b0d17', strokeThickness: 8 }).setOrigin(0.5));
   }
 
   actualizar(estado, { distancia_m, meta_m }) {
     for (const [clave, barra] of Object.entries(this.barras)) barra.width = 144 * Math.max(0, Math.min(1, estado[clave]));
     this.progreso.width = 928 * Math.max(0, Math.min(1, distancia_m / Math.max(1, meta_m)));
+    if (estado.tMotor != null) {
+      const lim = REGLAS.motor.limite_C;
+      const f = Math.max(0, Math.min(1, (estado.tMotor + 60) / (lim + 60))); // escala visual de −60 °C al límite
+      this.barraMotor.width = 156 * f;
+      this.barraMotor.fillColor = estado.sobrecalentado ? 0xff6b6b : estado.tMotor >= lim - REGLAS.motor.aviso_C ? 0xffb347 : 0x6fb3ff;
+      this.textoMotor.setText(`${Math.round(estado.tMotor)} °C${estado.sobrecalentado ? tr(' · CALIENTE', ' · HOT') : ''}`)
+        .setColor(estado.sobrecalentado ? '#ff9b9b' : '#cfd6ff');
+    }
     this.lectura.setText(
       `${estado.velocidadMs.toFixed(1)} m/s · ${Math.floor(distancia_m)}/${Math.floor(meta_m)} m\n${nombreSuperficie(estado.superficie) ?? ''}${estado.patina ? tr(' · PATINA', ' · SLIPPING') : ''}`,
     );
@@ -69,7 +87,7 @@ export class Hud {
     const s = this.scene;
     const fijo = (o) => o.setScrollFactor(0).setDepth(98).setVisible(false);
     const t = fijo(s.add.text(480, 270, tr(`Datos de este nivel\n\n${aviso}\n\n[I] cerrar`, `Data for this level\n\n${aviso}\n\n[I] close`), {
-      ...ESTILO, fontSize: '13px', color: '#ffffff', align: 'left', wordWrap: { width: 760 }, lineSpacing: 4,
+      ...ESTILO, fontSize: '15px', color: '#ffffff', align: 'left', wordWrap: { width: 760 }, lineSpacing: 4,
     }).setOrigin(0.5));
     const fondo = fijo(s.add.rectangle(480, 270, 800, t.height + 32, 0x0b0d17, 0.92).setStrokeStyle(2, 0xffd166, 0.7));
     t.setDepth(99);
@@ -87,11 +105,11 @@ export class Hud {
     const s = this.scene;
     const fijo = (o) => o.setScrollFactor(0).setDepth(110);
     const fondo = fijo(s.add.rectangle(480, 270, 960, 540, 0x0b0d17, 0.7));
-    const titulo = fijo(s.add.text(480, 210, tr('Pausa', 'Paused'), { ...ESTILO, fontSize: '30px', color: '#ffffff' }).setOrigin(0.5));
-    const boton = (y, texto, color, fn) => fijo(s.add.text(480, y, texto, { ...ESTILO, fontSize: '18px', color })
+    const titulo = fijo(s.add.text(480, 205, tr('Pausa', 'Paused'), { ...ESTILO, fontSize: '38px', fontStyle: 'bold', color: '#ffffff' }).setOrigin(0.5));
+    const boton = (y, texto, color, fn) => fijo(s.add.text(480, y, texto, { ...ESTILO, fontSize: '21px', color })
       .setOrigin(0.5).setInteractive({ useHandCursor: true }).on('pointerdown', fn));
-    const seguir = boton(275, tr('[ Continuar · Esc / Enter ]', '[ Resume · Esc / Enter ]'), '#4cc38a', alContinuar);
-    const salir = boton(320, tr('[ Abandonar · X ]', '[ Quit · X ]'), '#ff9b9b', alAbandonar);
+    const seguir = boton(280, tr('[ Continuar · Esc / Enter ]', '[ Resume · Esc / Enter ]'), '#4cc38a', alContinuar);
+    const salir = boton(330, tr('[ Abandonar · X ]', '[ Quit · X ]'), '#ff9b9b', alAbandonar);
     return [fondo, titulo, seguir, salir];
   }
 
@@ -104,7 +122,7 @@ export class Hud {
     const s = this.scene;
     const fijo = (o) => o.setScrollFactor(0).setDepth(96);
     const texto = fijo(s.add.text(480, 175, [titulo, '', ...lineas].join('\n'), {
-      fontFamily: 'monospace', fontSize: '15px', color: '#ffffff', align: 'center', lineSpacing: 6,
+      fontFamily: 'monospace', fontSize: '17px', color: '#ffffff', align: 'center', lineSpacing: 6,
     }).setOrigin(0.5));
     const fondo = fijo(s.add.rectangle(480, 175, texto.width + 48, texto.height + 32, 0x0b0d17, 0.85).setStrokeStyle(2, 0xffd166, 0.8));
     texto.setDepth(97);

@@ -3,9 +3,9 @@
 // Scale.FIT sobre el lienzo de 960 × 540) y maneja con las flechas del teclado. Solo si un clic real no surte
 // efecto, emite 'pointerdown' sobre el objeto y lo anota como "respaldo" (eso también es un hallazgo).
 //
-// Recorrido, una vez para Marte (jezero → Samalayuca) y otra para la Luna (polo_sur_lunar → mx0207):
+// Recorrido, una vez para Marte (jezero → Samalayuca) y otra para la Luna (polo_sur_lunar → maar Al Wahbah, g00281):
 //   Boot → Menú → Nueva partida → destino → Expediente (sitio) → gastar ticket → Taller (ruedas estándar) → Prueba
-//   → Resultados (en Samalayuca: falla y recomienda rueda ancha) → Volver al taller → ruedas anchas en ambos ejes
+//   → Resultados (en Samalayuca y Al Wahbah: falla y recomienda rueda ancha) → Volver al taller → ruedas anchas en ambos ejes
 //   → Prueba → Resultados → Lanzar misión → Misión (acelera; frena en la zona de entrega) → Resultados (puntos y estrellas)
 //   → Menú (para empezar la siguiente corrida).
 //
@@ -44,7 +44,9 @@ const { chromium } = await cargarPlaywright();
 
 const CORRIDAS = {
   marte: { id: 'marte', boton: 'Elegir Marte', destino: 'jezero', sitio: 'Médanos de Samalayuca', sitioId: 'samalayuca', esperaFalla: true },
-  luna: { id: 'luna', boton: 'Elegir Luna', destino: 'polo_sur_lunar', sitio: 'Real de Ángeles', sitioId: 'mx0207', esperaFalla: false },
+  // La mina de Real de Ángeles (mx0207) ya no es camino dorado: su tramo es la pared del tajo, de roca, y la rueda ancha no la
+  // sube (pieza clave: tacos o estándar; perfil.js, VENTANAS_JUEGO). El maar Al Wahbah sí: salir del cráter por regolito.
+  luna: { id: 'luna', boton: 'Elegir Luna', destino: 'polo_sur_lunar', sitio: 'Maar Al Wahbah', sitioId: 'g00281', esperaFalla: true },
 };
 const pedidas = (process.argv[2] ?? 'ambos') === 'ambos' ? ['marte', 'luna'] : [process.argv[2]];
 
@@ -277,9 +279,13 @@ async function corrida(c) {
   });
   const prueba1 = await probar('prueba_1', c.esperaFalla ? { exito: false, rec: 'ruedas anchas' } : {});
   await paso('taller_ancha', async () => {
-    await clic('Resultados', 'Volver al taller', activa('Taller'));
+    // Si Resultados ofrece "Aplicar y al taller", el cambio recomendado llega aplicado; si no, se cambia a mano.
+    const aplica = await ubicar('Resultados', 'Aplicar y al taller');
+    await clic('Resultados', aplica ? 'Aplicar y al taller' : 'Volver al taller', activa('Taller'));
     await escenaLista('Taller');
-    for (const [ranura, x] of [['rueda_del', 365], ['rueda_tras', 115]]) {
+    const yaAnchas = await page.evaluate(() => { const m = window.__mc.Prueba.game.scene.getScene('Taller').mapa; return m.rueda_del === 'rueda_ancha' && m.rueda_tras === 'rueda_ancha'; });
+    if (aplica && !yaAnchas) return 'FALLA: "Aplicar y al taller" no dejó las ruedas anchas puestas';
+    for (const [ranura, x] of yaAnchas ? [] : [['rueda_del', 365], ['rueda_tras', 115]]) {
       const taller = () => page.evaluate(() => { const s = window.__mc.Prueba.game.scene.getScene('Taller'); return { sel: s.sel, mapa: s.mapa }; });
       await clicEn(x, 392);
       const indice = ranura === 'rueda_del' ? 1 : 2;

@@ -6,6 +6,7 @@ import { partida } from '../main.js';
 import {
   RANURAS, DISENO_POR_DEFECTO, piezasPara, costoEnRanura, comoMapa, comoDiseno, resumen, validar,
 } from './Taller/diseno.js';
+import { historialAlEntrar, diferencias } from './Taller/historial.js';
 import { MASA_CARGA_KG } from '../fisica/diseno.js'; // la carga que se entrega (frente juego)
 import { tr, trDato, enIngles } from '../i18n.js';
 
@@ -35,6 +36,14 @@ const ESQUEMA = {
 };
 
 const piezaPorId = Object.fromEntries(PIEZAS.map((p) => [p.id, p]));
+const ORDEN_RANURAS = RANURAS.map((r) => r.id);
+const ranuraPorId = Object.fromEntries(RANURAS.map((r) => [r.id, r]));
+const nombreRanura = (id) => (ranuraPorId[id] ? trDato(ranuraPorId[id], 'nombre') : id);
+
+// Diseño con el que se cerró el Taller la última vez (Probar o Regresar), por partida (`clave` = partida.resultados, que
+// cambia de identidad en cada partida nueva o restaurada). Si al volver partida.diseno es otro (p. ej. "Aplicar y al taller"
+// en Resultados), ese cambio queda como primer paso del historial y Deshacer lo revierte.
+let memoria = null;
 
 // Íconos 16 × 16 de las piezas (frente arte): assets/iconos/<id_de_pieza>.png.
 // Clave de textura = ruta sin extensión ("iconos/rueda_ancha"), la misma que usa el Boot al precargar /assets.
@@ -43,9 +52,11 @@ const ICONOS = import.meta.glob('../../../assets/iconos/*.png', { eager: true, q
 const URL_ICONO = Object.fromEntries(Object.entries(ICONOS).map(([ruta, url]) => [ruta.split('/').pop().replace(/\.png$/, ''), url]));
 const claveIcono = (id) => `iconos/${id}`;
 
-// Columna derecha: la validación nunca baja de aquí (los botones están en y = 485).
+// Columna derecha: la validación nunca baja de aquí (los botones están en y = BOTONES_Y).
 const VALIDACION_Y = 352;
 const VALIDACION_MAX_Y = 462;
+// Fila de botones de abajo: 2 px más arriba que el 485 original para no rozar la nota de teclado (2 líneas desde y ≈ 495).
+const BOTONES_Y = 483;
 
 // Nombre de superficie para mostrar (los datos usan arena/roca/compacto).
 const SUPERFICIE_EN = { arena: 'sand', roca: 'rock', compacto: 'compact' };
@@ -65,6 +76,7 @@ function datoClave(p) {
   if (p.id === 'panel_solar') return tr('sin efecto en el MVP (falta regla de iluminación)', 'no effect in the MVP (no lighting rule yet)');
   return '';
 }
+const conModificador = (ev) => Boolean(ev && (ev.ctrlKey || ev.metaKey || ev.altKey));
 function f2(v) { return typeof v === 'number' ? v.toFixed(2) : '—'; }
 
 // Zonas de toque: lo dibujado no cambia, pero el área que responde al dedo es más grande.
@@ -106,7 +118,15 @@ export default class Taller extends Phaser.Scene {
   create() {
     this.presupuesto = partida.presupuesto ?? PRESUPUESTO_INICIAL;
     // Al volver de una prueba se conserva el diseño; la primera vez arranca con el robot mínimo (ruedas estándar).
-    this.mapa = comoMapa(partida.diseno && partida.diseno.length ? partida.diseno : DISENO_POR_DEFECTO);
+    const entrada = comoMapa(partida.diseno);
+    const vacia = !Object.keys(entrada).length;
+    this.hist = historialAlEntrar(vacia ? null : memoria, vacia ? comoMapa(DISENO_POR_DEFECTO) : entrada, partida.resultados,
+      (antes, despues) => {
+        const ranuras = diferencias(antes, despues, ORDEN_RANURAS);
+        const lista = ranuras.map(nombreRanura).join(', ');
+        return { ranura: ranuras[0] ?? null, texto: tr(`recomendación aplicada (${lista})`, `applied recommendation (${lista})`) };
+      });
+    this.mapa = this.hist.actual;
     this.sel = 0;      // índice de la ranura seleccionada en RANURAS
     this.cursor = 0;   // índice de la pieza resaltada en el catálogo
     this.aviso = '';
@@ -122,6 +142,9 @@ export default class Taller extends Phaser.Scene {
         : (sitio && sitio.prueba_util ? tr('prueba útil: ', 'tests: ') + trDato(sitio, 'prueba_util') : null),
     ].filter(Boolean).join(' · ');
     titulo(this, tr('Taller', 'Workshop'), sub);
+    // Con sitios de nombre largo el subtítulo (14 px) se salía por los lados: se achica hasta caber en 930 px (mín. 11 px).
+    const txtSub = sub ? this.children.list[this.children.list.length - 1] : null;
+    if (txtSub && txtSub.type === 'Text' && txtSub.width > 930) txtSub.setFontSize(Math.max(11, Math.floor((14 * 930) / txtSub.width)));
 
     this.txtPresupuesto = this.add.text(480, 132, '', { fontFamily: FUENTE, fontSize: '16px', color: C.claro }).setOrigin(0.5);
 
@@ -141,15 +164,31 @@ export default class Taller extends Phaser.Scene {
       fontFamily: FUENTE, fontSize: '12px', color: C.claro, wordWrap: { width: 445 }, lineSpacing: 2,
     });
 
-    // Botones de abajo (y 485): zona de 62 px de alto (y 454–516) y 12 px de más a cada lado; no toca la columna del catálogo.
-    const btnRestablecer = boton(this, 560, 485, tr('Restablecer', 'Reset'), () => this.restablecer());
+    // Abajo a la izquierda (y BOTONES_Y, bajo el esquema): Regresar, Deshacer y Rehacer, en fila con 24 px entre botones.
+    // Zonas de toque de 62 px de alto y 10 px de más a cada lado: no se tocan entre sí ni con Restablecer (x ≥ 467).
+    const fila = [
+      this.btnRegresar = boton(this, 0, BOTONES_Y, tr('← Regresar', '← Back'), () => this.regresar()),
+      this.btnDeshacer = boton(this, 0, BOTONES_Y, tr('Deshacer', 'Undo'), () => this.deshacer()),
+      this.btnRehacer = boton(this, 0, BOTONES_Y, tr('Rehacer', 'Redo'), () => this.rehacer()),
+    ];
+    let x = 18;
+    for (const b of fila) {
+      b.setFontSize(16).setOrigin(0, 0.5).setX(x);
+      zonaToque(b, -10, (b.height - 62) / 2, b.width + 20, 62);
+      x += b.width + 24;
+    }
+
+    // Botones de abajo (y BOTONES_Y): zona de 62 px de alto (y 452–514) y 12 px de más a cada lado; no toca la columna del catálogo.
+    const btnRestablecer = boton(this, 560, BOTONES_Y, tr('Restablecer', 'Reset'), () => this.restablecer());
     zonaCentrada(btnRestablecer, btnRestablecer.width + 24, 62);
-    this.btnContinuar = boton(this, 790, 485, tr('Probar el robot', 'Test the robot'), () => this.continuar());
+    this.btnContinuar = boton(this, 790, BOTONES_Y, tr('Probar el robot', 'Test the robot'), () => this.continuar());
     zonaCentrada(this.btnContinuar, this.btnContinuar.width + 24, 62);
     nota(this, tr(
-      'Teclado: ←/→ ranura · ↑/↓ pieza · Enter equipar · Supr quitar · R restablecer · C continuar. '
+      'Teclado: ←/→ ranura · ↑/↓ pieza · Enter equipar · Supr quitar · R restablecer · C continuar · '
+        + 'Ctrl+Z deshacer · Ctrl+Y rehacer · Esc regresar. '
         + 'Ruedas: cada eje lleva 2 (cobra 2 × costo y masa). Precios y estadísticas = valores de juego.',
-      'Keys: ←/→ slot · ↑/↓ part · Enter equip · Del remove · R reset · C continue. '
+      'Keys: ←/→ slot · ↑/↓ part · Enter equip · Del remove · R reset · C continue · '
+        + 'Ctrl+Z undo · Ctrl+Y redo · Esc back. '
         + 'Wheels: each axle takes 2 (2 × cost and mass). Prices and stats = game values.',
     ));
 
@@ -162,10 +201,27 @@ export default class Taller extends Phaser.Scene {
     k.on('keydown-SPACE', () => this.equipar(this.cursor));
     k.on('keydown-DELETE', () => this.quitar());
     k.on('keydown-BACKSPACE', () => this.quitar());
-    k.on('keydown-R', () => this.restablecer());
-    k.on('keydown-C', () => this.continuar());
+    k.on('keydown-R', (ev) => { if (!conModificador(ev)) this.restablecer(); });
+    k.on('keydown-C', (ev) => { if (!conModificador(ev)) this.continuar(); });
+    k.on('keydown-ESC', () => this.regresar());
+    // Ctrl+Z deshacer · Ctrl+Y o Ctrl+Shift+Z rehacer (Cmd en Mac).
+    k.on('keydown', (ev) => {
+      if (!(ev.ctrlKey || ev.metaKey) || ev.altKey) return;
+      const tecla = ev.key.toLowerCase();
+      if (tecla === 'z' && !ev.shiftKey) this.deshacer();
+      else if (tecla === 'y' || (tecla === 'z' && ev.shiftKey)) this.rehacer();
+      else return;
+      ev.preventDefault();
+    });
 
-    this.elegirRanura(0);
+    // Si se llegó con un cambio hecho afuera ("Aplicar y al taller"), se elige la ranura que cambió y se avisa que se puede deshacer.
+    const aplicado = this.hist.puedeDeshacer ? this.hist.presente.cambio : null;
+    this.elegirRanura(aplicado && aplicado.ranura ? ORDEN_RANURAS.indexOf(aplicado.ranura) : 0);
+    if (aplicado) {
+      const texto = aplicado.texto.charAt(0).toUpperCase() + aplicado.texto.slice(1);
+      this.aviso = tr(`${texto}: Deshacer la revierte.`, `${texto}: Undo reverts it.`);
+      this.refrescar();
+    }
   }
 
 
@@ -250,24 +306,58 @@ export default class Taller extends Phaser.Scene {
   equipar(i) {
     const p = this.opciones()[i];
     if (!p) return;
-    this.mapa[RANURAS[this.sel].id] = p.id;
+    const r = RANURAS[this.sel];
+    this.mapa[r.id] = p.id;
+    this.hist.registrar(this.mapa, { ranura: r.id, texto: `${trDato(r, 'nombre')} → ${trDato(p, 'nombre')}` });
     this.cursor = i;
     this.aviso = '';
     this.refrescar();
   }
 
   quitar() {
-    delete this.mapa[RANURAS[this.sel].id];
+    const r = RANURAS[this.sel];
+    delete this.mapa[r.id];
+    this.hist.registrar(this.mapa, { ranura: r.id, texto: tr(`quitar ${trDato(r, 'nombre')}`, `remove ${trDato(r, 'nombre')}`) });
     this.aviso = '';
     this.refrescar();
   }
 
   restablecer() {
     this.mapa = comoMapa(DISENO_POR_DEFECTO);
-    const actual = this.mapa[RANURAS[this.sel].id];
-    this.cursor = Math.max(0, this.opciones().findIndex((p) => p.id === actual));
+    this.hist.registrar(this.mapa, { ranura: null, texto: tr('restablecer', 'reset') });
+    this.cursorEnPuesta();
     this.aviso = tr('Diseño restablecido al robot mínimo (ruedas estándar).', 'Design reset to the minimal robot (standard wheels).');
     this.refrescar();
+  }
+
+  /** Cursor del catálogo sobre la pieza puesta en la ranura elegida. */
+  cursorEnPuesta() {
+    const actual = this.mapa[RANURAS[this.sel].id];
+    this.cursor = Math.max(0, this.opciones().findIndex((p) => p.id === actual));
+  }
+
+  // ---------- historial (Deshacer / Rehacer) ----------
+  // Vuelve a un estado guardado y refresca todo (costo, masa, validación, esquema, catálogo) como un cambio a mano;
+  // se elige la ranura que cambió para que se vea qué pasó.
+  aplicarPaso(paso, es, en) {
+    if (!paso) return;
+    this.mapa = paso.estado;
+    const r = paso.cambio && paso.cambio.ranura;
+    if (r && ORDEN_RANURAS.includes(r)) this.sel = ORDEN_RANURAS.indexOf(r);
+    this.cursorEnPuesta();
+    this.aviso = paso.cambio && paso.cambio.texto ? tr(`${es}: ${paso.cambio.texto}`, `${en}: ${paso.cambio.texto}`) : '';
+    this.refrescar();
+  }
+
+  deshacer() { this.aplicarPaso(this.hist.deshacer(), 'Deshecho', 'Undone'); }
+
+  rehacer() { this.aplicarPaso(this.hist.rehacer(), 'Rehecho', 'Redone'); }
+
+  refrescarHistorial() {
+    for (const [b, activo] of [[this.btnDeshacer, this.hist.puedeDeshacer], [this.btnRehacer, this.hist.puedeRehacer]]) {
+      b.setColor(activo ? C.acento : C.apagado).setAlpha(activo ? 1 : 0.6);
+      if (b.input) b.input.cursor = activo ? 'pointer' : 'default';
+    }
   }
 
   refrescarCatalogo() {
@@ -355,6 +445,7 @@ export default class Taller extends Phaser.Scene {
       this.txtValidacion.setText(lineas.join('\n'));
     }
     this.btnContinuar.setColor(errores.length ? C.apagado : C.acento);
+    this.refrescarHistorial();
 
     this.refrescarEsquema();
     this.refrescarCatalogo();
@@ -369,7 +460,18 @@ export default class Taller extends Phaser.Scene {
       this.cameras.main.shake(120, 0.004);
       return;
     }
+    this.salir(diseno, 'Prueba');
+  }
+
+  /** Vuelve al expediente del sitio sin probar; el diseño (aunque aún no sea válido) se conserva en partida.diseno. */
+  regresar() {
+    this.salir(comoDiseno(this.mapa), 'Expediente');
+  }
+
+  salir(diseno, destino) {
+    if (this.cameras.main.fadeEffect.isRunning) return; // ya está saliendo (irA ignora la segunda transición)
     partida.diseno = diseno;
-    irA(this, 'Prueba');
+    memoria = { clave: partida.resultados, mapa: comoMapa(diseno) };
+    irA(this, destino);
   }
 }
