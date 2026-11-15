@@ -1,6 +1,7 @@
 fastapi==0.115.0
 uvicorn==0.30.6
-requests==2.32.3
-# model/ (forma, borde, nivel_vivo, score) y Earth Engine para /score y /nivel; mismas versiones que uv.lock
+requests==2.34.2
+# requests, numpy y earthengine-api: mismas versiones que uv.lock (google-api-core 2.44 pide requests>=2.33).
+# fastapi y uvicorn no están en uv.lock: son los que corren en el servidor.
 numpy==2.5.4
 earthengine-api==1.7.52
