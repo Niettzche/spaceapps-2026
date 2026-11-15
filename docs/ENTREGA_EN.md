@@ -25,7 +25,7 @@ Distinct component evaluations include 9/11 documented Mexican craters in the or
 | Field | Value / status |
 |---|---|
 | Demo | https://v1.marsception.us/ |
-| Rover game | https://v1.marsception.us/game/?lang=en — deployed English-language check pending; still showed Spanish |
+| Rover game | https://v1.marsception.us/game/?lang=en — title, menu and workshop checked in English; full walkthrough pending |
 | Video | https://v1.marsception.us/media/mision-cero-30s-en.mp4 — captioned explainer, not a gameplay recording |
 | Source code | https://github.com/Niettzche/spaceapps-2026 — owner must make public |
 | Methodology | `docs/METODOLOGIA.md` in the public source repository |

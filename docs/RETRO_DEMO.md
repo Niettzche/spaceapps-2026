@@ -18,9 +18,11 @@ Seguimiento: [issue #60](https://github.com/Niettzche/spaceapps-2026/issues/60).
 
 Observado en Chrome en https://v1.marsception.us/game/?lang=en: la carga y el menú mostraron «Nueva partida», «Continuar» y textos en español. No se completó una partida en esa sesión. El código local contiene selección de idioma por URL; primero volver a publicar main y comprobar sin caché. No se atribuye la causa a la lógica local sin reproducirla allí. Bloquea grabar la demostración inglesa pedida.
 
+Seguimiento al retomar: una pestaña nueva mostró el título, «New game» y el taller en inglés. Al recargar, la dirección visible quedó en `https://v1.marsception.us/?lang=en`, mostrando el juego. Falta confirmar con despliegue la separación web en `/` y juego en `/game/`; no se diagnosticó la redirección ni se completó el recorrido. El informe original se conserva como antecedente.
+
 ## Pendiente de verificación
 
 - Reproducir el camino dorado completo en inglés y español, Marte y Luna, con teclado y ratón.
 - Probar botones táctiles, aviso de orientación y sonido en teléfono real.
-- Grabar la pantalla real con sonido. Computer Use fue detenido por el usuario antes de iniciar la captura; no hay grabación de esta sesión.
+- Grabación a cargo de Alan por su indicación. Se confirmó el contador activo de Recortes y audio del sistema activado antes del traspaso; no se guardó ni se incorpora una grabación en este PR.
 - Recibir y separar cualquier retro adicional de los otros probadores; estas solicitudes proceden de Alan, no de dos reportes independientes.

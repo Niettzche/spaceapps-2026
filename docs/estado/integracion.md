@@ -72,3 +72,10 @@ Esta actualización sustituye los pendientes anteriores de dominio: Mario public
 - Validación: ocho pruebas nuevas, 23 casos de física, 14 de taller, pruebas de Expediente/precarga, límite de fps y enlaces web pasan. Build conjunto web/juego correcto; continúa el aviso conocido de bundles grandes.
 - Captura real: el usuario detuvo Computer Use con Escape antes de iniciar la grabación; no se produjo una captura. No se continuó con control de pantalla. Prueba en teléfono real, sonido y recorrido completo ES/EN siguen pendientes.
 - Formulario oficial: sesión iniciada y texto preparado anteriormente; guardar requiere que el usuario acepte términos/declaración de originalidad. No se envió el proyecto.
+
+## Reanudación de verificación
+
+- Incorporado `origin/main` 9649ca8 a la rama del PR #61, sin conflictos. No se mergeó el PR a main. Pruebas de juego/taller/Expediente/precarga/fps/enlaces y build conjunto vuelven a pasar.
+- La versión pública ahora muestra título, menú y taller en inglés. La navegación observada terminó en `/?lang=en`; coordinar con Mario la ruta definitiva de web/juego. El issue #60 recibe este seguimiento; no se presenta como recorrido completo certificado.
+- Grabación transferida a Alan por su indicación. Se observó el contador activo y audio del sistema activado en Recortes antes del traspaso. No se guardó ni se incluye una grabación en el PR.
+- Siguen pendientes: camino dorado completo ES/EN en ambos destinos, revisión visual del PR #61 (aún no publicado), teléfono real y grabación.
