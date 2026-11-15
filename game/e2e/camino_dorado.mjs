@@ -52,6 +52,9 @@ const pedidas = (process.argv[2] ?? 'ambos') === 'ambos' ? ['marte', 'luna'] : [
 
 const browser = await chromium.launch({ executablePath: CHROMIUM, args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader'] });
 const page = await browser.newPage({ viewport: { width: 960, height: 540 } });
+// "Cómo jugar" (Menú) sale la primera vez que se pulsa "Nueva partida" en un navegador; la prueba lo da por visto con
+// la misma marca que deja el juego (game/src/scenes/expediente/como_jugar.js), así el camino dorado no cambia.
+await page.addInitScript(() => { try { localStorage.setItem('marsception.como_jugar.visto', '1'); } catch { /* sin almacenamiento */ } });
 const errores = [];
 page.on('pageerror', (e) => errores.push({ paso: pasoActual, tipo: 'pageerror', texto: e.message }));
 page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') errores.push({ paso: pasoActual, tipo: m.type(), texto: m.text() }); });

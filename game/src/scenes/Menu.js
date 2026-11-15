@@ -11,6 +11,11 @@ import { MUNDOS } from './expediente/textos.js';
 import { vistaNumeros } from './expediente/numeros.js';
 import { prepararIngles } from './expediente/datos_en.js';
 import { tr, trDato, idioma, alternarIdioma } from '../i18n.js';
+import { debeMostrarComoJugar } from './expediente/como_jugar.js';
+import { vistaComoJugar, reiniciarPaginaComoJugar } from './expediente/como_jugar_vista.js';
+
+// A dónde ir al terminar o saltar "Cómo jugar" (se conserva si el Menú se reinicia al cambiar de idioma).
+let trasComoJugar = 'principal';
 
 // Dueño: frente expediente. Menú: nueva partida (con elección de destino), continuar, explorador,
 // "¿De dónde salen los números?". Es una sola escena con varias vistas (no requiere registrar escenas en main.js).
@@ -61,7 +66,13 @@ export default class Menu extends Phaser.Scene {
     this.teclado.extra = { l: idiomaTecla, L: idiomaTecla };
     this.teclado.alEscape = vista === 'principal' ? null : () => this.mostrar('principal');
     if (vista === 'destino') this.vistaDestino();
-    else if (vista === 'numeros') vistaNumeros(this, () => this.mostrar('principal'), () => this.cambiarIdioma('numeros'));
+    else if (vista === 'como_jugar') {
+      vistaComoJugar(this, {
+        presupuesto: PRESUPUESTO_INICIAL,
+        alTerminar: () => this.mostrar(trasComoJugar),
+        redibujar: () => this.mostrar('como_jugar'),
+      });
+    } else if (vista === 'numeros') vistaNumeros(this, () => this.mostrar('principal'), () => this.cambiarIdioma('numeros'));
     else this.vistaPrincipal();
   }
 
@@ -72,26 +83,39 @@ export default class Menu extends Phaser.Scene {
       { size: 14, color: COLOR.tenue, origen: [0.5, 0.5] });
 
     const g = guardadoDisponible(DESTINOS);
-    const nueva = boton(this, 480, 210, tr('Nueva partida', 'New game'), () => this.mostrar('destino'));
-    const continuar = boton(this, 480, 260, tr('Continuar', 'Continue'), () => this.continuar(), { habilitado: !!g });
+    const nueva = boton(this, 480, 200, tr('Nueva partida', 'New game'), () => this.alNuevaPartida());
+    const continuar = boton(this, 480, 250, tr('Continuar', 'Continue'), () => this.continuar(), { habilitado: !!g });
     const resumen = g ? this.resumenGuardado(g) : tr('No hay partida guardada en este navegador', 'No saved game in this browser');
-    texto(this, 480, 284, resumen, { size: 12, color: COLOR.muyTenue, origen: [0.5, 0.5] });
-    const explorador = boton(this, 480, 330, tr('Explorador libre', 'Free explorer'), () => irA(this, 'Explorador'));
-    texto(this, 480, 354, tr('Consulta cualquier coordenada de la Tierra y propón un sitio', 'Check any coordinate on Earth and propose a site'),
+    texto(this, 480, 274, resumen, { size: 12, color: COLOR.muyTenue, origen: [0.5, 0.5] });
+    const explorador = boton(this, 480, 315, tr('Explorador libre', 'Free explorer'), () => irA(this, 'Explorador'));
+    texto(this, 480, 339, tr('Consulta cualquier coordenada de la Tierra y propón un sitio', 'Check any coordinate on Earth and propose a site'),
       { size: 12, color: COLOR.muyTenue, origen: [0.5, 0.5] });
-    const numeros = boton(this, 480, 400, tr('¿De dónde salen los números?', 'Where do the numbers come from?'), () => this.mostrar('numeros'));
+    const numeros = boton(this, 480, 380, tr('¿De dónde salen los números?', 'Where do the numbers come from?'), () => this.mostrar('numeros'));
+    const comoJugar = boton(this, 480, 428, tr('Cómo jugar', 'How to play'), () => this.verComoJugar('principal'));
     const idiomaBoton = this.botonIdioma('principal');
 
     texto(this, 480, 470, tr(`Datos cargados: ${SITIOS.length} sitios terrestres · ${Object.keys(DESTINOS).length} destinos`,
       `Data loaded: ${SITIOS.length} Earth sites · ${Object.keys(DESTINOS).length} destinations`),
       { size: 12, color: COLOR.muyTenue, origen: [0.5, 0.5] });
-    texto(this, 480, 500, tr('Flechas o Tab para moverte · 1–4 o Enter para elegir · Esc para volver · También con toque',
-      'Arrows or Tab to move · 1–4 or Enter to choose · Esc to go back · Touch works too'),
+    texto(this, 480, 500, tr('Flechas o Tab para moverte · 1–5 o Enter para elegir · Esc para volver · También con toque',
+      'Arrows or Tab to move · 1–5 or Enter to choose · Esc to go back · Touch works too'),
       { size: 12, color: COLOR.muyTenue, origen: [0.5, 0.5] });
-    // Atajos 1–4 y opción sugerida (⏎), igual que Resultados.js.
-    this.teclado.numerar([nueva, continuar, explorador, numeros]);
+    // Atajos 1–5 y opción sugerida (⏎), igual que Resultados.js. "Cómo jugar" va al final para no mover los atajos 1–4.
+    this.teclado.numerar([nueva, continuar, explorador, numeros, comoJugar]);
     (g ? continuar : nueva).setSugerido(true);
-    this.teclado.poner([nueva, continuar, explorador, numeros, idiomaBoton], g ? continuar : nueva);
+    this.teclado.poner([nueva, continuar, explorador, numeros, comoJugar, idiomaBoton], g ? continuar : nueva);
+  }
+
+  /** "Nueva partida": la primera vez en este navegador muestra "Cómo jugar" antes de elegir destino. */
+  alNuevaPartida() {
+    if (debeMostrarComoJugar()) this.verComoJugar('destino');
+    else this.mostrar('destino');
+  }
+
+  verComoJugar(despues) {
+    trasComoJugar = despues;
+    reiniciarPaginaComoJugar();
+    this.mostrar('como_jugar');
   }
 
   resumenGuardado(g) {
