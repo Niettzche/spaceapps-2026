@@ -180,7 +180,11 @@ const PASO_BUSQUEDA_M = 10; // separación entre ventanas candidatas (m)
 // reposo de la arena (~30–34°). Se agregan solo en tramos de arena de sitios terrestres y solo donde el terreno medido es
 // casi plano (≤ pendienteBaseMax): las dunas se forman sobre llanuras; en una pared de cráter o de tajo el DEM ya muestra el
 // relieve y una duna encima daría paredes de más de 50° que nadie sube. (P)
-const DUNA = { periodo: 28, subida: 0.22, alturaMin: 3.6, alturaVar: 0.8, anguloRef: 32, pendienteBaseMax: 10 };
+// Tope de la cara: la pendiente TOTAL (terreno medido + cara recreada) no pasa de `anguloMax` = 30°, el borde inferior del
+// ángulo de reposo de la arena seca (30–34°; caras de barjanes: reposo medio 32°, crítico 34°, Pelletier et al. 2015, JGR,
+// https://doi.org/10.1002/2015JF003636). Antes la altura al azar más el terreno de base daba caras de hasta 39°, más empinadas
+// que cualquier duna real, y el camino dorado quedaba en el filo (la rueda ancha a veces sí y a veces no). (P)
+const DUNA = { periodo: 28, subida: 0.22, alturaMin: 3.6, alturaVar: 0.8, anguloMax: 30, pendienteBaseMax: 10 };
 
 // Bloques de roca recreados (recreación declarada): el DEM de 30 m tampoco resuelve rocas sueltas de medio metro.
 // Se agregan solo en tramos de roca de sitios terrestres; dan golpes a la carga (el soporte amortiguado sirve). (P)
@@ -389,6 +393,17 @@ export function perfilDesdeElevaciones(elevaciones, {
     }
     return true;
   });
+  // Altura de cada duna con el tope de pendiente total: h ≤ L·(tan anguloMax − pendiente de base más fuerte en la cara).
+  const largoCara = DUNA.periodo * DUNA.subida;
+  hayDuna.forEach((hay, k) => {
+    if (!hay) return;
+    let baseMax = -Infinity;
+    for (let x = k * DUNA.periodo; x < k * DUNA.periodo + largoCara; x += 0.5) {
+      baseMax = Math.max(baseMax, elevReal(d0 + x + 0.5) - elevReal(d0 + x)); // subida de la base en 0.5 m
+    }
+    const hMax = largoCara * (Math.tan(DUNA.anguloMax / GRADOS) - baseMax / 0.5);
+    alturasDuna[k] = Math.max(0, Math.min(alturasDuna[k], hMax));
+  });
   const duna = (x) => {
     const k = Math.floor(x / DUNA.periodo);
     if (!hayDuna[k]) return 0;
@@ -419,8 +434,8 @@ export function perfilDesdeElevaciones(elevaciones, {
         `real ${km(largoJugable)} stretch (from m ${Math.round(a)} to m ${Math.round(b)}${vuelta ? ', reverse direction of the transect' : ''}) of a ${km(total)} transect, ${datosTramo}${desc}`)
       : vuelta ? tr(`recorrido en sentido inverso del transecto${desc}`, `driven in the reverse direction of the transect${desc}`) : null,
     exageracion !== 1 ? tr(`exageración vertical ×${exageracion}`, `vertical exaggeration ×${exageracion}`) : null,
-    hayDunas ? tr(`caras de duna recreadas (~${DUNA.anguloRef}°, ángulo de reposo de la arena; el modelo de 30 m no las resuelve)`,
-      `recreated dune faces (~${DUNA.anguloRef}°, angle of repose of sand; the 30 m model does not resolve them)`) : null,
+    hayDunas ? tr(`caras de duna recreadas (hasta ${DUNA.anguloMax}°, borde inferior del ángulo de reposo de la arena; el modelo de 30 m no las resuelve)`,
+      `recreated dune faces (up to ${DUNA.anguloMax}°, lower bound of the angle of repose of sand; the 30 m model does not resolve them)`) : null,
     hayRocas ? tr('bloques de roca recreados (~0.5 m; el modelo de 30 m no resuelve rocas sueltas)',
       'recreated rock blocks (~0.5 m; the 30 m model does not resolve loose rocks)') : null,
     tr('inicio y meta planos = recreación', 'flat start and finish = recreation'),

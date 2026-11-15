@@ -86,7 +86,8 @@ el viento y la nieve; con el mismo método, la consulta nueva reproduce la tabla
   en roca la fricción no limita la subida. Desprendimientos: al pasar los m 70 y 150, caen 3 piedras de 0.2–0.3 m delante del robot,
   ruedan y se quedan como obstáculo (P). Fondo: `mina`.
 - **Viento:** hasta 16 m/s a 10 m (es la prueba en la Tierra). Partículas de polvo.
-- **Pide:** rueda **ancha o de malla**. Fallan la estándar, la de tacos y la de Nitinol (se hunden en el talud).
+- **Pide:** rueda **de malla** (5 de 5). La ancha pasa solo a veces (2 de 5) desde que la roca de la Tierra usa μ ≈ 0.7 (15 nov,
+  FISICA_V2.md §5.2): la pared de roca de 23.6° (m 79–93) le queda en el límite. Fallan la estándar, la de tacos y la de Nitinol.
 
 ## 4. Campo volcánico El Pinacate (Sonora) → Luna
 
@@ -113,7 +114,8 @@ el viento y la nieve; con el mismo método, la consulta nueva reproduce la tabla
 - **Viento:** ráfagas de hasta 21 m/s a 10 m (≈ 12.5 m/s a 1 m) → hasta ~150 N, ~22 % del peso. Partículas de nieve.
 - **Frío:** la mínima típica es −34.4 °C: la regla del frío (ambiente.js) deja la batería al 99 %; el calentador quita esa pérdida.
 - **Eventos:** nieve que sopla.
-- **Pide:** rueda **ancha o de malla** (nieve). Fallan la estándar y la de tacos.
+- **Pide:** rueda **de malla** (5 de 5); la ancha pasa 4 de 5 (la pared de roca de 30°, m 60–73, con roca μ ≈ 0.7; FISICA_V2.md §5.2).
+  Fallan la estándar y la de tacos.
 
 ## 6. Médanos de Samalayuca (Chihuahua) → Marte · camino dorado, solo ambiente
 
@@ -205,6 +207,10 @@ Diseño base: chasis ligero, motor eficiente, batería chica, soporte básico, r
 | mx0261 | ancha + batería mediana | 930 | meta, E 30 % |
 | mx0261 | malla + batería mediana | 850 | meta, E 35 % |
 
+**Re-medición del 15 nov (tarde)**, tras los valores de suelo verificados por Leo (roca μ ≈ 0.7, suelo compacto 38°) y el tope de 30°
+de las caras de duna: 5 arranques por diseño en el simulador por pasos. Tabla completa en `FISICA_V2.md` §5.2. Cambios: Cananea con
+ancha 2/5 (antes meta) y Pingualuit con ancha 4/5; los demás diseños de la tabla siguen igual (malla, reforzado: 5/5; estándar: 0/5).
+
 ## Lo que la física no permite hoy (y por qué no se forzó)
 
 - **Rueda de tacos para el talud o la lava:** en la física 2 la fricción en roca no limita la subida (Matter no aplica Coulomb exacto;
@@ -212,7 +218,7 @@ Diseño base: chasis ligero, motor eficiente, batería chica, soporte básico, r
   falta un modelo de esfuerzo en roca con fuente. No se inventó un número para forzarlo.
 - **Batería para el Ártico:** el frío de Pingualuit quita solo 1 % (la regla del frío tiene piso de 97 %) y la nieve no gasta más que la
   arena. El calentador se recomienda, pero no decide el resultado.
-- Por eso tres niveles piden flotación (ancha o malla). Lo distinto entre ellos es el suelo (toba, talud, nieve), el viento y los eventos.
+- Por eso tres niveles piden flotación (ancha o malla; en Cananea y Pingualuit, malla: ver la re-medición). Lo distinto entre ellos es el suelo (toba, talud, nieve), el viento y los eventos.
 - Rincón de Parangueo pide **energía** (batería), no rueda: es lo que justifica el lugar (un cráter ancho que hay que cruzar y subir).
   La costra de sal no tiene dato de fricción con fuente; con −30 % de agarre en suelo plano no detiene a ninguna rueda.
 

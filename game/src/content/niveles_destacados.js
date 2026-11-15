@@ -94,7 +94,7 @@ export const NIVELES_DESTACADOS = {
     bloques: [],
     viento: { particula: 'polvo' },
     eventos: ['desprendimiento'],
-    pieza_clave: ['rueda_ancha', 'rueda_malla'],
+    pieza_clave: ['rueda_malla'], // ancha: 2 de 5 desde roca μ ≈ 0.7 (pared de roca de 23.6°; FISICA_V2.md §5.2)
   },
 
   pinacate: {
@@ -147,7 +147,7 @@ export const NIVELES_DESTACADOS = {
     bloques: [],
     viento: { particula: 'nieve' },
     eventos: ['nieve_sopla'],
-    pieza_clave: ['rueda_ancha', 'rueda_malla'], // el calentador quita la pérdida por frío (1 %, ambiente.js), no decide
+    pieza_clave: ['rueda_malla'], // ancha: 4 de 5 (pared de roca de 30° con μ ≈ 0.7); el calentador quita la pérdida por frío (1 %), no decide
   },
 
   // 6. Camino dorado de Marte (AGENTS.md §11): la estándar se hunde en las dunas y la ancha pasa. Está calibrado con la física 2
