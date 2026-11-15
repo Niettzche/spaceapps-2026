@@ -98,21 +98,26 @@ def _ndvi_ee(lat: float, lon: float) -> float | None:
 
 
 def modis_ndvi(lat: float, lon: float) -> dict:
-    """NDVI medio del píxel de 250 m (MOD13Q1). Intenta ORNL DAAC y, si falla, Earth Engine."""
+    """NDVI medio del píxel de 250 m (MOD13Q1). Intenta Earth Engine y, si falla o no hay dato, ORNL DAAC.
+
+    Earth Engine va primero porque responde en segundos; ORNL tarda 36-60 s por tramo y desde el VPS a veces no
+    responde, lo que hacía esperar ~60 s cada consulta del Explorador antes de llegar a Earth Engine."""
     errores = []
+    try:
+        v = _ndvi_ee(lat, lon)
+        if v is not None:
+            return {"ndvi": {"valor": v, "unidad": "-", "fuente": "MODIS MOD13Q1 (Google Earth Engine, MODIS/061/MOD13Q1)",
+                             "fecha": "2021-2025", "nota": "media del píxel de 250 m"}}
+    except Exception as e:  # noqa: BLE001
+        errores.append(f"Earth Engine: {e}")
     try:
         v = _ndvi_ornl(lat, lon)
         if v is not None:
             return {"ndvi": {"valor": v, "unidad": "-", "fuente": "MODIS MOD13Q1 (ORNL DAAC)", "fecha": "2023",
                              "nota": "media anual del píxel de 250 m"}}
+        errores.append("ORNL: sin dato para el píxel")
     except Exception as e:  # noqa: BLE001
         errores.append(f"ORNL: {e}")
-    try:
-        v = _ndvi_ee(lat, lon)
-        return {"ndvi": {"valor": v, "unidad": "-", "fuente": "MODIS MOD13Q1 (Google Earth Engine, MODIS/061/MOD13Q1)",
-                         "fecha": "2021-2025", "nota": "media del píxel de 250 m"}}
-    except Exception as e:  # noqa: BLE001
-        errores.append(f"Earth Engine: {e}")
     return {"error": "MODIS: " + " | ".join(errores)}
 
 
