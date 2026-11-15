@@ -361,11 +361,27 @@ document.addEventListener('click', (ev) => {
   const destino = id ? document.getElementById(id) : null;
   if (!destino) return;
   ev.preventDefault();
-  const offset = id === 'inicio' || (pantallaCompleta.has(id) && modoPantalla.matches) ? 0 : -72;
+  if (id === 'detalles') abrirDetalles();
+  const offset = 0;   // Lenis ya respeta scroll-padding-top (la barra) y el scroll-margin de las secciones de pantalla completa
   if (lenis) lenis.scrollTo(destino, { offset, duration: 1.4 });
   else destino.scrollIntoView({ block: 'start' });
   history.replaceState(null, '', `#${id}`);
 });
+
+/* ── «Detalles técnicos» se abre completo al llegar por enlace o con #detalles en la dirección (para compartirla) ── */
+function abrirDetalles() { document.querySelectorAll('#detalles details').forEach((d) => { d.open = true; }); }
+function irADetallesSiHace() {
+  if (location.hash !== '#detalles') return;
+  abrirDetalles();
+  const destino = document.getElementById('detalles');
+  // al abrirse cambia la altura de la página: se baja hasta ahí cuando ya está acomodada, sin animación
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    if (lenis) lenis.scrollTo(destino, { offset: 0, immediate: true, force: true });
+    else destino.scrollIntoView({ block: 'start' });
+  }));
+}
+addEventListener('hashchange', irADetallesSiHace);
+addEventListener('load', irADetallesSiHace);
 
 /* ── El cartel cabe en una pantalla: si no cabe, achica las ilustraciones; si aun así no cabe, se lee bajando ── */
 const museo = document.getElementById('museo');

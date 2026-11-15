@@ -11,6 +11,8 @@ export const EN = {
   navDestinos: 'Destinations',
   navCiencia: 'The science',
   navDatos: 'Data',
+  navDetalles: 'Technical details',
+  verDetalles: 'Technical details: figures, sources and validation',
   apTitulo: 'What we found and what we contribute',
   apEncT: 'What we found',
   apE1: '<strong>Mines fool the shape score.</strong> Among the 25 holes that look most alike by shape, 14 are open-pit mines.',
