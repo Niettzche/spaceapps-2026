@@ -3,7 +3,28 @@
 > Lo actualiza SOLO este frente. Rama: `feat/modelo`.
 
 **Responsable:** Mario  ·  **Agente:** Claude Code / Codex
-**Última actualización:** 14 nov 2026, noche (PR de la auditoría del modelo)
+**Última actualización:** 14 nov 2026, noche (borde levantado, sobre el PR de la auditoría del modelo)
+
+## Hecho (borde levantado, 14 nov, noche)
+- **`model/borde.py`: evidencia medida de que una depresión es un cráter.** `h/D` = altura máxima del perfil radial promedio a
+  80 m entre 0.83 y 1.67 radios, sobre el terreno lejano (1.67 a 2 radios). Usa `ciencia_datos/datos/perfiles_radiales.json`
+  (analisis/18): no consulta nada. Ventana y umbral provisionales (P).
+- **Resultado** (`model/VALIDATION.md`, sección B): tienen borde levantado 10 de 11 cráteres con fuente externa (catálogo de
+  México, Meteor Crater, literatura), 3 de 26 presas, valles o dunas (IA ≥ 0.7) y 4 de 38 tajos con cantera de OpenStreetMap.
+  AUC 0.91 donde el puntaje de forma da 0.42 y 0.36. Por altura del borde, 7 de los 11 quedan entre los 20 primeros de 296; por
+  forma, 2.
+- **En `data/sites`:** variable nueva `variables.borde_levantado` (metros, con `h/D` en la nota) en los 57 sitios con cráter
+  medido (`mx0090` en `null`: no tiene perfil). Con borde: Pinacate, 4 de los 5 cráteres naturales verificados (Colton no) y 5
+  sin verificar (mx0003, mx0017, mx0045, mx0047, mx0121: los primeros que conviene revisar). Ninguno de los 22 tajos.
+  La nota de cada candidato dice si la medida apoya a la etiqueta. **No entra al puntaje: ningún total, `destino_ref` ni
+  `novedoso` cambió.**
+- **Límites:** no mide parecido con la Luna ni con Marte (solo 22 % de los gemelos lunares y 15 % de los marcianos tienen borde
+  con esta medida); 11 casos con fuente, uno solo de impacto; la ventana ancha se eligió después de ver los datos (con la
+  estrecha pasan 7 de 11). Falta la prueba independiente: perfiles a 80 m de los cráteres de impacto de `impactos_tierra.csv`.
+- Corregido en `VALIDATION.md`: los totales frente al polo sur lunar son más bajos por la pendiente (objetivo 8.63° contra 3.56°),
+  no por la oscilación térmica, que se recorta igual en los dos destinos. Los tajos someros (mx0088, mx0457) ya no dicen
+  "pendientes extremas".
+- Comandos: `python -m model.borde` (todos los sitios) y `python -m model.scan --solo-categoria` (notas); los dos son idempotentes.
 
 ## Hecho (auditoría del 14 nov, noche)
 - **Pinacate** ahora usa la misma regla que `scan.py` (destino = cuerpo al que más se parece su forma): `polo_sur_lunar`,

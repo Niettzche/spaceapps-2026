@@ -46,6 +46,13 @@
       "fecha": null,
       "nota": "a 200 m el borde lunar medido es negativo (mediana −23 m): no se usa como criterio de parecido"
     },
+    "borde_levantado": {
+      "valor": null,
+      "unidad": "m",
+      "fuente": "Copernicus DEM GLO-30 (ESA) llevado a 80 m; perfil radial promedio del cráter (analisis/18_perfiles_radiales.py, ciencia_datos/datos/perfiles_radiales.json)",
+      "fecha": null,
+      "nota": "Sin perfil radial a 80 m para este cráter: el borde levantado no se midió."
+    },
     "ndvi_p90": {
       "valor": 0.253,
       "unidad": "-",
@@ -105,5 +112,5 @@
     "exageracion_vertical": null,
     "obstaculos": []
   },
-  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Cráter Gale (Marte), 0.71 km, 23 m, d/D 0.032. Categoría: sin verificar; la etiqueta no está verificada (sin etiqueta de IA): no se sabe si es un cráter, una presa, un valle o una duna. El puntaje de forma no lo decide (model/VALIDATION.md). Etiqueta de IA: sin etiqueta (no se etiquetó este candidato); tipo no verificado. novedoso: null (sin etiqueta; no verificado como cráter)."
+  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Cráter Gale (Marte), 0.71 km, 23 m, d/D 0.032. Categoría: sin verificar; la etiqueta no está verificada (sin etiqueta de IA): no se sabe si es un cráter, una presa, un valle o una duna. Borde levantado: sin medida (no hay perfil radial a 80 m). El puntaje de forma no lo decide (model/VALIDATION.md). Etiqueta de IA: sin etiqueta (no se etiquetó este candidato); tipo no verificado. novedoso: null (sin etiqueta; no verificado como cráter)."
 }

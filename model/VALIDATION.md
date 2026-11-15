@@ -53,7 +53,7 @@ Las dimensiones complementarias funcionan como un **prefiltro ambiental**: dicen
 | 0.45 | 1 de 21 | 1 de 5 | 7 de 21 | 5 de 5 | 0 de 3 |
 | 0.4 | 2 de 21 | 2 de 5 | 9 de 21 | 5 de 5 | 0 de 3 |
 
-Con 0.4 (el mismo umbral que usa esta validación para decir que un análogo conocido pasa) los cinco hiperáridos pasan frente a Jezero y ningún control negativo pasa. Frente al polo sur lunar los totales son más bajos (la oscilación térmica de 176 K está más lejos del máximo terrestre), así que pasan menos. `api/main.py` usa 0.4 (P); como el prefiltro no ordena sitios áridos, una propuesta que lo pasa queda `propuesto_usuario`, pendiente de revisión, no validada.
+Con 0.4 (el mismo umbral que usa esta validación para decir que un análogo conocido pasa) los cinco hiperáridos pasan frente a Jezero y ningún control negativo pasa. Frente al polo sur lunar los totales son más bajos por la pendiente: el objetivo lunar es 8.63° y el de Jezero 3.56°, y estos desiertos son más llanos. La oscilación térmica no cambia entre destinos, porque los dos se recortan al máximo terrestre de 40 K. `api/main.py` usa 0.4 (P); como el prefiltro no ordena sitios áridos, una propuesta que lo pasa queda `propuesto_usuario`, pendiente de revisión, no validada.
 
 **Tasa del prefiltro en los sitios del detector.** De los 57 sitios de `data/sites` con un cráter medido (todos de zonas áridas, NDVI p90 < 0.35), 0 quedan vetados y el 58% da 0.4 o más sin la forma (mediana 0.41, percentiles 10–90: 0.32–0.51, máximo 0.60). Es decir: casi todo lo árido pasa y queda en una franja estrecha. El prefiltro **descarta** (selvas, cultivos, nieve) pero **no ordena** sitios áridos entre sí; lo que dice qué es cada sitio es la etiqueta verificada (sección B).
 
@@ -109,9 +109,72 @@ Modelo: regresión logística Luna contra Marte con 4,288 cráteres lunares y 57
 
 AUC de separación cráter natural frente a presa/valle/duna (14 contra 26 casos; p = prueba de permutación de dos colas, 5,000 repeticiones): puntaje de forma 0.42 (p = 0.43); d/D 0.75 (p = 0.01); diferencia de perfil con el gemelo lunar 0.37 (p = 0.18; menor diferencia = más lunar). Un AUC por debajo de 0.5 quiere decir que las presas, valles y dunas puntúan **más** lunar que los cráteres: son más planas; el puntaje de forma las toma por marcianas (en Marte los cráteres son planos) y la diferencia de perfil absoluta premia lo plano (por eso la lista corta usa `dif_rel` = diferencia media / d/D, en `ciencia_datos/salidas/fichas_integradas.csv`).
 
-**Límite declarado.** La forma sola (3 medidas a 200 m) no distingue un cráter de otra depresión cerrada de tamaño parecido. Por eso el catálogo usa la **etiqueta verificada** (IA sobre imagen de satélite y relieve, revisada contra fuentes) para decidir qué es un cráter, y la forma solo para decir **qué tan lunar o marciano** es un cráter ya identificado.
+**Límite declarado.** La forma sola (3 medidas a 200 m) no distingue un cráter de otra depresión cerrada de tamaño parecido. Por eso el catálogo usa la **etiqueta verificada** (IA sobre imagen de satélite y relieve, revisada contra fuentes) para decidir qué es un cráter, y la forma solo para decir **qué tan lunar o marciano** es un cráter ya identificado. La medida que sí lo distingue es el borde levantado (apartado siguiente al de la precisión del detector).
 
 **Precisión del detector según la IA.** De los 296 candidatos áridos del detector (México + Atacama, Arizona y Arabia), la IA etiqueta 27 como cráteres naturales (9%) y 53 como minas o canteras (18%); el resto son valles, presas, dunas, otras formas o casos que no se pueden decidir: valle_o_canada 94, no_se_puede_decir 57, otro 22, hondonada_eolica_o_duna 22, presa_o_lago 20, dolina_karst 1. Ojo: la IA solo está validada en 33 casos (29 aciertos, IC 95 % 72–97 %) y esos casos son minas, volcanes y Meteor Crater; valles, presas y dunas no tienen casos validados. El detector es un **detector de depresiones cerradas con forma de cráter**, no un detector de cráteres.
+
+### Borde levantado: una medida que sí distingue un cráter de otra depresión
+
+Un impacto o una explosión volcánica apila material alrededor del hoyo: el terreno pegado al cráter queda más alto que el terreno lejano. Un valle cerrado, una presa, una hondonada entre dunas o un tajo no tienen eso. **Medida** (`model/borde.py`, sin consultar nada: usa los perfiles radiales a 80 m de `analisis/18`): `h/D` = altura máxima del perfil radial promedio entre 0.83 y 1.67 radios, sobre el terreno lejano (1.67 a 2 radios), dividida entre el diámetro. Hay borde levantado si `h/D` > 0. Ventana y umbral son provisionales (P).
+
+| grupo | con borde levantado |
+|---|---|
+| Cráteres con fuente externa (catálogo de México, impactos, literatura) | 10 de 11 (91%) |
+| Cráter natural según la IA, confianza ≥ 0.7 | 13 de 14 (93%) |
+| Presa, valle o duna según la IA, confianza ≥ 0.7 | 3 de 26 (12%) |
+| Tajos con cantera de OpenStreetMap a ≤ 2 km | 4 de 38 (11%) |
+| Todos los candidatos áridos con perfil | 57 de 296 (19%) |
+| Referencia: gemelos lunares (LOLA a 80 m) | 55 de 248 (22%) |
+| Referencia: gemelos marcianos (HRSC+MOLA a 200 m) | 9 de 59 (15%) |
+
+**Separación** (AUC; p = prueba de permutación de dos colas, 5,000 repeticiones). Cráter natural frente a presa, valle o duna (IA ≥ 0.7, 14 contra 26, los mismos casos del control negativo de arriba): altura del borde 0.91 (p < 0.001), puntaje de forma 0.42. Cráteres con fuente externa frente a tajos con cantera de OpenStreetMap (11 contra 38; aquí la IA no interviene en ningún lado): altura del borde 0.91 (p < 0.001), puntaje de forma 0.36.
+
+**¿Pone arriba a los cráteres que ya se conocen?** Al ordenar los 296 candidatos por altura del borde, 7 de los 11 cráteres con fuente quedan entre los 20 primeros y 10 entre los 40; con el puntaje de forma, 2 y 3. Entre los 25 primeros por borde hay 11 cráteres naturales según la IA y 1 mina; entre los 25 primeros por forma, 3 cráteres naturales y 14 minas.
+
+| id | fuente | h/D | borde (m) | levantado | puesto por borde | puesto por forma |
+|---|---|---|---|---|---|---|
+| G00266 | cono de toba Jabal Bayda, a ~0.04 km (OpenStreetMap; NASA Earth Observatory 2024) | +0.0369 | 38.2 | sí | 2 | 67 |
+| G00195 | Meteor Crater, a 0.04 km (lista de cráteres de impacto, ciencia_datos/datos/impactos_tierra.csv) | +0.0217 | 23.5 | sí | 4 | 18 |
+| G00263 | maar Al Hutaymah, a ~0.10 km (OpenStreetMap; USGS OFR 85-125) | +0.0140 | 18.1 | sí | 7 | 69 |
+| MX0261 | Hoya Rincón de Parangueo, a 0.20 km (catálogo de cráteres de México) | +0.0118 | 16.2 | sí | 11 | 143 |
+| MX0008 | Cráter El Elegante, a 0.21 km (catálogo de cráteres de México) | +0.0108 | 15.6 | sí | 12 | 10 |
+| MX0010 | Sykes (Cráter Grande / Volcán Romo), a 0.34 km (catálogo de cráteres de México) | +0.0107 | 9.7 | sí | 13 | 207 |
+| MX0009 | Celaya (Volcán Los Vidrios), a 0.01 km (catálogo de cráteres de México) | +0.0059 | 5.8 | sí | 20 | 256 |
+| MX0012 | Cerro Colorado, a 0.33 km (catálogo de cráteres de México) | +0.0041 | 2.6 | sí | 23 | 245 |
+| G00281 | maar Al Wahbah, a ~0.23 km (IUGS Geoheritage) | +0.0028 | 6.1 | sí | 29 | 182 |
+| MX0007 | MacDougal (Cráter Verdugo), a 0.35 km (catálogo de cráteres de México) | +0.0021 | 3.4 | sí | 35 | 215 |
+| G00176 | Colton Crater (Crater 160), a ~0.05 km (USGS OFR 2005-1190) | -0.0085 | -6.4 | no | 223 | 31 |
+
+**Sensibilidad** a la ventana y al umbral. Ojo: la ventana ancha se eligió después de ver que la estrecha dejaba fuera a cráteres con fuente. Con tan pocos casos eso es ajuste a la muestra, y por eso se reportan todas las combinaciones:
+
+| ventana (radios) | umbral h/D | cráteres con fuente | presa, valle o duna | tajos OSM | todos |
+|---|---|---|---|---|---|
+| 0.83–1.33 | 0 | 7 de 11 | 1 de 26 | 0 de 38 | 23 de 296 |
+| 0.83–1.33 | 0.002 | 7 de 11 | 1 de 26 | 0 de 38 | 17 de 296 |
+| 0.67–1.67 | 0 | 10 de 11 | 3 de 26 | 4 de 38 | 57 de 296 |
+| 0.67–1.67 | 0.002 | 10 de 11 | 2 de 26 | 4 de 38 | 36 de 296 |
+| 0.83–1.67 (la usada) | 0 | 10 de 11 | 3 de 26 | 4 de 38 | 57 de 296 |
+| 0.83–1.67 | 0.002 | 10 de 11 | 2 de 26 | 4 de 38 | 36 de 296 |
+
+**En `data/sites`** (sitios con cráter medido; la variable es `variables.borde_levantado`, en metros):
+
+| categoría | sitios | con borde levantado | cuáles |
+|---|---|---|---|
+| tajo minero | 22 | 0 | — |
+| sin verificar | 28 | 5 | mx0003, mx0017, mx0045, mx0047, mx0121 |
+| cráter natural verificado | 5 | 4 | g00263, g00266, g00281, mx0261 |
+| curado (documentado) | 1 | 1 | pinacate |
+
+De los 17 tajos mineros con `novedoso: true`, 0 tienen borde levantado. Sin perfil a 80 m (variable en `null`): mx0090.
+
+**Cómo se usa.** Es la segunda evidencia de la categoría de cada sitio (`model/scan.py`, regla 6), junto a la etiqueta verificada: la nota dice si la medida apoya a la etiqueta o no. **No entra al puntaje ni cambia ningún total.**
+
+**Límites.**
+- No mide parecido con la Luna ni con Marte: con la misma medida solo tienen borde levantado 55 de 248 (22%) gemelos lunares y 9 de 59 (15%) marcianos. No comprobamos por qué; una explicación posible es que son cráteres viejos y encimados. Es evidencia de que una depresión terrestre es un cráter, y nada más.
+- Muestra chica: 11 cráteres con fuente externa, casi todos volcánicos (1 de impacto). Los otros cráteres de impacto del mundo que el detector encuentra (`ciencia_datos/datos/impactos_tierra.csv`) no tienen perfil a 80 m: es la prueba independiente que falta.
+- No lo tienen: G00176 (Colton Crater (Crater 160)). El detector mide el diámetro del área inundada, que puede ser menor que el del borde; si el borde real cae fuera de la ventana, la medida no lo ve. En Colton es la causa probable: el detector mide ~0.75 km y la fuente da ~1.1 km de borde a borde (`model/NIVEL2.md` §A).
+- Las etiquetas de presa, valle y duna vienen de la IA, que vio el mismo relieve: esa comparación no es independiente. La de cráteres con fuente frente a canteras de OpenStreetMap sí lo es.
+- Una depresión cerrada en lo alto de una loma también da positivo: es evidencia, no prueba.
 
 
 ## Límites que siempre se declaran

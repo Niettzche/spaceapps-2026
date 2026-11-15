@@ -46,6 +46,13 @@
       "fecha": null,
       "nota": null
     },
+    "borde_levantado": {
+      "valor": 15.6,
+      "unidad": "m",
+      "fuente": "Copernicus DEM GLO-30 (ESA) llevado a 80 m; perfil radial promedio del cráter (analisis/18_perfiles_radiales.py, ciencia_datos/datos/perfiles_radiales.json)",
+      "fecha": null,
+      "nota": "h/D = +0.0108, positiva: el borde queda más alto que el terreno lejano, lo que es evidencia de cráter de impacto o de explosión. Altura máxima del perfil radial promedio entre 0.83 y 1.67 radios, sobre el terreno lejano (1.67 a 2 radios). No mide parecido con la Luna ni con Marte: dice si la depresión tiene borde de cráter (model/VALIDATION.md, sección B). Ventana y umbral provisionales (P)."
+    },
     "oscilacion_termica": {
       "valor": 14.51,
       "unidad": "K",
