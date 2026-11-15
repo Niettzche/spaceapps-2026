@@ -4,6 +4,7 @@ import { SITIOS, DESTINOS } from '../data.js';
 import { partida } from '../main.js';
 import { PRESUPUESTO_INICIAL, TICKETS_POR_PARTIDA, GRAVEDAD } from '../config/world.js';
 import { COLOR, texto, boton, panel, Teclado, limpiar, ayudaFija, cajaArte, tituloPlaca } from './expediente/interfaz.js';
+import { musica, siguienteVolumen, textoMusica } from '../fisica/musica.js';
 import { DESTINO_POR_DEFECTO, ORDEN_DESTINOS } from './expediente/config.js';
 import { guardadoDisponible, restaurar, nuevaPartida, guardar, partidaActiva } from './expediente/guardado.js';
 import { sitiosParaDestino } from './expediente/logica.js';
@@ -103,6 +104,8 @@ export default class Menu extends Phaser.Scene {
   }
 
   mostrar(vista, { llegada = false, conservarFondo = false } = {}) {
+    // Música del menú desde que termina la animación de inicio (en la pantalla de inicio suena la voz del título).
+    if (vista !== 'inicio') musica('menu');
     // Con `conservarFondo` (cambio de idioma) el fondo vivo sigue: sus capas no se destruyen ni se vuelve a crear.
     const fondoVivo = conservarFondo && this.fondoMenu?.g?.scene ? this.fondoMenu : null;
     if (fondoVivo) {
@@ -292,8 +295,16 @@ export default class Menu extends Phaser.Scene {
    */
   vistaPrincipal(llegada = false) {
     const logo = logoBrillo(this, 480, 66, 7);
+    this.controlMusica();
     const consola = this.consolaPrincipal();
     if (llegada) entradaInterfaz(this, { consola: consola.objs, logo, retraso: 450 });
+  }
+
+  /** Control propio de la música (DISENO/MUSICA.md): arriba a la izquierda; clic o tecla U pasa 100 → 66 → 33 % → apagada. */
+  controlMusica() {
+    const b = boton(this, 20, 26, `${textoMusica(tr)} · U`, () => { siguienteVolumen(); b.setEtiqueta(`${textoMusica(tr)} · U`); }, { size: 14, origen: [0, 0.5] });
+    this.teclado.extra = { ...this.teclado.extra, u: () => b.activar(), U: () => b.activar() };
+    return b;
   }
 
   /**

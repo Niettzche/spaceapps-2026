@@ -1,5 +1,6 @@
 // HUD de la prueba y la misión, fijo a la cámara. Usa la UI de arte (assets/ui) si existe; si no, figuras.
 import { tr } from '../i18n.js';
+import { siguienteVolumen, textoMusica } from './musica.js';
 import { nombreSuperficie } from './suelos.js';
 import { REGLAS } from './ambiente.js';
 import * as K from '../scenes/comun/pixel.js'; // panel, íconos y botones de arte (DISENO.md §2)
@@ -118,7 +119,9 @@ export class Hud {
     const boton = (y, texto, color, fn) => K.fijarBoton(K.boton(s, 480, y, texto, fn, { size: 18, color, anchoMin: 340 }), 110).obj;
     const seguir = boton(280, tr('Continuar · Esc / Enter', 'Resume · Esc / Enter'), '#4cc38a', alContinuar);
     const salir = boton(336, tr('Abandonar · X', 'Quit · X'), '#ff9b9b', alAbandonar);
-    return [fondo, titulo, seguir, salir];
+    // Música con su propio control (docs/juego/MUSICA.md): 100 → 66 → 33 % → apagada; tecla U.
+    const mus = boton(392, `${textoMusica(tr)} · U`, '#c9a7ff', () => { siguienteVolumen(); mus.setText(`${textoMusica(tr)} · U`); });
+    return [fondo, titulo, seguir, salir, mus];
   }
 
   mostrar(texto) {

@@ -1,6 +1,7 @@
 // Recorrido común de la prueba terrestre y de la misión: terreno + robot + cámara + HUD + telemetría + fin.
 // Ver docs/juego/ESPECIFICACION.md §9 (prueba) y §10 (misión).
 import { m, PX_POR_M, aplicarGravedad } from './escala.js';
+import { siguienteVolumen } from './musica.js';
 import { construirTerreno } from './terreno.js';
 import { superficieEn, alturaEn, PLANO_FINAL_M } from './perfil.js';
 import { Robot } from './robot.js';
@@ -186,6 +187,8 @@ export class Recorrido {
     scene.input.keyboard.on('keydown-ENTER', () => { if (this.pausado) this.reanudar(); else if (this.tutorial?.abierto()) this.tutorial.siguiente(); });
     scene.input.keyboard.on('keydown', (ev) => { if (ev.key === '?' && !this.pausado && !this.terminado) this.abrirTutorial(); });
     scene.input.keyboard.on('keydown-X', () => { if (this.pausado) { this.reanudar(); this._terminar(false, 'abandono'); } });
+    // U: volumen de la música (también en la pausa). Si la pausa está abierta, se actualiza su botón al reabrirla.
+    scene.input.keyboard.on('keydown-U', () => { siguienteVolumen(); if (this.pausado) { this.reanudar(); this.pausar(); } });
   }
 
   _dibujarMeta(yMeta) {
