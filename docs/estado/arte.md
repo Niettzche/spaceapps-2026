@@ -1,9 +1,9 @@
 # Estado — Arte
 
-> Lo actualiza SOLO este frente. Ramas: `feat/arte` (#26) y `feat/arte-b` (#37), `feat/arte-c` (#49), `feat/arte-d` (#58), `feat/arte-e` (#64), `feat/arte-f` (#67), `feat/arte-g` (#72), `feat/arte-h` (#77), `feat/arte-i` (#79), mergeadas; `feat/arte-j` (fuente pixel, más kit y pantalla de carga).
+> Lo actualiza SOLO este frente. Ramas: `feat/arte` (#26) y `feat/arte-b` (#37), `feat/arte-c` (#49), `feat/arte-d` (#58), `feat/arte-e` (#64), `feat/arte-f` (#67), `feat/arte-g` (#72), `feat/arte-h` (#77), `feat/arte-i` (#79), `feat/arte-j` (#80), mergeadas; `feat/arte-k` (postales, logo con brillo y panel del HUD).
 
 **Responsable:** Mauricio  ·  **Agente:** Claude Code / Codex
-**Última actualización:** 15 nov 2026, 06:30
+**Última actualización:** 15 nov 2026, 08:00
 
 ## Hecho
 - **Prioridad A y B completas** (#26 y #37, en `main`):
@@ -103,6 +103,13 @@
     - Comprobado con un lector de BMFont propio y con el `DOMParser` del navegador.
   - **Kit:** `ui_tarjeta`, `ui_barra_relleno_<amarillo|verde|rojo>` (entra en `ui_marco_barra`), `ui_ayuda` + `ui_ayuda_flecha` y `ui_titulo_placa`.
   - **`pantallas/carga_fondo.png`:** fondo del título con el logo y el marco vacío de la barra. El hueco queda en x 64..255, y 147..150 de arte (× 3: x 192..767, y 441..452).
+- **Postales, logo y HUD (`feat/arte-k`):**
+  - **Postales del Expediente** (96 × 64, con el marco de las viñetas):
+    - `sitio_samalayuca` (dunas), `sitio_pinacate` (cráter El Elegante en el llano de lava), `sitio_mx0207` (tajo de la mina), `sitio_g00281` (maar con sal) y `sitio_generico` (desierto).
+    - `destino_jezero` (delta en capas y piso del cráter) y `destino_polo_sur_lunar` (borde iluminado y sombra permanente).
+    - Son ilustraciones del tipo de paisaje.
+  - **`menu/logo_brillo.png`:** 32 cuadros de 65 × 10, el logo con el estilo de `pixel_titulo` y un brillo que lo cruza.
+  - **`ui/ui_hud_panel.png`:** 9-slice para la barra de arriba de la prueba y la misión.
 - `node assets/fuente/fx/exportar.mjs` regenera con pixelfx las 22 hojas de efectos.
 
 ## En curso

@@ -7,6 +7,7 @@
 //   ui/favicon_32.png, ui/favicon_180.png (apple-touch, sin transparencia) y ui/favicon.svg: el robot con la carga en Marte
 //   pantallas/menu_fondo.png y pantallas/taller_fondo.png (320 × 180, sin texto, se dibujan × 3)
 //   pantallas/resultado_<motivo>.png (96 × 64): una viñeta por cada motivo de fin de Resultados.js
+//   pantallas/sitio_<id>.png y pantallas/destino_<id>.png (96 × 64): postales del Expediente (Tierra a la izquierda, destino a la derecha)
 // Correr después de los demás grupos: lee sus PNG del disco.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { inflateSync } from 'node:zlib';
@@ -153,6 +154,7 @@ export function generar() {
   imagenProyecto();
   favicons();
   pantallas();
+  postales();
 }
 
 const T = PALETAS.titulo, B = '#e8e2ff';
@@ -553,4 +555,82 @@ function resultados() {
     for (const [x, y, n] of [[52, 24, 4], [64, 22, 5], [74, 28, 3]]) for (let i = 0; i < n; i++) f.color[(y - i) * 96 + x] = hex('#e8e8f0');
   });
 }
+
+// ---------------------------------------------------------------- postales del Expediente (96 × 64, con el marco de las viñetas)
+// Ilustraciones del tipo de paisaje de cada lugar, no reconstrucciones topográficas.
+function postales() {
+  const V = (nombre, dibuja) => { const f = createFrame(96, 64); dibuja(f); marco(f); guardar(`pantallas/${nombre}.png`, f); };
+  const P = PALETAS;
+
+  // Médanos de Samalayuca: dunas al atardecer
+  V('sitio_samalayuca', (f) => fondo(f, 'dunas', 190, 100));
+
+  // El Pinacate: el cráter El Elegante (maar ancho y hondo, con fondo claro) entre coladas de basalto y conos de ceniza
+  V('sitio_pinacate', (f) => {
+    fondo(f, 'lava', 150, 80);
+    const TOBA = rampa(P.tierra.toba), BAS = rampa(P.tierra.roca), PLAYA = rampa(P.tierra.salar);
+    const cx = 48, cy = 50, a = 40, b = 8, borde = 39;
+    // llano de coladas de basalto alrededor del cráter, desde el pie de los conos
+    pintar(f, 0, 37, 96, 27, (x, y) => tramado(BAS.slice(1, 5), 0.5 - (y - 37) / 40 + ((x * 5 + y * 7) % 9 === 0 ? 0.25 : 0), x, y));
+    pintar(f, 0, 0, 96, 64, (x, y) => {
+      const u = (x + 0.5 - cx) / a;
+      if (Math.abs(u) >= 1) return 0;
+      const sq = Math.sqrt(1 - u * u), lejos = cy - b * sq, cerca = cy + 2 * sq, arriba = Math.round(borde + (1 - sq) * 9);
+      if (y < arriba) return 0;
+      if (y < arriba + 2) return y === arriba ? BAS[4] : BAS[2];                                       // borde de basalto
+      if (y < lejos) return tramado(TOBA, 0.25 + (0.5 - u * 0.35) * 0.6 + ((y - arriba) % 4 === 0 ? -0.15 : 0), x, y); // pared en capas
+      if (y < cerca) return tramado(PLAYA, 0.4 + ((x * 7 + y * 3) % 5) * 0.06, x, y);                  // fondo claro (playa)
+      return 0;
+    });
+    // colada cercana tapando el borde de acá
+    pintar(f, 0, 46, 96, 18, (x, y) => (y >= 47 + Math.round(Math.sin(x * 0.3) * 1.5) ? tramado(BAS.slice(0, 5), 0.45 - (y - 47) / 30 + ((x * 5 + y * 7) % 9 === 0 ? 0.3 : 0), x, y) : 0));
+  });
+
+  // Real de Ángeles: el tajo escalonado de la mina
+  V('sitio_mx0207', (f) => fondo(f, 'mina', 112, 82));
+
+  // Al Wahbah: el maar con su fondo de sal
+  V('sitio_g00281', (f) => fondo(f, 'maar', 112, 82));
+
+  // Cualquier otro sitio: desierto pedregoso
+  V('sitio_generico', (f) => fondo(f, 'desierto', 40, 100));
+
+  // Jezero: el borde del cráter al fondo, el delta (abanico en capas con frente escarpado) y el piso del cráter con rocas
+  V('destino_jezero', (f) => {
+    fondo(f, 'marte', 150, 70);
+    const M = rampa(P.marte.compacto), A = rampa(P.marte.arena), RO = rampa(P.marte.roca);
+    // delta: meseta de cima plana a la izquierda con estratos claros y oscuros y un frente escarpado
+    pintar(f, 0, 0, 96, 64, (x, y) => {
+
+      const top = 30 + Math.round(Math.max(0, x - 40) * 0.08 + Math.sin(x * 0.4) * 0.6);
+      if (x > 62 || y < top || y > 46) return 0;
+      if (x > 54 && y < top + (x - 54) * 1.6) return 0;                                                 // frente escarpado
+      if (y === top) return A[5];
+      const capa = (y - top) % 3;
+      return capa === 0 ? M[4] : capa === 1 ? M[3] : M[2];
+    });
+    // piso del cráter
+    pintar(f, 0, 46, 96, 18, (x, y) => tramado(A.slice(1, 6), 0.65 - (y - 46) / 28 + ((x * 13 + y * 7) % 11 === 0 ? 0.25 : 0), x, y));
+    for (const [rx, ry, r] of [[70, 52, 2], [18, 56, 3], [84, 58, 2], [40, 54, 1.5]]) disco(f, rx, ry, r, (u, v) => (u + v < -0.3 ? RO[5] : u + v < 0.4 ? RO[3] : RO[1]));
+  });
+
+  // Polo sur lunar: borde de cráter iluminado por el Sol rasante y el fondo en sombra permanente
+  V('destino_polo_sur_lunar', (f) => {
+    fondo(f, 'luna', 210, 52);
+    const L = rampa(P.luna.roca);
+    const cx = 52, cy = 50, a = 40, b = 10;
+    pintar(f, 0, 0, 96, 64, (x, y) => {
+      const u = (x + 0.5 - cx) / a;
+      if (Math.abs(u) >= 1) return 0;
+      const sq = Math.sqrt(1 - u * u), lejos = cy - b * sq, borde = lejos - 6 * sq;
+      if (y < borde) return 0;
+      if (y < borde + 1) return L[6];                                                                    // borde iluminado
+      if (y < lejos) return u > 0.1 ? tramado(L.slice(3), 0.7 - (y - borde) / 12, x, y) : L[1];         // pared al Sol / en sombra
+      if (y < cy + 3 * sq) return hex('#000000');                                                        // sombra permanente
+      return 0;
+    });
+    pintar(f, 0, 56, 96, 8, (x, y) => tramado(L.slice(2, 6), 0.55 - (y - 56) / 12 + ((x * 3 + y * 5) % 7 === 0 ? 0.2 : 0), x, y));
+  });
+}
+
 export { leer as leerPNG };
