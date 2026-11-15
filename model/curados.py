@@ -20,7 +20,7 @@ import sys
 
 import pandas as pd
 
-from model import features, forma
+from model import borde, features, forma
 from model.score import comparar
 from model.scan import FUENTE_FORMA_MEDIDAS, variable
 
@@ -119,6 +119,8 @@ def construir(sid: str, cfg: dict, medir_perfil: bool = True) -> dict:
         "similitud": {"total": sim["total"], "por_dimension": sim["por_dimension"], "confianza": sim["confianza"]},
         "limites": limites, "nivel": nivel, "nota": " ".join(n for n in notas if n),
     })
+    if cfg.get("crater_cid"):
+        borde.poner_variable(sitio, cfg["crater_cid"])   # evidencia medida de cráter (no entra al puntaje)
     p.write_text(json.dumps(sitio, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return sitio
 

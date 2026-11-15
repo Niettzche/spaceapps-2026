@@ -51,6 +51,181 @@ export function generar() {
   lava();
   marte();
   luna();
+  mina();
+  maar();
+}
+
+// ---------------------------------------------------------------- Tierra: mina a cielo abierto (Real de Ángeles, Zacatecas)
+// Análogo operativo de la Luna: un tajo de bancos escalonados (anillos de terrazas) en el altiplano semidesértico.
+// Capa 2: sierra lejana, terreros de cima plana y el tajo visto desde el borde (su pared del fondo en terrazas).
+// Capa 3: borde cercano con escalones de roca cortada, matorral y nopales.
+function mina() {
+  const P = PALETAS.tierra, CIELO = rampa(P.cielo_mina), SIERRA = rampa(P.sierra_mina), BANCO = rampa(P.banco);
+  const OX = rampa(P.oxido), SUELO = rampa(P.semidesierto), MAT = rampa(P.matorral);
+  const SOL = [44, 34];
+  cielo('fondos/fondo_mina_1.png', (x, y) => {
+    const dx = Math.min(Math.abs(x - SOL[0]), W - Math.abs(x - SOL[0])), d = Math.hypot(dx, y - SOL[1]);
+    if (d < 6) return hex('#fffbe8');
+    if (d < 8) return (x + y) % 2 ? hex('#fffbe8') : CIELO[5];
+    // cielo de altiplano: azul profundo arriba, claro en el horizonte; cúmulos chicos de base plana
+    let t = Math.pow(clamp(y / 120, 0, 1), 1.3) + clamp(1 - d / 80, 0, 1) * 0.15;
+    for (const [cx, cy, r] of [[118, 52, 15], [138, 50, 11], [228, 66, 12], [246, 64, 8], [302, 44, 9]]) {
+      const u = (x - cx) / r, v = (y - cy) / (r * 0.55);
+      const n = ruido(x, 32, 79, 2) * 0.35;
+      if (y <= cy + 2 && u * u + v * v < 1 + n) return y > cy - 1 ? CIELO[4] : v < -0.3 && u < 0.2 ? hex('#ffffff') : CIELO[5];
+    }
+    return tramado(CIELO.slice(0, 6), t, x, y);
+  });
+
+  // tajo: anillos elípticos (contornos de cada banco) centrados abajo; solo se ve la pared del fondo
+  const T = { cx: 160, cy: 156, a: 132, b: 52, n: 10 };
+  const banco = (x, y) => { const u = (x - T.cx) / T.a, v = (y - T.cy) / T.b; return Math.floor((1 - Math.sqrt(u * u + v * v)) * T.n); };
+  const terreros = [[0, 46, 12], [214, 22, 7]]; // [x, medio ancho, alto] de los montones de tepetate (cima plana)
+  capa('fondos/fondo_mina_2.png', (x) => {
+    let h = 98 - 8 * clamp(1 - Math.abs(ruido(x, 4, 101, 4)) * 2.6, 0, 1) - 3 * onda(x, 3, 0.5); // sierra
+    for (const [tx, r, alto] of terreros) {
+      let dx = Math.abs(x - tx); dx = Math.min(dx, W - dx);
+      if (dx < r) h = Math.min(h, 104 - alto * clamp((r - dx) / 6, 0, 1));
+    }
+    return h;
+  }, (x, y, i) => {
+    const u = (x - T.cx) / T.a, v = (y - T.cy) / T.b, r = Math.sqrt(u * u + v * v);
+    if (r < 1 && y > 103) {
+      // dentro del tajo: banco k = anillo, cara (pared) y huella (piso claro de 2 px) alternadas
+      const z = (1 - r) * T.n * 1.0, k = Math.floor(z), f = z - k;
+      const luz = 0.5 + u * 0.35;                                 // el Sol (izquierda) ilumina la pared derecha
+      if (r < 0.2) return tramado(BANCO.slice(1, 5), 0.35 + ruido(x, 20, 102, 2) * 0.3, x, y); // piso del tajo
+      // rampa de acarreo: una franja que baja en diagonal por la pared izquierda
+      const rampaY = 108 + (x - 52) * 0.42;
+      if (u < -0.15 && Math.abs(y - rampaY) < 1 && x > 52) return BANCO[5];
+      const huella = banco(x, y - 2) !== k;                         // los 2 px de arriba de cada banco: su piso
+      if (huella) return luz > 0.45 ? BANCO[6] : BANCO[5];
+      // vetas de óxido que cruzan varias paredes
+      const veta = k % 3 === 1 && ruido(x, 3, 103 + k, 2) > 0.12;      // tramos de bancos con roca oxidada
+      if (veta) return tramado(OX, 0.3 + luz * 0.6, x, y);
+      const t = 0.15 + luz * 0.6 + (k % 2) * 0.08 - f * 0.25 + ruido(x, 40, 104 + k, 2) * 0.25;
+      return tramado(BANCO.slice(0, 6), t, x, y);
+    }
+    if (y < 104) {
+      // terreros de cima plana (tepetate claro) y sierra azulada por la distancia
+      for (const [tx, rr] of terreros) {
+        let dx = Math.abs(x - tx); dx = Math.min(dx, W - dx);
+        if (dx < rr) return i.prof < 1 ? BANCO[6] : tramado(BANCO.slice(2, 6), 0.75 - i.prof / 14 + (dx < rr - 6 ? 0.1 : -0.15), x, y);
+      }
+      if (i.prof < 1) return i.luz > 0.5 ? SIERRA[3] : SIERRA[2];
+      return tramado(SIERRA, 0.55 - i.prof / 40 + (i.luz - 0.5) * 0.4, x, y);
+    }
+    // llano del altiplano alrededor del tajo, con manchas de matorral
+    if (y === 104) return SUELO[5];
+    if (hash(x, y, 105) > 0.9) return MAT[2];
+    return tramado(SUELO.slice(2, 6), 0.75 - (y - 104) / 50, x, y);
+  }, { luzDesde: 'izquierda', elev: 0.5 });
+
+  // borde cercano: escalones de roca cortada (bancos) y semidesierto con nopales y gobernadora
+  const nopales = [[30, 0], [168, 1], [262, 0]];
+  const matas = [8, 74, 101, 140, 205, 231, 296];
+  capa('fondos/fondo_mina_3.png', (x) => {
+    const base = 150 + 3 * onda(x, 1, 0.6) + 1.5 * ruido(x, 16, 106, 2);
+    return base - Math.round(clamp(ruido(x, 5, 107, 2) * 3 + 0.5, 0, 2)) * 5;  // escalones de 5 px
+  }, (x, y, i) => {
+    for (const [nx, v] of nopales) {
+      // nopal: pencas ovaladas apiladas (verde con borde claro)
+      const by = i.hs[nx];
+      const pencas = v ? [[0, -4, 2, 3], [-3, -9, 2, 3], [2, -10, 2, 3]] : [[0, -4, 2, 3], [2, -9, 2, 3], [-2, -12, 2, 2.5]];
+      for (const [px0, py0, rx, ry] of pencas) {
+        const ux = (x - nx - px0) / rx, uy = (y - by - py0) / ry;
+        if (ux * ux + uy * uy <= 1) return ux < -0.3 ? MAT[4] : ux + uy > 0.5 ? MAT[1] : MAT[3];
+      }
+    }
+    for (const mx of matas) {
+      const dx = x - mx, top = i.hs[mx] - 3;
+      if (Math.abs(dx) <= 2 && y >= top + Math.abs(dx) * 0.6 && y < i.hs[mx] + 1) return hash(x, y, 108) > 0.4 ? MAT[1] : MAT[2];
+    }
+    if (i.prof < 1) return i.luz > 0.5 ? SUELO[5] : SUELO[4];
+    // cara del escalón: roca cortada del banco
+    if (Math.abs(i.pend) > 1.5 || i.hs[per(x - 1)] > i.hs[x] + 2 || i.hs[per(x + 1)] > i.hs[x] + 2) {
+      if (i.prof < 5) return tramado(BANCO.slice(1, 6), i.luz > 0.5 ? 0.75 : 0.3, x, y);
+    }
+    if (i.prof < 3) return tramado(SUELO.slice(2, 6), 0.7, x, y);  // suelo de arriba
+    if (hash(x, y, 109) > 0.92) return i.luz > 0.5 ? BANCO[5] : BANCO[2]; // grava
+    return tramado(SUELO.slice(1, 6), 0.62 - i.prof / 40 + (i.luz - 0.5) * 0.4, x, y);
+  }, { luzDesde: 'izquierda', elev: 0.45 });
+}
+
+// ---------------------------------------------------------------- Tierra: maar de Al Wahbah (Harrat Kishb, Arabia Saudita)
+// Cráter volcánico de ~2.3 km de ancho y ~250 m de profundidad: borde de basalto oscuro, paredes de toba en capas y fondo
+// cubierto de una costra blanca de sal, en un desierto pedregoso (harrat de basalto).
+function maar() {
+  const P = PALETAS.tierra, CIELO = rampa(P.cielo_maar), TOBA = rampa(P.toba), BAS = rampa(P.roca), SAL = rampa(P.salar);
+  const HAR = rampa(P.harrat);
+  const SOL = [276, 30];
+  cielo('fondos/fondo_maar_1.png', (x, y) => {
+    const dx = Math.min(Math.abs(x - SOL[0]), W - Math.abs(x - SOL[0])), d = Math.hypot(dx, y - SOL[1]);
+    if (d < 6) return hex('#ffffff');
+    if (d < 8) return (x + y) % 2 ? hex('#ffffff') : CIELO[5];
+    // cielo de calor: azul pálido arriba, casi blanco y con bruma en el horizonte
+    const t = Math.pow(clamp(y / 110, 0, 1), 0.8) + clamp(1 - d / 100, 0, 1) * 0.25;
+    return tramado(CIELO, t, x, y);
+  });
+
+  // el cráter: borde lejano a y=100, pared del fondo en capas y el salar blanco; el borde cercano lo tapa abajo
+  const M = { cx: 160, a: 118, cy: 134, b: 11 };
+  const anchoCrater = (x) => { const u = (x - M.cx) / M.a; return Math.abs(u) < 1 ? Math.sqrt(1 - u * u) : 0; };
+  capa('fondos/fondo_maar_2.png', (x) => {
+    const s = anchoCrater(x);
+    // llanura del harrat con lomas lejanas muy bajas; el borde del cráter sobresale un poco
+    return 108 - 2 * onda(x, 3, 1.4) - 1.5 * ruido(x, 10, 111, 2) - 3 * Math.pow(s, 0.3);
+  }, (x, y, i) => {
+    const s = anchoCrater(x), u = (x - M.cx) / M.a;
+    if (s > 0) {
+      const top = M.cy - M.b * s, near = M.cy + 3 * s;   // salar visible entre la pared del fondo y el borde cercano
+      const borde = Math.max(i.hs[x], M.cy - (M.b + 23) * Math.pow(s, 0.7)); // borde lejano: baja hasta el salar en los lados
+      if (y < borde) {                                                      // llano detrás del cráter
+        if (y < i.hs[x] + 1) return HAR[5];
+        return hash(x, y, 116) > 0.9 ? HAR[2] : tramado(HAR.slice(3, 7), 0.62 - (y - i.hs[x]) / 40, x, y);
+      }
+      if (y >= near) {
+        // borde cercano (cara exterior, iluminada por el Sol de la derecha): basalto y grava
+        if (y < near + 1) return BAS[4];
+        return hash(x, y, 112) > 0.9 ? HAR[2] : tramado(HAR.slice(3, 7), 0.62 - (y - i.hs[x]) / 40, x, y);
+      }
+      if (y >= top) {
+        // salar: costra blanca con grietas poligonales tenues y bordes beige
+        const g = tileNoise(x / 3, y, 0, 0, 113) > 0.8;
+        if (y < top + 1) return SAL[1];
+        return g ? SAL[1] : (x + y) % 5 ? SAL[3] : SAL[2];
+      }
+      // pared del fondo: casquete de basalto oscuro (3 px) y capas de toba más claras debajo
+      const z = (y - borde) / Math.max(1, top - borde);             // 0 en el borde, 1 al llegar al salar
+      const luz = 0.5 - u * 0.4;                                      // la pared izquierda mira al Sol (derecha)
+      const carcava = Math.sin(x * 1.3 + ruido(x, 16, 114, 2) * 6) > 0.88; // surcos de erosión verticales
+      if (y - borde < 3) return y - borde < 1 ? BAS[5] : tramado(BAS.slice(1, 5), 0.3 + luz * 0.5, x, y);
+      const capaN = Math.floor(z * 6 + ruido(x, 8, 115, 2) * 0.6);
+      const talud = z > 0.78;                                          // abanicos de derrubio al pie
+      let t = 0.2 + luz * 0.55 + (capaN % 2) * 0.12 - (carcava ? 0.18 : 0) + (talud ? 0.1 : 0);
+      if (capaN === 1 || capaN === 3) return tramado(BAS.slice(1, 5), t, x, y);           // coladas de basalto intercaladas
+      return tramado(TOBA, t, x, y);
+    }
+    // llanura del harrat: suelo beige cubierto de piedras de basalto negro
+    if (i.prof < 1) return HAR[5];
+    if (hash(x, y, 116) > 0.9) return HAR[2];
+    return tramado(HAR.slice(3, 7), 0.62 - i.prof / 40, x, y);
+  }, { luzDesde: 'derecha', elev: 0.5 });
+
+  // harrat cercano: grava beige cubierta de piedras y bloques de basalto con brillo de barniz del desierto
+  const bloques = [[14, 3], [57, 2], [96, 4], [133, 2], [171, 3], [210, 2], [238, 4], [281, 2], [309, 3]];
+  capa('fondos/fondo_maar_3.png', (x) => 150 + 3 * onda(x, 2, 0.7) + 2 * onda(x, 5, 2.1) + 1.5 * ruido(x, 20, 117, 2), (x, y, i) => {
+    for (const [bx, r] of bloques) {
+      const cy = i.hs[bx] - r * 0.45, dx = x - bx, dy = y - cy;
+      if ((dx * dx) / (r * r) + (dy * dy) / (r * r * 0.5) <= 1) return dx - dy > r * 0.5 ? BAS[4] : dx > 0 ? BAS[2] : BAS[1];
+    }
+    if (i.prof < 1) return i.luz > 0.5 ? HAR[6] : HAR[5];
+    // piedras sueltas: puntos oscuros de 1–2 px con un brillo arriba a la derecha
+    const hp = hash(x, y, 118);
+    if (hp > 0.92 && i.prof > 1) return hash(x, y - 1, 118) > 0.92 ? HAR[0] : HAR[1];
+    if (hp > 0.9 && i.prof > 1) return HAR[5];
+    return tramado(HAR.slice(2, 7), 0.62 - i.prof / 36 + (i.luz - 0.5) * 0.4, x, y);
+  }, { luzDesde: 'derecha', elev: 0.45 });
 }
 
 // ---------------------------------------------------------------- Tierra: dunas de Samalayuca (atardecer cálido)

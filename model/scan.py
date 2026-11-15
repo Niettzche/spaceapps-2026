@@ -18,8 +18,11 @@ ciencia_datos/datos/hoyas_mexico.csv). Aquí:
    cráter volcánico o de impacto con confianza ≥ 0.7), tajo minero (cantera de OpenStreetMap a ≤ 2 km, o etiqueta de IA
    mina_o_cantera ≥ 0.7) o sin verificar (todo lo demás). Va en la nota y, en los tajos, en uso_exploracion. El puntaje de
    forma no decide la categoría: no distingue un cráter de otra depresión (AUC 0.42, model/VALIDATION.md).
+   Segunda evidencia, medida: el borde levantado (model/borde.py, perfiles radiales a 80 m) va en variables.borde_levantado y
+   en la nota. No cambia la categoría ni el puntaje: dice si la medida apoya o no a la etiqueta.
 
-Uso extra:  python -m model.scan --solo-categoria   (aplica solo la regla 6 a los JSON existentes, sin consultar nada)
+Uso extra:  python -m model.scan --solo-categoria   (aplica solo la regla 6 a los JSON existentes, sin consultar nada;
+                                                     también escribe variables.borde_levantado en los candidatos)
             python -m model.scan --global --ids G00263,G00266   (exporta esos candidatos globales, no los N mejores)
 Uso extra:  python -m model.scan --solo-ia   (aplica solo la regla 5 a los JSON de data/sites/ que ya existen, sin
             consultar NASA POWER ni Earth Engine y sin tocar nivel, variables ni similitud)
@@ -45,7 +48,7 @@ from concurrent.futures import ThreadPoolExecutor
 import numpy as np
 import pandas as pd
 
-from model import features, forma
+from model import borde, features, forma
 from model.score import comparar
 
 RAIZ = pathlib.Path(__file__).resolve().parents[1]
@@ -259,14 +262,33 @@ def categoria(s: dict, etiquetas: dict) -> tuple[str, str]:
     return "sin_verificar", motivo
 
 
+def frase_borde(s: dict, cat: str) -> str:
+    """Segunda evidencia de la categoría: el borde levantado medido (model/borde.py). Acompaña a la etiqueta; no la cambia."""
+    m = ((s.get("variables") or {}).get(borde.CLAVE) or {}).get("valor")
+    if m is None:
+        return "Borde levantado: sin medida (no hay perfil radial a 80 m)."
+    lev = borde.levantado(borde.medir(s["id"]))
+    lev = m > 0 if lev is None else lev
+    donde = f"{m:.1f} m sobre el terreno lejano; model/borde.py"
+    if cat == "crater_natural":
+        return (f"Segunda evidencia, medida: borde levantado ({donde}); la etiqueta y la medida coinciden." if lev else
+                f"La medida del borde no lo confirma ({donde}): la única evidencia es la anterior.")
+    if cat == "tajo_minero":
+        return (f"Tiene borde levantado medido ({donde}), poco común en los tajos (model/VALIDATION.md)." if lev else
+                f"Sin borde levantado medido ({donde}).")
+    return (f"Tiene borde levantado medido ({donde}), que es evidencia de cráter, pero ninguna etiqueta verificada lo confirma: "
+            "es de los primeros que conviene revisar." if lev else f"Tampoco tiene borde levantado medido ({donde}).")
+
+
 def aplicar_categoria(s: dict, etiquetas: dict) -> dict:
     """Escribe la categoría en la nota (antes de la frase de la IA) y, en los tajos, dónde se rompe la analogía. Idempotente."""
     cat, origen = categoria(s, etiquetas)
     v = s.get("variables", {})
     diam, dd = (v.get("diametro") or {}).get("valor"), (v.get("profundidad_diametro") or {}).get("valor")
+    medida = frase_borde(s, cat)
     if cat == "crater_natural":
-        frase = (f"Categoría: cráter natural verificado ({origen}). El puntaje describe qué tan lunar o marciana es su forma; "
-                 "no decide qué es (model/VALIDATION.md).")
+        frase = (f"Categoría: cráter natural verificado ({origen}). {medida} El puntaje describe qué tan lunar o marciana es su "
+                 "forma; no decide qué es (model/VALIDATION.md).")
     elif cat == "tajo_minero":
         pct, n = pct_dd_lunar(diam, dd) if diam and dd else (float("nan"), 0)
         rompe = (f"La analogía se rompe por exceso de profundidad, sobre todo en el fondo: su d/D ({dd:.3f}) supera al {pct:.0f} % de "
@@ -274,13 +296,16 @@ def aplicar_categoria(s: dict, etiquetas: dict) -> dict:
                  f"La analogía se rompe por ser un hueco artificial escalonado; su d/D ({dd:.3f}) supera solo al {pct:.0f} % de los {n:,} "
                  "cráteres lunares de diámetro parecido, así que aquí la profundidad no es el problema" if pct == pct else
                  "La analogía se rompe por ser un hueco artificial; sin d/D medida")
-        frase = (f"Categoría: tajo minero ({origen}). Análogo operativo de pendientes extremas, no geológico. {rompe} "
-                 "(ciencia_datos/salidas/lista_corta.md). novedoso se refiere a data/known_analogs.json, no a un hallazgo geológico.")
+        # Un tajo somero no es "de pendientes extremas": se dice lo que es según su d/D frente a la Luna
+        papel = ("Análogo operativo de pendientes extremas, no geológico." if pct >= PCT_EXCESO else
+                 "Análogo operativo de una excavación somera, no geológico." if pct == pct else "Análogo operativo, no geológico.")
+        frase = (f"Categoría: tajo minero ({origen}). {papel} {rompe} (ciencia_datos/salidas/lista_corta.md). {medida} "
+                 "novedoso se refiere a data/known_analogs.json, no a un hallazgo geológico.")
         uso = FRASE_TAJO_USO.sub("", s.get("uso_exploracion") or "")
         s["uso_exploracion"] = f"{uso}. {rompe}."
     else:
         frase = (f"Categoría: sin verificar; la etiqueta no está verificada ({origen}): no se sabe si es un cráter, una presa, un valle "
-                 "o una duna. El puntaje de forma no lo decide (model/VALIDATION.md).")
+                 f"o una duna. {medida} El puntaje de forma no lo decide (model/VALIDATION.md).")
     nota = NOTA_CATEGORIA.sub("", s.get("nota") or "")
     i = nota.find(" Etiqueta de IA:")
     s["nota"] = (nota[:i] + " " + frase + nota[i:]) if i >= 0 else (nota.rstrip() + " " + frase)
@@ -294,6 +319,7 @@ def aplicar_regla_categoria() -> list[dict]:
         s = json.loads(f.read_text(encoding="utf-8"))
         if s.get("estado") != "candidato_modelo" or "forma" not in s.get("variables", {}):
             continue                               # curados (Pinacate) y Samalayuca (dunas, sin cráter) no entran
+        borde.poner_variable(s, s["id"].upper())   # la nota de la categoría cita esta medida
         aplicar_categoria(s, etiquetas)
         f.write_text(json.dumps(s, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         out.append({"id": s["id"], "categoria": categoria(s, etiquetas)[0], "novedoso": s.get("novedoso"),
@@ -379,6 +405,7 @@ def construir_sitio(r: pd.Series, targets: dict, ref: pd.DataFrame, conocidos: l
                  + (f", en {g['lat']}, {g['lon']}" if g["lat"] is not None else "")
                  + (f". Errores al medir: {'; '.join(tierra['errores'])}" if tierra["errores"] else "") + "." + aviso_nombre + aviso_novedoso),
     }
+    borde.poner_variable(sitio, str(r.cid))
     return aplicar_categoria(sitio, etiquetas_ia())
 
 

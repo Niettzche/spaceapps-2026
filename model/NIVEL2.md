@@ -3,6 +3,7 @@
 14 nov 2026. Tres tareas: (A) buscar en la literatura los candidatos "novedosos" naturales, (B) comprobar si Marte sale plano
 por el instrumento y (C) explicar por qué la dimensión térmica es casi constante. Este archivo no cambia `PROYECTO.md` ni
 `model/VALIDATION.md`, porque los PR #33 y #36 los están editando. Los textos de reemplazo van propuestos al final de cada sección.
+La sección D se agregó después: es la respuesta preparada para "¿qué tiene que ver el borde levantado con los análogos?".
 
 ## A · Candidatos "novedosos" en la literatura
 
@@ -169,3 +170,44 @@ bajar su peso, y volver a correr `model/validate.py` para documentar el cambio e
 > Ojo: `oscilacion_termica` vale entre 0.20 y 0.33 en todos los sitios (mediana 0.28), porque los dos destinos (Luna 176 K,
 > Jezero 55 K) superan el máximo terrestre de 40 K y se recortan ahí. Es una dimensión que la Tierra no alcanza: rebaja todos los
 > totales casi por igual (× 0.72 a 0.80) y no ordena sitios. No se cambia el peso antes de la entrega.
+
+## D · ¿Qué tiene que ver el borde levantado con los análogos? (respuesta para jueces)
+
+Agregada el 14 nov 2026 por la noche, después del apartado "Borde levantado" de `model/VALIDATION.md` (la medida está en
+`model/borde.py`). Las cifras salen de ese apartado; si se regenera, hay que volver a copiarlas aquí.
+
+**Respuesta corta.** "El polo sur lunar y Jezero son terreno de cráteres. Nuestro detector encuentra depresiones, pero muchas
+son valles, presas o minas. El borde levantado es evidencia de que el hoyo se formó por una explosión o un impacto, como los
+cráteres de la Luna y de Marte. Con eso, nuestra lista de análogos de cráter queda hecha de cráteres y no de hoyos."
+
+**Las tres razones**
+1. **Limpia la lista.** Sin esta medida, un valle redondo en el desierto pasa como "análogo lunar". Tienen borde levantado 10 de
+   11 cráteres con fuente externa, 3 de 26 presas, valles o dunas (etiqueta de IA ≥ 0.7) y 4 de 38 tajos con cantera de
+   OpenStreetMap. En `data/sites`, ninguno de los 22 tajos lo tiene.
+2. **Es un análogo por proceso, no por apariencia.** El reto pide ir más allá del parecido visual y hablar de procesos
+   (AGENTS.md §13). Un cráter con borde comparte con los de la Luna y Marte cómo se formó: material excavado y lanzado hacia
+   afuera. A un valle lo hizo el agua.
+3. **Coincide con los sitios de entrenamiento del Apolo que tenemos documentados.** El Elegante, en El Pinacate (Apolo 14;
+   Phinney 2015, NASA SP-2015-626), tiene borde medido: 15.6 m. Colton (Apolo 15; USGS OFR 2005-1190) también es un cráter con
+   borde según su fuente (~1.1 km de borde a borde, sección A), pero nuestra medida no lo ve (−6.4 m): el detector mide ~0.75 km,
+   probablemente el cráter interior.
+
+**Qué no decir**
+- "El borde hace que se parezca a la Luna." Con la misma medida solo tienen borde 55 de 248 gemelos lunares (22 %) y 9 de 59
+  marcianos (15 %). El borde responde "¿es un cráter?"; qué tan lunar o marciano es sale de profundidad/diámetro.
+- Que aplica a todos los análogos. Samalayuca es análogo por sus dunas (procesos eólicos); ahí el borde no aplica.
+- Que es una prueba. Son 11 casos con fuente y uno solo es de impacto: es evidencia.
+- "Dos evidencias independientes." La etiqueta de IA se hizo viendo imagen de satélite **y relieve**, así que no es del todo
+  independiente del borde medido. Lo independiente es la comparación entre cráteres con fuente externa y canteras de
+  OpenStreetMap. Frase correcta: "el detector propone, y lo confirman la etiqueta sobre la imagen de satélite y el borde medido
+  en el relieve".
+
+**Por verificar antes de usarlo** (no está en nuestras fuentes): que varias regiones candidatas de Artemis III están sobre
+bordes de cráteres (nombres como "Nobile Rim" y "de Gerlache Rim"). Hay que confirmarlo en la página de la NASA y citarla. Si se
+confirma, sería una cuarta razón: el borde es terreno que una misión tiene que cruzar.
+
+**Texto propuesto** para la sección "Preguntas" de `docs/GUION_PITCH.md` (lo aplica integración):
+
+> - **Borde y análogos:** el polo sur lunar y Jezero son terreno de cráteres. El borde levantado es evidencia de que una depresión
+>   se formó por explosión o impacto: lo tienen 10 de 11 cráteres con fuente externa y 4 de 38 tajos mineros. Dice "esto es un
+>   cráter", no "esto se parece a la Luna".

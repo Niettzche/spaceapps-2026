@@ -49,6 +49,7 @@ const HOJAS = {
   fx_energia_agotada_luna: ['energia-agotada', { palette: ['#4a4a56', '#6c6c7a', '#8a8a98', '#b4b4c0', '#d4d4de'] }],
   fx_entrega: ['entrega', {}],
   fx_meta: ['meta', {}],
+  fx_sobrecalentamiento: ['sobrecalentamiento', {}],
 };
 
 const filtro = process.argv[2];

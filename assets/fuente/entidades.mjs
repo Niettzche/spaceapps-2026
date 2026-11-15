@@ -1,6 +1,7 @@
 // Sprites de prioridad A (docs/juego/ASSETS_ARTE.md §3): robot, carga, astronauta, meta y zona de entrega.
 // Se dibuja el interior y el contorno de 1 px sale automático (comun.contorno).
 import { tira, filas, BASE, hex } from './comun.mjs';
+import { PALETAS } from './paletas.mjs';
 
 const BASE_HEX = {};
 const hexDe = (c) => hex(c);
@@ -146,6 +147,7 @@ export function generar() {
   // ---- zona_entrega: 16 × 4, repetible a lo ancho (franjas de peligro sobre una placa).
   generarB();
   generarDeco();
+  generarObstaculos();
 
   tira(D + 'zona_entrega.png', 16, 4, 1, (p) => {
     const rows = [0, 1, 2].map((y) => Array.from({ length: 16 }, (_, x) => ((x + y) % 8 < 4 ? 'y' : 'k')).join(''));
@@ -246,4 +248,43 @@ export function generarDeco() {
     deco_panel_solar: ['..........', '.SsSsSsSs.', '..........'],  // panel delgado encima
   };
   for (const [nombre, rows] of Object.entries(decos)) tira(D + nombre + '.png', rows[0].length, rows.length, 1, (p) => filas(p, rows));
+}
+
+// ---------------------------------------------------------------- obstáculos (recreación de juego, no topografía real)
+// Rocas sueltas de 0.3–0.6 m: 3, 4 y 5 px de alto contando el contorno (8 px = 1 m). La fila de abajo toca el suelo (sin contorno).
+// obstaculo_roca_<n> (Tierra), obstaculo_roca_luna_<n>, obstaculo_roca_marte_<n>; y el parche de arena blanda (tile 16 × 4).
+export function generarObstaculos() {
+  const O = 'obstaculos/';
+  // 1 oscuro · 2 medio · 3 claro · 4 brillo (luz desde arriba a la izquierda)
+  const ROCAS = [
+    ['.3432', '32211'],                                   // 1: laja baja (3 px)
+    ['.43.', '4321', '3211'],                             // 2: canto rodado (4 px)
+    ['..43..', '.44321', '433211', '322111'],             // 3: bloque anguloso (5 px)
+  ];
+  const tonos = {
+    '': PALETAS.tierra.roca.slice(2, 6),
+    marte_: PALETAS.marte.roca.slice(2, 6),
+    luna_: [PALETAS.luna.roca[1], PALETAS.luna.roca[3], PALETAS.luna.roca[4], PALETAS.luna.roca[6]], // más contraste (luz rasante)
+  };
+  for (const [mundo, t] of Object.entries(tonos)) {
+    const pal = { 1: t[0], 2: t[1], 3: t[2], 4: t[3] };
+    ROCAS.forEach((rows, i) => {
+      const w = rows[0].length + 2, h = rows.length + 1;
+      tira(`${O}obstaculo_roca_${mundo}${i + 1}.png`, w, h, 1, (p) => filas(p, rows, 1, 1, pal));
+    });
+  }
+  // arena blanda: más clara y suelta que el suelo, con crestas de rizos; se repite a lo ancho (periodo 16)
+  const blanda = {
+    '': PALETAS.tierra.arena, _marte: PALETAS.marte.arena, _luna: PALETAS.luna.arena,
+  };
+  for (const [sufijo, A] of Object.entries(blanda)) {
+    const pal = { a: A[2], b: A[3], c: A[4], d: A[5] };
+    const rows = [
+      'dc..cdc..dcd..cd'.replace(/./g, 'b'),
+      'cbbcbbbcbbbcbbbc',
+      'bbabbbbabbbbabbb',
+      'babbbabbbabbbabb',
+    ];
+    tira(`${O}obstaculo_arena_blanda${sufijo}.png`, 16, 4, 1, (p) => filas(p, rows, 0, 0, pal), { contorno: false });
+  }
 }
