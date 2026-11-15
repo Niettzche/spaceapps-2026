@@ -148,10 +148,10 @@ export class Viento {
     g.clear();
     // Las partículas se mueven con el viento a la altura del robot (px/s); un mínimo para que el aire "se vea" aun en calma.
     const v = this.v10 === 0 ? 0.6 : Math.sign(this.v10) * Math.max(0.6, vientoAAltura(Math.abs(this.v10)));
-    const color = { polvo: 0xd9b48a, ceniza: 0xb8b2a8, nieve: 0xf4f8ff }[this.particula] ?? 0xd9b48a;
+    const color = { polvo: 0xb07a4a, ceniza: 0x6f6a66, nieve: 0xf4f8ff }[this.particula] ?? 0xb07a4a;
     const intensidad = Math.min(1, Math.abs(this.v10) / 12);
-    g.fillStyle(color, 0.35 + 0.45 * intensidad);
-    const tam = this.particula === 'nieve' ? 3 : 2;
+    g.fillStyle(color, 0.55 + 0.4 * intensidad);
+    const tam = 3;
     for (const p of this.puntos) {
       if (!this.reducido) {
         p.x += v * 40 * p.k * dt;

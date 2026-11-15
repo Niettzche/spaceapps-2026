@@ -74,6 +74,11 @@ export function danioBloque(danio, v) {
   return Math.max(0, v - danio.umbral_ms) * danio.por_ms;
 }
 
+// Colores de las franjas de parche [base, mota] (arte provisional; pedir tiles en pendiente a Mauricio).
+const COLOR_PARCHE = {
+  toba: [0xd9cdb4, 0x9c8f78], talud: [0x7d7064, 0xb3a796], nieve: [0xf1f5fb, 0xc9d6e6], hielo: [0xbfe1ef, 0xffffff],
+};
+
 const NOMBRE = {
   toba: ['toba y ceniza blanda', 'soft tuff and ash'], talud: ['talud de roca suelta', 'loose-rock talus'],
   nieve: ['nieve', 'snow'], hielo: ['hielo', 'ice'], bomba: ['bombas volcánicas', 'volcanic bombs'],
@@ -137,19 +142,30 @@ export function crearElementos(scene, perfil, { xMundo, yMundo }, lista, { mundo
         g.fillStyle(o.clase === 'lava_aa' ? 0x2b2324 : 0x6a5a50, 1).fillCircle(x, ySuelo + rpx - alto, rpx);
       }
     } else if (o.tipo === 'parche') {
-      const nombre = sprite && o.arte && hayArte(scene, sufijo(o.arte)) ? sufijo(o.arte) : null;
-      if (nombre) {
+      // Casi plano: tiles de arte de Mauricio (obstaculo_toba, _talud, _hielo...). En pendiente los tiles quedan en escalones,
+      // así que ahí se dibuja una franja que sigue el terreno, con el color del material y motas.
+      let maxPend = 0;
+      for (let xm = o.desde_m; xm <= o.hasta_m; xm += 1) maxPend = Math.max(maxPend, pendienteLocal(perfil, xm));
+      const arte = sprite && o.arte && maxPend < 6 ? sufijo(o.arte) : null;
+      if (arte && hayArte(scene, arte)) {
         for (let xm = o.desde_m; xm < o.hasta_m - 0.05; xm += 2) {
-          const t = sprite(scene, nombre, { x: xMundo(xm), y: yMundo(alturaEn(perfil, xm + 1)) + 2 * PX, origen: [0, 1], profundidad: 3 });
+          const t = sprite(scene, arte, { x: xMundo(xm), y: yMundo(alturaEn(perfil, xm + 1)) + 2 * PX, origen: [0, 1], profundidad: 3 });
           if (!t) continue;
           if (o.tinte) t.setTint(o.tinte);
-          const ancho = t.frame.width;
-          t.setScale(Math.min(3, (2 * 24) / ancho) || 3, 3);
-          if (xm + 2 > o.hasta_m) t.setCrop(0, 0, Math.max(1, Math.round(((o.hasta_m - xm) / 2) * ancho)), t.frame.height);
+          t.setScale((2 * 24) / t.frame.width, 3); // 2 m de ancho por tile
+          if (xm + 2 > o.hasta_m) t.setCrop(0, 0, Math.max(1, Math.round(((o.hasta_m - xm) / 2) * t.frame.width)), t.frame.height);
         }
-      } else {
-        g.fillStyle(o.tinte ?? 0xc8c0b0, 0.9);
-        for (let xm = o.desde_m; xm < o.hasta_m; xm += 0.25) g.fillRect(Math.round(xMundo(xm) / PX) * PX, Math.round(yMundo(alturaEn(perfil, xm)) / PX) * PX - PX, PX, PX);
+        continue;
+      }
+      const [base, mota] = COLOR_PARCHE[o.clase] ?? [o.tinte ?? 0xc8c0b0, 0xffffff];
+      const r = aleatorio(semillaDe(`parche_vista:${o.clase}:${o.desde_m}`));
+      const grueso = 0.3 * 24;
+      for (let xm = o.desde_m; xm < o.hasta_m - 1e-6; xm += 0.5) {
+        const xb = Math.min(xm + 0.5, o.hasta_m);
+        const a = { x: xMundo(xm), y: yMundo(alturaEn(perfil, xm)) };
+        const b = { x: xMundo(xb), y: yMundo(alturaEn(perfil, xb)) };
+        g.fillStyle(base, 0.95).fillPoints([{ x: a.x, y: a.y - PX }, { x: b.x, y: b.y - PX }, { x: b.x, y: b.y + grueso }, { x: a.x, y: a.y + grueso }], true);
+        g.fillStyle(mota, 0.9).fillRect(Math.round((a.x + r() * 9) / PX) * PX, Math.round((a.y + r() * grueso * 0.6) / PX) * PX, PX, PX);
       }
     }
   }

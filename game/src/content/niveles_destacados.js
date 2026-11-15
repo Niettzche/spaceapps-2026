@@ -41,8 +41,8 @@ export const NIVELES_DESTACADOS = {
     destino: 'jezero',
     fondo: 'desierto',
     entrena: {
-      es: 'Subir el borde de un cráter de impacto entre bloques de eyecta, con viento del Sáhara y remolinos de polvo',
-      en: 'Climb an impact crater rim among ejecta blocks, with Saharan wind and dust devils',
+      es: 'Cruzar arena y subir el borde de un cráter entre bloques de eyecta: rueda grande y carga bien sujeta',
+      en: 'Cross sand and climb a crater rim among ejecta blocks: big wheels and a well-strapped payload',
     },
     analogia: {
       es: 'Cráter de impacto real (Earth Impact Database) en desierto: borde levantado, eyecta y arena, como los cráteres de Marte. Jezero tiene más remolinos de polvo que cualquier otro sitio visitado (S21).',
@@ -50,14 +50,14 @@ export const NIVELES_DESTACADOS = {
     },
     parches: [],
     bloques: [
-      // Bloques de eyecta (0.6–1 m), más altos que una roca suelta: a fondo lanzan la carga del soporte básico (paredes de
-      // 0.25 m); el de correas (0.35 m) la retiene (probado con la física 2). La densidad de bloques junto a cráteres no
+      // Bloques de eyecta (0.6–1 m), más altos que una roca suelta. Una rueda más grande (malla, 0.55 m de radio) los pasa
+      // mejor; las correas (paredes de 0.35 m) retienen la carga en los saltos (probado con la física 2). La densidad de bloques junto a cráteres no
       // tiene fuente en el libro de datos (Golombek y Rapp 1997 no está cargado): separación y tamaño son (P).
       { clase: 'eyecta', arte: ['obstaculo_eyecta_1', 'obstaculo_eyecta_2', 'obstaculo_eyecta_3'], cada: [12, 18], radio: [0.3, 0.5], asoma: 0.8, pendienteMax: 22 },
     ],
     viento: { particula: 'polvo' },
     eventos: ['remolino'],
-    pieza_clave: ['soporte_correas', 'rueda_ancha'],
+    pieza_clave: ['rueda_malla', 'soporte_correas'], // ancha: a veces pasa y a veces no (Matter es caótico con los bloques)
   },
 
   mx0023: {
