@@ -4,6 +4,7 @@ import { m, PX_POR_M, aplicarGravedad } from './escala.js';
 import { construirTerreno } from './terreno.js';
 import { superficieEn, alturaEn, PLANO_FINAL_M } from './perfil.js';
 import { Robot } from './robot.js';
+import { PASO_ROCA, velocidadPasoRoca } from './danio.js';
 import { Controles } from './controles.js';
 import { Hud } from './hud.js';
 import { notaSuelo, nombreSuperficie } from './suelos.js';
@@ -100,6 +101,11 @@ export class Recorrido {
       fisica: this.fisica, gravedad: o.gravedad, lugar,
     });
     this.destacado.crear(this.robot, this.ambiente);
+    // Misión: paso seguro sobre cada roca recreada (robot.js, PASO_ROCA). En la Tierra no: la prueba se maneja en vivo.
+    const radioRueda_m = Math.min(...this.robot.ruedas.map((w) => w.radio)) / PX_POR_M;
+    this.pasosRoca = o.modo === 'mision' ? this.obstaculos.filter((x) => x.tipo === 'roca').map((x) => ({
+      x_m: x.x_m, v: velocidadPasoRoca({ g: o.gravedad, radio_m: radioRueda_m, alto_m: x.alto_m ?? x.radio_m, pared_m: this.robot.paredSoporte_m }),
+    })) : [];
     this.efectos = new Efectos(scene, { mundo: o.mundo, gravedad: o.gravedad, robot: this.robot, superficieDe: this.superficieDe });
     this.sonido = new Sonido(scene, { mundo: o.mundo }); // motor, arena, golpes y fin; M silencia
     this.g = scene.add.graphics().setDepth(10);
@@ -309,6 +315,7 @@ export class Recorrido {
     let acelerador = this.terminado ? 0 : this.controles.acelerador();
     if (this.tutorial?.abierto()) { this._aceleradorTutorial(acelerador); acelerador = 0; }
     if (acelerador !== 0) this.hud.ocultarInstrucciones();
+    r.limiteVelMs = this._limitePasoRoca(r);
     r.actualizar(delta, acelerador, this.superficieDe);
     this.aspecto.dibujar(this.g);
     this.efectos.actualizar(delta, r); // polvo de ruedas y arena al patinar
@@ -348,6 +355,17 @@ export class Recorrido {
       if (estado.integridad >= this.o.umbralIntegridad) this._terminar(true, 'entrega');
       else this._terminar(false, 'carga_danada');
     }
+  }
+
+  /** Límite de velocidad (m/s) si una roca está entre la rueda trasera − despues_m y la delantera + antes_m; si no, null. */
+  _limitePasoRoca(r) {
+    if (!this.pasosRoca?.length) return null;
+    const xs = r.ruedas.map((w) => (w.cuerpo.position.x - this.xMundo(0)) / PX_POR_M);
+    const desde = Math.min(...xs) - PASO_ROCA.despues_m;
+    const hasta = Math.max(...xs) + PASO_ROCA.antes_m;
+    let v = null;
+    for (const p of this.pasosRoca) if (p.x_m >= desde && p.x_m <= hasta) v = Math.min(v ?? Infinity, p.v);
+    return v;
   }
 
   pausar() {

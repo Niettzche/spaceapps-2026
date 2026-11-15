@@ -45,6 +45,8 @@ export const V2 = {
   nAMatter: (PX_POR_M / 1e6) * FACTOR_GRAVEDAD,
 };
 
+// Paso seguro sobre rocas en la misión: PASO_ROCA y velocidadPasoRoca (danio.js); el límite lo fija recorrido.js.
+
 // Detección de patinaje y de falta de fuerza. (P)
 // Matter no usa fricción de Coulomb: el umbral estático es fricción × frictionStatic × 5 (Resolver._frictionNormalMultiplier)
 // y al deslizar aplica un impulso constante. Por eso el `agarre` de la pieza se convierte con una curva de juego:
@@ -93,7 +95,8 @@ export class Robot {
     const H = m(dimC.alto);
     const cL = m(DIM.carga.largo);
     const cH = m(DIM.carga.alto);
-    const alturaPared = m(DIM.paredSoporte[p.carga.id] ?? 0.25);
+    this.paredSoporte_m = DIM.paredSoporte[p.carga.id] ?? 0.25;
+    const alturaPared = m(this.paredSoporte_m);
     const grosorPared = m(0.12);
     const filtro = { group: grupo };
 
@@ -164,6 +167,7 @@ export class Robot {
     this.rescates = 0;
     this.sobrecalentado = false;
     this.potenciaMotor = 1;
+    this.limiteVelMs = null; // paso seguro sobre una roca (lo fija recorrido.js en la misión); null = sin límite
     this.vidaMax = p.chasis.resistencia;
     this.vida = this.vidaMax;
     this.integridad = 1;
@@ -268,7 +272,9 @@ export class Robot {
 
     // Energía
     const motorActivo = !this.destruido && !this.sinEnergia;
-    const pedido = motorActivo ? acelerador : 0;
+    // Paso seguro sobre roca: a la velocidad límite el motor no empuja (rueda libre o freno), así que no gasta.
+    const gobernado = this.limiteVelMs != null && acelerador > 0 && this.velocidadMs >= this.limiteVelMs;
+    const pedido = motorActivo && !gobernado ? acelerador : 0;
     // Motor caliente (regla b): empuja menos, pero la batería gasta lo que se pide (la diferencia se pierde como calor).
     const a = this.ambiente ? this._termica(pedido, dt) : pedido;
     // Física 2: abrir el surco cuesta energía (resistencia por compactación).
@@ -286,12 +292,15 @@ export class Robot {
 
     // Motor: torque limitado por `fuerza`, hasta la velocidad máxima.
     const fuerza = this.piezas.motor.fuerza;
-    const vMax = msAVel(fuerza * (this.v2 ? V2.velMaxPorFuerza : VEL_MAX_POR_FUERZA));
+    const vMotor = msAVel(fuerza * (this.v2 ? V2.velMaxPorFuerza : VEL_MAX_POR_FUERZA));
+    const vMax = this.limiteVelMs != null ? Math.min(vMotor, msAVel(this.limiteVelMs)) : vMotor;
     const torque = fuerza * TORQUE_POR_FUERZA;
     for (const w of this.ruedas) {
       const omega = M.Body.getAngularVelocity(w.cuerpo);
       const omegaMax = vMax / w.radio;
       if (a > 0 && omega < omegaMax) w.cuerpo.torque += torque * a;
+      // Paso seguro: si va más rápido que el límite, el motor frena la rueda (acelerador o no; no gasta energía).
+      if (motorActivo && this.limiteVelMs != null && acelerador > 0 && omega > omegaMax * 1.1) w.cuerpo.torque -= torque;
       if (a < 0 && omega > -omegaMax * FRACCION_REVERSA) w.cuerpo.torque += torque * a;
     }
     if (this.v2) this._resistenciaV2(dt, a);
