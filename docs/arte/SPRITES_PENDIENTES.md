@@ -34,8 +34,18 @@ Hoy las estrellas son texto (★☆). Si se dibujan, juego las conecta en `Resul
 - `ui/ui_estrella_llena.png` y `ui/ui_estrella_vacia.png` (16 × 16).
 - `ui/ui_panel.png` (9-slice, ~16 × 16) para el fondo de la pantalla de resultados.
 
+### 5. Calcomanías de piezas sobre el robot (media; el código ya está listo)
+El robot se ve distinto según las piezas elegidas. Archivos en `assets/entidades/` (o cualquier subcarpeta, salvo `iconos/`):
+
+| Archivo | Medida (px de arte) | Dónde aparece (respecto al centro del chasis de 24 × 6) |
+|---|---|---|
+| `deco_motor_eficiente.png`, `deco_motor_potente.png` | ~4 × 3 | atrás, en el costado (x −8) |
+| `deco_bateria_chica.png`, `deco_bateria_grande.png` | ~4 × 3 | adelante, en el costado (x +6) |
+| `deco_panel_solar.png` | ~8 × 2 | encima, adelante (x +5, y −4) |
+
+Origen al centro, 1 cuadro, contorno de 1 px. Giran con el chasis. Si falta un archivo, simplemente no se dibuja.
+
 ## Fuera del MVP (no hacer ahora)
-- Calcomanías de motor/batería/panel sobre el chasis: no hay código que las cargue.
 - `luna_compacto`: ningún nivel lunar usa suelo compacto.
 - Robots de la hoja Robot Types (orugas, patas, rapel, rotor, serpiente) y biomas subterráneos: no hay mecánica que los use (AGENTS.md §15).
 

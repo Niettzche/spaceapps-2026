@@ -9,6 +9,7 @@ import { Hud } from './hud.js';
 import { notaSuelo } from './suelos.js';
 import { Telemetria, construirResultado } from './telemetria.js';
 import { Efectos } from './efectos.js';
+import { Sonido } from './sonido.js';
 import { AspectoRobot, crearFondo, claveDeFondo, sprite, tira } from './aspecto.js';
 
 const FONDO = { tierra: '#7f9fbf', marte: '#b98a6a', luna: '#05060b' }; // color si no hay fondo de arte (fisica/aspecto.js)
@@ -62,8 +63,10 @@ export class Recorrido {
     this.robot = new Robot(scene, x0, y0, o.diseno, o.piezas, (tipo, detalle) => {
       this.telemetria.registrar(this.robot?.t ?? 0, tipo, detalle);
       this.efectos?.alTelemetria(tipo, detalle); // efectos en la rueda, el chasis o la carga
+      this.sonido?.alTelemetria(tipo, detalle); // golpes, crujido, sin energía (fisica/sonido.js)
     }, { mundo: o.mundo });
     this.efectos = new Efectos(scene, { mundo: o.mundo, gravedad: o.gravedad, robot: this.robot, superficieDe: this.superficieDe });
+    this.sonido = new Sonido(scene, { mundo: o.mundo }); // motor, arena, golpes y fin; M silencia
     this.g = scene.add.graphics().setDepth(10);
     this.aspecto = new AspectoRobot(scene, this.robot); // sprites de arte si existen; si no, figuras
 
@@ -80,10 +83,23 @@ export class Recorrido {
     this.hud = new Hud(scene, { titulo: o.titulo, subtitulo: o.subtitulo, aviso: [avisoSuelo && `${avisoSuelo}.`, avisoNivel].filter(Boolean).join(' ') });
     this._botonAbandonar();
     // Instrucciones al empezar: objetivo + controles (teclado y táctil). Esc abandona.
-    const controles = '→ / D acelerar   ← / A frenar   (táctil: ▶ ◀)   Esc abandonar';
+    const controles = '→ / D acelerar   ← / A frenar   (táctil: ▶ ◀)   Esc pausa';
     if (o.modo === 'prueba') this.hud.instrucciones('Prueba en la Tierra: llega a la META con la carga', [controles]);
-    else this.hud.instrucciones('Misión: entrega el suministro', ['Frena y detente 2 s dentro de la ZONA DE ENTREGA con la carga ≥ 60 %', controles]);
-    scene.input.keyboard.on('keydown-ESC', () => this._terminar(false, 'abandono'));
+    else {
+      // Llegada al destino: fundido desde negro y el cambio de mundo explicado con el dato de gravedad.
+      scene.cameras.main.fadeIn(900, 0, 0, 0);
+      const nombreMundo = { luna: 'la Luna', marte: 'Marte' }[o.mundo] ?? 'el destino';
+      const pct = Math.round((o.gravedad / 9.81) * 100);
+      this.hud.instrucciones(`Llegada a ${nombreMundo} · gravedad ${o.gravedad} m/s² (${pct} % de la Tierra)`, [
+        'Pesas menos: las ruedas agarran menos y el robot rebota más',
+        'Frena y detente 2 s dentro de la ZONA DE ENTREGA con la carga ≥ 60 %',
+        controles,
+      ]);
+    }
+    // Esc pausa (un toque accidental ya no abandona la partida). En la pausa: Esc/Enter continúa, X abandona.
+    scene.input.keyboard.on('keydown-ESC', () => (this.pausado ? this.reanudar() : this.pausar()));
+    scene.input.keyboard.on('keydown-ENTER', () => { if (this.pausado) this.reanudar(); });
+    scene.input.keyboard.on('keydown-X', () => { if (this.pausado) { this.reanudar(); this._terminar(false, 'abandono'); } });
   }
 
   _dibujarMeta(yMeta) {
@@ -132,11 +148,13 @@ export class Recorrido {
     const runner = this.scene.matter.world.runner;
     const delta = runner?.isFixed ? runner.delta : deltaCuadro;
     const r = this.robot;
+    if (this.pausado) return; // mundo de física detenido; nada avanza
     const acelerador = this.terminado ? 0 : this.controles.acelerador();
     if (acelerador !== 0) this.hud.ocultarInstrucciones();
     r.actualizar(delta, acelerador, this.superficieDe);
     this.aspecto.dibujar(this.g);
     this.efectos.actualizar(delta, r); // polvo de ruedas y arena al patinar
+    this.sonido.actualizar(delta, r, acelerador);
     const estado = r.estado();
     const x_m = (r.x - this.xMundo(0)) / PX_POR_M;
     this.hud.actualizar(estado, { distancia_m: r.distancia_m, meta_m: this.meta_m - 6 });
@@ -166,6 +184,22 @@ export class Recorrido {
     }
   }
 
+  pausar() {
+    if (this.terminado || this.pausado) return;
+    this.pausado = true;
+    this.scene.matter.world.pause();
+    this.hud.ocultarInstrucciones();
+    this.overlayPausa = this.hud.pausa(() => this.reanudar(), () => { this.reanudar(); this._terminar(false, 'abandono'); });
+  }
+
+  reanudar() {
+    if (!this.pausado) return;
+    this.pausado = false;
+    this.scene.matter.world.resume();
+    this.overlayPausa?.forEach((o) => o.destroy());
+    this.overlayPausa = null;
+  }
+
   /** ¿Está en la zona de entrega (misión)? Ahí detenerse es lo esperado, no un atasco. */
   zonaAlcanzada(x_m) {
     return Boolean(this.zona) && x_m >= this.zona.desde - 2;
@@ -176,6 +210,7 @@ export class Recorrido {
     this.terminado = true;
     const r = this.robot;
     if (exito) this._efectoFin(motivo);
+    this.sonido.fin(exito, motivo);
     if (!exito) this.telemetria.registrar(r.t, 'fallo', motivo);
     const estado = r.estado();
     const resultado = construirResultado({
@@ -212,6 +247,7 @@ export class Recorrido {
 
   destruir() {
     this.efectos?.destruir();
+    this.sonido?.destruir();
     this.robot.destruir();
   }
 }

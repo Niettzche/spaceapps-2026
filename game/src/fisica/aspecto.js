@@ -56,7 +56,12 @@ for (const [ruta, url] of Object.entries(archivos)) {
   else indice[nombre][ext] = url;
 }
 
-const esDelJuego = (nombre) => nombre in TABLA || ES_TILE.test(nombre) || ES_FONDO.test(nombre);
+// Calcomanías de piezas sobre el chasis: deco_<id de pieza>.png (p. ej. deco_motor_potente). El robot se ve distinto
+// según las piezas elegidas. Posición en px de arte respecto al centro del chasis (24 × 6), girando con él. (P)
+const ES_DECO = /^deco_/;
+const POS_DECO = { motor: { x: -8, y: 0 }, bateria: { x: 6, y: 0 }, modulo: { x: 5, y: -4 } };
+
+const esDelJuego = (nombre) => nombre in TABLA || ES_TILE.test(nombre) || ES_FONDO.test(nombre) || ES_DECO.test(nombre);
 
 /** Llamar en preload(): pide solo los PNG del juego que existen (y su JSON de Aseprite si lo hay). */
 export function cargarArte(scene) {
@@ -183,6 +188,10 @@ export class AspectoRobot {
     this.carga = sprite(scene, 'carga', { profundidad: 11.4 });
     this.ruedas = robot.ruedas.map((w) => sprite(scene, w.pieza.id, { profundidad: 11.6 }));
     this.omitir = { chasis: !!this.chasis, soporte: !!this.soporte, carga: !!this.carga, ruedas: this.ruedas.map(Boolean) };
+    // Calcomanías de motor, batería y módulo (si el arte existe), encima del chasis.
+    this.decos = Object.entries(POS_DECO)
+      .map(([ranura, pos]) => ({ pos, s: p[ranura] ? sprite(scene, `deco_${p[ranura].id}`, { profundidad: 11.1 }) : null }))
+      .filter((d) => d.s);
   }
 
   dibujar(g) {
@@ -195,6 +204,16 @@ export class AspectoRobot {
       const n = cuadros(this.scene, r.piezas.chasis.id);
       const danado = r.destruido || (r.vidaMax && r.vida / r.vidaMax < 0.5);
       this.chasis.setPosition(base.position.x, base.position.y).setRotation(ang).setFrame(n[danado && n.length > 1 ? 1 : 0]);
+    }
+    if (this.decos.length) {
+      const base = partes.length > 1 ? partes[1] : partes[0];
+      const c = Math.cos(ang);
+      const sn = Math.sin(ang);
+      for (const { pos, s } of this.decos) {
+        const dx = pos.x * ZOOM_ARTE;
+        const dy = pos.y * ZOOM_ARTE;
+        s.setPosition(base.position.x + dx * c - dy * sn, base.position.y + dx * sn + dy * c).setRotation(ang);
+      }
     }
     if (this.soporte && partes.length > 3) {
       // Centro entre las dos paredes del soporte.
