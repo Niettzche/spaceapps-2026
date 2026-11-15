@@ -405,7 +405,7 @@ const PIEZAS_NUEVAS = {
   // titanio: placa gris azulada con vetas de cepillado
   chasis_titanio: (p) => chasisMaterial(p, { claro: '#e6eef6', oscuro: '#3a4658', patron: (x, y) => ((x * 3 + y * 7) % 11 === 0 ? '#8c9cb4' : y < 7 ? '#c4d0e0' : '#a6b4c8') }),
   // fibra de carbono: tejido negro en cuadros con brillo
-  chasis_fibra_carbono: (p) => chasisMaterial(p, { claro: '#5a5a66', oscuro: '#08080c', patron: (x, y) => (((x >> 1) + (y >> 1)) % 2 ? '#1c1c24' : ((x + y) % 2 ? '#2e2e3a' : '#24242e')) }),
+  chasis_carbono: (p) => chasisMaterial(p, { claro: '#5a5a66', oscuro: '#08080c', patron: (x, y) => (((x >> 1) + (y >> 1)) % 2 ? '#1c1c24' : ((x + y) % 2 ? '#2e2e3a' : '#24242e')) }),
   // rueda de Nitinol: llanta de resortes (anillos en zigzag) plateados sobre un cubo
   rueda_nitinol: (p) => pinta(p, (x, y) => {
     const dx = x - 7.5, dy = y - 7.5, r = Math.hypot(dx, dy), a = Math.atan2(dy, dx), luz = dx + dy < 0;
@@ -418,7 +418,7 @@ const PIEZAS_NUEVAS = {
     return r < 1.2 ? 'c' : luz ? 'h' : 'l';                                                   // cubo con centro turquesa
   }),
   // módulo de auto-rescate: caja con dos patas articuladas que se levantan (tipo VIPER), con ruedita en la punta
-  modulo_autorescate: (p) => {
+  auto_rescate: (p) => {
     pinta(p, (x, y) => {
       if (x >= 4 && x <= 11 && y >= 6 && y <= 11) return y === 6 ? 'h' : y === 11 ? 'd' : x === 4 ? 'l' : (x === 7 || x === 8) && y >= 8 && y <= 9 ? 'r' : 'm';
       return null;

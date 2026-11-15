@@ -1,9 +1,9 @@
 # Estado — Arte
 
-> Lo actualiza SOLO este frente. Ramas: `feat/arte` (#26) y `feat/arte-b` (#37), `feat/arte-c` (#49), `feat/arte-d` (#58), `feat/arte-e` (#64), `feat/arte-f` (#67), `feat/arte-g` (#72), `feat/arte-h` (#77), `feat/arte-i` (#79), `feat/arte-j` (#80), `feat/arte-k` (#84), mergeadas; `feat/arte-m` (nave del menú, piezas de 32 px y Marte grande). `feat/arte-l` (#86), mergeadas; `feat/arte-n` (#89), mergeadas; `feat/arte-o` (obstáculos por geología, eventos de fondo, más piezas).
+> Lo actualiza SOLO este frente. Ramas: `feat/arte` (#26) y `feat/arte-b` (#37), `feat/arte-c` (#49), `feat/arte-d` (#58), `feat/arte-e` (#64), `feat/arte-f` (#67), `feat/arte-g` (#72), `feat/arte-h` (#77), `feat/arte-i` (#79), `feat/arte-j` (#80), `feat/arte-k` (#84), mergeadas; `feat/arte-m` (nave del menú, piezas de 32 px y Marte grande). `feat/arte-l` (#86), mergeadas; `feat/arte-n` (#89), mergeadas; `feat/arte-o` (#93), mergeadas; `feat/arte-p` (6 de la fuente, postales y fondos nuevos, sprites montados, §7).
 
 **Responsable:** Mauricio  ·  **Agente:** Claude Code / Codex
-**Última actualización:** 15 nov 2026, 14:00
+**Última actualización:** 15 nov 2026, 16:00
 
 ## Hecho
 - **Prioridad A y B completas** (#26 y #37, en `main`):
@@ -136,6 +136,16 @@
     - Tiles de toba, sal y hielo.
   - **Eventos de fondo** en `assets/eventos/`: remolino de polvo (animado), Fobos, la Tierra vista desde la Luna y destello de micrometeorito.
   - **Piezas** (ícono de 16 y pieza de 32): `suspension_blanda`, `suspension_dura`, `faro` y `chasis_rocker_bogie`.
+- **Ronda `feat/arte-p`:**
+  - **Fuente:** el 6 se leía como G («2G7.2 m»). El 6 y el 9 ahora llevan el trazo en diagonal y la panza cerrada. Regeneré `pixel.xml` y `pixel_titulo`, y también la fuente web.
+  - **Postales:** `sitio_g00266` (cono de toba), `sitio_tenoumer` (cráter en el Sáhara), `sitio_mx0023` (Cananea), `sitio_pingualuit` (cráter con lago y nieve) y `sitio_g00263` (Al Hutaymah, camino dorado lunar).
+  - **Fondos:** `fondo_toba`, `fondo_sahara` y `fondo_artico`, de 3 capas cada uno.
+  - **Sprites montados:** `suspension_blanda`, `suspension_dura`, `faro` + `faro_haz` y `chasis_rocker_bogie`.
+  - **`SPRITES_PENDIENTES.md` §7:**
+    - Renombré a `chasis_carbono` y `auto_rescate`.
+    - Nuevos: `entidades/chasis_titanio`, `chasis_carbono`, `rueda_nitinol`, `deco_auto_rescate` y `ui/ui_candado`.
+    - Bloqueadas: `piezas/orugas`, `patas`, `rotor`, `serpiente` y `rappel`.
+  - La diapositiva 3 se actualizó sola con los sitios nuevos de `data/sites`. Pingualuit (61° N) queda fuera del encuadre, que llega a 54° N.
 - `node assets/fuente/fx/exportar.mjs` regenera con pixelfx las 22 hojas de efectos.
 
 ## En curso
