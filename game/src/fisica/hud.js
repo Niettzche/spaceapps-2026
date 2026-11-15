@@ -28,7 +28,7 @@ export class Hud {
     // (fuente, tramo real, recreaciones, ambiente) se abre con la tecla I o tocando la nota.
     if (aviso) {
       const t = fijo(TXT(scene, 16, 54, '', { color: '#ffd166' }));
-      const pie = tr(' · I datos', ' · I data');
+      const pie = tr(' · I: datos', ' · I: details');
       let corto = nota || aviso;
       t.setText(corto + pie);
       while (t.width > ANCHO_IZQ && corto.length > 10) { corto = corto.slice(0, -2); t.setText(`${corto.trimEnd()}…${pie}`); }

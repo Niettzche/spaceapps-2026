@@ -10,7 +10,7 @@ const DESTINOS_EN = {
 const SITIOS_EN = {
   samalayuca: 'Samalayuca Dunes',
   pinacate: 'El Pinacate volcanic field',
-  mx0207: 'Real de Ángeles (Zac.)',
+  mx0207: 'Real de Ángeles (Zacatecas)',
   g00281: 'Al Wahbah maar (Harrat Kishb, Saudi Arabia)',
 };
 

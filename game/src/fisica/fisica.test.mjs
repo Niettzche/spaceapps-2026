@@ -229,7 +229,7 @@ caso('inglés: analogía, recomendaciones y notas de perfil y suelo', () => {
     assert.ok(p.nota.includes('recreated dune faces') && p.nota.endsWith('flat start and finish = recreation'));
     assert.match(generarPerfil({ tipo: 'dunas' }).nota, /^Illustrative generated terrain \(dunes\)/);
     const suelo = notaSuelo('tierra', [{ tipo: 'arena' }, { tipo: 'roca' }]);
-    assert.ok(suelo.startsWith('Soil: sand') && suelo.endsWith(' · rock: provisional grip (P)'));
+    assert.ok(suelo.startsWith('Ground: sand') && suelo.endsWith(' · rock: provisional grip (P)'));
   } finally {
     setIdioma('es');
   }

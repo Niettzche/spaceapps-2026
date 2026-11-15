@@ -22,6 +22,7 @@ import { infoVariable, tecnicoConUnidad, leyendaTabla, explicaConfianza, explica
 import { icono, iconoVariable } from './expediente/iconos_expediente.js';
 import { pasosTutorial, debeMostrarTutorial } from './expediente/tutorial_expediente.js';
 import { abrirTutorial } from './expediente/tutorial_vista.js';
+import { destinoEnFrase } from './comun/tutorial.js';
 import { NIVELES_DESTACADOS } from '../content/niveles_destacados.js';
 import {
   porQueModelo, chipsPorQue, filtrarDescubrir, resumenDescubrir, siguienteTipo, nombreTipo, tipoDeSitio, textoOrigen, nombreCorto } from './expediente/descubrir.js';
@@ -107,7 +108,8 @@ export default class Expediente extends Phaser.Scene {
     if (this.capaCondiciones) { this.capaCondiciones.destroy(true); this.capaCondiciones = null; this.textosCondiciones = null; }
     const mundo = MUNDOS[this.destino.mundo] || this.destino.mundo;
     this.tutorial = abrirTutorial(this, {
-      pasos: pasosTutorial(mundo),
+      // Dentro de una frase va con artículo: «la Luna» / «the Moon» (MUNDOS da «Luna» / «Moon», para etiquetas).
+      pasos: pasosTutorial(mundo, destinoEnFrase(this.destino.mundo)),
       zonas: (nombre) => this.zonaTutorial(nombre),
       alCerrar: () => { this.tutorial = null; this.foco = 'probar'; this.registrarTeclado(); },
     });
@@ -165,7 +167,7 @@ export default class Expediente extends Phaser.Scene {
     this.botonesLista = [];
     if (!lista.length) {
       add(txt(this, 20, 120, desc
-        ? tr('Ningún sitio pasa estos filtros. Quita uno.', 'No site passes these filters. Remove one.')
+        ? tr('Ningún sitio coincide. Quita un filtro.', 'No sites match. Turn off a filter.')
         : tr('El modelo aún no tiene sitios para este destino. Elige otro destino desde el menú.',
           'The model has no sites for this destination yet. Pick another destination from the menu.'),
       { size: 14, color: P.riesgo, ancho: 260 }));
@@ -186,8 +188,9 @@ export default class Expediente extends Phaser.Scene {
         { size: 16, origen: [0, 0], marco: false, color: elegido ? COLOR.texto : COLOR.acento, anchoMin: 262, altoMin: 50 }));
       if (desc) {
         // Subtítulo en Descubrir: el tipo de lugar; ● si tiene nivel (amarillo), ○ si solo está en el catálogo.
+        // 19 caracteres: «Hueco sin verificar» cabe completo (210 px a 14 px) antes del porcentaje de la derecha.
         const jug = this.jugable(s);
-        add(txt(this, 22, y + 24, `${jug ? '●' : '○'} ${recortar(nombreTipo(tipoDeSitio(s)), 18)}`, { size: 14, color: jug ? P.accion : P.dato }));
+        add(txt(this, 22, y + 24, `${jug ? '●' : '○'} ${recortar(nombreTipo(tipoDeSitio(s)), 19)}`, { size: 14, color: jug ? P.accion : P.dato }));
       } else {
         const est = estadoDe(s);
         const demo = esDemostracion(s);
@@ -289,11 +292,12 @@ export default class Expediente extends Phaser.Scene {
 
   dibujarDescubrir(add, addTodos) {
     const d = this.destino;
-    const mundo = MUNDOS[d.mundo] || d.mundo;
+    const enFrase = destinoEnFrase(d.mundo);
     const r = this.resumenD;
-    ajustarAncho(add(txt(this, X0, 4, tr(`DESCUBRIR (D) · lo que encontró el modelo para ${mundo}`, `DISCOVER (D) · what the model found for ${mundo}`), { size: 16, color: P.texto })), X1 - X0);
-    ajustarAncho(add(txt(this, X0, 28, tr(`${r.total} lugares · ${r.jugables} con nivel · ${r.novedosos} novedosos · ${r.paises} países · zonas áridas, no todo el planeta`,
-      `${r.total} places · ${r.jugables} with a level · ${r.novedosos} novel · ${r.paises} countries · arid regions, not the whole planet`), { size: 14, color: P.sec })), X1 - X0);
+    ajustarAncho(add(txt(this, X0, 4, tr(`DESCUBRIR (D) · lo que encontró el modelo para ${enFrase}`, `DISCOVER (D) · what the model found for ${enFrase}`), { size: 16, color: P.texto })), X1 - X0);
+    // Cabe en una línea (639 px a 14 px): la búsqueda es en zonas áridas, no en todo el planeta (AGENTS.md §6.4).
+    ajustarAncho(add(txt(this, X0, 28, tr(`${r.total} sitios áridos · ${r.jugables} con nivel · ${r.novedosos} novedosos · ${r.paises} países`,
+      `${r.total} sites · ${r.jugables} playable · ${r.novedosos} novel · ${r.paises} countries · arid zones only`), { size: 14, color: P.sec })), X1 - X0);
     // Filtros: dos interruptores y un ciclo de tipo (con ratón, toque o teclado: J, N, T).
     const f = this.filtros;
     const op = { size: 14, origen: [0, 0.5], padX: 8 };
@@ -332,7 +336,7 @@ export default class Expediente extends Phaser.Scene {
   dibujarFichaD(add, addTodos, y) {
     const s = this.selD;
     if (!s) {
-      add(txt(this, XM, y + 40, tr('Elige un lugar de la lista o del mapa.', 'Pick a place from the list or the map.'), { size: 16, color: P.sec, origen: [0.5, 0] }));
+      add(txt(this, XM, y + 40, tr('Elige un sitio de la lista o del mapa.', 'Pick a site from the list or the map.'), { size: 16, color: P.sec, origen: [0.5, 0] }));
       return;
     }
     const total = s.similitud?.total;
@@ -344,8 +348,8 @@ export default class Expediente extends Phaser.Scene {
     else add(txt(this, X0, y + 56, `${tr('Forma', 'Shape')}: ${sinDato()}`, { size: 14, color: P.sec }));
     const jug = this.jugable(s);
     add(txt(this, X0, y + 90, jug
-      ? tr('● Tiene nivel con relieve real: ábrelo y prueba tu robot.', '● Has a level with real terrain: open it and test your robot.')
-      : tr('○ Este lugar aún no tiene nivel: la API lo puede generar.', '○ This place has no level yet: the API can generate one.'),
+      ? tr('● Tiene nivel con relieve real: ábrelo y prueba tu robot.', '● Playable, with real terrain: open it and test your robot.')
+      : tr('○ Aún sin nivel (la API del modelo podría generarlo).', '○ No level yet (the model API could make one).'),
     { size: 14, color: jug ? P.accion : P.texto }));
   }
 
@@ -401,7 +405,8 @@ export default class Expediente extends Phaser.Scene {
     this.botonPorQue = add(boton(this, X1, 88, tr('M · ¿Por qué aquí?', 'M · Why here?'), () => this.abrirPorQue(),
       { size: 14, origen: [1, 0.5], padX: 8 }));
     const xFinClave = this.botonPorQue.medidas().x0 - 12;
-    const entrena = NIVELES_DESTACADOS[s.id]?.entrena;
+    // Cabecera: la versión corta (`entrena_corto`, cabe sin «…»); la frase completa está en la tarjeta y en la prueba.
+    const entrena = NIVELES_DESTACADOS[s.id]?.entrena_corto ?? NIVELES_DESTACADOS[s.id]?.entrena;
     if (entrena) {
       add(icono(this, X0 + 8, 89, ['iconos/ico_prueba'], 'mision'));
       ajustarAncho(add(txt(this, X0 + 22, 78, `${tr('Entrena', 'Trains')}: ${tr(entrena.es, entrena.en ?? entrena.es)}`, { size: 16, color: P.bien })), xFinClave - X0 - 22);
@@ -466,7 +471,7 @@ export default class Expediente extends Phaser.Scene {
     const yA = yAyuda + 1;
     this.textoAyuda = add(txt(this, X0, yA, '', { size: 14, color: P.sec }));
     this.textoAyudaTec = add(txt(this, X1, yA, '', { size: 14, color: P.sec, origen: [1, 0] }));
-    this.leyenda = leyendaTabla(mundo);
+    this.leyenda = leyendaTabla(destinoEnFrase(d.mundo));
     this.ayudaFila(null);
     y = this.dibujarLimites(addTodos, add, s, d, Math.max(yAyuda + 26, 300));
     this.dibujarRecorrido(add, s, d, Math.max(y + 4, 356));
@@ -582,9 +587,9 @@ export default class Expediente extends Phaser.Scene {
       const jug = !!sd && this.jugable(sd);
       const porque = enFila(tr('M · ¿Por qué aquí?', 'M · Why here?'), () => this.abrirPorQue(), { habilitado: !!sd });
       const urlD = urlFicha(sd);
-      const fichaD = enFila(urlD ? tr('Ficha web ↗', 'Web sheet ↗') : tr('Sin ficha web', 'No web sheet'), () => this.abrirFicha(urlD), { habilitado: !!urlD });
+      const fichaD = enFila(urlD ? tr('Ficha web ↗', 'Fact sheet ↗') : tr('Sin ficha web', 'No fact sheet'), () => this.abrirFicha(urlD), { habilitado: !!urlD });
       const coords = Number.isFinite(sd?.lat) && Number.isFinite(sd?.lon);
-      const principal = add(boton(this, X1, Y_PIE, jug ? tr('Abrir su expediente', 'Open its site file') : tr('Generar nivel · Explorador', 'Make a level · Explorer'),
+      const principal = add(boton(this, X1, Y_PIE, jug ? tr('Abrir su expediente', 'Open its site file') : tr('Ver en el Explorador', 'See it in Explorer'),
         () => (jug ? this.abrirEnSugeridos(sd) : this.irAlExplorador(sd)),
         { size: 18, origen: [1, 0.5], habilitado: jug || coords, sugerido: jug || coords, anchoMin: 200, altoMin: 46 }));
       this.botonPorQue = porque;
@@ -603,7 +608,7 @@ export default class Expediente extends Phaser.Scene {
     const datos = enFila(tr('I · Datos', 'I · Data'), () => this.alternarDetalle(), { habilitado: !!s && !!this.destino });
     this.botonCondiciones = enFila(tr('C · Condiciones', 'C · Conditions'), () => this.abrirCondiciones(), { habilitado: !!s });
     const url = urlFicha(s);
-    const ficha = enFila(url ? tr('Ficha web ↗', 'Web sheet ↗') : tr('Sin ficha web', 'No web sheet'), () => this.abrirFicha(url), { habilitado: !!url });
+    const ficha = enFila(url ? tr('Ficha web ↗', 'Fact sheet ↗') : tr('Sin ficha web', 'No fact sheet'), () => this.abrirFicha(url), { habilitado: !!url });
     // Botón principal con la caja de arte (el mismo botón de todo el juego), anclado a la derecha.
     // Opción sugerida (⏎): confirma el paso del camino dorado.
     const probar = add(boton(this, X1, Y_PIE, etiqueta, () => this.probar(),
@@ -740,7 +745,7 @@ export default class Expediente extends Phaser.Scene {
       const p = [
         ...(info.pregunta ? [info.pregunta] : []),
         `${tr('Nombre técnico', 'Technical name')}: ${tecnicoConUnidad(info, f.tierra?.unidad ?? f.destino?.unidad)}`,
-        f.mismaUnidad ? `${tr('Parecido', 'Match')}: ${formatoPorcentaje(f.similitud)} (${explicaSimilitud(mundo)})` : tr('⚠ unidades distintas: no se comparan', '⚠ different units: not compared'),
+        f.mismaUnidad ? `${tr('Parecido', 'Match')}: ${formatoPorcentaje(f.similitud)} (${explicaSimilitud(destinoEnFrase(d.mundo))})` : tr('⚠ unidades distintas: no se comparan', '⚠ different units: not compared'),
         `${tr('Tierra', 'Earth')}: ${formatoValor(f.tierra)}\n${lado(f.tierra).join('\n')}`,
         `${mundo}: ${vd}\n${lado(f.destino).join('\n')}`,
       ];
@@ -864,7 +869,7 @@ export default class Expediente extends Phaser.Scene {
     const yTexto = COND.y0 + 106;
     const porPagina = Math.floor((COND.y1 - 50 - yTexto) / 28); // renglón de 24 px + interlineado
     const medidor = texto(this, 0, 0, '', { size: COND.letra, ancho: COND.col }).setVisible(false);
-    const renglones = (col) => (col.lineas.length ? col.lineas : [tr('Sin datos de ambiente para este lugar.', 'No environment data for this place.')])
+    const renglones = (col) => (col.lineas.length ? col.lineas : [tr('Sin datos de ambiente para este sitio.', 'No environment data for this site.')])
       .flatMap((l) => medidor.getWrappedText(l));
     const cols = [tierra, destino].map((c) => ({ c, r: renglones(c) }));
     medidor.destroy();
@@ -929,7 +934,7 @@ export default class Expediente extends Phaser.Scene {
     const cerrar = add(boton(this, PQ.x1 - 14, PQ.y0 + 24, tr('Volver (M)', 'Back (M)'), () => this.cerrarPorQue(),
       { size: 16, origen: [1, 0.5], sugerido: true }));
     const xFinTitulo = cerrar.medidas().x0 - 16;
-    ajustarAncho(add(txt(this, PQ.x0 + 16, PQ.y0 + 12, tr('¿POR QUÉ EL MODELO ELIGIÓ ESTE LUGAR?', 'WHY DID THE MODEL PICK THIS PLACE?'), { size: 16, color: P.dato })), xFinTitulo - PQ.x0 - 16);
+    ajustarAncho(add(txt(this, PQ.x0 + 16, PQ.y0 + 12, tr('¿POR QUÉ EL MODELO ELIGIÓ ESTE SITIO?', 'WHY DID THE MODEL PICK THIS SITE?'), { size: 16, color: P.dato })), xFinTitulo - PQ.x0 - 16);
     ajustarAncho(add(txt(this, PQ.x0 + 16, PQ.y0 + 36, `${trDato(s, 'nombre') || s.id} · ${tr('similitud', 'similarity')} ${formatoPorcentaje(s.similitud?.total)}`,
       { size: 14, color: P.sec })), xFinTitulo - PQ.x0 - 16);
     const filas = porQueModelo(s, { entrena: NIVELES_DESTACADOS[s.id]?.entrena ?? null });

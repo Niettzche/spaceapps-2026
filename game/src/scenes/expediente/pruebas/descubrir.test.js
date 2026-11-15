@@ -38,9 +38,9 @@ test('origenDeSitio: curado · control positivo · búsqueda en zonas áridas ·
   assert.equal(origenDeSitio(sitio('g00266')), 'busqueda');
   assert.equal(origenDeSitio({ estado: 'propuesto_usuario' }), 'usuario');
   assert.match(textoOrigen(sitio('mx0019')), /México/);
-  assert.match(textoOrigen(sitio('g00266')), /Búsqueda global.*Arabia Saudita/);
+  assert.match(textoOrigen(sitio('g00266')), /Zonas áridas del mundo · Arabia Saudita/);
   setIdioma('en');
-  assert.match(textoOrigen(sitio('g00266')), /Global arid-region search · Saudi Arabia/);
+  assert.match(textoOrigen(sitio('g00266')), /Global arid-zone search · Saudi Arabia/);
   setIdioma('es');
 });
 
@@ -57,8 +57,8 @@ test('gemeloForma y probabilidadLuna salen de las notas del modelo (no se invent
 test('porQueModelo: filas con valores de data/sites; «sin dato» o «no aplica» cuando falta', () => {
   setIdioma('es');
   const f = Object.fromEntries(porQueModelo(sitio('g00266'), { entrena: { es: 'Cruzar toba', en: 'Cross tuff' } }).map((x) => [x.clave, x]));
-  assert.match(f.forma.valor, /d\/D 0\.021 · gemelo Cráter Gale \(Marte\) d\/D 0\.021/);
-  assert.match(f.modelo.valor, /más marciana: 85 % Marte/);
+  assert.match(f.forma.valor, /d\/D 0\.021 · gemelo: Cráter Gale \(Marte\) d\/D 0\.021/);
+  assert.match(f.modelo.valor, /forma 85 % marciana/);
   assert.match(f.borde.valor, /sí, \+38\.2 m/);
   assert.match(f.arido.valor, /pasa: NDVI p90 0\.136 < 0\.35/);
   assert.equal(f.arido.color, 'bien');
@@ -77,8 +77,8 @@ test('porQueModelo: filas con valores de data/sites; «sin dato» o «no aplica�
   assert.match(mina.novedoso.valor, /^SÍ/);
   setIdioma('en');
   const en = Object.fromEntries(porQueModelo(sitio('g00266')).map((x) => [x.clave, x]));
-  assert.match(en.forma.valor, /twin Gale crater \(Mars\)/);
-  assert.match(en.modelo.valor, /more Mars-like shape: 85 % Mars/);
+  assert.match(en.forma.valor, /twin: Gale crater \(Mars\)/);
+  assert.match(en.modelo.valor, /shape 85 % Mars-like/);
   setIdioma('es');
 });
 
@@ -114,8 +114,11 @@ test('Descubrir: todos los del destino, filtros jugables · novedosos · tipo, y
 test('nombreCorto: las detecciones sin nombre caben en la lista', () => {
   setIdioma('es');
   assert.equal(nombreCorto(sitio('mx0000')), 'Depresión MX0000');
+  // G00003 es un probable tajo (tipo mina): el nombre corto no contradice el subtítulo.
+  assert.equal(nombreCorto(sitio('g00003')), 'Tajo G00003');
   setIdioma('en');
   assert.equal(nombreCorto(sitio('mx0000')), 'Depression MX0000');
+  assert.equal(nombreCorto(sitio('g00003')), 'Pit G00003');
   setIdioma('es');
   assert.equal(nombreCorto(sitio('mx0019')), 'La Herradura (Son.)');
 });

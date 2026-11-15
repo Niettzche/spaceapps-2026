@@ -83,11 +83,11 @@ export function notaEventos(tipos, { soloVisual = false } = {}) {
   if (!tipos?.length) return null;
   const n = {
     remolino: soloVisual ? tr('remolinos de polvo (solo visuales en este nivel)', 'dust devils (visual only in this level)')
-      : tr('remolinos de polvo (al pasar bajan ~1 % la luz del panel; los fuertes, 15 %; MR-083)', 'dust devils (as they pass they cut panel light ~1 %; strong ones 15 %; MR-083)'),
+      : tr('remolinos de polvo (al pasar bajan ~1 % la luz del panel; los fuertes, 15 %; MR-083)', 'dust devils (dim panel light ~1 % as they pass; strong ones 15 %; MR-083)'),
     cresta_humea: tr('arena que se vuela de las crestas de duna con el viento', 'sand blowing off the dune crests with the wind'),
-    espejismo: tr('espejismo sobre la playa caliente', 'heat mirage over the hot playa'),
-    polvo_salino: tr('polvo salino de la playa con las ráfagas', 'salty playa dust in the gusts'),
-    rafaga_polvo: tr('ráfagas con polvo', 'dusty gusts'), nieve_sopla: tr('nieve que sopla', 'blowing snow'),
+    espejismo: tr('espejismo sobre el lecho seco y caliente del lago', 'heat mirage over the hot playa'),
+    polvo_salino: tr('polvo salino del lago seco con las ráfagas', 'salty playa dust in the gusts'),
+    rafaga_polvo: tr('ráfagas con polvo', 'dusty gusts'), nieve_sopla: tr('nieve que arrastra el viento', 'blowing snow'),
     desprendimiento: tr('desprendimientos de talud (piedras que ruedan y se quedan)', 'talus slides (stones that roll and stay)'),
     fobos: tr('Fobos cruzando (acelerado)', 'Phobos crossing (sped up)'), tierra: tr('la Tierra baja sobre el horizonte', 'Earth low over the horizon'),
     micrometeorito: tr('destellos de micrometeorito', 'micrometeorite flashes'),

@@ -37,10 +37,11 @@ export function nombreTipo(tipo) {
   return {
     impacto: tr('Cráter de impacto', 'Impact crater'),
     volcan: tr('Volcán o maar', 'Volcano or maar'),
-    mina: tr('Mina a cielo abierto', 'Open-pit mine'),
+    // ≤ 19 caracteres: es el subtítulo de la lista de Descubrir (Expediente.js recorta a 19).
+    mina: tr('Mina a tajo abierto', 'Open-pit mine'),
     dunas: tr('Dunas', 'Dunes'),
-    sin_verificar: tr('Depresión sin verificar', 'Unverified depression'),
-    todos: tr('todos', 'all'),
+    sin_verificar: tr('Hueco sin verificar', 'Unverified hollow'),
+    todos: tr('Todos', 'All'),
   }[tipo] ?? tipo;
 }
 
@@ -68,13 +69,14 @@ export function textoOrigen(s) {
   switch (origenDeSitio(s)) {
     case 'usuario': return tr('Propuesto por un jugador · pendiente de revisión', 'Proposed by a player · pending review');
     case 'ilustrativo': return tr('Ilustrativo: datos de demostración', 'Illustrative: demo data');
-    case 'control': return tr('Cráter conocido que el detector encuentra (control positivo)', 'Known crater the detector finds (positive control)');
+    case 'control': return tr('Cráter conocido (control positivo)', 'Known crater (positive control)');
     case 'curado': return s.estado === 'documentado'
       ? tr('Curado: análogo documentado', 'Curated: documented analog')
       : tr('Curado por el equipo (sitio del juego)', 'Curated by the team (game site)');
+    // Cortas: en la ficha de Descubrir van después del tipo, en una línea de 639 px.
     case 'busqueda': return s.pais === 'MX'
-      ? tr('Búsqueda en zonas áridas · México (caso validado)', 'Arid-region search · Mexico (validated case)')
-      : tr(`Búsqueda global en zonas áridas · ${pais ?? sinDato()}`, `Global arid-region search · ${pais ?? sinDato()}`);
+      ? tr('Zonas áridas de México (caso validado)', 'Arid-zone search · Mexico (validated)')
+      : tr(`Zonas áridas del mundo · ${pais ?? sinDato()}`, `Global arid-zone search · ${pais ?? sinDato()}`);
     default: return sinDato();
   }
 }
@@ -88,13 +90,22 @@ export function gemeloForma(s) {
   return { nombre: m[1], mundo: m[2] === 'Luna' ? 'luna' : 'marte', diametroKm: Number(m[3]), profundidadM: Number(m[4]), dD: Number(m[5]) };
 }
 
-/** Nombre del gemelo en el idioma actual (solo traduce «Cráter X» y «Anillo»; el resto son nombres propios). */
+/**
+ * Nombre del gemelo en el idioma actual (solo traduce «Cráter X», «Anillo» y «Polo sur»; el resto son nombres propios).
+ * «Anillo 80-85°S» es una franja de latitud del polo sur lunar, no un anillo: se dice «cráter a 80-85°S».
+ * Sin dos paréntesis seguidos: «Gusev (Spirit)» → «Gusev (Spirit, Marte)».
+ */
 export function nombreGemelo(g) {
   if (!g) return null;
   const mundo = g.mundo === 'luna' ? tr('Luna', 'Moon') : tr('Marte', 'Mars');
-  const n = tr(g.nombre, g.nombre.replace(/^Cráter (.+)$/, '$1 crater').replace(/^Anillo (.+)$/, '$1 ring'));
-  return `${n} (${mundo})`;
+  const n = tr(g.nombre.replace(/^Anillo (.+)$/, 'cráter a $1'),
+    g.nombre.replace(/^Cráter (.+)$/, '$1 crater').replace(/^Anillo (.+)$/, 'crater at $1').replace(/^Polo sur\b/, 'South pole'));
+  return /\)$/.test(n) ? n.replace(/\)$/, `, ${mundo})`) : `${n} (${mundo})`;
 }
+
+// Tajos que las fuentes de los niveles ya verificaron (docs/taller/FUENTES_NIVELES.md): Cananea = Buenavista del Cobre (S137).
+// Su `proceso` en data/sites (frente modelo) aún dice «Probable … por verificar»; aquí no se repite el «probable».
+const TAJOS_VERIFICADOS = new Set(['mx0023']);
 
 /** P(Luna) del modelo explicable, de la nota de `variables.forma` («P(Luna)=0.1507»). null si no está. */
 export function probabilidadLuna(s) {
@@ -120,7 +131,8 @@ export function porQueModelo(s, { entrena = null } = {}) {
   const filas = [];
   filas.push({ clave: 'origen', titulo: tr('CÓMO SE ENCONTRÓ', 'HOW IT WAS FOUND'), valor: textoOrigen(s), color: 'dato', glifo: 'mision', iconos: ['iconos/ico_mision'] });
   const tipo = tipoDeSitio(s);
-  const probable = tipo !== 'sin_verificar' && /probable/i.test(s.proceso ?? '') ? tr(' (probable, por verificar)', ' (probable, to be verified)') : '';
+  const probable = tipo !== 'sin_verificar' && !TAJOS_VERIFICADOS.has(s.id) && /probable/i.test(s.proceso ?? '')
+    ? tr(' (probable, sin confirmar)', ' (likely, unconfirmed)') : '';
   filas.push({ clave: 'tipo', titulo: tr('QUÉ ES', 'WHAT IT IS'), valor: `${nombreTipo(tipo)}${probable}`, color: tipo === 'sin_verificar' ? 'sec' : 'dato', glifo: 'dato', iconos: ['iconos/ico_suelo'] });
 
   // Forma: d/D del sitio frente al gemelo de forma (regla principal del árbol Luna contra Marte) y la salida del modelo.
@@ -131,7 +143,7 @@ export function porQueModelo(s, { entrena = null } = {}) {
   let colorForma = 'sec';
   if (dD != null) {
     forma = `d/D ${formatoNumero(dD)}`;
-    if (g) forma += ` · ${tr('gemelo', 'twin')} ${nombreGemelo(g)} d/D ${formatoNumero(g.dD)}`;
+    if (g) forma += ` · ${tr('gemelo', 'twin')}: ${nombreGemelo(g)} d/D ${formatoNumero(g.dD)}`;
     colorForma = 'dato';
   } else if (tipo === 'dunas' || !s.variables?.forma) {
     forma = tr('no aplica: no es un cráter (solo clima y relieve)', 'n/a: not a crater (climate and terrain only)');
@@ -142,8 +154,8 @@ export function porQueModelo(s, { entrena = null } = {}) {
     filas.push({
       clave: 'modelo',
       titulo: tr('MODELO LUNA/MARTE', 'MOON/MARS MODEL'),
-      valor: luna ? tr(`forma más lunar: ${pct(pL)} Luna`, `more Moon-like shape: ${pct(pL)} Moon`)
-        : tr(`forma más marciana: ${pct(1 - pL)} Marte`, `more Mars-like shape: ${pct(1 - pL)} Mars`),
+      valor: luna ? tr(`forma ${pct(pL)} lunar`, `shape ${pct(pL)} Moon-like`)
+        : tr(`forma ${pct(1 - pL)} marciana`, `shape ${pct(1 - pL)} Mars-like`),
       color: 'dato', glifo: 'confianza', iconos: ['iconos/ico_similitud'],
     });
   }
@@ -152,7 +164,7 @@ export function porQueModelo(s, { entrena = null } = {}) {
     clave: 'borde',
     titulo: tr('BORDE LEVANTADO', 'RAISED RIM'),
     valor: borde == null ? sinDato()
-      : borde > 0 ? tr(`sí, ${conSigno(borde)} m sobre el terreno: borde de cráter`, `yes, ${conSigno(borde)} m above the ground: crater rim`)
+      : borde > 0 ? tr(`sí, ${conSigno(borde)} m sobre el entorno: borde de cráter`, `yes, ${conSigno(borde)} m above surroundings: crater rim`)
         : tr(`no (${conSigno(borde)} m): hueco sin borde`, `no (${conSigno(borde)} m): hollow without a rim`),
     color: borde == null ? 'sec' : borde > 0 ? 'bien' : 'sec',
     glifo: 'pendiente', iconos: ['iconos/ico_subida'],
@@ -176,7 +188,9 @@ export function porQueModelo(s, { entrena = null } = {}) {
     titulo: tr('¿NOVEDOSO?', 'NOVEL?'),
     valor: s.novedoso === true ? tr('SÍ: no está en la lista de análogos conocidos', 'YES: not on the list of known analogs')
       : s.novedoso === false ? tr('no: ya es un análogo conocido (o está junto a uno)', 'no: already a known analog (or next to one)')
-        : tr('sin verificar', 'not verified'),
+        // Un control positivo es, por definición, un cráter conocido.
+        : origenDeSitio(s) === 'control' ? tr('no: cráter conocido', 'no: known crater')
+          : tr('sin verificar', 'not verified'),
     color: s.novedoso === true ? 'bien' : 'sec',
     glifo: 'novedoso', iconos: ['iconos/ico_novedoso'],
   });
@@ -230,11 +244,14 @@ export function siguienteTipo(actual, porTipo) {
   return ciclo[(i + 1) % ciclo.length];
 }
 
-/** Nombre corto para la lista: «Depresión tipo cráter MX0000» → «Depresión MX0000»; los demás, tal cual. */
+/**
+ * Nombre corto para la lista: «Depresión tipo cráter MX0000» → «Depresión MX0000» (o «Tajo MX0000» si su tipo es mina,
+ * para que el nombre no contradiga el subtítulo); los demás, tal cual.
+ */
 export function nombreCorto(s) {
   const n = trDato(s ?? {}, 'nombre') ?? s?.id ?? '';
   const m = /^(?:Depresión tipo cráter|Crater-like depression) (\S+)/.exec(n);
-  if (m) return tr(`Depresión ${m[1]}`, `Depression ${m[1]}`);
+  if (m) return tipoDeSitio(s) === 'mina' ? tr(`Tajo ${m[1]}`, `Pit ${m[1]}`) : tr(`Depresión ${m[1]}`, `Depression ${m[1]}`);
   return n;
 }
 
