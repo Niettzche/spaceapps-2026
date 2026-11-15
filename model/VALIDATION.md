@@ -2,6 +2,8 @@
 
 Generado por `model/validate.py` el 2026-11-14. Pesos (P): forma 0.4, oscilacion_termica 0.2, precipitacion 0.15, ndvi 0.1, pendiente 0.15. Umbrales (P): control negativo < 0.1, análogo conocido > 0.4.
 
+Ojo: `oscilacion_termica` vale entre 0.20 y 0.33 en todos los sitios (mediana 0.28), porque los dos destinos (Luna 176 K, Jezero 55 K) superan el máximo terrestre de 40 K y se recortan ahí. Es una dimensión que la Tierra no alcanza: rebaja todos los totales casi por igual y no ordena sitios. No se cambia el peso antes de la entrega (`model/NIVEL2.md` §C).
+
 ## A. Comparador de variables (dimensiones complementarias)
 
 En estos puntos no hay un cráter medido, así que la forma no aplica: la similitud usa clima (NASA POWER), vegetación (MODIS) y pendiente (Copernicus DEM a 200 m), y la confianza baja en consecuencia.
@@ -14,7 +16,7 @@ En estos puntos no hay un cráter medido, así que la forma no aplica: la simili
 | Cuenca del Congo, Parque Nacional Nouabalé-Ndoki (República del Congo) | 7.7 | 4.72 | 0.757 | 2.37 | 0 | 0 | sí | sí |
 | Zona agrícola húmeda: llanura de arroz Đồng Tháp Mười (Plain of Reeds), delta del Mekong (Vietnam) | 8.61 | 3.46 | 0.552 | 0.163 | 0 | 0 | sí | sí |
 
-### Análogos conocidos: 9 de 20 pasan
+### Análogos conocidos: 9 de 21 pasan
 
 | nombre | oscilacion_termica | precipitacion | ndvi | pendiente | total_polo_sur_lunar | total_jezero | vetado_jezero | pasa |
 |---|---|---|---|---|---|---|---|---|
@@ -38,12 +40,15 @@ En estos puntos no hay un cráter medido, así que la forma no aplica: la simili
 | Cráter de Chicxulub (Yucatán, México), sepultado | 2.98 | 1.94 | — | 0 | 0.159 | 0.215 | no | no |
 | Cenote El Zacatón (Tamaulipas, México) | 10.4 | 2.53 | 0.635 | 2.17 | 0 | 0 | sí | no |
 | Maar Rincón de Parangueo (Valle de Santiago, Guanajuato, México) | 15.3 | 1.98 | 0.187 | 3.09 | 0.249 | 0.32 | no | no |
+| Colton Crater (Crater 160), campo volcánico de San Francisco (Arizona, EE. UU.) | 14.2 | 1.02 | 0.225 | 5.4 | 0.334 | 0.358 | no | no |
 
-**Lectura.** El comparador complementario mide clima árido, suelo desnudo y relieve suave. Pasan los análogos elegidos por eso mismo (desiertos hiperáridos, dunas, cráteres en zonas secas). No pasan los que son análogos por otra razón que estas variables no ven: frío polar, lava en clima húmedo, química del agua (Río Tinto), microbialitos y cenotes, cuevas, o estructuras sepultadas. Que no pasen es esperable y marca el alcance del comparador: no reemplaza a la forma ni a la composición. No pasan: Valles Secos de McMurdo, Wright Valley (Antártida), Islandia, campo de lava Holuhraun, Hawái, cima del Mauna Kea, Río Tinto, Peña de Hierro, sondeo BH-10 del proyecto IPBSL (Huelva, España), Meteor Crater (Arizona, EE. UU.), Laguna de Alchichica (Puebla, México), maar con microbialitos, Cuatro Ciénegas (Coahuila, México), Cueva de Villa Luz / Cueva del Azufre (Tabasco, México), Cráter de Chicxulub (Yucatán, México), sepultado, Cenote El Zacatón (Tamaulipas, México), Maar Rincón de Parangueo (Valle de Santiago, Guanajuato, México).
+**Lectura.** El comparador complementario mide clima árido, suelo desnudo y relieve suave. Pasan los análogos elegidos por eso mismo (desiertos hiperáridos, dunas, cráteres en zonas secas). No pasan los que son análogos por otra razón que estas variables no ven: frío polar, lava en clima húmedo, química del agua (Río Tinto), microbialitos y cenotes, cuevas, o estructuras sepultadas. Que no pasen es esperable y marca el alcance del comparador: no reemplaza a la forma ni a la composición. No pasan: Valles Secos de McMurdo, Wright Valley (Antártida), Islandia, campo de lava Holuhraun, Hawái, cima del Mauna Kea, Río Tinto, Peña de Hierro, sondeo BH-10 del proyecto IPBSL (Huelva, España), Meteor Crater (Arizona, EE. UU.), Laguna de Alchichica (Puebla, México), maar con microbialitos, Cuatro Ciénegas (Coahuila, México), Cueva de Villa Luz / Cueva del Azufre (Tabasco, México), Cráter de Chicxulub (Yucatán, México), sepultado, Cenote El Zacatón (Tamaulipas, México), Maar Rincón de Parangueo (Valle de Santiago, Guanajuato, México), Colton Crater (Crater 160), campo volcánico de San Francisco (Arizona, EE. UU.).
 
 ## B. Forma (dimensión principal)
 
 Modelo: regresión logística Luna contra Marte con 4,288 cráteres lunares y 573 marcianos (variables log_diam, prof_diam, borde_rel; sitios de Marte excluidos: Elysium, Utopia). Exactitud balanceada fuera de pliegue con grupos espaciales: 78 %; en un sitio de Marte nunca visto, entre 70 % (Gale) y 92 % (Meridiani). Detalle en `ciencia_datos/03_etiquetas_por_fuentes.ipynb`.
+
+**Objeción del instrumento** (MOLA ≈ 463 m de resolución efectiva): con LOLA suavizado a esa resolución (gaussiano con FWHM de 463 m), el d/D lunar baja de 0.058 a 0.043 con todos los tamaños y de 0.059 a 0.051 con D ≥ 2 km (Marte: 0.027 y 0.019). La separación en cráteres de 2 km o más no es instrumental; en los de menos de 1 km, parcialmente sí. No se reentrenó el modelo con LOLA suavizado. Detalle en `model/NIVEL2.md` §B y `analisis/24_experimento_instrumento_marte.py`.
 
 **Cráteres de impacto terrestres** (control positivo de forma): 8 de 8 caen dentro del 95 % de la nube Luna+Marte. Xiuyan se excluye (la depresión detectada no coincide en tamaño) y Brent no se detecta (erosionado, con bosque y lagos). Coordenadas aproximadas del Earth Impact Database.
 
@@ -80,7 +85,7 @@ Modelo: regresión logística Luna contra Marte con 4,288 cráteres lunares y 57
 | cráter natural (IA) | 14 | 0.628 | 0.623 | 71 % | 0.0791 | 0.0054 |
 | presa, valle o duna (IA) | 26 | 0.766 | 0.348 | 85 % | 0.028 | 0.00265 |
 
-AUC de separación cráter natural frente a presa/valle/duna (14 contra 26 casos; p = prueba de permutación de dos colas, 5,000 repeticiones): puntaje de forma 0.42 (p = 0.43); d/D 0.75 (p = 0.01); diferencia de perfil con el gemelo lunar 0.37 (p = 0.18; menor diferencia = más lunar). Un AUC por debajo de 0.5 quiere decir que las presas, valles y dunas puntúan **más** lunar que los cráteres: son más planas; el puntaje de forma las toma por marcianas (en Marte los cráteres son planos) y la diferencia de perfil absoluta premia lo plano (eso lo corrige el PR de la diferencia relativa).
+AUC de separación cráter natural frente a presa/valle/duna (14 contra 26 casos; p = prueba de permutación de dos colas, 5,000 repeticiones): puntaje de forma 0.42 (p = 0.43); d/D 0.75 (p = 0.01); diferencia de perfil con el gemelo lunar 0.37 (p = 0.18; menor diferencia = más lunar). Un AUC por debajo de 0.5 quiere decir que las presas, valles y dunas puntúan **más** lunar que los cráteres: son más planas; el puntaje de forma las toma por marcianas (en Marte los cráteres son planos) y la diferencia de perfil absoluta premia lo plano (por eso la lista corta usa `dif_rel` = diferencia media / d/D, en `ciencia_datos/salidas/fichas_integradas.csv`).
 
 **Límite declarado.** La forma sola (3 medidas a 200 m) no distingue un cráter de otra depresión cerrada de tamaño parecido. Por eso el catálogo usa la **etiqueta verificada** (IA sobre imagen de satélite y relieve, revisada contra fuentes) para decidir qué es un cráter, y la forma solo para decir **qué tan lunar o marciano** es un cráter ya identificado.
 

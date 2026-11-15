@@ -101,6 +101,12 @@ POR_VERIFICAR = {
     "g00176": f"en el campo volcánico de San Francisco (Arizona), que tiene sitios de entrenamiento de geología del Apolo ({FUENTE_APOLO_AZ})",
 }
 
+# Análogos publicados de OTRO cuerpo (no Luna ni Marte): no entran a known_analogs.json, pero no se presentan como novedosos
+ANALOGO_OTRO_CUERPO = {
+    "g00281": ("maar Al Wahbah, publicado como análogo de Encélado: Dos Santos, Schultz et al. 2024, Astrobiology 24(8):824–838, "
+               "doi:10.1089/ast.2024.0017 (model/NIVEL2.md)"),
+}
+
 PAIS_REGION = {"Atacama": "CL", "Arizona": "US", "Arabia": "SA"}
 
 # Regla 5: solo es novedoso lo que la IA verificada reconoce como cráter o mina (AGENTS.md: no presumir)
@@ -139,16 +145,18 @@ def aplicar_regla_ia() -> list[dict]:
         if s.get("estado") != "candidato_modelo":
             continue
         sid = s["id"]
-        if sid in POR_VERIFICAR:
+        # Orden: análogo conocido a < 50 km (False) > análogo de otro cuerpo o por verificar (None) > lejos de todo (True)
+        dist = None if not conocidos else not any(km(s["lat"], s["lon"], la, lo) <= RADIO_ANALOGO_KM for _, la, lo in conocidos)
+        if dist is not False and (sid in POR_VERIFICAR or sid in ANALOGO_OTRO_CUERPO):
             dist = None
-        elif not conocidos:
-            dist = None
-        else:
-            dist = not any(km(s["lat"], s["lon"], la, lo) <= RADIO_ANALOGO_KM for _, la, lo in conocidos)
-            if dist and s.get("novedoso") is None and "novedoso: por verificar" in (s.get("nota") or ""):
-                dist = None                       # verificación manual pendiente anotada en el sitio (p. ej. g00281)
         nuevo, frase = novedoso_por_ia(sid, dist, etiquetas)
         nota = NOTA_IA.sub("", s.get("nota") or "").rstrip()
+        nota = re.sub(r" novedoso: (por verificar|false); [^\n]*?\)(; no es el mismo lugar: [^\n]*?etiqueta de IA)?\.(?= |$)", "", nota)
+        if dist is False:                          # decir con qué análogo conocido coincide
+            d_k, nom = min((km(s["lat"], s["lon"], la, lo), n) for n, la, lo in conocidos)
+            nota += (f" novedoso: false; a {d_k:.0f} km de un análogo conocido de data/known_analogs.json ({nom})"
+                     + ("." if d_k <= 5 else "; no es el mismo lugar: solo cae dentro del radio de 50 km de la regla, y su propio tipo "
+                                             "es el de la etiqueta de IA."))
         nota = re.sub(r" novedoso: null \((sin etiqueta|tipo según IA|confianza de la IA)[^)]*\)\.", "", nota)
         antes = s.get("novedoso")
         s["novedoso"], s["nota"] = nuevo, nota + frase
@@ -227,9 +235,12 @@ def construir_sitio(r: pd.Series, targets: dict, ref: pd.DataFrame, conocidos: l
                 not any(km(r.lat, r.lon, la, lo) <= RADIO_ANALOGO_KM for _, la, lo in conocidos))
     aviso_novedoso = (" novedoso: pendiente; data/known_analogs.json todavía no tiene coordenadas con fuente."
                       if novedoso is None else "")
-    if str(r.cid).lower() in POR_VERIFICAR:
+    if novedoso is not False and str(r.cid).lower() in POR_VERIFICAR:      # un análogo conocido cercano tiene prioridad
         novedoso = None
         aviso_novedoso = f" novedoso: por verificar; está {POR_VERIFICAR[str(r.cid).lower()]}."
+    if novedoso is not False and str(r.cid).lower() in ANALOGO_OTRO_CUERPO:
+        novedoso = None
+        aviso_novedoso = f" novedoso: null; {ANALOGO_OTRO_CUERPO[str(r.cid).lower()]}."
     novedoso, frase_ia = novedoso_por_ia(str(r.cid).lower(), novedoso, etiquetas_ia())
     aviso_novedoso += frase_ia
     g = gemelo(cuerpo, float(r.diam_km), float(r.prof_diam), ref)

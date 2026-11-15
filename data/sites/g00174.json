@@ -9,7 +9,7 @@
   "prueba_util": null,
   "uso_exploracion": "Candidato a verificar en campo: navegación y movilidad dentro de una depresión tipo cráter",
   "proceso": "Depresión cerrada tipo cráter de origen sin confirmar (sin borde: dolina, cuenca o maar erosionado)",
-  "novedoso": null,
+  "novedoso": false,
   "variables": {
     "forma": {
       "valor": 0.9931,
@@ -107,5 +107,5 @@
     "exageracion_vertical": null,
     "obstaculos": []
   },
-  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Anillo 80-85°S (Luna), 0.9 km, 146 m, d/D 0.162, en -83.101, 141.844. novedoso: por verificar; está en el campo volcánico de San Francisco (Arizona), que tiene sitios de entrenamiento de geología del Apolo (USGS, 'Walk in the footsteps of the Apollo astronauts: a field guide to northern Arizona astronaut training sites' (https://www.usgs.gov/publications/walk-footsteps-apollo-astronauts-a-field-guide-northern-arizona-astronaut-training)). Etiqueta de IA: valle_o_canada, confianza 0.80 (claude -p sobre Sentinel-2 y relieve; 29 de 33 aciertos en la validación, ciencia_datos/etiquetado_ia)."
+  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Anillo 80-85°S (Luna), 0.9 km, 146 m, d/D 0.162, en -83.101, 141.844. novedoso: false; a 45 km de un análogo conocido de data/known_analogs.json (Colton Crater (Crater 160), campo volcánico de San Francisco (Arizona, EE. UU.)); no es el mismo lugar: solo cae dentro del radio de 50 km de la regla, y su propio tipo es el de la etiqueta de IA. Etiqueta de IA: valle_o_canada, confianza 0.80 (claude -p sobre Sentinel-2 y relieve; 29 de 33 aciertos en la validación, ciencia_datos/etiquetado_ia)."
 }

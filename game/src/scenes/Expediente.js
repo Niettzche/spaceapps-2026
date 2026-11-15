@@ -50,7 +50,9 @@ export default class Expediente extends Phaser.Scene {
   dibujarLista() {
     this.capaLista.removeAll(true);
     const add = (o) => { this.capaLista.add(o.obj || o); return o; };
-    add(texto(this, 20, 88, `Sitios sugeridos (${this.sitios.length})`, { size: 12, color: COLOR.tenue }));
+    const enPagina = Math.min(POR_PAGINA, this.sitios.length - this.pagina * POR_PAGINA);
+    const atajo = enPagina > 0 ? ` · teclas 1–${enPagina}` : '';
+    add(texto(this, 20, 88, `Sitios sugeridos (${this.sitios.length})${atajo}`, { size: 12, color: COLOR.tenue }));
     this.botonesLista = [];
     if (!this.sitios.length) {
       add(texto(this, 20, 120, 'El modelo aún no tiene sitios para este destino. Elige otro destino desde el menú.',
@@ -60,8 +62,9 @@ export default class Expediente extends Phaser.Scene {
     this.sitios.slice(desde, desde + POR_PAGINA).forEach((s, k) => {
       const y = 112 + k * 42;
       const marca = s.id === this.seleccion?.id ? '● ' : '';
-      const b = add(boton(this, 20, y, `${marca}${recortar(s.nombre, 30)}`, () => this.seleccionar(s),
-        { size: 13, origen: [0, 0], marco: false, color: s.id === this.seleccion?.id ? COLOR.texto : COLOR.acento }));
+      const b = add(boton(this, 20, y, `${marca}${recortar(s.nombre, 25)}`, () => this.seleccionar(s),
+        // Zona táctil: toda la fila (nombre y subtítulo), sin encimarse con la siguiente (filas cada 42 px).
+        { size: 13, origen: [0, 0], marco: false, color: s.id === this.seleccion?.id ? COLOR.texto : COLOR.acento, anchoMin: 262, altoMin: 40 }));
       const est = (esMina(s) && ESTADOS.mina) || ESTADOS[s.estado] || { texto: s.estado, color: COLOR.tenue };
       const total = typeof s.similitud?.total === 'number' ? formatoPorcentaje(s.similitud.total) : null;
       const sub = [est.texto, s.prueba_util ? `prueba: ${PRUEBAS[s.prueba_util] || s.prueba_util}` : null, total].filter(Boolean).join(' · ');
@@ -85,7 +88,8 @@ export default class Expediente extends Phaser.Scene {
 
   seleccionar(s) {
     this.seleccion = s;
-    this.foco = 'seleccion';
+    // Elegir un sitio (número, Enter o toque) lleva el foco a "Gastar 1 ticket": el siguiente Enter confirma.
+    this.foco = 'probar';
     this.filaActual = null;
     this.dibujarLista();
     this.dibujarDetalle();
@@ -210,13 +214,15 @@ export default class Expediente extends Phaser.Scene {
     const s = this.seleccion;
     const pagado = s && sitioPagado(s.id);
     let etiqueta = 'Gastar 1 ticket y probar';
-    let ayuda = 'Al probar, este sitio queda pagado: puedes volver a probarlo sin gastar otro ticket.';
-    if (pagado) { etiqueta = 'Probar de nuevo'; ayuda = 'Ya pagaste este sitio: no gasta ticket.'; }
+    let ayuda = 'Enter confirma. Al probar, el sitio queda pagado: puedes volver a probarlo sin gastar otro ticket.';
+    if (pagado) { etiqueta = 'Probar de nuevo'; ayuda = 'Enter confirma. Ya pagaste este sitio: no gasta ticket.'; }
     else if (!n) { etiqueta = 'Sin tickets'; ayuda = 'Sin tickets: elige un sitio ya pagado o empieza una Nueva partida desde el menú.'; }
-    const probar = add(boton(this, 800, 506, etiqueta, () => this.probar(), { size: 16, habilitado: !!s && (pagado || n > 0) }));
+    const puede = !!s && (pagado || n > 0);
+    // Opción sugerida (⏎, como en Resultados.js): es la que confirma el paso del camino dorado.
+    const probar = add(boton(this, 800, 506, etiqueta, () => this.probar(), { size: 16, habilitado: puede, sugerido: puede }));
     add(texto(this, 150, 526, ayuda, { size: 10, color: COLOR.muyTenue }));
     const url = urlFicha(s);
-    const ficha = add(boton(this, 560, 506, url ? 'Ficha completa ↗' : 'Ficha web: sin enlace', () => this.abrirFicha(url),
+    const ficha = add(boton(this, 535, 506, url ? 'Ficha completa ↗' : 'Ficha web: sin enlace', () => this.abrirFicha(url),
       { size: 13, habilitado: !!url }));
     this.botonesDetalle = [probar, ficha];
     this.botonVolver = volver;
@@ -243,10 +249,13 @@ export default class Expediente extends Phaser.Scene {
     };
     const preferido = {
       seleccion: this.botonesLista.find((b) => b.sitioId === this.seleccion?.id),
+      probar: this.botonesDetalle?.[0]?.habilitado ? this.botonesDetalle[0] : this.botonesLista.find((b) => b.sitioId === this.seleccion?.id),
       anterior: this.botonAnterior.habilitado ? this.botonAnterior : this.botonSiguiente,
       siguiente: this.botonSiguiente.habilitado ? this.botonSiguiente : this.botonAnterior,
       lista: this.botonesLista[0],
     }[this.foco] || this.botonesLista.find((b) => b.sitioId === this.seleccion?.id);
+    // Atajos 1–8: eligen el sitio de esa posición en la página (igual que los números de Resultados.js).
+    this.teclado.numerar(this.botonesLista);
     this.teclado.poner([...this.botonesLista, this.botonAnterior, this.botonSiguiente, ...this.botonesDetalle, this.botonVolver], preferido);
   }
 

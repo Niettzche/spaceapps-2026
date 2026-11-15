@@ -105,5 +105,5 @@
     "exageracion_vertical": null,
     "obstaculos": []
   },
-  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Cráter Jezero (Marte), 1.58 km, 40 m, d/D 0.025. Etiqueta de IA: hondonada_eolica_o_duna, confianza 0.45 (claude -p sobre Sentinel-2 y relieve; 29 de 33 aciertos en la validación, ciencia_datos/etiquetado_ia)."
+  "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Cráter Jezero (Marte), 1.58 km, 40 m, d/D 0.025. novedoso: false; a 2 km de un análogo conocido de data/known_analogs.json (Gran Desierto de Altar, dunas (Sonora, México)). Etiqueta de IA: hondonada_eolica_o_duna, confianza 0.45 (claude -p sobre Sentinel-2 y relieve; 29 de 33 aciertos en la validación, ciencia_datos/etiquetado_ia)."
 }

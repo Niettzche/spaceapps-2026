@@ -84,13 +84,17 @@ export function filasComparacion(sitio, destino) {
       // La forma no es una medición del destino sino un puntaje contra la nube de cráteres Luna+Marte.
       // Del lado Tierra se muestra la medición que más pesa (profundidad/diámetro) si existe.
       tierra = vt.profundidad_diametro || vt.forma || null;
+      // Un tajo minero es un análogo operativo, no un cráter: la columna del destino aclara que solo se compara su forma.
+      const mina = esMina(sitio);
       dest = vd.forma || {
         valor: null,
-        texto: 'Cráteres Luna+Marte',
+        texto: mina ? 'vs. cráteres Luna+Marte' : 'Cráteres Luna+Marte',
         unidad: '-',
         fuente: REF_FORMA[destino?.mundo] || 'Cráteres reales de la Luna y Marte',
         fecha: null,
-        nota: 'La forma se compara con un modelo explicable entrenado con cráteres de la Luna y Marte, no con un solo valor.',
+        nota: mina
+          ? 'Es un tajo minero (excavación), no un cráter natural: solo se compara su forma con la de cráteres reales de la Luna y Marte.'
+          : 'La forma se compara con un modelo explicable entrenado con cráteres de la Luna y Marte, no con un solo valor.',
       };
     }
     const mismaUnidad = !(tierra && dest && dest.valor != null && tierra.unidad !== dest.unidad);
@@ -196,6 +200,40 @@ export function validarCoordenadas(latTxt, lonTxt) {
   if (lat < -90 || lat > 90) return { ok: false, error: 'La latitud debe estar entre -90 y 90.' };
   if (lon < -180 || lon > 180) return { ok: false, error: 'La longitud debe estar entre -180 y 180.' };
   return { ok: true, lat, lon };
+}
+
+// En el teléfono no se depende del signo menos (el teclado decimal de iOS no lo tiene): el usuario escribe solo
+// los grados y elige el hemisferio (N/S, E/O). Aquí se convierte a grados con signo antes de llamar a /score.
+export const HEMISFERIOS = { lat: ['N', 'S'], lon: ['E', 'O'] };
+
+/** Valida grados sin signo + hemisferio y devuelve { ok, lat, lon } con signo (S y O son negativos). */
+export function validarCoordenadasHemisferio({ lat, latHem, lon, lonHem }) {
+  const conSigno = (t) => /^\s*[-+]/.test(String(t ?? ''));
+  if (conSigno(lat) || conSigno(lon)) {
+    return { ok: false, error: 'Escribe solo los grados, sin signo, y elige el hemisferio (N/S y E/O) en la lista.' };
+  }
+  const a = numero(lat);
+  const o = numero(lon);
+  if (Number.isNaN(a)) return { ok: false, error: 'Latitud no válida: usa grados decimales, por ejemplo 31.84.' };
+  if (Number.isNaN(o)) return { ok: false, error: 'Longitud no válida: usa grados decimales, por ejemplo 113.39.' };
+  if (!HEMISFERIOS.lat.includes(latHem)) return { ok: false, error: 'Elige el hemisferio de la latitud: N o S.' };
+  if (!HEMISFERIOS.lon.includes(lonHem)) return { ok: false, error: 'Elige el hemisferio de la longitud: E u O.' };
+  if (a > 90) return { ok: false, error: 'La latitud va de 0 a 90 grados (y luego N o S).' };
+  if (o > 180) return { ok: false, error: 'La longitud va de 0 a 180 grados (y luego E u O).' };
+  const lat2 = latHem === 'S' && a !== 0 ? -a : a;
+  const lon2 = lonHem === 'O' && o !== 0 ? -o : o;
+  return { ok: true, lat: lat2, lon: lon2 };
+}
+
+/** Grados con signo → grados sin signo + hemisferio (para rellenar el formulario con un sitio del catálogo). */
+export function aHemisferio(lat, lon) {
+  return { lat: Math.abs(lat), latHem: lat < 0 ? 'S' : 'N', lon: Math.abs(lon), lonHem: lon < 0 ? 'O' : 'E' };
+}
+
+/** "31.84° N, 113.39° O" */
+export function formatoCoordenada(lat, lon) {
+  const h = aHemisferio(lat, lon);
+  return `${h.lat}° ${h.latHem}, ${h.lon}° ${h.lonHem}`;
 }
 
 /** ¿Se puede proponer el sitio? Solo si la API lo permite Y la similitud total alcanza el umbral. */

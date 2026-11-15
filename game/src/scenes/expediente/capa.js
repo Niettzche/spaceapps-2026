@@ -31,15 +31,19 @@ export function crearCapa(id, css) {
 export const ESTILOS = `
 #mc-explorador { position: fixed; inset: 0; overflow: auto; padding: 16px; box-sizing: border-box;
   background: rgba(11, 13, 23, 0.94); color: #fff; font: 14px/1.45 ui-monospace, Menlo, Consolas, monospace; z-index: 10; }
+#mc-explorador *, #mc-explorador *::before, #mc-explorador *::after { box-sizing: border-box; }
 #mc-explorador > * { max-width: 880px; margin-left: auto; margin-right: auto; }
 #mc-explorador header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 #mc-explorador h1 { font-size: 22px; margin: 4px 0; font-weight: 600; }
 #mc-explorador .ayuda { color: #9aa4c7; font-size: 13px; }
 #mc-explorador .fila { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin: 10px 0; }
 #mc-explorador label { display: flex; flex-direction: column; gap: 4px; color: #9aa4c7; font-size: 12px; }
-#mc-explorador input, #mc-explorador select { font: inherit; color: #fff; background: #141831; border: 1px solid #2a3160;
-  padding: 8px 10px; border-radius: 4px; min-width: 140px; }
-#mc-explorador button { font: inherit; cursor: pointer; border-radius: 4px; padding: 8px 14px; }
+/* 16 px en campos y listas: con menos, iOS hace zoom automático al escribir. */
+#mc-explorador input, #mc-explorador select { font: inherit; font-size: 16px; color: #fff; background: #141831;
+  border: 1px solid #2a3160; padding: 8px 10px; border-radius: 4px; min-width: 140px; min-height: 44px; }
+#mc-explorador .par { display: flex; gap: 6px; align-items: flex-end; }
+#mc-explorador .par select { min-width: 0; }
+#mc-explorador button { font: inherit; cursor: pointer; border-radius: 4px; padding: 8px 14px; min-height: 44px; }
 #mc-explorador button.primario { background: #ffd166; color: #0b0d17; border: 0; font-weight: 600; }
 #mc-explorador button.primario:disabled { background: #6c7393; cursor: progress; }
 #mc-explorador button.secundario { background: transparent; color: #ffd166; border: 1px solid #ffd166; }
@@ -59,5 +63,8 @@ export const ESTILOS = `
 #mc-explorador .nota { color: #9aa4c7; font-size: 12px; margin: 4px 0; }
 #mc-explorador .propuesta { border-top: 1px solid #2a3160; margin-top: 12px; padding-top: 8px; }
 @media (max-width: 560px) { #mc-explorador input, #mc-explorador select { min-width: 0; width: 100%; }
-  #mc-explorador label { flex: 1 1 100%; } }
+  #mc-explorador label { flex: 1 1 100%; }
+  #mc-explorador .par { flex: 1 1 100%; }
+  #mc-explorador .par label { flex: 1 1 auto; }
+  #mc-explorador .par select { width: auto; flex: 0 0 auto; } }
 `;

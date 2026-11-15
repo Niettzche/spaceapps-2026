@@ -4,7 +4,7 @@ import { SITIOS, DESTINOS } from '../data.js';
 import { partida } from '../main.js';
 import { ORDEN_DESTINOS, DESTINO_POR_DEFECTO, UMBRAL_PROPUESTA } from './expediente/config.js';
 import { consultarPunto, proponerSitio, API_URL } from './expediente/api.js';
-import { validarCoordenadas, formatoValor, formatoPorcentaje, puedeProponer, validarNombrePropuesta, SIN_DATO } from './expediente/logica.js';
+import { validarCoordenadasHemisferio, aHemisferio, formatoCoordenada, formatoValor, formatoPorcentaje, puedeProponer, validarNombrePropuesta, SIN_DATO } from './expediente/logica.js';
 import { MUNDOS, etiquetaVariable, etiquetaLimite } from './expediente/textos.js';
 import { crearCapa, el, ESTILOS } from './expediente/capa.js';
 
@@ -34,8 +34,13 @@ export default class Explorador extends Phaser.Scene {
     const inicial = DESTINOS[partida.destino] ? partida.destino : DESTINO_POR_DEFECTO;
     const conCoordenadas = SITIOS.filter((s) => typeof s.lat === 'number' && typeof s.lon === 'number');
 
+    // Solo grados sin signo (el teclado decimal del teléfono basta) + hemisferio en una lista: no se depende del "−".
     this.lat = el('input', { id: 'mc-lat', type: 'text', inputmode: 'decimal', autocomplete: 'off', placeholder: 'ej. 31.84', required: true });
-    this.lon = el('input', { id: 'mc-lon', type: 'text', inputmode: 'decimal', autocomplete: 'off', placeholder: 'ej. -113.39', required: true });
+    this.lon = el('input', { id: 'mc-lon', type: 'text', inputmode: 'decimal', autocomplete: 'off', placeholder: 'ej. 113.39', required: true });
+    this.latHem = el('select', { id: 'mc-lat-hem', 'aria-label': 'Hemisferio de la latitud' }, [
+      el('option', { value: 'N', selected: true }, 'N (norte)'), el('option', { value: 'S' }, 'S (sur)')]);
+    this.lonHem = el('select', { id: 'mc-lon-hem', 'aria-label': 'Hemisferio de la longitud' }, [
+      el('option', { value: 'E' }, 'E (este)'), el('option', { value: 'O', selected: true }, 'O (oeste)')]);
     this.destino = el('select', { id: 'mc-destino' }, ids.map((id) => el('option', { value: id, selected: id === inicial },
       `${MUNDOS[DESTINOS[id].mundo] || DESTINOS[id].mundo} · ${DESTINOS[id].nombre}`)));
     const ejemplo = el('select', { id: 'mc-ejemplo', 'aria-label': 'Rellenar con un sitio del catálogo' }, [
@@ -45,7 +50,10 @@ export default class Explorador extends Phaser.Scene {
     ejemplo.disabled = !conCoordenadas.length;
     ejemplo.addEventListener('change', () => {
       const s = conCoordenadas.find((x) => x.id === ejemplo.value);
-      if (s) { this.lat.value = String(s.lat); this.lon.value = String(s.lon); }
+      if (!s) return;
+      const h = aHemisferio(s.lat, s.lon);
+      this.lat.value = String(h.lat); this.latHem.value = h.latHem;
+      this.lon.value = String(h.lon); this.lonHem.value = h.lonHem;
     });
     this.botonConsultar = el('button', { type: 'submit', class: 'primario' }, 'Calcular similitud');
     this.error = el('p', { class: 'error', role: 'alert' });
@@ -54,8 +62,8 @@ export default class Explorador extends Phaser.Scene {
 
     const form = el('form', { novalidate: true }, [
       el('div', { class: 'fila' }, [
-        el('label', { for: 'mc-lat' }, ['Latitud (°)', this.lat]),
-        el('label', { for: 'mc-lon' }, ['Longitud (°)', this.lon]),
+        el('div', { class: 'par' }, [el('label', { for: 'mc-lat' }, ['Latitud (°)', this.lat]), this.latHem]),
+        el('div', { class: 'par' }, [el('label', { for: 'mc-lon' }, ['Longitud (°)', this.lon]), this.lonHem]),
         el('label', { for: 'mc-destino' }, ['Comparar con', this.destino]),
       ]),
       el('div', { class: 'fila' }, [ejemplo, this.botonConsultar]),
@@ -65,14 +73,17 @@ export default class Explorador extends Phaser.Scene {
 
     const volver = el('button', { type: 'button', class: 'secundario' }, '← Menú');
     volver.addEventListener('click', () => this.volver());
-    this.capa.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') this.volver(); });
+    this.capa.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Escape') this.volver();
+      else if (ev.key === 'Tab') this.mantenerFoco(ev);
+    });
 
     this.capa.append(
       el('header', {}, [
         el('h1', {}, 'Explorador libre'),
         volver,
       ]),
-      el('p', { class: 'ayuda' }, 'Escribe una coordenada de la Tierra en grados decimales. La API del modelo descarga sus variables '
+      el('p', { class: 'ayuda' }, 'Escribe una coordenada de la Tierra en grados decimales, sin signo, y elige N/S y E/O. La API del modelo descarga sus variables '
         + '(NASA POWER, MODIS, relieve) y las compara con el destino. Si la similitud llega a '
         + `${Math.round(UMBRAL_PROPUESTA * 100)} %, puedes proponer el sitio.`),
       form, this.estado, this.resultado,
@@ -80,9 +91,22 @@ export default class Explorador extends Phaser.Scene {
     this.lat.focus();
   }
 
+  // El Explorador es un diálogo modal: Tab y Shift+Tab dan la vuelta dentro de él en vez de salir a la página.
+  mantenerFoco(ev) {
+    const enfocables = [...this.capa.querySelectorAll('button, input, select, textarea, a[href], [tabindex]:not([tabindex="-1"])')]
+      .filter((e) => !e.disabled && e.offsetParent !== null);
+    if (!enfocables.length) return;
+    const primero = enfocables[0];
+    const ultimo = enfocables[enfocables.length - 1];
+    const actual = document.activeElement;
+    const fuera = !this.capa.contains(actual);
+    if (ev.shiftKey && (actual === primero || fuera)) { ev.preventDefault(); ultimo.focus(); }
+    else if (!ev.shiftKey && (actual === ultimo || fuera)) { ev.preventDefault(); primero.focus(); }
+  }
+
   async consultar() {
     this.error.textContent = '';
-    const v = validarCoordenadas(this.lat.value, this.lon.value);
+    const v = validarCoordenadasHemisferio({ lat: this.lat.value, latHem: this.latHem.value, lon: this.lon.value, lonHem: this.lonHem.value });
     if (!v.ok) { this.error.textContent = v.error; return; }
     const destino = this.destino.value;
     this.consulta?.abort();
@@ -144,7 +168,7 @@ export default class Explorador extends Phaser.Scene {
         el('span', {}, ` similitud total con ${destino ? destino.nombre : punto.destino} · confianza ${formatoPorcentaje(sim.confianza)}`
           + (sim.vetado ? ' · VETADO por vegetación' : '')),
       ]),
-      el('p', { class: 'ayuda' }, `Punto ${punto.lat}, ${punto.lon} · método: ${d?.metodo || SIN_DATO}. `
+      el('p', { class: 'ayuda' }, `Punto ${formatoCoordenada(punto.lat, punto.lon)} · método: ${d?.metodo || SIN_DATO}. `
         + 'La forma de cráter solo existe para depresiones medidas por el detector; en un punto cualquiera falta y baja la confianza.'),
       el('table', {}, [
         el('thead', {}, el('tr', {}, [el('th', {}, 'Dimensión'), el('th', {}, 'Tierra (este punto)'), el('th', {}, 'Destino'), el('th', {}, 'Similitud')])),
