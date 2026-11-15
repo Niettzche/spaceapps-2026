@@ -1,9 +1,9 @@
 # Estado — Arte
 
-> Lo actualiza SOLO este frente. Ramas: `feat/arte` (#26) y `feat/arte-b` (#37), `feat/arte-c` (#49), `feat/arte-d` (#58), `feat/arte-e` (#64), `feat/arte-f` (#67), `feat/arte-g` (#72), mergeadas; `feat/arte-h` (piezas que faltaban, fondos del menú y del Taller, viñetas de resultado).
+> Lo actualiza SOLO este frente. Ramas: `feat/arte` (#26) y `feat/arte-b` (#37), `feat/arte-c` (#49), `feat/arte-d` (#58), `feat/arte-e` (#64), `feat/arte-f` (#67), `feat/arte-g` (#72), `feat/arte-h` (#77), mergeadas; `feat/arte-i` (rediseño: keywords, botones, chips y planetas).
 
 **Responsable:** Mauricio  ·  **Agente:** Claude Code / Codex
-**Última actualización:** 15 nov 2026, 04:00
+**Última actualización:** 15 nov 2026, 05:00
 
 ## Hecho
 - **Prioridad A y B completas** (#26 y #37, en `main`):
@@ -91,6 +91,11 @@
   - **`pantallas/menu_fondo.png`:** la Tierra abajo a la izquierda y la Luna y Marte a la derecha, con trayectorias punteadas; el centro queda libre para los botones.
   - **`pantallas/taller_fondo.png`:** pared de placas oscuras, tableros con herramientas, ventana con Marte, banco y piso con franja de seguridad.
   - **`pantallas/resultado_<motivo>.png`:** 10 viñetas de 96 × 64, una por motivo de `Resultados.js`.
+- **Rediseño (`docs/juego/DISENO.md`, `feat/arte-i`):**
+  - **Íconos de keywords** (16 × 16, en `assets/iconos/`): `ico_subida`, `ico_pendiente`, `ico_suelo`, `ico_temperatura`, `ico_aire`, `ico_luz`, `ico_gravedad`, `ico_presion`, `ico_radiacion`, `ico_similitud` y `ico_ticket`.
+  - **`ui_boton` en 4 estados** (normal, `_encima`, `_presionado` y `_desactivado`): 12 × 12 con cortes de 4 px y borde visible (lavanda, amarillo, ámbar y gris). El relleno es oscuro para que se lea el texto claro.
+  - **Chips** `ui_chip_rojo` (`#ff7a93`, límite) y `ui_chip_cian` (`#80e0dc`, dato): 8 × 8 con cortes de 3 px.
+  - **Planetas** `menu/planeta_marte` y `menu/planeta_luna`: 48 cuadros de 48 × 48 (2304 × 48), una vuelta sin costura. Marte trae casquete polar, mares, un cañón y cráteres; la Luna, mares y cráteres de borde claro.
 - `node assets/fuente/fx/exportar.mjs` regenera con pixelfx las 22 hojas de efectos.
 
 ## En curso

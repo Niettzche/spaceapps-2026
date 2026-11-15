@@ -213,6 +213,106 @@ function panelGrande(p) {
   });
 }
 
+// ---------------------------------------------------------------- íconos de keywords (chips del Expediente, instrucciones)
+// ico_<palabra>.png, 16 × 16 con el mismo contorno y luz que los de piezas.
+const linea = (p, x0, y0, x1, y1, k) => {
+  const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0));
+  for (let i = 0; i <= n; i++) p.px(Math.round(x0 + ((x1 - x0) * i) / n), Math.round(y0 + ((y1 - y0) * i) / n), C[k]);
+};
+const KEYWORDS = {
+  // subida: perfil de montaña con flecha que sube
+  ico_subida: (p) => {
+    pinta(p, (x, y) => (y >= 13 - Math.max(0, Math.min(x - 1, 9)) * 0.8 && y <= 13 && x >= 1 && x <= 14 ? (y === 13 ? 'd' : x + y < 18 ? 'l' : 'm') : null));
+    linea(p, 3, 9, 11, 2, 'y'); linea(p, 3, 10, 11, 3, 'o');
+    for (const [x, y] of [[8, 2], [9, 2], [10, 2], [11, 2], [11, 3], [11, 4], [11, 5]]) p.px(x, y, C.Y);
+  },
+  // pendiente: triángulo rectángulo con el arco del ángulo
+  ico_pendiente: (p) => {
+    pinta(p, (x, y) => (x >= 2 && x <= 13 && y <= 13 && y >= 13 - (x - 2) * 0.8 ? (y === 13 ? 'd' : x === 13 ? 'm' : 'l') : null));
+    linea(p, 2, 13, 13, 4, 'h');
+    for (const [x, y] of [[6, 12], [6, 11], [5, 10]]) p.px(x, y, C.o);
+    p.px(7, 12, C.y);
+  },
+  // suelo: capas de terreno con granos y piedras
+  ico_suelo: (p) => pinta(p, (x, y) => {
+    if (x < 1 || x > 14 || y < 5 || y > 13) return null;
+    if (y === 5) return (x % 3) ? 'y' : 'o';                                   // superficie de arena
+    if (y <= 8) return (x * 3 + y) % 5 === 0 ? 'O' : 'o';
+    if (y <= 11) return (x + y) % 4 === 0 ? 'l' : 'm';                         // roca debajo
+    return (x % 4 === 1) ? 'h' : 'd';
+  }),
+  // temperatura: termómetro con columna roja y marcas
+  ico_temperatura: (p) => pinta(p, (x, y) => {
+    const bulbo = Math.hypot(x - 6.5, y - 11.5);
+    if (bulbo <= 3.2) return bulbo <= 2 ? (x + y < 17 ? 'r' : 'R') : 'h';
+    if (x >= 5 && x <= 8 && y >= 1 && y <= 10) return x === 5 || x === 8 ? 'h' : y >= 5 ? 'r' : 'w';
+    if (x >= 10 && x <= 12 && y % 3 === 2 && y <= 9) return 'l';               // escala
+    return null;
+  }),
+  // aire: tres ráfagas de viento con remolino
+  ico_aire: (p) => {
+    for (const [y, x1, k] of [[4, 11, 'h'], [8, 13, 'V'], [12, 9, 'l']]) linea(p, 1, y, x1, y, k);
+    for (const [x, y] of [[12, 3], [13, 4], [12, 5], [11, 5]]) p.px(x, y, C.h);
+    for (const [x, y] of [[14, 7], [15, 8], [14, 9], [13, 9]]) p.px(x, y, C.V);
+    for (const [x, y] of [[10, 11], [11, 12], [10, 13], [9, 13]]) p.px(x, y, C.l);
+  },
+  // luz: sol con rayos
+  ico_luz: (p) => pinta(p, (x, y) => {
+    const d = Math.hypot(x - 7.5, y - 7.5), a = Math.atan2(y - 7.5, x - 7.5);
+    if (d <= 3.6) return d <= 2 ? 'Y' : x + y < 15 ? 'y' : 'o';
+    if (d >= 4.8 && d <= 7 && Math.abs(Math.sin(a * 4)) < 0.22) return d < 6 ? 'y' : 'o';
+    return null;
+  }),
+  // gravedad: planeta con flecha hacia abajo y una manzana... solo la flecha y el planeta
+  ico_gravedad: (p) => {
+    pinta(p, (x, y) => {
+      const d = Math.hypot(x - 7.5, y - 18);
+      if (d <= 7.5 && y >= 11) return y === 11 || d > 6.8 ? 'h' : (x * 2 + y) % 5 ? 'o' : 'O';   // planeta abajo
+      return null;
+    });
+    for (let y = 1; y <= 7; y++) { p.px(7, y, C.V); p.px(8, y, C.V); }
+    for (const [x, y] of [[5, 6], [6, 7], [9, 7], [10, 6], [6, 8], [7, 8], [8, 8], [9, 8], [7, 9], [8, 9]]) p.px(x, y, C.V);
+  },
+  // presión: manómetro con aguja
+  ico_presion: (p) => {
+    pinta(p, (x, y) => {
+      const d = Math.hypot(x - 7.5, y - 8);
+      if (d <= 6.4) return d > 5.4 ? (x + y < 15 ? 'h' : 'm') : d > 4.6 && (x + y) % 3 === 0 ? 'k' : 'w';
+      if (y >= 14 && x >= 5 && x <= 10) return 'd';
+      return null;
+    });
+    linea(p, 8, 8, 11, 5, 'r');
+    p.px(7, 8, C.k); p.px(8, 8, C.k);
+  },
+  // radiación: trébol amarillo y negro
+  ico_radiacion: (p) => pinta(p, (x, y) => {
+    const dx = x - 7.5, dy = y - 7.5, d = Math.hypot(dx, dy), a = Math.atan2(dy, dx);
+    if (d > 7) return null;
+    if (d <= 1.3) return 'k';
+    if (d <= 2.1) return 'y';
+    if (d <= 6.2 && Math.cos(3 * (a + Math.PI / 2)) > 0.5) return 'k';      // tres aspas
+    return d > 6.2 ? 'O' : 'y';
+  }),
+  // similitud: dos círculos que se enciman (Tierra turquesa y destino naranja)
+  ico_similitud: (p) => pinta(p, (x, y) => {
+    const a = Math.hypot(x - 5.5, y - 7.5) <= 4.8, b = Math.hypot(x - 10, y - 7.5) <= 4.8;
+    if (a && b) return 'w';
+    if (a) return x + y < 12 ? 'c' : 'C';
+    if (b) return x + y < 17 ? 'o' : 'O';
+    return null;
+  }),
+  // ticket: boleto amarillo con muescas y perforación
+  ico_ticket: (p) => pinta(p, (x, y) => {
+    if (x < 1 || x > 14 || y < 4 || y > 11) return null;
+    if ((x === 1 || x === 14) && y >= 7 && y <= 8) return null;                 // muescas
+    if (x === 10) return y % 2 ? 'O' : null;                                    // perforación
+    if (y === 4) return 'Y';
+    if (y === 11) return 'O';
+    if (x >= 3 && x <= 8 && y >= 6 && y <= 9) return y === 7 || y === 8 ? (x % 2 ? 'O' : 'y') : 'y';  // texto simulado
+    return 'y';
+  }),
+};
+
 export function generar() {
   const lista = {
     rueda_estandar: (p) => rueda(p, { grosor: 1.6 }),
@@ -237,4 +337,5 @@ export function generar() {
     radiador: (p) => radiador(p),
   };
   for (const [id, f] of Object.entries(lista)) tira(D + id + '.png', 16, 16, 1, (p) => f(p));
+  for (const [id, f] of Object.entries(KEYWORDS)) tira(D + id + '.png', 16, 16, 1, (p) => f(p));
 }
