@@ -313,6 +313,159 @@ const KEYWORDS = {
   }),
 };
 
+// ---------------------------------------------------------------- íconos de las variables del Expediente
+const VARIABLES = {
+  // forma: cráter visto de lado (bordes altos, hondo al centro)
+  ico_forma: (p) => pinta(p, (x, y) => {
+    const u = Math.abs(x - 7.5) / 7.5, perfil = u > 0.8 ? 6 + (u - 0.8) * 25 : 11 - 5 * Math.pow(u / 0.8, 2);   // bordes altos (x≈1 y 14) y fondo hondo
+    if (x < 0 || x > 15 || y > 13) return null;
+    if (y < perfil) return null;
+    if (y === Math.ceil(perfil)) return x < 7 ? 'h' : 'l';
+    return y === 13 ? 'd' : (x + y) % 3 === 0 ? 'm' : 'l';
+  }),
+  // oscilación térmica: sol a la izquierda, luna a la derecha y un termómetro entre los dos
+  ico_oscilacion: (p) => pinta(p, (x, y) => {
+    if (Math.hypot(x - 3, y - 4) <= 2.6) return 'y';                                            // sol
+    if (Math.hypot(x - 3, y - 4) <= 3.8 && (x + y) % 2 === 0) return 'o';
+    const l = Math.hypot(x - 12.5, y - 4), c = Math.hypot(x - 13.8, y - 3.2);
+    if (l <= 2.8 && c > 2.2) return 'h';                                                        // luna creciente
+    const b = Math.hypot(x - 7.5, y - 12);
+    if (b <= 2.4) return b <= 1.4 ? 'r' : 'h';                                                  // bulbo
+    if (x >= 6.5 && x <= 8.5 && y >= 4 && y <= 10) return x === 7 || x === 8 ? (y >= 7 ? 'r' : 'w') : null;
+    return null;
+  }),
+  // precipitación: gota
+  ico_precipitacion: (p) => pinta(p, (x, y) => {
+    const dy = y - 9.5, ancho = y < 9 ? (y - 2) * 0.62 : Math.sqrt(Math.max(0, 16 - dy * dy)) * 1.05;
+    if (y < 2 || y > 14 || Math.abs(x - 7.5) > ancho) return null;
+    if (x < 7 && y > 7 && y < 12 && x > 4) return 'S';                                          // brillo
+    return x + y < 18 ? 'V' : 's';
+  }),
+  // vegetación: hoja con nervadura
+  ico_vegetacion: (p) => pinta(p, (x, y) => {
+    const u = (x - 7.5) * 0.7 + (y - 7.5) * 0.7, v = -(x - 7.5) * 0.7 + (y - 7.5) * 0.7;      // eje diagonal
+    if ((u / 6.6) ** 2 + (v / 3.6) ** 2 > 1) return x <= 3 && y >= 12 && x + y >= 14 && x + y <= 16 ? 'E' : null; // tallo
+    if (Math.abs(v) < 0.6) return 'E';                                                          // nervio central
+    return u + v < 0 ? 'e' : 'E';
+  }),
+  // confianza: escudo con palomita
+  ico_confianza: (p) => pinta(p, (x, y) => {
+    const ancho = y < 9 ? 6 : 6 - (y - 8) * 0.95;
+    if (y < 1 || y > 14 || Math.abs(x - 7.5) > ancho) return null;
+    const borde = Math.abs(x - 7.5) > ancho - 1.1 || y === 1;
+    if (borde) return 'C';
+    const check = (x >= 4 && x <= 6 && y === x + 3) || (x >= 6 && x <= 11 && y === 15 - x - 2);
+    if (check) return 'w';
+    return x < 7.5 ? 'c' : 'C';
+  }),
+  // novedoso: estrella con un «+»
+  ico_novedoso: (p) => {
+    pinta(p, (x, y) => {
+      const dx = x - 6.5, dy = y - 8.5, r = Math.hypot(dx, dy), a = Math.atan2(dy, dx) + Math.PI / 2;
+      const rr = 3 + 3.6 * Math.pow(Math.abs(Math.cos(a * 2.5)), 2);
+      if (r > rr) return null;
+      return dx + dy < 0 ? 'Y' : 'y';
+    });
+    for (const [x, y] of [[13, 1], [13, 2], [13, 3], [13, 4], [13, 5], [11, 3], [12, 3], [14, 3], [15, 3]]) p.px(x, y, C.c);
+  },
+  // misión: cohete inclinado con llama
+  ico_mision: (p) => pinta(p, (x, y) => {
+    const u = (x - y) * 0.707, v = (x + y - 15) * 0.707;                                       // eje a 45° (punta arriba a la derecha)
+    if (v > -6.5 && v < 3 && Math.abs(u) < (v < -4 ? (v + 6.5) * 0.8 : 2.1)) return v < -4.5 ? 'r' : Math.abs(u) < 0.8 && v > -3 && v < -1 ? 'V' : u < 0 ? 'h' : 'l';
+    if (v >= 1.5 && v < 4 && Math.abs(u) >= 2.1 && Math.abs(u) < 3.6) return 'r';             // aletas
+    if (v >= 3 && v < 6.5 && Math.abs(u) < 1.6 - (v - 3) * 0.4) return v < 4.6 ? 'Y' : 'o';   // llama
+    return null;
+  }),
+  // prueba: robot sobre la Tierra (arco verde y azul abajo)
+  ico_prueba: (p) => pinta(p, (x, y) => {
+    const tierra = Math.hypot(x - 7.5, y - 26);
+    if (tierra <= 15.5) return tierra > 14.6 ? 'h' : (x * 2 + y) % 5 < 2 ? 'e' : 's';
+    if (y >= 6 && y <= 8 && x >= 3 && x <= 12) return y === 6 ? 'h' : y === 7 ? (x < 6 ? 'c' : 'l') : 'd';   // chasis
+    if (y >= 3 && y <= 5 && x >= 6 && x <= 9) return y === 3 ? 'h' : x === 7 && y === 4 ? 'o' : 'l';       // carga
+    if (y >= 8 && y <= 10 && (Math.hypot(x - 4.5, y - 9.5) <= 1.6 || Math.hypot(x - 10.5, y - 9.5) <= 1.6)) return 'T';
+    return null;
+  }),
+};
+
+// ---------------------------------------------------------------- piezas nuevas (ids provisionales) y bloqueadas
+const H = (h) => hex(h);
+function chasisMaterial(p, { claro, medio, oscuro, patron }) {
+  pinta(p, () => null);
+  for (let y = 4; y <= 11; y++) for (let x = 1; x <= 14; x++) {
+    let c;
+    if (y === 4) c = claro;
+    else if (y === 11) c = oscuro;
+    else c = patron(x, y);
+    p.px(x, y, H(c));
+  }
+  for (const [x, y] of [[3, 6], [12, 6], [3, 9], [12, 9]]) p.px(x, y, C.k);          // tornillos
+  p.px(14, 5, C.y);
+}
+const PIEZAS_NUEVAS = {
+  // titanio: placa gris azulada con vetas de cepillado
+  chasis_titanio: (p) => chasisMaterial(p, { claro: '#e6eef6', oscuro: '#3a4658', patron: (x, y) => ((x * 3 + y * 7) % 11 === 0 ? '#8c9cb4' : y < 7 ? '#c4d0e0' : '#a6b4c8') }),
+  // fibra de carbono: tejido negro en cuadros con brillo
+  chasis_fibra_carbono: (p) => chasisMaterial(p, { claro: '#5a5a66', oscuro: '#08080c', patron: (x, y) => (((x >> 1) + (y >> 1)) % 2 ? '#1c1c24' : ((x + y) % 2 ? '#2e2e3a' : '#24242e')) }),
+  // rueda de Nitinol: llanta de resortes (anillos en zigzag) plateados sobre un cubo
+  rueda_nitinol: (p) => pinta(p, (x, y) => {
+    const dx = x - 7.5, dy = y - 7.5, r = Math.hypot(dx, dy), a = Math.atan2(dy, dx), luz = dx + dy < 0;
+    if (r > 6.8) return null;
+    if (r > 3.4) {
+      const resorte = Math.abs(((r - 3.4) * 1.6 + Math.sin(a * 14) * 0.8) % 2 - 1) < 0.45;    // espiras en zigzag
+      return resorte ? (luz ? 'w' : 'h') : (r > 6 ? 'l' : 'g');
+    }
+    if (r > 2.6) return 'm';
+    return r < 1.2 ? 'c' : luz ? 'h' : 'l';                                                   // cubo con centro turquesa
+  }),
+  // módulo de auto-rescate: caja con dos patas articuladas que se levantan (tipo VIPER), con ruedita en la punta
+  modulo_autorescate: (p) => {
+    pinta(p, (x, y) => {
+      if (x >= 4 && x <= 11 && y >= 6 && y <= 11) return y === 6 ? 'h' : y === 11 ? 'd' : x === 4 ? 'l' : (x === 7 || x === 8) && y >= 8 && y <= 9 ? 'r' : 'm';
+      return null;
+    });
+    for (const [x0, dir] of [[4, -1], [11, 1]]) {
+      for (let i = 0; i < 4; i++) p.px(x0 + dir * i, 6 - i, C.l);                          // brazo hacia arriba
+      for (let i = 0; i < 3; i++) p.px(x0 + dir * (3 + i), 3 + i * 2, C.m);               // antebrazo hacia abajo
+      p.px(x0 + dir * 3, 2, C.y);                                                         // articulación
+      p.px(x0 + dir * 5, 8, C.T); p.px(x0 + dir * 5, 9, C.t); p.px(x0 + dir * 4, 9, C.T);   // ruedita
+    }
+  },
+  // sellos antipolvo: anillo de goma naranja con labios, polvo que queda afuera
+  sellos_polvo: (p) => {
+    pinta(p, (x, y) => {
+      const r = Math.hypot(x - 7.5, y - 7.5);
+      if (r > 6.2) return null;
+      if (r > 4.8) return x + y < 15 ? 'o' : 'O';
+      if (r > 4.1) return 'k';
+      if (r > 2.8) return x + y < 15 ? 'O' : 'R';
+      if (r > 1.8) return 'd';
+      return null;
+    });
+    for (const [x, y] of [[1, 1], [14, 2], [0, 13], [15, 12], [2, 15]]) p.px(x, y, H('#b8844e'));   // polvo afuera
+  },
+  // candado para piezas bloqueadas
+  candado: (p) => pinta(p, (x, y) => {
+    const arco = Math.hypot(x - 7.5, y - 6);
+    if (y <= 7 && arco <= 4.6 && arco >= 2.8) return x < 8 ? 'h' : 'l';
+    if (x >= 3 && x <= 12 && y >= 7 && y <= 14) {
+      if (y === 7) return 'Y';
+      if (y === 14) return 'O';
+      if (Math.hypot(x - 7.5, y - 10) <= 1.2 || (x >= 7 && x <= 8 && y >= 10 && y <= 12)) return 'k';   // cerradura
+      return x < 5 ? 'Y' : 'y';
+    }
+    return null;
+  }),
+};
+// siluetas grises de los robots bloqueados (orugas, patas, rotor, serpiente, rappel): sin detalle, para "próximamente"
+const GRIS = (x, y) => ((x + y) % 2 ? 'm' : 'd');
+const SILUETAS = {
+  silueta_orugas: (p) => pinta(p, (x, y) => (y >= 5 && y <= 7 && x >= 3 && x <= 12) || (y >= 9 && y <= 13 && x >= 1 && x <= 14 && Math.hypot(Math.max(0, Math.abs(x - 7.5) - 4.5), y - 11) <= 2.5) ? GRIS(x, y) : null),
+  silueta_patas: (p) => pinta(p, (x, y) => (y >= 4 && y <= 7 && x >= 3 && x <= 12) || ([2, 6, 9, 13].some((lx, i) => Math.abs(x - (lx + (y - 8) * (i < 2 ? -0.4 : 0.4))) < 0.8 && y >= 8 && y <= 14)) ? GRIS(x, y) : null),
+  silueta_rotor: (p) => pinta(p, (x, y) => (y === 3 && x >= 1 && x <= 14) || (x >= 7 && x <= 8 && y >= 3 && y <= 6) || (y >= 6 && y <= 11 && Math.hypot(x - 7.5, y - 8.5) <= 3.4) || (y === 13 && x >= 4 && x <= 11) || ((x === 5 || x === 10) && y >= 11 && y <= 13) ? GRIS(x, y) : null),
+  silueta_serpiente: (p) => pinta(p, (x, y) => { const c = 8 + Math.sin((x / 15) * Math.PI * 2) * 4; return Math.abs(y - c) <= 1.6 && x >= 1 && x <= 14 ? GRIS(x, y) : (x >= 13 && x <= 15 && Math.abs(y - (8 + Math.sin((14 / 15) * Math.PI * 2) * 4)) <= 2.2 ? GRIS(x, y) : null); }),
+  silueta_rappel: (p) => pinta(p, (x, y) => (x === 7 && y <= 6) || (y >= 6 && y <= 11 && x >= 4 && x <= 11) || ((x === 4 || x === 11) && y >= 11 && y <= 13) ? GRIS(x, y) : null),
+};
+
 export function generar() {
   const lista = {
     rueda_estandar: (p) => rueda(p, { grosor: 1.6 }),
@@ -338,4 +491,5 @@ export function generar() {
   };
   for (const [id, f] of Object.entries(lista)) tira(D + id + '.png', 16, 16, 1, (p) => f(p));
   for (const [id, f] of Object.entries(KEYWORDS)) tira(D + id + '.png', 16, 16, 1, (p) => f(p));
+  for (const [id, f] of Object.entries({ ...VARIABLES, ...PIEZAS_NUEVAS, ...SILUETAS })) tira(D + id + '.png', 16, 16, 1, (p) => f(p));
 }

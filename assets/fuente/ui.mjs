@@ -63,6 +63,9 @@ export function generar() {
   chip('ui_chip_cian', '#80e0dc', '#0f3236');
   kit();
   hudPanel();
+  guia();
+  senalador();
+  resalte();
 
   // ---- botones táctiles 24 × 24 con flecha naranja; el presionado baja 2 px y pierde el canto
   const flecha = (p, dir, dy) => {
@@ -216,4 +219,121 @@ function hudPanel() {
     if (c) f.color[y * 16 + x] = c;
   }
   guardar(D + 'ui_hud_panel.png', f);
+}
+
+// ---------------------------------------------------------------- guía de los tutoriales rápidos
+// tutorial/guia.png: retrato de la astronauta guía, 48 × 48, 3 cuadros en tira: 0 normal, 1 señalando (mano a la derecha), 2 contenta.
+// Casco blanco con el visor abierto, cara visible, cuello naranja y parche lavanda de la misión. Fondo transparente.
+function guia() {
+  const W = 48, N = 3, f = createFrame(W * N, W);
+  const P = {
+    k: '#0e0c16', w: '#ffffff', h: '#e4e8f2', l: '#b4bccc', m: '#7a8498', d: '#4a5468',
+    piel: '#c68456', pielC: '#e0a878', pielO: '#8e5636', pelo: '#2a1a14', peloC: '#4a2e20',
+    ojo: '#1a1020', boca: '#8a2a30', oro: '#ffd166', oroO: '#c8901c', nar: '#f2701f', narO: '#a8301a', lav: '#b9a6ff', lavO: '#7a4cff',
+  };
+  for (let i = 0; i < N; i++) {
+    const g = (x, y, c) => { if (x >= 0 && y >= 0 && x < W && y < W) f.color[y * f.w + i * W + x] = hex(P[c]); };
+    const mapa = Array.from({ length: W }, () => Array(W).fill(null));
+    const put = (x, y, c) => { if (x >= 0 && y >= 0 && x < W && y < W) mapa[y][x] = c; };
+    // traje (hombros) y cuello
+    for (let y = 36; y < 48; y++) for (let x = 4; x < 44; x++) {
+      const borde = Math.abs(x - 23.5) / 20 + (y - 36) * -0.02;
+      if (Math.abs(x - 23.5) > 14 + (y - 36) * 1.2) continue;
+      put(x, y, y === 36 ? 'h' : x < 20 ? 'h' : x > 32 ? 'l' : 'h');
+      if (y >= 40 && y <= 44 && x >= 28 && x <= 33) put(x, y, y === 40 || y === 44 || x === 28 || x === 33 ? 'lavO' : 'lav');   // parche
+      if (y > 41 && (x === 15 || x === 16)) put(x, y, 'l');                                                                   // costura
+    }
+    for (let x = 13; x <= 34; x++) { put(x, 35, 'nar'); put(x, 36, 'narO'); }                                               // cuello naranja
+    // casco
+    for (let y = 2; y < 36; y++) for (let x = 4; x < 44; x++) {
+      const d = Math.hypot(x + 0.5 - 24, (y + 0.5 - 19) * 1.04);
+      if (d > 17.5) continue;
+      put(x, y, d > 16 ? 'l' : x + y < 30 ? 'w' : x + y < 46 ? 'h' : 'l');
+    }
+    put(38, 10, 'm'); put(39, 9, 'm'); put(40, 8, 'nar');                                                                   // antenita
+    for (let y = 17; y <= 22; y++) { put(6, y, 'm'); put(7, y, 'd'); }                                                     // luz lateral
+    // visor abierto: marco dorado y la cara adentro
+    for (let y = 8; y < 33; y++) for (let x = 10; x < 38; x++) {
+      const e = ((x + 0.5 - 24) / 12.5) ** 2 + ((y + 0.5 - 20.5) / 11) ** 2;
+      if (e > 1) continue;
+      if (e > 0.82) { put(x, y, y < 18 ? 'oro' : 'oroO'); continue; }
+      put(x, y, x + y < 34 ? 'pielC' : x > 31 ? 'pielO' : 'piel');
+    }
+    // pelo (flequillo) arriba del visor
+    for (let y = 10; y < 16; y++) for (let x = 13; x < 35; x++) {
+      const e = ((x + 0.5 - 24) / 11) ** 2 + ((y + 0.5 - 20.5) / 9.6) ** 2;
+      if (e > 1 || e < 0) continue;
+      if (y < 13 + Math.round(Math.sin(x * 0.9) * 0.8 + (x > 26 ? 1 : 0))) put(x, y, (x + y) % 5 === 0 ? 'peloC' : 'pelo');
+    }
+    // cara según la expresión
+    const ojos = (cerrados) => {
+      for (const ox of [19, 28]) {
+        if (cerrados) { put(ox - 1, 21, 'ojo'); put(ox, 20, 'ojo'); put(ox + 1, 20, 'ojo'); put(ox + 2, 21, 'ojo'); }       // ^ ^
+        else { put(ox, 20, 'ojo'); put(ox + 1, 20, 'ojo'); put(ox, 21, 'ojo'); put(ox + 1, 21, 'w'); }
+      }
+      for (const ox of [18, 27]) for (let x = ox; x < ox + 4; x++) put(x, 18, 'pelo');                                    // cejas
+    };
+    if (i === 2) {
+      ojos(true);
+      for (let x = 21; x <= 27; x++) put(x, 26, 'boca'); for (let x = 22; x <= 26; x++) put(x, 27, 'w'); for (let x = 23; x <= 25; x++) put(x, 28, 'boca');   // sonrisa abierta
+      put(17, 24, 'narO'); put(31, 24, 'narO');                                                                             // mejillas
+    } else {
+      ojos(false);
+      put(22, 26, 'boca'); for (let x = 23; x <= 25; x++) put(x, 27, 'boca'); put(26, 26, 'boca');                         // sonrisa suave
+      put(24, 23, 'pielO');                                                                                                  // nariz
+    }
+    // señalando: brazo y guante que suben por la derecha con el índice hacia afuera
+    if (i === 1) {
+      for (let y = 26; y < 44; y++) for (let x = 34; x < 46; x++) {
+        const enBrazo = Math.abs((x - 38) - (44 - y) * 0.25) < 3.2 && y >= 33;
+        if (enBrazo) put(x, y, x < 38 ? 'h' : 'l');
+      }
+      for (let y = 26; y <= 32; y++) for (let x = 37; x <= 43; x++) put(x, y, y === 26 || x === 37 ? 'w' : 'h');            // guante
+      for (let x = 43; x <= 47; x++) { put(x, 27, 'w'); put(x, 28, 'h'); }                                                  // índice
+      put(37, 33, 'nar'); put(38, 33, 'nar'); put(39, 33, 'nar'); put(40, 33, 'nar');                                     // puño naranja
+    }
+    // pasar al cuadro con contorno automático (4 vecinos)
+    for (let y = 0; y < W; y++) for (let x = 0; x < W; x++) if (mapa[y][x]) g(x, y, mapa[y][x]);
+    for (let y = 0; y < W; y++) for (let x = 0; x < W; x++) {
+      if (mapa[y][x]) continue;
+      if ([[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => mapa[y + dy]?.[x + dx])) g(x, y, 'k');
+    }
+  }
+  guardar('tutorial/guia.png', f);
+}
+
+// ui_senalador.png: flecha amarilla que apunta hacia abajo y rebota, 4 cuadros de 12 × 14 (desplazamiento 0, 1, 2, 1).
+// Para apuntar a otro lado se gira en el juego.
+function senalador() {
+  const W = 12, Hh = 14, f = createFrame(W * 4, Hh), K = hex('#0e0c16');
+  [0, 1, 2, 1].forEach((dy, i) => {
+    const m = Array.from({ length: Hh }, () => Array(W).fill(null));
+    for (let y = 0; y < 11; y++) for (let x = 0; x < W; x++) {
+      const yy = y + dy + 1;
+      if (yy >= Hh - 1) continue;
+      const tallo = y <= 5 && x >= 4 && x <= 7, punta = y > 5 && Math.abs(x + 0.5 - 6) <= 5.5 - (y - 5) * 1.1;
+      if (tallo || punta) m[yy][x] = x < 6 ? '#fff08a' : y > 7 ? '#c8901c' : '#ffd166';
+    }
+    for (let y = 0; y < Hh; y++) for (let x = 0; x < W; x++) {
+      const X = i * W + x;
+      if (m[y][x]) f.color[y * f.w + X] = hex(m[y][x]);
+      else if ([[1, 0], [-1, 0], [0, 1], [0, -1]].some(([a, b]) => m[y + b]?.[x + a])) f.color[y * f.w + X] = K;
+    }
+  });
+  guardar(D + 'ui_senalador.png', f);
+}
+
+// ui_resalte.png (12 × 12, cortes de 4): marco de resaltado con esquinas en escuadra amarillas y bordes finos; centro transparente.
+function resalte() {
+  const f = createFrame(12, 12), Y = hex('#ffd166'), YC = hex('#fff08a'), K = hex('#0e0c16');
+  for (let y = 0; y < 12; y++) for (let x = 0; x < 12; x++) {
+    const ex = Math.min(x, 11 - x), ey = Math.min(y, 11 - y);
+    let c = 0;
+    const esquina = ex < 4 && ey < 4;
+    if (esquina && (ex <= 2 || ey <= 2) && ex >= 0) c = (ex === 0 || ey === 0) ? K : (ex === 1 || ey === 1) ? (x + y < 12 ? YC : Y) : (ex === 2 && ey <= 2) || (ey === 2 && ex <= 2) ? K : 0;
+    else if (!esquina && (ex === 1 || ey === 1)) c = Y;                              // borde fino
+    else if (!esquina && (ex === 0 || ey === 0 || ex === 2 || ey === 2) && Math.min(ex, ey) <= 2) c = K;
+    if (c) f.color[y * 12 + x] = c;
+  }
+  guardar(D + 'ui_resalte.png', f);
 }
