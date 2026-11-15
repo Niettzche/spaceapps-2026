@@ -8,7 +8,8 @@ model/VALIDATION.md, data/sites, data/targets); el contexto lo arma el servidor,
 - El juego NO depende de esto: ante cualquier error (503, 429, 502, red) usa sus respuestas por reglas
   (game/src/tutor/conocimiento.js).
 - Protección de la llave en un enlace público: límite por IP, tope diario global, preguntas cortas, respuestas cortas.
-- Variables de entorno (todas opcionales salvo la llave): OPENAI_MODEL, OPENAI_BASE_URL, TUTOR_POR_IP,
+- Variables de entorno (todas opcionales salvo la llave): OPENAI_MODEL (gpt-5.4-mini), OPENAI_REASONING (low; none es
+  más rápido), OPENAI_BASE_URL, TUTOR_POR_IP,
   TUTOR_VENTANA_S, TUTOR_POR_DIA, TUTOR_ESPERA_S, TUTOR_MODERACION (1/0), TUTOR_SECRETO.
 
 Defensa contra prompt injection (por capas; la tutora NO tiene herramientas ni secretos en su contexto, así que lo
@@ -363,7 +364,8 @@ def limpiar_respuesta(texto: str) -> str:
 
 def llamar_llm(mensajes: list[dict]) -> tuple[str, str]:
     llave = os.getenv("OPENAI_API_KEY")
-    modelo = os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
+    # gpt-5.4-mini: el mini vigente de OpenAI (gpt-5-mini está marcado como obsoleto; no existe gpt-5.1-mini).
+    modelo = os.getenv("OPENAI_MODEL", "gpt-5.4-mini")
     base = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip("/")
     cuerpo: dict = {"model": modelo, "messages": mensajes}
     if _es_razonador(modelo):
