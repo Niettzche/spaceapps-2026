@@ -5,9 +5,10 @@ y los cuadernos que vuelven a calcular sus cifras, por si alguien pide verlas.
 
 | Archivo | Para qué sirve |
 |---|---|
-| `guia_exposicion_modelo.pdf` | **Documento de estudio.** Qué decir en 30 segundos, la figura del borde, 12 preguntas de jueces con respuesta y respaldo, y lo que no hay que decir. |
-| `01_borde_levantado.ipynb` | Respalda la página 1 de la guía: cómo se mide el borde levantado y por qué separa un cráter de un valle o una mina. |
-| `02_cifras_de_la_guia.ipynb` | Respalda las preguntas de las páginas 2 y 3: vuelve a calcular cada cifra que se puede calcular con los datos del repo. |
+| `guia_exposicion_modelo.pdf` | **Documento de estudio.** Qué decir en 30 segundos, lo que nos distingue (la figura «¿cráter o mina?»), el borde en todos los grupos, 17 preguntas de jueces con respuesta y respaldo, y lo que no hay que decir. |
+| `figura_crater_o_mina_es.png` / `_en.png` | **La figura para diapositivas o para la página del proyecto**, en español y en inglés (también en `.svg`). Corte de un cráter y de un tajo minero. |
+| `01_borde_levantado.ipynb` | Respalda las dos primeras páginas de la guía: cómo se mide el borde levantado y por qué separa un cráter de un valle o una mina. |
+| `02_cifras_de_la_guia.ipynb` | Respalda las preguntas: vuelve a calcular cada cifra que se puede calcular con los datos del repo. |
 | `guia_exposicion_modelo.html` | La misma guía, antes de pasarla a PDF. |
 
 ## Si te piden ver de dónde sale algo
@@ -17,8 +18,13 @@ y los cuadernos que vuelven a calcular sus cifras, por si alguien pide verlas.
 | 10 de 11 cráteres conocidos tienen borde; 3 de 26 valles; 4 de 38 tajos | `01_borde_levantado.ipynb`, sección 3 |
 | La figura del borde | `01_borde_levantado.ipynb`, sección 3 (y sección 1 para ver un perfil completo) |
 | Los 11 cráteres uno por uno, y en qué puesto quedan | `01_borde_levantado.ipynb`, sección 4 |
-| ¿Y si la zona del borde fuera otra? | `01_borde_levantado.ipynb`, sección 6 |
-| Ningún tajo de nuestro catálogo tiene borde | `01_borde_levantado.ipynb`, sección 7 |
+| 14 minas y 3 cráteres entre los 25 primeros por forma; 11 cráteres y 1 mina por borde | `01_borde_levantado.ipynb`, sección 4 (segunda tabla) |
+| La figura «¿cráter o mina?»: por qué esos dos ejemplos y sus puestos (10 y 3) | `01_borde_levantado.ipynb`, sección 6 |
+| ¿Los cráteres de la Luna tienen ese borde? (55 de 248) | `01_borde_levantado.ipynb`, sección 3 |
+| ¿Y si la zona del borde fuera otra? | `01_borde_levantado.ipynb`, sección 7 |
+| ¿No ajustaron la regla a sus datos? 7 de 8 cráteres de impacto que la regla nunca había visto | `01_borde_levantado.ipynb`, sección 9 (perfiles: `analisis/25_perfiles_impactos.py`) |
+| ¿Encontraron algo nuevo? Qué dice la literatura de los cráteres de Arabia | `model/NIVEL2.md`, sección A |
+| Ningún tajo de nuestro catálogo tiene borde | `01_borde_levantado.ipynb`, sección 8 |
 | 4,288 cráteres lunares, 573 marcianos, 78 % | `02_cifras_de_la_guia.ipynb`, sección 1 |
 | 77.6 % con cráteres de 2 km o más (la objeción del instrumento) | `02_cifras_de_la_guia.ipynb`, secciones 1 y 2 |
 | El puntaje no separa un cráter de un valle | `02_cifras_de_la_guia.ipynb`, sección 3 |
@@ -26,6 +32,7 @@ y los cuadernos que vuelven a calcular sus cifras, por si alguien pide verlas.
 | 29 de 33 etiquetas contrastadas | `02_cifras_de_la_guia.ipynb`, sección 5 |
 | 176 K y 55 K; lo que la Tierra no reproduce | `02_cifras_de_la_guia.ipynb`, sección 6 |
 | 3 de 3 controles negativos y 9 de 21 análogos conocidos | `model/VALIDATION.md`, sección A (necesita Earth Engine; el cuaderno 02 solo lo cita) |
+| Qué significa el porcentaje (8 de cada 10 sitios áridos entre 0.32 y 0.51) | `model/VALIDATION.md`, sección A, «Tasa del prefiltro en los sitios del detector» |
 | 9 de 11 cráteres mexicanos conocidos | `informe/validacion_detector.pdf` |
 | La Luna emborronada (0.058 → 0.043) | `model/NIVEL2.md`, sección B |
 | El modelo Luna contra Marte paso a paso | `ciencia_datos/06_modelo_luna_marte.ipynb` |
@@ -49,16 +56,25 @@ resultados sean los mismos que están escritos en `model/VALIDATION.md`, y falla
 ## Cómo regenerar la guía
 
 ```
-uv run --with pandas==2.2.3 --with numpy==2.1.3 python informe/generar_guia_exposicion.py
+uv run --with scikit-learn==1.5.2 --with pandas==2.2.3 --with numpy==2.1.3 python informe/generar_guia_exposicion.py
 google-chrome-stable --headless --no-pdf-header-footer \
   --print-to-pdf=informe/exposicion_modelo/guia_exposicion_modelo.pdf informe/exposicion_modelo/guia_exposicion_modelo.html
 ```
 
-El generador se detiene si alguna cifra copiada ya no aparece en `model/VALIDATION.md`.
+El generador se detiene si alguna cifra copiada ya no aparece en `model/VALIDATION.md`, o si los dos ejemplos de la figura dejan
+de mostrar lo que dice el texto. También escribe la figura suelta (`figura_crater_o_mina_es.svg` y `_en.svg`) y, si está
+instalado `rsvg-convert`, sus `.png`.
 
 ## Lo que hay que tener presente
 
-- El borde levantado dice «esto es un cráter», no «esto se parece a la Luna».
+- El borde levantado dice «esto es un cráter», no «esto se parece a la Luna»: con la misma medida solo lo muestran 55 de 248
+  cráteres lunares de referencia.
+- En la figura «¿cráter o mina?» los ejemplos se eligieron con una regla (el mejor puesto por forma de cada clase), no a ojo.
+  El perfil es un promedio por anillos dibujado a los dos lados del centro, no un corte del terreno en una dirección.
+- En «14 minas y 3 cráteres», qué es mina y qué es cráter lo dice la etiqueta de IA, contrastada solo en 33 casos.
+- «7 de 8» son cráteres de impacto conocidos, no una muestra al azar; Meteor Crater no cuenta porque ya era un candidato. Con
+  la zona estrecha pasan 5 y con umbral 0.002 pasan 6.
+- Ningún cráter de Arabia se presenta como descubrimiento: Al Hutaymah ya está en una base global de 2024 para Marte.
 - Son 11 cráteres con fuente externa y uno solo es de impacto: es evidencia, no prueba.
 - La zona del borde que usamos se eligió después de ver los datos; el cuaderno 01 muestra las otras opciones.
 - El puntaje de similitud del juego no usa el borde.
