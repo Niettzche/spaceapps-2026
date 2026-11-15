@@ -25,13 +25,15 @@ export function generarElementos(perfil, cfg, semilla = '') {
   const fin = perfil.largo_m - PLANO_FINAL_M - MARGEN_FINAL_M;
   const lista = [];
   const ocupado = (a, b) => lista.some((o) => o.tipo === 'parche' && a < o.hasta_m && b > o.desde_m);
+  // Superficie del perfil (DEM) en x, para los parches con `soloSobre` (p. ej. costra de sal solo en el piso del lago).
+  const tipoPerfil = (x) => perfil.superficies?.find((t) => x >= t.desde && x < t.hasta)?.tipo ?? null;
   for (const [i, P] of (cfg.parches ?? []).entries()) {
     const r = aleatorio(semillaDe(`parche:${semilla}:${P.clase}:${i}`));
     for (let x = inicio + entre(r, P.cada) / 2; x < fin; x += entre(r, P.cada)) {
       const hasta = Math.min(x + entre(r, P.largo), fin);
       if (hasta - x < 3 || ocupado(x, hasta)) continue;
       let ok = true;
-      for (let s = x; s <= hasta && ok; s += 1) ok = pendienteLocal(perfil, s) <= (P.pendienteMax ?? 90);
+      for (let s = x; s <= hasta && ok; s += 1) ok = pendienteLocal(perfil, s) <= (P.pendienteMax ?? 90) && (!P.soloSobre || tipoPerfil(s) === P.soloSobre);
       // pendienteMin: el parche debe tener al menos un tramo con esa pendiente (p. ej. talud al pie de un banco).
       if (ok && P.pendienteMin != null) {
         let max = 0;
@@ -77,11 +79,12 @@ export function danioBloque(danio, v) {
 // Colores de las franjas de parche [base, mota] (arte provisional; pedir tiles en pendiente a Mauricio).
 const COLOR_PARCHE = {
   toba: [0xd9cdb4, 0x9c8f78], talud: [0x7d7064, 0xb3a796], nieve: [0xf1f5fb, 0xc9d6e6], hielo: [0xbfe1ef, 0xffffff],
+  sal: [0xf4f1e8, 0xd8d2c2], lodo: [0x8f8474, 0x6e6458],
 };
 
 const NOMBRE = {
-  toba: ['toba y ceniza blanda', 'soft tuff and ash'], talud: ['talud de roca suelta', 'loose-rock talus'],
-  nieve: ['nieve', 'snow'], hielo: ['hielo', 'ice'], bomba: ['bombas volcánicas', 'volcanic bombs'],
+  toba: ['lapilli de toba suelto', 'loose tuff lapilli'], talud: ['talud de roca suelta', 'loose-rock talus'],
+  nieve: ['nieve', 'snow'], hielo: ['hielo', 'ice'], sal: ['costra de sal', 'salt crust'], lodo: ['lodo del lago', 'lake mud'], bomba: ['bombas volcánicas', 'volcanic bombs'],
   eyecta: ['bloques de eyecta', 'ejecta blocks'], lava_aa: ['bloques de lava aa', 'aa lava blocks'],
 };
 export const nombreElemento = (clase) => tr(...(NOMBRE[clase] ?? [clase, clase]));

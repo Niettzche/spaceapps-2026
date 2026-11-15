@@ -126,6 +126,48 @@ export default {
    "viento_p90_diario_ms": 8.94,
    "nieve_media_cm": 38.53,
    "nieve_max_mes_cm": 70.41
+  },
+  "samalayuca": {
+   "lat": 31.263611,
+   "lon": -106.395278,
+   "celda_power": {
+    "lon": -106.395,
+    "lat": 31.264,
+    "elevacion_m": 1279.63
+   },
+   "min_tipica_C": 0.3,
+   "max_tipica_C": 36.2,
+   "min_extrema_C": -14.51,
+   "max_extrema_C": 42.41,
+   "media_C": 17.85,
+   "ps_kPa": 87.31,
+   "rho_kg_m3": 1.045,
+   "viento_medio_ms": 4.05,
+   "viento_max_ms": 19.28,
+   "viento_p90_diario_ms": 6.24,
+   "nieve_media_cm": 0.58,
+   "nieve_max_mes_cm": 2.39
+  },
+  "mx0261": {
+   "lat": 20.4316,
+   "lon": -101.2492,
+   "celda_power": {
+    "lon": -101.249,
+    "lat": 20.432,
+    "elevacion_m": 1864.07
+   },
+   "min_tipica_C": 7.5,
+   "max_tipica_C": 32.6,
+   "min_extrema_C": -2.2,
+   "max_extrema_C": 37.31,
+   "media_C": 18.54,
+   "ps_kPa": 81.58,
+   "rho_kg_m3": 0.974,
+   "viento_medio_ms": 2.86,
+   "viento_max_ms": 14.73,
+   "viento_p90_diario_ms": 4.24,
+   "nieve_media_cm": 0.0,
+   "nieve_max_mes_cm": 0.01
   }
  }
 };
