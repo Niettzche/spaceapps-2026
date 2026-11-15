@@ -36,3 +36,4 @@
 - **Música** (#98 Leo, #103 Diego): por escena, fundido cruzado, control propio (tecla U), separado del silencio de efectos (M).
 - **ANA, la tutora de análogos** (#102 Mario): reglas sin red + /tutor con IA en el servidor (sin llave responde con reglas). Es un extra (AGENTS §15).
 - **Presupuesto:** sigue fijo en 1000 hasta que Edmundo decida (propuesta en docs/juego/PRESUPUESTO.md).
+- **15 nov, 9:05 · Presupuesto (Edmundo): se queda fijo en 1,000 créditos** para todos los niveles (todos pasan con algún diseño ≤ 1,000). La fórmula por nivel de docs/juego/PRESUPUESTO.md queda como mejora futura.
