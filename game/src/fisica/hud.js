@@ -2,7 +2,7 @@
 import { tr } from '../i18n.js';
 import { nombreSuperficie } from './suelos.js';
 
-const ESTILO = { fontFamily: 'monospace', fontSize: '13px', color: '#cfd6ff' };
+const ESTILO = { fontFamily: 'monospace', fontSize: '14px', color: '#cfd6ff' };
 const ANCHO_IZQ = 530;
 
 /** Reduce el tamaño de letra hasta que el texto quepa en `ancho` (sin bajar de `min` px). */
@@ -53,7 +53,8 @@ export class Hud {
     this.progreso = fijo(scene.add.rectangle(16, 92, 0, 4, 0x4cc38a).setOrigin(0, 0.5));
     fijo(scene.add.text(944, 98, '⚑', { ...ESTILO, fontSize: '12px', color: '#ffffff' }).setOrigin(1, 0));
     this.lectura = fijo(scene.add.text(944, 12, '', { ...ESTILO, align: 'right' }).setOrigin(1, 0));
-    this.mensaje = fijo(scene.add.text(480, 200, '', { ...ESTILO, fontSize: '26px', color: '#ffffff', align: 'center' }).setOrigin(0.5));
+    // Mensaje final grande y con contorno para que se lea sobre cualquier fondo (retro: textos más grandes).
+    this.mensaje = fijo(scene.add.text(480, 200, '', { ...ESTILO, fontSize: '44px', fontStyle: 'bold', color: '#ffffff', align: 'center', stroke: '#0b0d17', strokeThickness: 8 }).setOrigin(0.5));
   }
 
   actualizar(estado, { distancia_m, meta_m }) {
@@ -104,7 +105,7 @@ export class Hud {
     const s = this.scene;
     const fijo = (o) => o.setScrollFactor(0).setDepth(96);
     const texto = fijo(s.add.text(480, 175, [titulo, '', ...lineas].join('\n'), {
-      fontFamily: 'monospace', fontSize: '15px', color: '#ffffff', align: 'center', lineSpacing: 6,
+      fontFamily: 'monospace', fontSize: '17px', color: '#ffffff', align: 'center', lineSpacing: 6,
     }).setOrigin(0.5));
     const fondo = fijo(s.add.rectangle(480, 175, texto.width + 48, texto.height + 32, 0x0b0d17, 0.85).setStrokeStyle(2, 0xffd166, 0.8));
     texto.setDepth(97);

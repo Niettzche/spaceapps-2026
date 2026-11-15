@@ -34,7 +34,7 @@ const MOTIVOS = () => tr({
   carga_danada: 'Arrived, but the payload is below the minimum.',
   abandono: 'The run was abandoned.',
 });
-const ESTILO = { fontFamily: 'monospace', fontSize: '14px', color: '#cfd6ff', wordWrap: { width: 820 } };
+const ESTILO = { fontFamily: 'monospace', fontSize: '15px', color: '#cfd6ff', wordWrap: { width: 820 } };
 
 export default class Resultados extends Phaser.Scene {
   constructor() {
