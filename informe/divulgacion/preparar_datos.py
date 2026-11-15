@@ -77,7 +77,13 @@ CIFRAS = {
         "9 de 11 cráteres conocidos", "De las 668 detecciones, el 71 %", "solo reduce esas detecciones un 15 %",
         "47 candidatos áridos", "3 de 10 regiones áridas priorizadas", "forma 0.40",
         "Tierra 9.81, Marte 3.71, Luna 1.62 m/s²", "NDVI p90 < 0.35",
+        # «La física del juego» (#fisica)
+        "`H = A·c + W·tan φ`", "regolito lunar φ 42° y c 0.52 kPa", "(Lunar Sourcebook, tabla 9.12)", "n 1, k_c 1.4, k_φ 820",
+        "de Costes et al. 1972", "estimaciones de diseño de la era Apolo, no mediciones",
+        "drift marciano φ 18° y c 1.6 kPa (Viking, Moore 1991)", "simulante M90** (Oravec et al., NASA GRC)",
+        "arena seca genérica de Wong (NASA/TM-20250006958)",
     ],
+    "docs/taller/AMBIENTE.md": ["| jezero | Densidad del aire (derivada) | 0.017 | kg/m³ | Derivada de 718 Pa y −55 °C"],
 }
 
 

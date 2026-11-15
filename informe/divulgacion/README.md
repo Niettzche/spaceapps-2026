@@ -41,6 +41,13 @@ sepultado) más los 3 cráteres que quedan fuera por lluvia. Luego «Ya se conoc
 `preparar_datos.py` comprueba la lista de los que pasan contra la tabla, que los 3 «de lluvia» tengan más de 1 mm/día y más que
 todos los que pasan, las frases del Apolo 14 en `data/sites/pinacate.json` y que ningún sitio esté marcado como novedoso.
 
+**Bloque de cráteres numerado:** 01 Pruébalo, 02 Cómo los encontramos (`#ciencia`), 03 Los análogos, 04 Lo que aportamos,
+con un índice de enlaces en la cabecera de Pruébalo.
+
+**La física del juego** (`#fisica`, después de Destinos): gravedad, tracción (Mohr–Coulomb), hundimiento (Bekker–Wong) y viento,
+más la tabla de fuentes; sale de la guía de física del equipo. `preparar_datos.py` comprueba sus cifras contra
+`docs/METODOLOGIA.md` (Física 2) y `docs/taller/AMBIENTE.md` (densidad del aire de Jezero).
+
 **Pruébalo** (`#pruebalo`, `src/clasificador.js`): el modelo de forma de `model/forma.py` corriendo en el navegador, sin red.
 Tres deslizadores (diámetro, profundidad y altura del borde) o un cráter real (El Elegante, Meteor Crater, Lonar, Pingualuit, un
 tajo minero y las medianas lunar y marciana). Muestra P(Luna), si cae dentro de la nube Luna+Marte, el parecido de forma que usa
