@@ -601,6 +601,64 @@ function postales() {
   // Al Wahbah: el maar con su fondo de sal
   V('sitio_g00281', (f) => fondo(f, 'maar', 112, 82));
 
+  // Jabal Bayda (g00266): cono de toba clara sobre lava oscura
+  V('sitio_g00266', (f) => {
+    // el cono del fondo es demasiado ancho para 96 px: aquí va uno a la medida, sobre el cielo y el suelo del fondo de toba
+    pegar(f, leer('fondos/fondo_toba_1.png'), 0, 0, { sx: 120, sy: 60, w: 96, h: 64 });
+    const TOBA = rampa(P.tierra.toba_clara), HAR = rampa(P.tierra.harrat);
+    pintar(f, 0, 0, 96, 64, (x, y) => {
+      const u = Math.abs(x + 0.5 - 48) / 42;
+      if (u >= 1 || y >= 46) return 0;
+      const cima = u < 0.2 ? 24 - 2 + (u / 0.2) * 2 : 24 * Math.pow(1 - (u - 0.2) / 0.8, 1.1);
+      const top = Math.round(46 - cima);
+      if (y < top) return 0;
+      if (y === top) return x > 48 ? TOBA[5] : TOBA[3];
+      const lado = x > 48 ? 0.2 : -0.15, carcava = Math.sin(x * 1.7 + y * 0.2) > 0.9 && y > top + 2;
+      return tramado(TOBA, 0.62 + lado - (y - top) / 60 - (carcava ? 0.2 : 0), x, y);
+    });
+    pegar(f, leer('fondos/fondo_toba_3.png'), 0, 40, { sx: 120, sy: 140, w: 96, h: 24 });
+  });
+  // Cananea (mx0023): tajo escalonado, otro encuadre de la mina (más bancos a la vista)
+  V('sitio_mx0023', (f) => fondo(f, 'mina', 150, 92));
+  // Al Hutaymah (g00263, camino dorado lunar): borde y pared del maar con su fondo plano
+  V('sitio_g00263', (f) => fondo(f, 'maar', 52, 86));
+  // Tenoumer (Sáhara): cráter de impacto de borde levantado y piso claro de sedimento, en la llanura con mesetas
+  V('sitio_tenoumer', (f) => {
+    fondo(f, 'sahara', 150, 80);
+    const MES = rampa(P.tierra.meseta), REG = rampa(P.tierra.reg), SED = rampa(P.tierra.salar);
+    const cx = 48, cy = 50, a = 36, b = 8;
+    pintar(f, 0, 0, 96, 64, (x, y) => {
+      const u = (x + 0.5 - cx) / (a + 6);
+      if (Math.abs(u) >= 1) return 0;
+      const sq = Math.sqrt(1 - u * u), borde = Math.round(cy - b * sq - 5 * sq);                     // borde levantado sobre el llano
+      const ui = (x + 0.5 - cx) / a, sqi = Math.abs(ui) < 1 ? Math.sqrt(1 - ui * ui) : 0, lejos = cy - b * sqi, cerca = cy + 2 * sqi;
+      if (y < borde) return 0;
+      if (y < borde + 1) return REG[5];
+      if (sqi === 0) return y < cy ? tramado(REG.slice(2, 6), 0.6, x, y) : 0;                         // faldas exteriores del borde
+      if (y < lejos) return tramado(MES.slice(1, 6), 0.35 + (0.5 - ui * 0.4) * 0.6, x, y);            // pared interior
+      if (y < cerca) return tramado(SED, 0.45 + ((x * 5 + y * 3) % 7) * 0.05, x, y);                  // piso de sedimento
+      return 0;
+    });
+    pintar(f, 0, 52, 96, 12, (x, y) => tramado(REG.slice(1, 6), 0.6 - (y - 52) / 24 + ((x * 7 + y * 3) % 11 === 0 ? -0.3 : 0), x, y));
+  });
+  // Pingualuit (Ártico): cráter redondo con lago azul profundo, bordes nevados, tundra y nieve alrededor
+  V('sitio_pingualuit', (f) => {
+    fondo(f, 'artico', 150, 80);
+    const NIE = rampa(P.tierra.nieve), TUN = rampa(P.tierra.tundra), LAGO = rampa(['#0c1a4a', '#16307e', '#2550d0', '#5a84b4']);
+    const cx = 48, cy = 49, a = 38, b = 9;
+    pintar(f, 0, 0, 96, 64, (x, y) => {
+      const u = (x + 0.5 - cx) / a;
+      if (Math.abs(u) >= 1) return 0;
+      const sq = Math.sqrt(1 - u * u), borde = Math.round(cy - b * sq - 4 * sq), lejos = cy - b * sq * 0.7, cerca = cy + 2 * sq;
+      if (y < borde) return 0;
+      if (y < borde + 2) return y === borde ? NIE[4] : NIE[3];                                         // borde nevado
+      if (y < lejos) return (x + y) % 3 === 0 ? TUN[2] : tramado(NIE.slice(0, 4), 0.55 - u * 0.25, x, y); // pared con roca y nieve
+      if (y < cerca) return tramado(LAGO, 0.35 + (y - lejos) / 20 + (Math.sin(x * 0.8 - y) > 0.9 ? 0.4 : 0), x, y);   // lago
+      return 0;
+    });
+    pintar(f, 0, 52, 96, 12, (x, y) => (tileFbm(x / 10, y / 4, 0, 0, 601, 2) > -0.05 ? tramado(NIE.slice(1, 5), 0.7 - (y - 52) / 30, x, y) : tramado(TUN, 0.5, x, y)));
+  });
+
   // Cualquier otro sitio: desierto pedregoso
   V('sitio_generico', (f) => fondo(f, 'desierto', 40, 100));
 
@@ -741,9 +799,15 @@ function menuNave() {
 function piezasGrandes() {
   const partes = JSON.parse(readFileSync(join(ASSETS, '../game/src/content/parts.json'), 'utf8'));
   // las de parts.json, las nuevas del Taller (ids provisionales), el candado y las siluetas de las bloqueadas
-  const EXTRA = ['chasis_titanio', 'chasis_fibra_carbono', 'rueda_nitinol', 'modulo_autorescate', 'sellos_polvo', 'candado', 'suspension_blanda', 'suspension_dura', 'faro', 'chasis_rocker_bogie',
+  const EXTRA = ['sellos_polvo', 'candado', 'suspension_blanda', 'suspension_dura', 'faro', 'chasis_rocker_bogie',
     'silueta_orugas', 'silueta_patas', 'silueta_rotor', 'silueta_serpiente', 'silueta_rappel'];
-  for (const id of [...(partes.piezas ?? partes).map((x) => x.id), ...EXTRA]) {
+  // piezas bloqueadas (SPRITES_PENDIENTES §7): piezas/<robot>.png con la silueta gris
+  for (const robotB of ['orugas', 'patas', 'rotor', 'serpiente', 'rappel']) {
+    const img = leer(`iconos/silueta_${robotB}.png`), f = createFrame(img.w, img.h);
+    f.color.set(img.color);
+    guardar(`piezas/${robotB}.png`, escalar(f, 2));
+  }
+  for (const id of [...new Set([...(partes.piezas ?? partes).map((x) => x.id), ...EXTRA])]) {
     const img = leer(`iconos/${id}.png`), f = createFrame(img.w, img.h);
     f.color.set(img.color);
     guardar(`piezas/${id}.png`, escalar(f, 2));

@@ -15,6 +15,8 @@ export function generar() {
     // chasis con rueda (vida del robot)
     ui_icono_chasis: ['........', '.....y..', '.hhhhhh.', '.cllllm.', '.dmddmd.', '.Tt..Tt.', '........', '........'],
     // termómetro (temperatura del motor): tubo plateado con columna roja y marcas de escala
+    // candado de las piezas bloqueadas (pestaña «Bloqueadas» del Taller)
+    ui_candado: ['..hh....', '.h..h...', '.h..h...', 'YYYYYY..', 'YyykyY..', 'YyykyY..', 'OOOOOO..', '........'],
     ui_icono_temperatura: ['..hh....', '.hrlh.l.', '.hrlh...', '.hrlh.l.', '.hrrh...', 'hrrRrh..', 'hrRRrh..', '.hhhh...'],
   };
   for (const [nombre, rows] of Object.entries(iconos)) tira(D + nombre + '.png', 8, 8, 1, (p) => filas(p, rows));
