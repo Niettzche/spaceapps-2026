@@ -147,3 +147,23 @@ las pruebas en teléfono se hicieron con Claude Code. Cada dato se revisó contr
   - Botones de abajo en una fila sin cortes; «Igual en ambos ejes» sin el glifo ⇄ (la fuente no lo tiene).
   - Arte nuevo (#89): `chasis_fibra_carbono` → `chasis_carbono` y `modulo_autorescate` → `auto_rescate` (alias en el Taller),
     candado de arte en la pestaña y las tarjetas, siluetas de orugas, patas, rotor, serpiente y rappel en Bloqueadas.
+
+- **15 nov, Taller accesible + tutorial (PLAN_REMAKE.md §1.3 y §2; auditoría de Leo §4.3):**
+  - Tamaños: tarjetas de 190 × 124, **4 por página** con flechas de 64 × 45 y «1/2»; arte de 32 px dibujado ×2 (64 px),
+    costo ×3, nombre ×2 y **una** cifra clave (en las ruedas, el agarre en el suelo principal del sitio). Pestañas de 44 de alto.
+    Todo cabe a 960 × 540 en es/en.
+  - Zonas táctiles ≥ 64 × 44 en todo: pestañas, flechas, sockets, botones (K.boton), muestras de pintura (40 × 40 cada 66 px,
+    con ✓ en la elegida), «Igual en ambos ejes», Quitar, botones del tutorial y «Ver la guía (?)» en la ayuda H.
+  - Teclado por zonas: **Tab** pestañas → piezas → sockets → botones; flechas dentro de la zona; Enter; 1–6 pestaña; L leer;
+    ? guía. Marco de foco amarillo de 4 px con borde oscuro y ›, solo al usar teclado. A, C, R, P, N, H, Supr, Ctrl+Z/Y siguen.
+  - Barras con número **y** patrón: agarre bien = liso, medio = rayas, bajo = cuadros; presupuesto excedido = rojo con cuadros.
+    En el panel, el suelo del sitio sale marcado con «»».
+  - `prefers-reduced-motion`: sin encaje, polvo, rebote, armado, pulso de sockets, sacudida ni animación del costo.
+  - Lector de pantalla: nodo `aria-live="polite"` oculto (`#mc-taller-resumen`) con «Rueda ancha para arena en el eje delantero.
+    Presupuesto 890 de 1000. Listo para probar.»; botón **Leer** (tecla L) con `speechSynthesis` si existe (es-MX / en-US).
+  - Tutorial de la primera vez (`Taller/tutorial.js` + `tutorial_vista.js`, astronauta guía, ui_senalador, ui_resalte): 1) arrastra
+    una rueda a su eje (espera a que lo hagas; Enter sigue), 2) presupuesto, 3) agarre según el suelo, 4) prueba el robot.
+    Esc salta, ? repite, se recuerda en `marsception.tutorial_taller.visto`; la e2e lo marca como visto. Cuando exista
+    `comun/tutorial.js`, cambiar las dos importaciones de `Taller/tutorial_vista.js`.
+  - Pruebas: `node game/src/scenes/Taller/accesible.test.mjs` (7 casos). Revisión automática (texto ≥ 14, fuera, encimados, zonas
+    < 64 × 44) en 27 estados × es/en, incluidos los 4 pasos del tutorial y el foco: 0 problemas. Humo con clics reales: OK.
