@@ -160,6 +160,7 @@
     logo sobre el GIF del viaje; voz «MARSCEPTION» y música del menú del juego. Arma el video con las tomas de una carpeta
     (`--tomas`); hoy usa tomas provisionales que grabé del juego en local (la Prueba de cada nivel). El MP4 no va en el repo
     (17 MB): la vista previa de 720p va adjunta al PR.
+- **Ronda `feat/arte-r` (§10, obstáculos):** rocas de Marte y de la Luna en versión clara (las de Marte, basalto gris rosado; las de la Luna, casi blancas), `obstaculo_crater_luna` (48 × 6, fila 2 = suelo), `obstaculo_matorral_1..3`, `obstaculo_toba_bloque_1/2` y `obstaculo_rizadura`.
 - `node assets/fuente/fx/exportar.mjs` regenera con pixelfx las 22 hojas de efectos.
 
 ## En curso
