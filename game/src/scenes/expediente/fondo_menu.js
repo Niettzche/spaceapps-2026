@@ -9,7 +9,9 @@ import {
 } from './ambiente_plan.js';
 
 // Marte del fondo de título (assets/titulo/titulo_fondo.png: centro 160,108 y radio 76 en 320×180, dibujado ×3).
-const MARTE = { x: 480, y: 324, r: 228 };
+// Por defecto, el Marte del fondo de título; la pantalla de inicio (su Marte grande que gira cae justo encima) y el menú de
+// opciones (Marte asomando bajo la nave) pasan el suyo con `marte`.
+export const MARTE_TITULO = { x: 480, y: 324, r: 228 };
 const PROFUNDIDAD = -8.6; // sobre el fondo oscurecido (-9) y detrás de las estrellas y del texto
 const PASO_MS = 40; // ~25 fps: suficiente para movimiento lento y barato
 const P = 3; // tamaño del pixel de arte
@@ -30,10 +32,11 @@ const reducido = () => {
 export class FondoMenu {
   /**
    * @param {Phaser.Scene} scene  escena del Menú
-   * @param {{ resultados: number, semilla?: number }} o  `resultados` = partida.resultados.length al entrar
+   * @param {{ resultados: number, semilla?: number, marte?: {x:number,y:number,r:number} }} o  `resultados` = partida.resultados.length al entrar
    */
-  constructor(scene, { resultados = 0, semilla } = {}) {
+  constructor(scene, { resultados = 0, semilla, marte = MARTE_TITULO } = {}) {
     this.scene = scene;
+    const MARTE = this.marte = marte;
     const s = Number(new URLSearchParams(globalThis.location?.search ?? '').get('semilla')) || semilla || Date.now();
     this.rng = crearRng(s);
     this.g = scene.add.graphics().setDepth(PROFUNDIDAD);
@@ -129,6 +132,7 @@ export class FondoMenu {
 
   nuevoEvento() {
     const r = this.rng;
+    const MARTE = this.marte;
     const id = elegirEvento(r);
     const dur = entre(r, DURACION_EVENTO_S);
     const izq = r() < 0.5;
@@ -151,6 +155,7 @@ export class FondoMenu {
 
   nuevoDestello() {
     const r = this.rng;
+    const MARTE = this.marte;
     const a = r() * 6.28; const d = Math.sqrt(r()) * MARTE.r * 0.85;
     this.destellos.push({ x: MARTE.x + Math.cos(a) * d, y: MARTE.y + Math.sin(a) * d, color: DESTELLOS[elegirDestello(r)], t: 0, dur: 0.6 });
   }
