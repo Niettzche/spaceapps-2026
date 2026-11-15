@@ -73,6 +73,12 @@ Camino dorado completo (pasa por el Taller real): ver la cabecera de `game/e2e/c
   - Opportunity se hundió "más de 10 cm", no "hasta los rines".
   - La afirmación "cada rueda con su propio motor" ahora cita la página correcta de NASA.
 
+- **15 nov (Leo de vuelta):**
+  - Hoja **Ambiente** del libro de datos y `docs/taller/AMBIENTE.md`: temperatura típica y extrema, presión y densidad del aire
+    de los 4 sitios jugables (NASA POWER) y de los 2 destinos (MEDA, Diviner, fact sheets), con fuente y fecha.
+  - `docs/PITCH_QA_EN.md`: 8 preguntas probables de los jueces, en inglés y con fuente.
+  - Taller revisado en inglés en computadora y teléfono; 3 textos más claros (#57).
+
 ## Lo que queda
 1. **Pitch:** usar la hoja `Judges` para las preguntas de velocidad, Spirit y agarre. Decir siempre que el 0.1 m/s de VIPER es
    de diseño y que los valores de Marte son estimaciones de ingeniería (lo dice la tabla de NASA).
