@@ -117,9 +117,9 @@ export function ambienteDe({ modo, mundo, sitioId, destinoId }) {
 // ─── Reglas de juego (P) ─────────────────────────────────────────────────────────────────────────────────────────────
 export const REGLAS = {
   // a) Frío → batería. Por debajo de 0 °C la capacidad útil baja 0.03 % por °C, con piso de 97 %. (P)
-  // Pérdida chica a propósito: los rovers reales calientan sus baterías (el calor del MMRTG mantiene la electrónica
-  // entre −40 y +50 °C, ver PIEZAS.md §5), así que el frío cuesta poco. Antes 0.2 %/°C y piso 85 %: dejaba las misiones
-  // del camino dorado sin energía a 12 m de la meta. Se usa la temperatura MÍNIMA del nivel.
+  // Pérdida chica a propósito (valor de juego): antes 0.2 %/°C y piso 85 % dejaba las misiones del camino dorado sin
+  // energía a 12 m de la meta. No afirmamos cómo protegen los rovers reales sus baterías: no hay fuente primaria
+  // (PIEZAS.md §5, «Gap»). Se usa la temperatura MÍNIMA del nivel; el calentador del módulo quita la pérdida.
   frio: { desde_C: 0, perdida_por_C: 0.0003, piso: 0.97 },
   // El módulo `calentador_bateria` (parts.json, `aislamiento_termico`, P) evita una fracción de esa pérdida. Sin fuente
   // primaria para el calentador (PIEZAS.md §5: Gap).
