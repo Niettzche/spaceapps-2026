@@ -2,6 +2,13 @@
 
 Responsable: Alan · Agente: Codex · Actualización: 2026-11-14
 
+## Portada web · arte del PR #64
+
+- Rama `feat/web-portada-marsception`, desde main con #64 ya integrado. Copiada la imagen original de `docs/media/web_portada_960x960.png` a `web/src/assets/` e importada en `Project.jsx`.
+- Pie y texto alternativo en español/inglés: arte original ilustrativo de MARSCEPTION, no un sitio real ni un relieve medido. `.hero-visual img` usa `image-rendering: pixelated`.
+- Cambio independiente del PR #61, que tiene conflictos con cambios recientes de juego. No se tocaron archivos del juego ni se movieron carpetas. Grabación a cargo de Alan.
+- Verificación: build de web correcto e imagen incluida en los assets generados; lint sin errores, con las dos advertencias previas de dependencias de hooks en `MapView.jsx`.
+
 ## Hecho
 - #21 actualizado con feat/juego y mergeado, incluyendo fps target/limit 60 y runner fijo. #16 de Leo mergeado. #14 sigue abierto, sin integrar.
 - Se recibieron luego 20bea74 y ea8984f (sacudidas/rocas y guía de arte); incluidos en la rama de seguimiento feat/integracion-entrega.

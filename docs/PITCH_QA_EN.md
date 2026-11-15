@@ -34,3 +34,18 @@ Sinking needs soil "Bekker" constants, and NASA notes that no true Bekker parame
 **8. Why a wide wheel for sand?**
 A wider wheel spreads the robot's weight over more area, so it presses less on loose sand and sinks less; that is a general principle, and the exact grip number in the game is a game value (P). Real designs follow the same idea: Apollo's lunar rover used 23 cm wide wire-mesh tires, and Perseverance's wheels are 52.5 cm across.
 *Sources: [NASA NSSDC, Apollo Lunar Roving Vehicle](https://nssdc.gsfc.nasa.gov/planetary/lunar/apollo_lrv.html); [NASA, Perseverance rover components](https://science.nasa.gov/mission/mars-2020-perseverance/rover-components/).*
+
+**9. Why does the battery lose capacity on Mars or the Moon?**
+Cold makes a battery deliver less energy, and the sourced temperatures are what the game uses: −83 °C measured at Jezero (two sols) and −53 °C on the sunlit lunar rim. The game applies a simple rule (P): 0.2 % less usable battery per degree below 0 °C, never below 85 %. Rovers protect their electronics with waste heat from their power source (MSL's fluid loop keeps them between −40 and +50 °C); we have not found a primary source for battery heaters on Mars, so the game does not model one.
+*Sources: [NASA/JPL, MSL launch press kit, p. 38](https://www.jpl.nasa.gov/news/press_kits/MSLLaunch.pdf); [Mastropietro et al. 2010, NTRS 20150008894](https://ntrs.nasa.gov/citations/20150008894); [NASA, first weather report from Jezero (MEDA)](https://www.nasa.gov/?p=61574).*
+**10. Why does the motor overheat if it is so cold outside?**
+Air carries heat away from a motor, and Jezero's air is only about 0.017 kg/m³, roughly 1 % of Earth's 1.217 kg/m³ at sea level, while the Moon has no air at all, so a motor there cools mainly by radiation. The cooling rule and the 100 °C limit are game values (P); the air densities are data (Jezero's is derived from MEDA's 718 Pa and agrees with the Mars Fact Sheet's 0.016 ± 0.006 kg/m³).
+*Sources: [NASA, first weather report from Jezero (MEDA)](https://www.nasa.gov/?p=61574); [NASA Mars Fact Sheet](https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html); [NASA Moon Fact Sheet](https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html).*
+
+**11. Are the rocks real?**
+No: the half-buried rocks (0.3–0.6 m) and the soft-sand patches are declared recreations, shown on screen as "recreated obstacles", because the elevation models we use (30 m on Earth, 80 m on the Moon, 200 m on Mars) cannot resolve objects that small. The terrain profile underneath is real; the obstacles are placed with a fixed seed so every player gets the same level.
+*Source: [Methodology (one page)](METHODOLOGY_EN.md).*
+
+**12. Why isn't the −248 °C lunar shadow on the route?**
+The coldest permanently shadowed crater floors at the lunar south pole are about 25 K (−248 °C) and never see the Sun, so a solar-charged robot could not recharge there. Our mission follows the sunlit rim (about −53 °C, nearly constant), the way NASA studies plan polar routes that "chase sunlight" to shorten the night from about 14 days to about 36 hours.
+*Sources: [UCLA, LRO Diviner science](https://www.diviner.ucla.edu/science); [NASA NTRS 20240004621](https://ntrs.nasa.gov/citations/20240004621).*

@@ -116,3 +116,5 @@ Camino dorado completo (pasa por el Taller real): ver la cabecera de `game/e2e/c
 ## Uso de IA (para `docs/USO_IA.md`)
 La investigación de piezas, la búsqueda y verificación de fuentes del libro de datos, la hoja Judges, el código del taller y
 las pruebas en teléfono se hicieron con Claude Code. Cada dato se revisó contra su fuente primaria.
+
+- **15 nov (fuentes de piezas nuevas):** referencias con fuente en `docs/taller/PIEZAS.md` §5 y en Parts PT-013…PT-018 (no están en parts.json). Battery heater: Gap; motor radiator: Gap para el motor. Corregido S40 (batería −40…+40 °C no verificada) y la pregunta 9 de PITCH_QA_EN.md.
