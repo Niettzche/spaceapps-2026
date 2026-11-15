@@ -11,7 +11,9 @@ cliente = TestClient(app)
 
 @pytest.fixture(autouse=True)
 def _sin_cache():
+    from api import main
     nivel_vivo._medir_cache.cache_clear()
+    main._nivel_ip.clear()  # el límite por IP de /nivel no se arrastra entre pruebas
     yield
     nivel_vivo._medir_cache.cache_clear()
 
@@ -86,3 +88,18 @@ def test_avisa_si_hay_agua_en_el_corte(monkeypatch):
     monkeypatch.setattr(nivel_vivo, "leer_franjas", falso)
     d = cliente.post("/nivel", json={"lat": 10.0, "lon": 20.0}).json()
     assert d["resumen"]["agua_puntos"] == 101 and any("agua" in a for a in d["avisos"]) and "Agua:" in d["nivel"]["superficies_nota"]
+
+
+def test_limite_por_ip(monkeypatch):
+    """/nivel consulta Earth Engine: más de NIVEL_POR_IP llamadas seguidas de la misma IP dan 429; otra IP sigue pasando."""
+    from api import main
+    falso, _ = _franjas(lambda n: np.linspace(0, 60, n))
+    monkeypatch.setattr(nivel_vivo, "leer_franjas", falso)
+    monkeypatch.setenv("NIVEL_POR_IP", "2")
+    main._nivel_ip.clear()
+    cab = {"cf-connecting-ip": "203.0.113.50"}
+    codigos = [cliente.post("/nivel", json={"lat": 31.2636, "lon": -106.3953}, headers=cab).status_code for _ in range(3)]
+    assert codigos == [200, 200, 429]
+    assert cliente.post("/nivel", json={"lat": 31.2636, "lon": -106.3953}, headers={"cf-connecting-ip": "203.0.113.51"}).status_code == 200
+    assert main.nivel_permitido("203.0.113.50", ahora=10**12)  # pasada la ventana, vuelve a pasar
+    main._nivel_ip.clear()

@@ -1,14 +1,14 @@
 """API mínima (VPS). Ejecutar desde la raíz:  uvicorn api.main:app --reload
 El juego DEBE funcionar sin esta API (usa los JSON de data/)."""
 from __future__ import annotations
-import json, os, pathlib, sqlite3, datetime
-from fastapi import FastAPI, HTTPException
+import collections, json, os, pathlib, sqlite3, datetime, threading, time
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from model.score import comparar
 from model.features import variables_tierra
 from model import nivel_vivo
-from api.tutor import router as tutor_router
+from api.tutor import router as tutor_router, ip_cliente, _entero
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 DB = ROOT / "api" / "propuestas.db"
@@ -75,10 +75,34 @@ class PuntoNivel(BaseModel):
     destino: str | None = None                                                     # solo cambia la nota de la superficie
 
 
+# /nivel consulta Earth Engine en cada llamada nueva: límite por IP en memoria (por proceso, como el de la tutora).
+_nivel_lock = threading.Lock()
+_nivel_ip: dict[str, collections.deque] = collections.defaultdict(collections.deque)
+
+
+def nivel_permitido(ip: str, ahora: float | None = None) -> bool:
+    """True si la IP no pasó de NIVEL_POR_IP llamadas (10) en NIVEL_VENTANA_S segundos (300)."""
+    ahora = time.time() if ahora is None else ahora
+    por_ip, ventana = _entero("NIVEL_POR_IP", 10), _entero("NIVEL_VENTANA_S", 300)
+    with _nivel_lock:
+        q = _nivel_ip[ip]
+        while q and ahora - q[0] > ventana:
+            q.popleft()
+        if len(q) >= por_ip:
+            return False
+        q.append(ahora)
+        if len(_nivel_ip) > 5000:  # no crecer sin límite
+            for k in [k for k, v in _nivel_ip.items() if not v or ahora - v[-1] > ventana]:
+                del _nivel_ip[k]
+    return True
+
+
 @app.post("/nivel")
-def nivel(p: PuntoNivel):
+def nivel(p: PuntoNivel, request: Request):
     """Nivel jugable de una coordenada: perfil real del DEM y superficie por tramos, con la misma regla que los de data/sites.
     El juego no depende de esto: los sitios con `nivel` en data/sites se juegan sin API."""
+    if not nivel_permitido(ip_cliente(request)):
+        raise HTTPException(429, "Demasiados niveles seguidos desde tu conexión: espera unos minutos.")
     mundo = destino(p.destino).get("mundo") if p.destino else None
     try:
         r = nivel_vivo.nivel_de_punto(p.lat, p.lon, p.diam_km, mundo)
