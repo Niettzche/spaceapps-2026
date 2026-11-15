@@ -12,7 +12,7 @@
   `/game/` y `/game/?lang=en` redirigen a `/` y conservan los parámetros, así que los enlaces viejos siguen funcionando.
   **Pendiente para Alan:** el README, `web/DEPLOY.md` y `docs/ENTREGA_EN.md` todavía dicen "web en `/` y juego en `/game/`"
   y "pending VPS publication". Hay que cambiarlos al enlace de arriba.
-- Versión publicada: el juego de `main` 9649ca8, ya bilingüe. Build: `cd game && npm ci && VITE_API_URL=/api npx vite build --base /`.
+- Versión publicada: el juego de `main` 0ad3b47 (PR #63, el último fusionado a las 03:35 UTC del 15 nov), bilingüe; pruebas del juego en verde (física 35, diseño 14, historial 10). Build: `cd game && npm ci && VITE_API_URL=/api npx vite build --base /`.
   No hay API publicada: `/api` da 404 y el juego usa los JSON que trae (regla 7).
 - **Servidor:** nginx sirve una carpeta por versión (`releases/game-<commit>`) y un enlace `current` apunta a la activa. Publicar o
   volver atrás es cambiar ese enlace. El dominio entra por un túnel de Cloudflare.
