@@ -129,7 +129,12 @@ export class Recorrido {
       ? tr(`regla (P): ${Math.round(metrosPared)} m de pared marcados como arena (OpenLandMap) con más de ${PARED_ARENA.grados}° se tratan como roca`,
         `rule (P): ${Math.round(metrosPared)} m of wall labelled sand (OpenLandMap) steeper than ${PARED_ARENA.grados}° are treated as rock`)
       : null;
-    const avisoNivel = [`${o.perfil.ilustrativo ? '⚠ ' : ''}${o.perfil.nota}${notaObs ? ` · ${notaObs}` : ''}${notaPared ? ` · ${notaPared}` : ''}`, notaDecor].filter(Boolean).join(' ');
+    const vPaso = this.pasosRoca.length ? Math.min(...this.pasosRoca.map((x) => x.v)) : null;
+    const notaPaso = vPaso != null
+      ? tr(`paso seguro (P): sin control en vivo, el robot frena solo a ${vPaso.toFixed(1)} m/s al cruzar cada roca para que la carga no salte la pared del soporte`,
+        `safe crossing (P): with no live control, the robot slows itself to ${vPaso.toFixed(1)} m/s over each rock so the payload does not hop over the support wall`)
+      : null;
+    const avisoNivel = [`${o.perfil.ilustrativo ? '⚠ ' : ''}${o.perfil.nota}${notaObs ? ` · ${notaObs}` : ''}${notaPaso ? ` · ${notaPaso}` : ''}${notaPared ? ` · ${notaPared}` : ''}`, notaDecor].filter(Boolean).join(' ');
     const avisoSuelo = notaSuelo(o.mundo, o.perfil.superficies);
     const avisoAmbiente = [this.destacado.nota(this.robot.masaTotal), notaAmbiente(this.ambiente)].filter(Boolean).join(' ');
     const nombreMundo = tr({ luna: 'la Luna', marte: 'Marte' }[o.mundo] ?? 'el destino', { luna: 'the Moon', marte: 'Mars' }[o.mundo] ?? 'the destination');
