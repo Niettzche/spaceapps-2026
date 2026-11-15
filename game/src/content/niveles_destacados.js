@@ -16,7 +16,7 @@ export const NIVELES_DESTACADOS = {
     lugar: { es: 'Anillo de toba Jabal Bayda', en: 'Jabal Bayda tuff ring' },
     tipo: 'volcan_toba',
     destino: 'jezero',
-    fondo: 'maar',
+    fondo: 'toba', // arte de Mauricio (#94): cono de toba sobre lava
     entrena: {
       es: 'Cruzar lapilli sueltos y bombas volcánicas con viento, como en el suelo suelto de Marte',
       en: 'Cross loose lapilli and volcanic bombs in the wind, like loose soil on Mars',
@@ -45,7 +45,7 @@ export const NIVELES_DESTACADOS = {
     lugar: { es: 'Cráter de impacto Tenoumer', en: 'Tenoumer impact crater' },
     tipo: 'impacto_desierto',
     destino: 'jezero',
-    fondo: 'desierto',
+    fondo: 'sahara', // arte de Mauricio (#94): mesetas y llanura de grava del Sáhara
     entrena: {
       es: 'Cruzar arena y subir el borde de un cráter entre bloques de eyecta: rueda grande y carga bien sujeta',
       en: 'Cross sand and climb a crater rim among ejecta blocks: big wheels and a well-strapped payload',
@@ -122,7 +122,7 @@ export const NIVELES_DESTACADOS = {
     lugar: { es: 'Cráter de impacto Pingualuit', en: 'Pingualuit impact crater' },
     tipo: 'impacto_helado',
     destino: 'jezero',
-    fondo: 'desierto',
+    fondo: 'artico', // arte de Mauricio (#94): tundra nevada y lago helado
     entrena: {
       es: 'Cruzar nieve profunda y hielo con frío ártico y el viento más fuerte de los cinco',
       en: 'Cross deep snow and ice in Arctic cold and the strongest wind of the five',
