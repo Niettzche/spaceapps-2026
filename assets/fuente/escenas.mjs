@@ -740,7 +740,10 @@ function menuNave() {
 // Los íconos de 16 × 16 de assets/iconos/ ampliados × 2 (vecino más cercano): mismo dibujo, para la bandeja de arrastrar y soltar.
 function piezasGrandes() {
   const partes = JSON.parse(readFileSync(join(ASSETS, '../game/src/content/parts.json'), 'utf8'));
-  for (const { id } of partes.piezas ?? partes) {
+  // las de parts.json, las nuevas del Taller (ids provisionales), el candado y las siluetas de las bloqueadas
+  const EXTRA = ['chasis_titanio', 'chasis_fibra_carbono', 'rueda_nitinol', 'modulo_autorescate', 'sellos_polvo', 'candado',
+    'silueta_orugas', 'silueta_patas', 'silueta_rotor', 'silueta_serpiente', 'silueta_rappel'];
+  for (const id of [...(partes.piezas ?? partes).map((x) => x.id), ...EXTRA]) {
     const img = leer(`iconos/${id}.png`), f = createFrame(img.w, img.h);
     f.color.set(img.color);
     guardar(`piezas/${id}.png`, escalar(f, 2));
