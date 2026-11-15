@@ -8,6 +8,8 @@ import { elegirSitio, sitioPagado } from './expediente/guardado.js';
 import { DESTINO_POR_DEFECTO, urlFicha } from './expediente/config.js';
 import {
   sitiosParaDestino, filasComparacion, limitesDe, formatoValor, formatoPorcentaje, esDemostracion, recortar, sinDato, esMina } from './expediente/logica.js';
+import { perfilDeSitio, perfilDeDestino } from '../fisica/perfil.js';
+import { lineasRecorrido } from '../fisica/estadisticas.js';
 import { ESTADOS, MUNDOS, PRUEBAS } from './expediente/textos.js';
 import { prepararIngles, enIdioma } from './expediente/datos_en.js';
 import { tr, trDato } from '../i18n.js';
@@ -166,8 +168,9 @@ export default class Expediente extends Phaser.Scene {
       add(texto(this, X0, y + 2, `${tr('Solo medido en la Tierra', 'Measured only on Earth')}: ${lista}`, { size: 10, color: COLOR.tenue, ancho: X1 - X0 }));
       y += 28;
     }
-    y = this.dibujarLimites(add, s, d, Math.max(y + 2, 300));
-    this.yInfo = y + 6;
+    y = this.dibujarLimites(add, s, d, Math.max(y + 2, 290));
+    y = this.dibujarRecorrido(add, s, d, y + 4);
+    this.yInfo = y + 4;
     this.capaInfo = this.add.container(0, 0);
     add(this.capaInfo);
     this.mostrarInfoInicial();
@@ -190,6 +193,27 @@ export default class Expediente extends Phaser.Scene {
     return y + alto;
   }
 
+  // Lo que va a enfrentar el robot: el MISMO tramo que arma la escena (fisica/perfil.js), con desnivel, pendientes,
+  // suelos y la condición crítica (fisica/estadisticas.js). Prueba en la Tierra (izq.) y misión en el destino (der.).
+  dibujarRecorrido(add, s, d, y) {
+    const alto = 74;
+    const mitad = (X1 - X0) / 2;
+    add(this.add.rectangle(X0 - 4, y, X1 - X0 + 8, alto, 0x10202a).setOrigin(0, 0).setStrokeStyle(1, 0x2a5a6b));
+    const columna = (x, titulo, lineas) => {
+      add(texto(this, x, y + 4, titulo, { size: 11, color: COLOR.acento }));
+      lineas.forEach((l, i) => add(texto(this, x, y + 19 + i * 13, recortar(l, 52),
+        { size: 10, color: i === lineas.length - 1 ? COLOR.texto : COLOR.tenue })));
+    };
+    let tierra;
+    let destino;
+    try { tierra = lineasRecorrido(perfilDeSitio(s), 'tierra'); } catch { tierra = [sinDato()]; }
+    try { destino = lineasRecorrido(perfilDeDestino(d), d.mundo); } catch { destino = [sinDato()]; }
+    const mundo = MUNDOS[d.mundo] || d.mundo;
+    columna(X0, tr('RECORRIDO DE LA PRUEBA (TIERRA)', 'TEST ROUTE (EARTH)'), tierra);
+    columna(X0 + mitad + 6, tr(`RECORRIDO DE LA MISIÓN (${String(mundo).toUpperCase()})`, `MISSION ROUTE (${String(mundo).toUpperCase()})`), destino);
+    return y + alto;
+  }
+
   // Caja inferior: por defecto proceso, uso y notas del cálculo; al tocar una fila, fuente, fecha y nota de ambos lados.
   mostrarInfoInicial() {
     this.capaInfo.removeAll(true);
@@ -202,7 +226,11 @@ export default class Expediente extends Phaser.Scene {
       tr('Toca una fila (o pulsa F) para ver fuente, fecha y nota completas de cada lado.',
         'Tap a row (or press F) to see the full source, date and note for each side.'),
     ];
-    this.capaInfo.add(texto(this, X0, this.yInfo, recortar(lineas.join('\n'), 640), { size: 10, color: COLOR.muyTenue, ancho: X1 - X0 }));
+    // Máximo 4 líneas: debajo están los botones de acción (y ≈ 495).
+    const t = texto(this, X0, this.yInfo, lineas.join('\n'), { size: 10, color: COLOR.muyTenue, ancho: X1 - X0 });
+    const env = t.getWrappedText(t.text);
+    if (env.length > 4) t.setText([...env.slice(0, 3), `${env[3].slice(0, -1)}…`]);
+    this.capaInfo.add(t);
   }
 
   mostrarFuentes(f) {

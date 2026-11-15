@@ -183,3 +183,13 @@ caso('inglés: analogía, recomendaciones y notas de perfil y suelo', () => {
   }
 });
 console.log(`${n} casos OK (con inglés)`);
+
+// Estadísticas del recorrido (fisica/estadisticas.js)
+import { estadisticasNivel } from './estadisticas.js';
+caso('estadísticas: subida, bajada y condición crítica de un perfil simple', () => {
+  const p = perfilDesdeElevaciones([0, 0, 10, 10, 0], { paso_m: 20, superficies: [{ desde: 0, hasta: 80, tipo: 'roca' }] });
+  const e = estadisticasNivel(p);
+  assert.ok(Math.abs(e.subida_m - 10) < 0.5 && Math.abs(e.bajada_m - 10) < 0.5);
+  assert.ok(e.pendMaxSubida > 20 && e.critica.sentido === 'subida' && e.critica.superficie === 'roca');
+});
+console.log(`${n} casos OK (con estadísticas)`);
