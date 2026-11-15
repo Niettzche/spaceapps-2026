@@ -3,7 +3,20 @@
 > Lo actualiza SOLO este frente. Rama: `feat/modelo`.
 
 **Responsable:** Mario  ·  **Agente:** Claude Code / Codex
-**Última actualización:** 15 nov 2026, mañana (ANA, la tutora de análogos; demo en https://v1.marsception.us/)
+**Última actualización:** 15 nov 2026, mañana (landing con divulgación científica en `informe/divulgacion/`; ANA, la tutora de análogos, ya en `main`; demo en https://v1.marsception.us/)
+
+## Hecho (landing con divulgación científica, 15 nov)
+- **`informe/divulgacion/`: landing del juego con la ciencia explicada** (Vite, bilingüe con `?lang=en`, tema oscuro y claro).
+  Portada inspirada en la pantalla de inicio del juego (pixel art animado, con el rover del juego), cómo se juega con capturas
+  reales, los dos destinos, la ciencia como **infografía de museo en pixel art** (medimos, comparamos, revisamos el borde, y lo que
+  la Tierra no puede imitar; imprimible como cartel), «Lo que encontramos y lo que aportamos» (cifras en dígitos de píxel sobre el
+  cielo de la portada), detalles técnicos plegables, Marsception for Business y fuentes. Scroll suave con Lenis.
+- Cifras: `informe/divulgacion/preparar_datos.py` genera `public/datos/` y comprueba cada cifra del texto contra
+  `model/VALIDATION.md`, `model/NIVEL2.md`, `docs/METODOLOGIA.md` y `data/sites/pinacate.json` (hoy coinciden todas). Incluye la
+  prueba fuera de muestra del borde (7 de 8) y el orden por borde contra forma (11 cráteres y 1 mina contra 3 y 14).
+- Probada en Firefox sin ventana (escritorio de 1280 a 1920, teléfono de 390 px, inglés): sin errores ni desbordamiento horizontal.
+- «Contactar a ventas» escribe a hola@marsception.us. Pendiente: publicarla en marsception.us cuando Mario lo decida y verificar dos
+  datos que no vienen del repo, ambos solo en los detalles técnicos: Pike (1977) y la presión de Marte (menos del 1 %).
 
 ## Hecho (ANA, la tutora de análogos, 15 nov, mañana; rama `feat/modelo-tutor`)
 - **Qué es:** una tutora en el juego (Expediente: botón «A · Tutora» o tecla A; menú principal: botón «Tutora ANA» arriba a la
@@ -111,6 +124,10 @@
   lo que no hay que decir. Y dos cuadernos ya ejecutados que vuelven a calcular sus cifras sin descargar nada:
   `01_borde_levantado.ipynb` y `02_cifras_de_la_guia.ipynb`. El generador y la última celda de cada cuaderno fallan si una cifra
   ya no coincide con `model/VALIDATION.md`.
+- **Banco de preguntas (15 nov, madrugada):** `informe/exposicion_modelo/preguntas_modelo.pdf` (generador
+  `informe/generar_preguntas_modelo.py`): 48 preguntas sobre el modelo en 10 temas, cada una con qué decir, qué añadir si
+  insisten y dónde está el respaldo. El generador se detiene si una frase citada ya no aparece en su documento
+  (`VALIDATION.md`, `AGENTS.md`, `score.py`, `NIVEL2.md`…). Las del juego (ruedas, batería) siguen en `docs/PITCH_QA_EN.md`.
 - **Figura «¿cráter o mina?» (14 nov, 23:40):** `informe/exposicion_modelo/figura_crater_o_mina_es.png` y `_en.png` (también
   `.svg`), para diapositivas y para la página en inglés. Corte de El Elegante (puesto 10 de 296 por el puntaje de forma) y del
   tajo G00219 de Arizona (puesto 3): solo el cráter sube sobre el terreno lejano. Los ejemplos salen de una regla (el mejor
