@@ -43,6 +43,17 @@ export const PALETAS = {
     cielo_maar: ['#3a5a8e', '#5a7cac', '#88a2c4', '#b6c4d0', '#d8d8d0', '#f2ecdc'],
     toba: ['#3e2a22', '#5e4232', '#82604a', '#a6805e', '#c6a07a', '#dcbe96'],
     harrat: ['#16130f', '#2a2420', '#433a32', '#6a5c4c', '#94826a', '#bca88a', '#d8c6a4'],
+    // cono de toba (Jabal Bayda): ceniza clara crema sobre lava oscura
+    toba_clara: ['#5a4a3a', '#8a7458', '#b49c78', '#d4c09a', '#ece0c0', '#faf2dc'],
+    // Sáhara: cielo de polvo, mesetas de arenisca y llanura de reg
+    cielo_sahara: ['#5a6a8a', '#8a94a4', '#b8b0a0', '#d8c8a8', '#ecdcb8', '#f8ecd0'],
+    meseta: ['#3a1e14', '#5e3020', '#86482c', '#ac6640', '#cc8a5a', '#e4ac78'],
+    reg: ['#2e2016', '#523a26', '#7a5838', '#a07a4e', '#c49e68', '#e2c088'],
+    // Ártico (Pingualuit): cielo de sol bajo, tundra, nieve y lago helado
+    cielo_artico: ['#2a3a6a', '#4a6a9a', '#8aa4c8', '#c4cce0', '#ecd4d8', '#fae8e0'],
+    tundra: ['#1c2018', '#30362a', '#4a4e3a', '#6a6a4c', '#8c845e'],
+    nieve: ['#7a8aa8', '#a8b8d0', '#cad6e6', '#e6eef6', '#ffffff'],
+    hielo_lago: ['#3a5a8a', '#5a84b4', '#8ab0d8', '#bcd6ee'],
   },
   marte: {
     // óxido (Jezero)

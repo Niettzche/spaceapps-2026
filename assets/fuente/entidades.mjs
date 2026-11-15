@@ -32,6 +32,18 @@ export function generar() {
   ];
   tira(D + 'chasis_ligero.png', 24, 6, 2, (p, i) => filas(p, chasis[i]));
   pinturas('chasis_ligero', chasis, 6);
+  // materiales (SPRITES_PENDIENTES §7): mismo dibujo y tamaño que el chasis ligero, con la carrocería del material
+  const MATERIALES = {
+    chasis_titanio: ['#c8d4ec', '#8c9cc4', '#5a6a94', '#28304c'],      // gris metálico frío, azulado (distinto del ligero)
+    chasis_carbono: ['#6a6a78', '#3a3a46', '#22222c', '#0a0a10'],      // negro
+  };
+  for (const [id, [h, l, m, d]] of Object.entries(MATERIALES)) {
+    const pal = { ...BASE, h, l, m, d };
+    tira(D + id + '.png', 24, 6, 2, (q, i) => {
+      filas(q, chasis[i], 0, 0, pal);
+      if (id === 'chasis_carbono') for (let x = 2; x < 22; x++) if ((x >> 1) % 2 === 0 && !/[kxO]/.test(chasis[i][3][x])) q.px(x, 3, hex('#3a3a46'));   // trama tejida
+    });
+  }
 
   // ---- rueda_estandar: 7 × 7, 4 cuadros en orden de giro horario (marca naranja que avanza 90° por cuadro).
   // Se distingue de la ancha por el tono: llanta delgada y rin plateado brillante (se lee "metálica").
@@ -150,6 +162,7 @@ export function generar() {
   generarDeco();
   generarObstaculos();
   generarGeologia();
+  generarMontados();
   generarPiezasNuevas();
 
   tira(D + 'zona_entrega.png', 16, 4, 1, (p) => {
@@ -260,6 +273,7 @@ export function generarDeco() {
     deco_panel_solar_grande: ['..............', '.SsSsSsmSsSsS.', '..............'], // dos módulos, más largo
     deco_calentador_bateria: ['.....', '.oOo.', '.OoO.', '.....'],  // resistencia naranja (calor)
     deco_radiador: ['......', '.hdhd.', '.ldld.', '......'],         // aletas de disipación
+    deco_auto_rescate: ['.....', '.y.y.', '.lml.', '.....'],       // módulo con dos patas que se levantan
   };
   for (const [nombre, rows] of Object.entries(decos)) tira(D + nombre + '.png', rows[0].length, rows.length, 1, (p) => filas(p, rows));
 }
@@ -322,6 +336,16 @@ function pinturas(id, cuadros, alto) {
 
 // ---------------------------------------------------------------- piezas nuevas del taller (ids provisionales)
 export function generarPiezasNuevas() {
+  // ---- rueda_nitinol: 7 × 7, 4 cuadros. Llanta de malla de resortes superelástica, más clara que la del LRV; marca turquesa.
+  const borde7 = [[2, 1], [3, 1], [4, 1], [5, 2], [5, 3], [5, 4], [4, 5], [3, 5], [2, 5], [1, 4], [1, 3], [1, 2]];
+  tira(D + 'rueda_nitinol.png', 7, 7, 4, (q, i) => {
+    const r = ['.......', '.......', '..g.g..', '...l...', '..g.g..', '.......', '.......'].map((x) => [...x]);
+    borde7.forEach(([x, y], j) => { r[y][x] = (j + i) % 2 ? 'w' : 'h'; });
+    const [mx, my] = borde7[(i * 3) % 12];
+    r[my][mx] = 'c';
+    filas(q, r.map((a) => a.join('')));
+  });
+
   // ---- rueda_malla: 8 × 8, 4 cuadros. Malla de acero tejida (LRV de Apolo): llanta plateada en cuadrícula abierta,
   // chevrón de titanio oscuro que avanza 90° por cuadro (horario) y cubo de aluminio.
   const anillo8 = [[3, 1], [4, 1], [5, 2], [6, 3], [6, 4], [5, 5], [4, 6], [3, 6], [2, 5], [1, 4], [1, 3], [2, 2]];
@@ -380,4 +404,32 @@ export function generarGeologia() {
   tile('obstaculo_sal', (x, y) => ((x === 5 || x === 12) && y > 0 ? SAL[1] : y === 0 ? ((x % 7 === 3) ? SAL[2] : SAL[3]) : (x + y) % 9 === 0 ? SAL[1] : SAL[2]));
   // nieve o hielo: blanco azulado con brillos, hielo más azul abajo
   tile('obstaculo_hielo', (x, y) => (y === 0 ? ((x * 3) % 8 === 1 ? '#ffffff' : '#e6f2ff') : y === 1 ? ((x % 5 === 2) ? '#ffffff' : '#c4dcf4') : y === 2 ? '#9cc4ec' : '#6a9ad0'));
+}
+
+// ---------------------------------------------------------------- sprites montados en el robot (piezas de la ronda 2)
+// suspension_blanda (3 × 6) y suspension_dura (3 × 5): resorte que va entre el chasis y el eje de cada rueda (uno por rueda).
+// faro (4 × 3, 2 cuadros: apagado y encendido): va en la punta delantera del chasis; faro_haz (12 × 5) es el cono de luz.
+// chasis_rocker_bogie (28 × 10, 2 cuadros: normal y dañado): caja de 24 px con el balancín abajo; las 6 ruedas las pone el
+// juego en los extremos de los brazos: x 2, 13 y 25, y 9 (centro de cada rueda, en px de arte desde la esquina del sprite).
+export function generarMontados() {
+  tira(D + 'suspension_blanda.png', 3, 6, 1, (q) => filas(q, ['lml', '.Y.', 'Y.Y', '.Y.', 'Y.Y', 'lml']));
+  tira(D + 'suspension_dura.png', 3, 5, 1, (q) => filas(q, ['lml', 'RhR', 'rhr', 'RhR', 'lml']));
+  tira(D + 'faro.png', 4, 3, 2, (q, i) => filas(q, i ? ['mYY.', 'mwY.', 'mYY.'] : ['mll.', 'mhl.', 'mll.']));
+  tira(D + 'faro_haz.png', 12, 5, 1, (q) => {
+    for (let x = 0; x < 12; x++) for (let y = 0; y < 5; y++) {
+      const ancho = 0.5 + x * 0.2;
+      if (Math.abs(y - 2) <= ancho && (x + y) % 2 === 0) q.px(x, y, hex(x < 4 ? '#fff6c0' : '#ffd166'));
+    }
+  }, { contorno: false });
+  const cuerpo = [
+    ['............................', '..hhhhhhhhhhhhhhhhhhhhhhY...', '..cllloooooolllllllllllyy...', '..mmmmmmmmmmdmmmmmmmdmmmm...'],
+    ['............................', '..hhhhhhh..hhhhhxhhhhhhdd...', '..cllkOOOOOxlllllkllllldd...', '..mmmmmkmmmmdmmxxmmmdmmmm...'],
+  ];
+  tira(D + 'chasis_rocker_bogie.png', 28, 10, 2, (q, i) => {
+    filas(q, cuerpo[i], 0, 0);
+    // rocker: del pivote bajo la caja (x 9) a la rueda trasera (x 2) y al pivote del bogie (x 18); bogie a las ruedas x 13 y 25
+    const linea = (x0, y0, x1, y1) => { const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)); for (let k = 0; k <= n; k++) q.px(Math.round(x0 + ((x1 - x0) * k) / n), Math.round(y0 + ((y1 - y0) * k) / n), hex(BASE.m)); };
+    linea(9, 4, 2, 9); linea(9, 4, 18, 7); linea(18, 7, 13, 9); linea(18, 7, 25, 9);
+    q.px(9, 4, hex(BASE.y)); q.px(18, 7, hex(BASE.y));
+  });
 }
