@@ -2,7 +2,7 @@
 
 An open-data Earth-analog explorer and 2D rover game for preparing selected Moon and Mars operations.
 
-**Public demo:** [web explorer](https://v1.marsception.us/) · [rover game in English](https://v1.marsception.us/game/?lang=en) · [captioned overview video](https://v1.marsception.us/media/mision-cero-30s-en.mp4). Deployment is managed by Mario; the new English gameplay recordings will follow the next publication from main.
+**Public demo:** [web explorer](https://v1.marsception.us/) · [rover game in English](https://v1.marsception.us/game/?lang=en) · [English-interface gameplay recording](https://v1.marsception.us/media/mision-cero-30s-en.mp4?v=20261114-222205). Deployment is managed by Mario. The supplied recording is 55.53 seconds and shows the beginning of the Mars route; the final submission cut must be at most 30 seconds. The new recording becomes public after this change is deployed.
 
 NASA Space Apps 2026 · Monterrey / UDEM. Challenge: [Identify Earth Locations that Analog the Permanent Moon Base Locations and Mars](https://www.spaceappschallenge.org/2026/challenges/permanent-moon-base-locations-and-mars/).
 
