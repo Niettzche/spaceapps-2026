@@ -3,7 +3,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolverDiseno, DISENO_POR_DEFECTO, RANURAS, RANURAS_OBLIGATORIAS, RUEDAS_POR_RANURA } from './diseno.js';
 import * as taller from '../scenes/Taller/diseno.js';
-import { SUPERFICIES, generarPerfil, perfilDesdeElevaciones, perfilDeSitio, perfilDeDestino, ventanaRepresentativa, superficieEn, alturaEn, pendienteMaxima } from './perfil.js';
+import {
+  SUPERFICIES, generarPerfil, perfilDesdeElevaciones, perfilDeSitio, perfilDeDestino, ventanaCritica, transectoEnSentido, metricasVentana, VENTANAS_JUEGO,
+  superficieEn, alturaEn, pendienteMaxima,
+} from './perfil.js';
 import { danioCarga, danioChasis } from './danio.js';
 import { gastoPorSegundo } from './energia.js';
 import { puntuar } from '../feedback/puntuacion.js';
@@ -75,20 +78,69 @@ caso('caras de duna recreadas solo en arena y declaradas', () => {
   assert.ok(pendienteMaxima(arena) > 28 && arena.recreacion.length === 1 && /recreadas/.test(arena.nota));
   assert.ok(pendienteMaxima(roca) < 1 && roca.recreacion.length === 0);
 });
-caso('misión real: ventana con la pendiente media más parecida a la típica del destino', () => {
-  // 12 segmentos de 80 m: 2° ×5, 9° ×4, 25° ×3. Objetivo 8.6° → la ventana que empieza en el segmento 5 (media 9°).
-  const grados = [2, 2, 2, 2, 2, 9, 9, 9, 9, 25, 25, 25];
+// Cráter sintético de 30 m por punto: llano, pared oeste que baja (20° ×8, con un escalón de 45°), fondo, pared este de 45° ×6, llano.
+const crater = (() => {
+  const grados = [0, 0, 0, 0, 0, 0, 0, 0, -45, -20, -20, -20, -20, -20, -20, -20, -20, 0, 0, 0, 0, 0, 0, 0, 0, 45, 45, 45, 45, 45, 45, 0, 0, 0, 0, 0, 0, 0, 0];
   const elev = [0];
-  for (const g of grados) elev.push(elev.at(-1) + 80 * Math.tan((g * Math.PI) / 180));
-  const v = ventanaRepresentativa(elev, 80, 250, 8.6);
-  assert.equal(v.i0, 5);
-  assert.ok(Math.abs(v.media - 9) < 1e-9);
-  assert.equal(ventanaRepresentativa(elev, 80, 250, undefined), null);
-  const p = perfilDeDestino({ id: 'x', mundo: 'luna', variables: { pendiente: { valor: 8.6 } }, nivel: { perfil_elevacion_m: elev, paso_m: 80, fuente: 'test' } });
-  assert.equal(p.ilustrativo, false);
-  assert.equal(p.ventana.desde_m, 400);
-  assert.equal(p.largo_m, 18 + 250 + 30);
-  assert.match(p.nota, /desde el m 400\) de un transecto de 960 m, elegido por su pendiente media/);
+  for (const g of grados) elev.push(elev.at(-1) + 30 * Math.tan((g * Math.PI) / 180));
+  return { elev, total: 30 * grados.length };
+})();
+caso('ventana crítica: sale del cráter por la pared transitable, recorriendo el transecto al revés', () => {
+  const sup = [{ desde: 0, hasta: crater.total, tipo: 'arena' }];
+  const v = ventanaCritica(crater.elev, 30, sup, { largo: 250 });
+  assert.equal(v.sentido, 'vuelta'); // en los datos la pared oeste es bajada; para subirla hay que ir de este a oeste
+  assert.ok(v.transitable && v.max_subida <= 30 && v.max_bajada <= 30);
+  assert.ok(v.desde_m >= 270 && v.hasta_m <= 510 + 250, `${v.desde_m}-${v.hasta_m}`);
+  assert.ok(Math.abs(v.subida_m - 8 * 30 * Math.tan((20 * Math.PI) / 180)) < 1e-6, `${v.subida_m}`); // las 8 rampas de 20°
+  // Con un límite de 50° gana la pared este (más metros de subida), en el sentido de los datos.
+  const empinada = ventanaCritica(crater.elev, 30, sup, { largo: 250, maxSubida: 50, maxBajada: 50 });
+  assert.equal(empinada.sentido, 'ida');
+  assert.ok(empinada.max_subida > 44);
+});
+caso('ventana crítica: la superficie difícil suma criticidad', () => {
+  // Dos subidas iguales de 10°; la segunda es roca. Con superficie difícil = roca gana la segunda; con arena, la primera.
+  const grados = [...Array(9).fill(10), ...Array(9).fill(0), ...Array(9).fill(10)];
+  const elev = [0];
+  for (const g of grados) elev.push(elev.at(-1) + 30 * Math.tan((g * Math.PI) / 180));
+  const sup = [{ desde: 0, hasta: 540, tipo: 'arena' }, { desde: 540, hasta: 810, tipo: 'roca' }];
+  assert.ok(ventanaCritica(elev, 30, sup, { largo: 250, superficieDificil: 'roca' }).desde_m >= 540);
+  assert.ok(ventanaCritica(elev, 30, sup, { largo: 250, superficieDificil: 'arena' }).hasta_m <= 280);
+});
+caso('transecto en sentido inverso: elevaciones y superficies espejadas', () => {
+  const o = transectoEnSentido([0, 1, 5], 10, [{ desde: 0, hasta: 5, tipo: 'roca' }, { desde: 5, hasta: 20, tipo: 'arena' }], 'vuelta');
+  assert.deepEqual(o.elevaciones, [5, 1, 0]);
+  assert.deepEqual(o.superficies, [{ desde: 0, hasta: 15, tipo: 'arena' }, { desde: 15, hasta: 20, tipo: 'roca' }]);
+  const m = metricasVentana([0, 10, 0], 10, 0, 20, [{ desde: 0, hasta: 20, tipo: 'roca' }], 'roca');
+  assert.ok(Math.abs(m.subida_m - 10) < 1e-9 && Math.abs(m.bajada_m - 10) < 1e-9 && Math.abs(m.max_subida - 45) < 1e-9 && m.fraccion_dificil === 1);
+});
+caso('perfil con ventana fija en sentido inverso: sube, se declara y no recrea dunas en una pared', () => {
+  const sup = [{ desde: 0, hasta: crater.total, tipo: 'arena' }];
+  const p = perfilDesdeElevaciones(crater.elev, { paso_m: 30, superficies: sup, ventana: { desde_m: 270, hasta_m: 510, sentido: 'vuelta' }, dunasRecreadas: true, descripcion: ['salida del cráter', 'out of the crater'] });
+  assert.equal(p.ventana.sentido, 'vuelta');
+  assert.equal(p.largo_m, 18 + 240 + 30);
+  assert.ok(p.y_m.at(-1) - p.y_m[0] > 80, 'el tramo sube');
+  assert.match(p.nota, /del m 510 al m 270, sentido inverso del transecto\) de un transecto de 1\.2 km, sube 87 m, pendiente máx\. 20° de subida: salida del cráter/);
+  assert.ok(pendienteMaxima(p) < 21, `sin caras de duna sobre la pared de 20°: ${pendienteMaxima(p)}`);
+});
+caso('niveles reales: ventana fija de VENTANAS_JUEGO, sin paredes de más de 33° en el DEM', () => {
+  const leer = (ruta) => JSON.parse(readFileSync(new URL(`../../../data/${ruta}.json`, import.meta.url)));
+  const esperado = { mx0207: 'ida', g00281: 'vuelta', samalayuca: 'vuelta', pinacate: 'vuelta', polo_sur_lunar: 'ida', jezero: 'vuelta' };
+  for (const [id, sentido] of Object.entries(esperado)) {
+    const datos = ['jezero', 'polo_sur_lunar'].includes(id) ? leer(`targets/${id}`) : leer(`sites/${id}`);
+    const p = datos.mundo ? perfilDeDestino(datos) : perfilDeSitio(datos);
+    const v = VENTANAS_JUEGO[id];
+    assert.equal(p.ventana.sentido, sentido, id);
+    assert.equal(p.ventana.desde_m, v.desde_m, id);
+    assert.equal(p.ventana.hasta_m, v.hasta_m, id);
+    assert.ok(p.ventana.pendiente_max_subida <= 33, `${id}: ${p.ventana.pendiente_max_subida}`);
+    assert.ok(p.ventana.subida_m > 10, `${id}: sube ${p.ventana.subida_m}`);
+    assert.match(p.nota, new RegExp(`sube ${Math.round(p.ventana.subida_m)} m`));
+  }
+  // Si el transecto de los datos cambia de largo, la ventana fija no se usa (se cae a la regla general).
+  const mina = leer('sites/mx0207');
+  const corto = perfilDeSitio({ ...mina, nivel: { ...mina.nivel, perfil_elevacion_m: mina.nivel.perfil_elevacion_m.slice(0, 80) } });
+  assert.notEqual(corto.ventana.desde_m, VENTANAS_JUEGO.mx0207.desde_m);
+  assert.equal(corto.ventana.pieza_clave, null);
 });
 caso('misión ilustrativa: arena, inclinación media = pendiente típica del destino, sin paredes de más de 25°', () => {
   for (const [mundo, g] of [['luna', 8.63], ['marte', 3.56]]) {
@@ -173,7 +225,7 @@ caso('inglés: analogía, recomendaciones y notas de perfil y suelo', () => {
     assert.equal(recs[0].evidencia, 'Your wheels slipped 2 times on sand.');
     const elev = Array.from({ length: 101 }, () => 0);
     const p = perfilDesdeElevaciones(elev, { paso_m: 30, superficies: [{ desde: 0, hasta: 3000, tipo: 'arena' }], dunasRecreadas: true, fuente: 'DEM, muestreo a 30 m; rumbo 90°' });
-    assert.match(p.nota, /^Measured profile \(DEM, sampled at 30 m; bearing 90°\) · real 250 m stretch \(from m \d+\) of a 3\.0 km transect/);
+    assert.match(p.nota, /^Measured profile \(DEM, sampled at 30 m; bearing 90°\) · real 250 m stretch \(from m \d+ to m \d+\) of a 3\.0 km transect, climbs 0 m, max 0° uphill · /);
     assert.ok(p.nota.includes('recreated dune faces') && p.nota.endsWith('flat start and finish = recreation'));
     assert.match(generarPerfil({ tipo: 'dunas' }).nota, /^Illustrative generated terrain \(dunes\)/);
     const suelo = notaSuelo('tierra', [{ tipo: 'arena' }, { tipo: 'roca' }]);
