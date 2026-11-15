@@ -3,11 +3,11 @@
 Exactly seven slides, in English, in the requested order:
 
 1. Earth training and destination limits.
-2. MARSCEPTION: analog explorer and rover experiments.
+2. MARSCEPTION: seven featured Earth levels, Discover catalog and ANA tutor.
 3. Separate checks: 9/11 documented Mexican craters, about 78% spatially grouped balanced accuracy, 296 arid candidates.
 4. NASA MODIS, POWER, LRO/LOLA and MOLA, with ESA Copernicus and HRSC identified separately.
 5. Four illustrated steps of the golden path.
-6. Gravity, atmosphere, radiation/cold and the game's sinkage limit.
+6. Gravity, atmosphere and radiation/cold limits; physics v2 models Bekker–Wong sinkage and Mohr–Coulomb traction, with reference/simulant parameter limits in the notes.
 7. Educational use, open scientific review and next-step pilots.
 
 ## Files
@@ -29,7 +29,7 @@ The PDF copy in `web/public/media/` is identical to the submission PDF. No websi
 
 - Claims: `docs/GUION_PITCH.md`, `docs/METHODOLOGY_EN.md`, `model/VALIDATION.md`.
 - Source portals and papers: the notes of each relevant slide retain URLs.
-- Art: Mauricio's `docs/media/proyecto_space_apps.png`, `assets/pantallas/`, `assets/tutorial/` and planet strips in `assets/menu/`. Original code-generated, AI-assisted game art; illustration, not a measured place or completed playtest.
+- Art: Mauricio's `docs/media/proyecto_space_apps.png`, `assets/pantallas/`, `assets/tutorial/` and planet strips in `assets/menu/`. Original code-generated, AI-assisted game art; illustration, not a measured place or completed playtest. Slide 2 also uses real DEM-derived relief of Rincón de Parangueo, explicitly labeled; its seven-level summary follows `docs/juego/NIVELES_DESTACADOS.md` and `docs/taller/FUENTES_NIVELES.md`.
 - Real DEM relief: the existing Earth, lunar and Martian renderings in `web/public/data/img/`.
 - AI declaration: `docs/USO_IA.md`. Art-bearing slides show the AI assistance declaration; slide 2 retains the embedded watermark.
 - pixelfx effects and fonts: MIT License, © 2026 Patch and Hugo Duprez. No NASA logo or endorsement is used.

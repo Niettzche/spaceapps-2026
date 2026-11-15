@@ -69,15 +69,29 @@ function foot(s, label) { text(s, label, 48, 657, 1150, 35, 18, C.muted); }
   box(s, 48, 658, 400, 36, C.bg, C.bg);
   text(s, 'AI-assisted game art', 58, 660, 380, 30, 18, C.muted);
 }
-// 2. The solution
+// 2. The solution: seven featured levels, Discover and ANA
 {
-  const s = slide('MARSCEPTION', 'Product and scope: docs/GUION_PITCH.md; docs/METHODOLOGY_EN.md. Demo https://v1.marsception.us/');
-  await art(s, 'docs/media/proyecto_space_apps.png', 456, 156, 776, 437);
-  text(s, 'Earth analogs', 48, 196, 410, 56, 36, C.data, true);
-  text(s, 'Evidence and limits', 48, 257, 400, 64, 28);
-  text(s, 'Rover experiments', 48, 372, 410, 90, 36, C.action, true);
-  text(s, 'Build. Test. Improve.', 48, 469, 420, 64, 28);
-  foot(s, 'Mexico + Atacama, Arizona, Arabia. 3 of 10 prioritized arid regions.');
+  const s = slide('MARSCEPTION: 7 Earth tests', 'docs/juego/NIVELES_DESTACADOS.md; docs/taller/FUENTES_NIVELES.md; game/src/tutor/conocimiento.js and panel.js. Discover filters the exported catalog and explains its evidence. ANA suggested questions work offline; free questions require the live AI service and may be wrong. Level art is illustrative, except the Rincon elevation-derived relief. Snow is a game abstraction, not a validated lunar/Mars soil analog. Cananea is our operational analogy.');
+  text(s, 'Discover the catalog. Compare evidence. Ask ANA.', 48, 132, 1184, 50, 28, C.data);
+  const levels = [
+    ['Jabal Bayda', 'Tuff ring', 'assets/pantallas/sitio_g00266.png'],
+    ['Tenoumer', 'Sahara impact', 'assets/pantallas/sitio_tenoumer.png'],
+    ['Cananea', 'Open pit', 'assets/pantallas/sitio_mx0023.png'],
+    ['Pinacate', 'Lava field', 'assets/pantallas/sitio_pinacate.png'],
+    ['Pingualuit', 'Arctic impact', 'assets/pantallas/sitio_pingualuit.png'],
+    ['Samalayuca', 'Dunes', 'assets/pantallas/sitio_samalayuca.png'],
+    ['Rincon de Parangueo', 'Dry maar lake', 'web/public/data/img/MX0261.png'],
+  ];
+  for (let i = 0; i < levels.length; i++) {
+    const [name, type, image] = levels[i];
+    const x = 48 + (i % 4) * 304, y = i < 4 ? 204 : 428;
+    await art(s, image, x, y, 272, 136);
+    text(s, name, x, y + 141, 280, 36, 24, C.action, true);
+    text(s, type, x, y + 177, 280, 32, 22);
+  }
+  text(s, 'ANA', 960, 447, 270, 48, 36, C.data, true);
+  text(s, 'Offline questions\nOptional live AI\nSources and limits', 960, 500, 270, 112, 24);
+  foot(s, 'AI-assisted game art. Rincon: DEM relief. Added obstacles and part balance are game values (P).');
 }
 // 3. Distinct scientific checks
 {
@@ -115,24 +129,24 @@ function foot(s, label) { text(s, label, 48, 657, 1150, 35, 18, C.muted); }
 }
 // 5. Four vignettes of the golden path
 {
-  const s = slide('A design improves through testing', 'AGENTS.md section 11; docs/juego/ESPECIFICACION.md; docs/METHODOLOGY_EN.md. Samalayuca standard wheels slip; wide wheels improve the calibrated game test. Artwork illustrates the intended path and is not a screenshot of a completed run.');
+  const s = slide('A design improves through testing', 'AGENTS.md section 11; docs/juego/ESPECIFICACION.md; docs/METHODOLOGY_EN.md. Samalayuca standard wheels slip; wide wheels improve the calibrated game test. Lunar golden path: Al Hutaymah maar, g00263 (not Al Wahbah). Artwork illustrates the intended path and is not a screenshot of a completed run.');
   const titles = ['1  Choose an analog', '2  Build a rover', '3  Test and improve', '4  Deliver supplies'];
-  const details = ['Compare the evidence', 'Parts within a budget', 'Slip. Change wheels. Retry.', 'Mars or Moon mission'];
+  const details = ['Mars: Samalayuca\nMoon: Al Hutaymah', 'Parts within a budget', 'Slip. Change wheels. Retry.', 'Mars or Moon mission'];
   for (let i = 0; i < 4; i++) {
     const x = 40 + i * 304;
     await art(s, `assets/tutorial/tutorial_${i + 1}.png`, x, 190, 288, 192);
     text(s, titles[i], x, 411, 288, 80, 26, C.action, true);
     text(s, details[i], x, 507, 288, 96, 24);
   }
-  foot(s, 'AI-assisted game art. Prices, parts and scores are game values (P).');
+  foot(s, 'Game values (P): prices, parts, scores. Art created with AI.');
 }
 // 6. Limits
 {
-  const s = slide('Where the analogy breaks down', 'docs/METHODOLOGY_EN.md; data/targets; docs/taller/Space_Apps_Game_Data.xlsx, Judges and Ambiente. https://ssd.jpl.nasa.gov/planets/phys_par.html . Soft-soil sinkage is not modeled.');
+  const s = slide('Where the analogy breaks down', 'docs/METHODOLOGY_EN.md; data/targets; docs/taller/Space_Apps_Game_Data.xlsx, Judges and Ambiente. https://ssd.jpl.nasa.gov/planets/phys_par.html . Physics v2: Bekker-Wong sinkage, Mohr-Coulomb traction. Earth dry sand is generic; lunar Bekker constants are LRV design values, not measurements; Mars uses M90 simulant. Source: docs/juego/FISICA_V2.md; docs/taller/FUENTES_FISICA.md; https://www.lpi.usra.edu/publications/books/lunar_sourcebook/pdf/Chapter09.pdf .');
   await art(s, 'assets/pantallas/destino_polo_sur_lunar.png', 48, 192, 528, 352);
   const limits = [ ['Gravity', 'Earth 9.81 / Mars 3.71 / Moon 1.62 m/s²'], ['Atmosphere', 'Lunar vacuum / thin Martian air'], ['Radiation and cold', 'Destination conditions need separate tests'] ];
   limits.forEach(([name, detail], i) => { const y = 166 + i * 147; text(s, name, 624, y, 600, 52, 34, C.risk, true); text(s, detail, 624, y + 55, 588, 82, 26); });
-  foot(s, 'AI-assisted game art. The game models slip; sinkage stays outside its scope.');
+  foot(s, 'Illustration made with AI. Bekker-Wong sinkage / Mohr-Coulomb traction.');
 }
 // 7. Impact and next step
 {

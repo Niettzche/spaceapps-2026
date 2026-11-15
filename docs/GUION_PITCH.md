@@ -14,6 +14,8 @@ Construimos MARSCEPTION: un explorador de análogos y un juego de rover con dato
 
 Reproducir el corte final de 30 s sin hablar encima: prueba terrestre, fallo, ajuste del robot, entrega y límites de la analogía. Mientras se prepara ese corte, el video actual dura 25 s; reservar los cinco restantes para la transición. No sustituirlo por un recorrido en vivo completo: no cabe en este segmento.
 
+Preparar dos recorridos en inglés después de que Mario publique la versión nueva: **Samalayuca → Marte** y **maar Al Hutaymah (`g00263`) → Luna**. Al Wahbah sigue siendo un ejemplo bibliográfico de análogo conocido en el texto de evidencia; ya no es el nivel del camino dorado lunar. Capturar también resultados y «Where the analogy breaks down». Hasta tener la captura, usar la diapositiva 5 como ilustración y no presentarla como una partida completada.
+
 ## 1:15–1:44 · Evidencia y límites
 
 El modelo explicable distingue cráteres lunares y marcianos con un 78 por ciento de exactitud balanceada y validación espacial. Recupera análogos conocidos: Colton, del entrenamiento del Apolo quince, y Al Wahbah, publicado para Encélado, que proponemos para la Luna. No son descubrimientos nuevos. La gravedad, el vacío y la radiación marcan dónde termina la analogía.
@@ -29,8 +31,8 @@ MARSCEPTION conecta datos con decisiones: elegir un terreno, probar un diseño y
 - **NASA:** MODIS, POWER, LOLA/LRO, MOLA y GIBS; Copernicus y HRSC son de ESA.
 - **Marte:** JPL publica 3.71 como gravedad ecuatorial; la ficha media publica 3.73. Elegimos 3.71 uniformemente, con un factor común de escala del juego.
 - **Modelo y cifras:** 6 sitios marcianos, 573 cráteres; 76 % usando solo profundidad/diámetro. Prefiltro complementario: 3/3 negativos y 9/21 análogos conocidos (`model/VALIDATION.md`); no confundirlo con el detector (9/11). Fuentes ampliadas en [metodología en inglés](METHODOLOGY_EN.md) y [preguntas de jueces](PITCH_QA_EN.md).
-- **Taller:** consultar las hojas Judges y Ambiente de `docs/taller/Space_Apps_Game_Data.xlsx`. Velocidad y precios son valores de juego; el hundimiento del suelo no está modelado. No afirmar que las ruedas anchas habrían salvado a Spirit.
-- **Pendientes:** grabar después de la publicación de Mario; verificar UI, enlaces públicos y video final. Edmundo confirma el envío oficial.
+- **Taller:** consultar las hojas Judges y Ambiente de `docs/taller/Space_Apps_Game_Data.xlsx`. Física v2: hundimiento por Bekker–Wong y tracción por Mohr–Coulomb, con parámetros de referencia y simulantes declarados; no son mediciones de cada sitio. Velocidad y precios son valores de juego. Consultar también la metodología actualizada. No afirmar que las ruedas anchas habrían salvado a Spirit.
+- **Captura del 15 nov:** ambos caminos se completaron en la UI inglesa publicada: Marte, 845 puntos y dos estrellas; Luna, 825 puntos y dos estrellas. Hay tomas de Descubrir, ANA y los siete niveles. Falta guardar/verificar el MP4 y montar el tráiler con `docs/media/TRAILER_GUION.md`; no confundir las tomas breves abandonadas de los otros niveles con recorridos completos. Edmundo confirma el envío oficial.
 
 ## Control de tiempo
 
