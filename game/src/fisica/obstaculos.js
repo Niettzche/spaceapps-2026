@@ -90,7 +90,7 @@ export function notaObstaculos(lista) {
     `recreated obstacles (${partes.join(', ')}; the elevation model does not resolve them)`);
 }
 
-// Colores provisionales (hasta que haya arte `obstaculo_roca`): un tono más oscuro que la roca de cada mundo.
+// Colores provisionales (si falta el arte `obstaculo_roca_*`): un tono más oscuro que la roca de cada mundo.
 const COLOR_ROCA = { tierra: [0x5a5560, 0x8a8490], marte: [0x6a3c2e, 0x9a6050], luna: [0x5e5e64, 0x9a9aa2] };
 const COLOR_ARENA_BLANDA = { tierra: 0xc49a58, marte: 0xa9603a, luna: 0x86868c };
 
@@ -100,9 +100,12 @@ const COLOR_ARENA_BLANDA = { tierra: 0xc49a58, marte: 0xa9603a, luna: 0x86868c }
  * @param {object} perfil
  * @param {{ xMundo, yMundo }} terreno  conversores de construirTerreno
  * @param {Array} lista  de generarObstaculos
- * @param {{ mundo, sprite?: (nombre, opciones) => object|null }} o  sprite = fisica/aspecto.js sprite (arte si existe)
+ * @param {{ mundo, sprite?, hayArte? }} o  sprite / hayArte = los de fisica/aspecto.js (arte si existe; si no, figura)
  */
-export function crearObstaculos(scene, perfil, { xMundo, yMundo }, lista, { mundo = 'tierra', sprite = null } = {}) {
+export function crearObstaculos(scene, perfil, { xMundo, yMundo }, lista, { mundo = 'tierra', sprite = null, hayArte = () => false } = {}) {
+  // Arte por mundo con respaldo al de la Tierra: obstaculo_roca_<mundo>_<n> → obstaculo_roca_<n>; arena igual.
+  const elegir = (base, sufijo = '') => [mundo !== 'tierra' && `${base}_${mundo}${sufijo}`, `${base}${sufijo}`]
+    .find((n) => n && hayArte(scene, n)) ?? null;
   const PX = 3; // 1 px de arte
   const g = scene.add.graphics().setDepth(3);
   const cuerpos = [];
@@ -119,11 +122,14 @@ export function crearObstaculos(scene, perfil, { xMundo, yMundo }, lista, { mund
       });
       cuerpo.obstaculo = 'roca';
       cuerpos.push(cuerpo);
-      const s = sprite?.(scene, 'obstaculo_roca', { x, y: ySuelo + PX, origen: [0.5, 1], profundidad: 3 });
+      const nombre = sprite && elegir('obstaculo_roca', `_${(i % 3) + 1}`);
+      const s = nombre && sprite(scene, nombre, { x, y: ySuelo, origen: [0.5, 1], profundidad: 3 });
       if (s) {
-        const frames = s.texture.getFrameNames().filter((f) => f !== '__BASE');
-        if (frames.length > 1) s.setFrame(frames[i % frames.length]);
-        s.setDisplaySize(rpx * 2, alto + PX);
+        // A escala de arte; solo se ve la parte de arriba que asoma (la roca está medio enterrada): se recorta el resto.
+        const H = s.frame.height;
+        const vis = Math.min(H, Math.max(2, Math.round(alto / PX)));
+        s.setCrop(0, 0, s.frame.width, vis);
+        s.y = ySuelo + PX + (H - vis) * PX;
       } else {
         // Roca de píxeles (1 px de arte = 1/8 m): mínimo 3 × 2 px para que se vea; tapa más angosta, brillo y sombra.
         const ancho = 2 * Math.sqrt(Math.max(0, rpx * rpx - (rpx - alto) * (rpx - alto))); // cuerda a ras del suelo
@@ -143,12 +149,21 @@ export function crearObstaculos(scene, perfil, { xMundo, yMundo }, lista, { mund
       }
       i++;
     } else if (o.tipo === 'arena_blanda') {
-      // Discreto: puntitos más oscuros sobre la superficie del tramo.
-      g.fillStyle(COLOR_ARENA_BLANDA[mundo] ?? COLOR_ARENA_BLANDA.tierra, 0.85);
-      const r = aleatorio(semillaDe(`arena:${o.desde_m}`));
-      for (let xm = o.desde_m; xm < o.hasta_m; xm += 0.25) {
-        const y = yMundo(alturaEn(perfil, xm));
-        g.fillRect(Math.round(xMundo(xm) / PX) * PX, Math.round(y / PX) * PX - PX + Math.floor(r() * 3) * PX, PX, PX);
+      const nombre = sprite && elegir('obstaculo_arena_blanda');
+      if (nombre) {
+        // Tile repetible (16 × 4 px = 2 × 0.5 m) apoyado en el suelo de cada tramo; el último se recorta al largo del parche.
+        for (let xm = o.desde_m; xm < o.hasta_m - 0.05; xm += 2) {
+          const t = sprite(scene, nombre, { x: xMundo(xm), y: yMundo(alturaEn(perfil, xm + 1)) + 2 * PX, origen: [0, 1], profundidad: 3 });
+          if (t && xm + 2 > o.hasta_m) t.setCrop(0, 0, Math.max(1, Math.round(((o.hasta_m - xm) / 2) * t.frame.width)), t.frame.height);
+        }
+      } else {
+        // Sin arte: puntitos más oscuros sobre la superficie del tramo.
+        g.fillStyle(COLOR_ARENA_BLANDA[mundo] ?? COLOR_ARENA_BLANDA.tierra, 0.85);
+        const r = aleatorio(semillaDe(`arena:${o.desde_m}`));
+        for (let xm = o.desde_m; xm < o.hasta_m; xm += 0.25) {
+          const y = yMundo(alturaEn(perfil, xm));
+          g.fillRect(Math.round(xMundo(xm) / PX) * PX, Math.round(y / PX) * PX - PX + Math.floor(r() * 3) * PX, PX, PX);
+        }
       }
     }
   }

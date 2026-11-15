@@ -11,7 +11,7 @@ import { Telemetria, construirResultado } from './telemetria.js';
 import { Efectos } from './efectos.js';
 import { Sonido } from './sonido.js';
 import { tr } from '../i18n.js';
-import { AspectoRobot, crearFondo, claveDeFondo, sprite, tira } from './aspecto.js';
+import { AspectoRobot, crearFondo, claveDeFondo, sprite, tira, hayArte } from './aspecto.js';
 import { ambienteDe, resumenAmbiente, efectosAmbiente, notaAmbiente } from './ambiente.js';
 import { generarObstaculos, crearObstaculos, factorAgarreEn, notaObstaculos } from './obstaculos.js';
 
@@ -51,7 +51,7 @@ export class Recorrido {
     // Ambiente real del nivel (temperatura, aire, luz) y obstáculos recreados (rocas, arena blanda). Ver ESPECIFICACION §5b.
     this.ambiente = o.ambiente ?? ambienteDe({ modo: o.modo, mundo: o.mundo, sitioId: o.sitioId, destinoId: o.destinoId });
     this.obstaculos = generarObstaculos(o.perfil, { mundo: o.mundo, semilla: (o.modo === 'prueba' ? o.sitioId : o.destinoId) ?? o.mundo });
-    crearObstaculos(scene, o.perfil, this.terreno, this.obstaculos, { mundo: o.mundo, sprite });
+    crearObstaculos(scene, o.perfil, this.terreno, this.obstaculos, { mundo: o.mundo, sprite, hayArte });
 
     // Límites: paredes a los lados, sin techo ni piso (el suelo es el terreno).
     const izq = xMundo(0) - m(2);

@@ -4,110 +4,97 @@
 //   b) Calor del motor ↔ aire: el motor se calienta al acelerar y el aire lo enfría; sin aire (Luna) solo se enfría por
 //      radiación. Si pasa del límite, el motor solo entrega la potencia que el ambiente alcanza a enfriar.
 //   c) Luz: el panel solar recarga según la luz del lugar; con luz rasante (polo sur lunar) recarga mucho menos.
-// Los VALORES DE DATOS llevan fuente (libro docs/taller/Space_Apps_Game_Data.xlsx o NASA POWER); los de las reglas son (P).
+// Los VALORES DE DATOS salen de una sola tabla: docs/taller/AMBIENTE.md (frente taller; hoja "Ambiente" del libro
+// docs/taller/Space_Apps_Game_Data.xlsx, filas AM-001…AM-037), que cita la fuente original de cada fila. Los de las reglas son (P).
 // Sin dato → null + nota (nunca se inventa).
 
 import { tr } from '../i18n.js';
 
-// ─── Datos de referencia (libro de datos del taller, hojas Weather, Mars, Moon, Equations) ──────────────────────────────
 // Densidad del aire de la Tierra a nivel del mar: 1.217 kg/m³ (WX-002, NSSDCA Earth Fact Sheet, S03). Es la referencia "1 ×".
 export const DENSIDAD_AIRE_TIERRA = 1.217;
-const R_AIRE_KJ = 0.2869; // EQ-009 (NASA Glenn, S13): ρ = p / (0.2869 × (T + 273.1)), p en kPa, T en °C
 
-const FUENTE_POWER = 'NASA POWER, climatología por punto v2.10 (MERRA-2), 2001–2025, anual (ANN): T2M, T2M_RANGE, T2M_MIN, T2M_MAX, PS; consulta 2026-11-14';
-const FUENTE_POWER_EN = 'NASA POWER point climatology v2.10 (MERRA-2), 2001–2025, annual (ANN): T2M, T2M_RANGE, T2M_MIN, T2M_MAX, PS; queried 2026-11-14';
+const TABLA = 'docs/taller/AMBIENTE.md';
+const POWER_ES = 'NASA POWER (S75 datos diarios 2015–2024: típicas; S74 climatología 2001–2025: extremos, media, PS); densidad derivada (gas ideal)';
+const POWER_EN = 'NASA POWER (S75 daily data 2015–2024: typical; S74 climatology 2001–2025: extremes, mean, PS); density derived (ideal gas)';
 
 /**
- * Clima de los 4 sitios jugables (NASA POWER, mismo servicio que ciencia_datos/datos/clima_candidatos.csv, donde están
- * MX0008 = Pinacate, MX0207 y G00281 con los mismos valores; Samalayuca no está en ese CSV y se consultó con la misma API).
- * t2m = media anual (°C); rango = rango diario medio (°C); min/max = extremos del periodo (°C); ps = presión en superficie (kPa).
+ * Sitios jugables, copiados de docs/taller/AMBIENTE.md (valores de la celda de NASA POWER, no del punto exacto).
+ * min/max = típicas (mín. diaria media del mes más frío / máx. diaria media del mes más caluroso); ext = extremas;
+ * media = T2M; ps = presión superficial (kPa); rho = densidad del aire derivada (kg/m³).
  */
 export const CLIMA_SITIOS = {
-  samalayuca: { t2m: 17.85, rango: 14.78, min: -14.51, max: 42.41, ps: 87.31, punto: [31.2636, -106.3953] },
-  pinacate: { t2m: 22.3, rango: 14.51, min: -4.65, max: 48.41, ps: 96.96, punto: [31.8459, -113.3925] },
-  mx0207: { t2m: 16.4, rango: 15.45, min: -7.03, max: 35.79, ps: 79.01, punto: [22.4145, -101.9109] },
-  g00281: { t2m: 25.91, rango: 16.16, min: 0.59, max: 45.29, ps: 89.41, punto: [22.9018, 41.1412] },
+  samalayuca: { min: 0.3, max: 36.2, ext: [-14.5, 42.4], media: 17.9, ps: 87.31, rho: 1.045 },
+  pinacate: { min: 7.1, max: 39.7, ext: [-4.7, 48.4], media: 22.3, ps: 96.96, rho: 1.143 },
+  mx0207: { min: 4.5, max: 30.3, ext: [-7.0, 35.8], media: 16.4, ps: 79.01, rho: 0.951 },
+  g00281: { min: 9.6, max: 42.1, ext: [0.6, 45.3], media: 25.9, ps: 89.41, rho: 1.042 },
 };
 
-/** Destinos: valores del libro de datos con su ID de fila y fuente. */
+/** Destinos, de docs/taller/AMBIENTE.md (+ luz e irradiancia del libro de datos). */
 const AMBIENTE_DESTINOS = {
   jezero: {
     mundo: 'marte',
-    temperatura_min_C: -83, temperatura_max_C: -22, // WX-016: aire en Jezero, soles 43–44 (MEDA)
-    presion_kPa: 0.718, // WX-014: 718 Pa medidos (MEDA)
-    densidad_aire_kg_m3: 0.016, // MR-010: densidad media en superficie, 0.016 ± 0.006
+    temperatura_min_C: -83, temperatura_max_C: -22, // muestra de dos soles (43–44), MEDA (S22)
+    temperatura_media_C: -55, // MEDA, Rodríguez-Manfredi et al. 2023 (S21; S23)
+    presion_kPa: 0.718, // 718 Pa, MEDA (S22)
+    densidad_aire_kg_m3: 0.017, // derivada de 718 Pa y −55 °C (CO₂, gas ideal); Mars Fact Sheet: 0.016 ± 0.006
     luz: 'directa',
-    irradiancia_rel: 0.431, // WX-007: 586.2 W/m² en Marte / 1361 en la Tierra (antes del polvo)
-    nota: null,
-    nota_en: null,
-    fuentes: [
-      'WX-016, WX-014: NASA, primer reporte del clima en Jezero (MEDA), 2021-04-06: −83 a −22 °C, 718 Pa',
-      'MR-010, WX-007: NASA NSSDCA Mars Fact Sheet (2025-05-19): aire 0.016 kg/m³, sol 586.2 W/m²',
-    ],
-    fuentes_en: [
-      'WX-016, WX-014: NASA, first Jezero weather report (MEDA), 2021-04-06: −83 to −22 °C, 718 Pa',
-      'MR-010, WX-007: NASA NSSDCA Mars Fact Sheet (2025-05-19): air 0.016 kg/m³, sunlight 586.2 W/m²',
-    ],
+    irradiancia_rel: 0.431, // WX-007 del libro: 586.2 W/m² en Marte / 1361 en la Tierra (antes del polvo)
+    nota: 'Temperaturas de dos soles de primavera, no una climatología anual.',
+    nota_en: 'Temperatures from two spring sols, not an annual climatology.',
+    fuentes: [`${TABLA}: MEDA/Perseverance (S22, 2021-04-06; S21, S23); densidad derivada`, 'luz: WX-007 (NSSDCA Mars Fact Sheet)'],
+    fuentes_en: [`${TABLA}: MEDA/Perseverance (S22, 2021-04-06; S21, S23); density derived`, 'light: WX-007 (NSSDCA Mars Fact Sheet)'],
   },
   polo_sur_lunar: {
     mundo: 'luna',
-    temperatura_min_C: -53, temperatura_max_C: null, // WX-035 / MN-013: borde iluminado junto a sombras permanentes, ~220 K casi constante
-    presion_kPa: 3e-13, // MN-016: ~3e-15 bar de noche (exosfera; fila Draft del libro)
-    densidad_aire_kg_m3: 0, // EQ-010: vacío (aproximación del libro: sin enfriamiento por aire)
+    // DECISIÓN (juego): la misión usa el borde iluminado (−53 °C, ~220 K casi constante), porque la región candidata de Artemis
+    // es iluminada y la ruta va al sol. La sombra permanente (−248 °C) es dato de la tabla pero no está en el recorrido.
+    temperatura_min_C: -53, temperatura_max_C: null, temperatura_media_C: -53,
+    temperatura_sombra_C: -248,
+    presion_kPa: 3e-13, // 3×10⁻¹⁰ Pa de noche (NASA Moon Fact Sheet, S02)
+    densidad_aire_kg_m3: 0, // vacío (S02)
     luz: 'rasante',
     irradiancia_rel: 1, // MN-008: 1361 W/m² (sin atmósfera), pero el Sol va casi al ras del horizonte
-    nota: 'Superficie (no hay aire). Ruta por el borde iluminado; las sombras permanentes llegan a 25 K (−248 °C, MN-012) y no están en el recorrido. La amplitud de verano medida por Diviner en 85–90°S es de 176 K (data/targets).',
-    nota_en: 'Surface (there is no air). Route along the sunlit rim; permanent shadows reach 25 K (−248 °C, MN-012) and are not on the route. Diviner summer amplitude at 85–90°S is 176 K (data/targets).',
-    fuentes: [
-      'WX-035 / MN-013: UCLA Diviner (LRO), borde iluminado ~220 K',
-      'MN-016 / EQ-010: NASA NSSDCA Moon Fact Sheet (revisión anterior, Draft): ~3e-15 bar; vacío',
-      'Luz rasante: data/targets/polo_sur_lunar.json (no_reproducible_en_tierra); S33 NASA NTRS 20240004621',
-    ],
-    fuentes_en: [
-      'WX-035 / MN-013: UCLA Diviner (LRO), sunlit rim ~220 K',
-      'MN-016 / EQ-010: NASA NSSDCA Moon Fact Sheet (older revision, Draft): ~3e-15 bar; vacuum',
-      'Grazing light: data/targets/polo_sur_lunar.json (no_reproducible_en_tierra); S33 NASA NTRS 20240004621',
-    ],
+    nota: 'Superficie (no hay aire). La misión usa el borde iluminado (−53 °C); las sombras permanentes (−248 °C) no están en la ruta.',
+    nota_en: 'Surface (there is no air). The mission uses the sunlit rim (−53 °C); permanent shadows (−248 °C) are not on the route.',
+    fuentes: [`${TABLA}: LRO Diviner, UCLA (S07); NASA Moon Fact Sheet (S02)`, 'luz rasante: data/targets/polo_sur_lunar.json (no_reproducible_en_tierra)'],
+    fuentes_en: [`${TABLA}: LRO Diviner, UCLA (S07); NASA Moon Fact Sheet (S02)`, 'grazing light: data/targets/polo_sur_lunar.json (no_reproducible_en_tierra)'],
   },
 };
 
-/** Respaldo por mundo cuando el destino no está en la tabla (valores globales del libro de datos). */
+/** Respaldo cuando el lugar no está en la tabla (valores globales del libro de datos, declarados). */
 const AMBIENTE_MUNDO = {
-  marte: { temperatura_min_C: -128, temperatura_max_C: 27, presion_kPa: 0.636, densidad_aire_kg_m3: 0.016, luz: 'directa', irradiancia_rel: 0.431,
+  marte: { temperatura_min_C: -128, temperatura_max_C: 27, temperatura_media_C: -53, presion_kPa: 0.636, densidad_aire_kg_m3: 0.016, luz: 'directa', irradiancia_rel: 0.431,
     fuentes: ['MR-016, MR-008, MR-010 (NASA JPL / NSSDCA): Marte global'], fuentes_en: ['MR-016, MR-008, MR-010 (NASA JPL / NSSDCA): Mars global'] },
   luna: { temperatura_min_C: -173, temperatura_max_C: 127, presion_kPa: 3e-13, densidad_aire_kg_m3: 0, luz: 'directa', irradiancia_rel: 1,
     fuentes: ['WX-031 (Diviner): ecuador lunar; MN-016 / EQ-010: vacío'], fuentes_en: ['WX-031 (Diviner): lunar equator; MN-016 / EQ-010: vacuum'] },
   // Tierra sin dato del sitio: referencia a nivel del mar (WX-001, WX-002, WX-003).
-  tierra: { temperatura_min_C: 10, temperatura_max_C: 20, presion_kPa: 101.4, densidad_aire_kg_m3: DENSIDAD_AIRE_TIERRA, luz: 'directa', irradiancia_rel: 1,
+  tierra: { temperatura_min_C: 10, temperatura_max_C: 20, temperatura_media_C: 15, presion_kPa: 101.4, densidad_aire_kg_m3: DENSIDAD_AIRE_TIERRA, luz: 'directa', irradiancia_rel: 1,
     fuentes: ['WX-001, WX-002, WX-003: NSSDCA Earth Fact Sheet, referencia a nivel del mar (sin dato del sitio)'],
     fuentes_en: ['WX-001, WX-002, WX-003: NSSDCA Earth Fact Sheet, sea-level reference (no site data)'] },
 };
 
-const r1 = (v) => Math.round(v * 10) / 10;
-const r3 = (v) => Math.round(v * 1000) / 1000;
-
-/** Ambiente de un sitio terrestre con su clima de NASA POWER (o la referencia de la Tierra si no hay dato). */
+/** Ambiente de un sitio terrestre (docs/taller/AMBIENTE.md) o la referencia de la Tierra si no está en la tabla. */
 export function ambienteDeSitio(sitioId) {
   const c = CLIMA_SITIOS[sitioId];
   if (!c) {
     return { id: sitioId ?? null, mundo: 'tierra', ...AMBIENTE_MUNDO.tierra, extremos_C: null, referencia: true,
       nota: 'Sin clima del sitio: se usa la referencia de la Tierra a nivel del mar.', nota_en: 'No site climate: Earth sea-level reference is used.' };
   }
-  // Día típico ≈ media ± rango diario / 2 (aproximación declarada); los extremos del periodo van aparte (informativos).
   return {
     id: sitioId,
     mundo: 'tierra',
-    temperatura_min_C: r1(c.t2m - c.rango / 2),
-    temperatura_max_C: r1(c.t2m + c.rango / 2),
-    extremos_C: [c.min, c.max],
+    temperatura_min_C: c.min, // típicas: las que usa la regla del frío
+    temperatura_max_C: c.max,
+    temperatura_media_C: c.media, // la que usa el motor
+    extremos_C: c.ext, // informativos
     presion_kPa: c.ps,
-    densidad_aire_kg_m3: r3(c.ps / (R_AIRE_KJ * (c.t2m + 273.1))), // EQ-009 con la presión y la temperatura media del sitio
+    densidad_aire_kg_m3: c.rho,
     luz: 'directa',
     irradiancia_rel: 1,
-    nota: 'Día típico = T2M ± T2M_RANGE/2 (aprox.). Densidad del aire calculada con EQ-009 (NASA Glenn) a partir de PS y T2M.',
-    nota_en: 'Typical day = T2M ± T2M_RANGE/2 (approx.). Air density computed with EQ-009 (NASA Glenn) from PS and T2M.',
-    fuentes: [`${FUENTE_POWER}; punto ${c.punto.join(', ')}`],
-    fuentes_en: [`${FUENTE_POWER_EN}; point ${c.punto.join(', ')}`],
+    nota: 'Valores de la celda de NASA POWER (~0.5° × 0.625°), no de una estación en el sitio.',
+    nota_en: 'Values for the NASA POWER grid cell (~0.5° × 0.625°), not a station at the site.',
+    fuentes: [`${TABLA}: ${POWER_ES}`],
+    fuentes_en: [`${TABLA}: ${POWER_EN}`],
   };
 }
 
@@ -144,9 +131,10 @@ export function factorFrio(tMinC, reglas = REGLAS.frio) {
   return Math.max(reglas.piso, 1 - perdida);
 }
 
-/** Temperatura del ambiente que ve el motor: media del día típico (o la mínima si no hay máxima). */
+/** Temperatura del ambiente que ve el motor: la media del lugar (si falta, media de mín. y máx., o la mínima). */
 export function temperaturaAmbienteMotor(amb) {
   if (!amb) return 20;
+  if (amb.temperatura_media_C != null) return amb.temperatura_media_C;
   const { temperatura_min_C: a, temperatura_max_C: b } = amb;
   if (a != null && b != null) return (a + b) / 2;
   return a ?? b ?? 20;

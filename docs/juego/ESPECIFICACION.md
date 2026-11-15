@@ -87,38 +87,40 @@ AGENTS.md §5: temperatura y presión entran **solo** con una regla implementada
 
 ### Datos por nivel (con fuente)
 
-| Nivel | Temperatura (°C) | Presión (kPa) | Aire (kg/m³) | Luz | Fuente |
-|---|---|---|---|---|---|
-| Samalayuca | 10.5 a 25.2 (extremos −14.5 / 42.4) | 87.31 | 1.046 | directa | NASA POWER v2.10, 2001–2025, ANN (T2M 17.85, T2M_RANGE 14.78, T2M_MIN, T2M_MAX, PS); consulta 2026-11-14 |
-| Pinacate (MX0008) | 15.0 a 29.6 (−4.7 / 48.4) | 96.96 | 1.144 | directa | ídem (T2M 22.30, rango 14.51) |
-| Real de Ángeles (mx0207) | 8.7 a 24.1 (−7.0 / 35.8) | 79.01 | 0.951 | directa | ídem (T2M 16.40, rango 15.45) |
-| Al Wahbah (g00281) | 17.8 a 34.0 (0.6 / 45.3) | 89.41 | 1.042 | directa | ídem (T2M 25.91, rango 16.16) |
-| Jezero (Marte) | −83 a −22 | 0.718 | 0.016 | directa, 43 % de la Tierra | libro de datos WX-016 y WX-014 (NASA, primer reporte de MEDA, 2021-04-06); MR-010 y WX-007 (NSSDCA Mars Fact Sheet) |
-| Polo sur lunar | −53 (borde iluminado, ~220 K casi constante); máxima: null | ~3e-13 (vacío) | 0 | **rasante** | WX-035 / MN-013 (UCLA Diviner); MN-016 / EQ-010 (vacío, fila Draft); `no_reproducible_en_tierra: iluminacion_polar_rasante` |
+**Fuente única:** `docs/taller/AMBIENTE.md` (frente taller, hoja "Ambiente" del libro de datos; en `origin/main` 626cfed), que cita la fuente
+original de cada fila. `ambiente.js` copia esos valores; si la tabla cambia, se actualiza `CLIMA_SITIOS` / `AMBIENTE_DESTINOS`.
 
-- Tierra, "día típico" = T2M ± T2M_RANGE / 2 (aproximación declarada); los extremos T2M_MIN / T2M_MAX son informativos.
-  Densidad del aire con EQ-009 (NASA Glenn): ρ = PS / (0.2869 × (T2M + 273.1)). Pinacate, mx0207 y g00281 coinciden con
-  `ciencia_datos/datos/clima_candidatos.csv` (MX0008, MX0207, G00281); Samalayuca no está en ese CSV y se consultó con la misma API.
-  PS (presión en superficie) se consultó para los 4 sitios el 14 nov 2026.
-- Otros sitios sin clima: referencia de la Tierra a nivel del mar (WX-001 101.4 kPa, WX-002 1.217 kg/m³, WX-003 10–20 °C), declarada.
-- Luna: no hay aire; la temperatura es de la superficie. Las sombras permanentes (25 K, MN-012) no están en la ruta.
+| Nivel | Temp. típica mín / máx (°C) | Media (°C) | Extremos (°C) | Presión | Aire (kg/m³) | Luz | Fuente original |
+|---|---|---|---|---|---|---|---|
+| Samalayuca | 0.3 / 36.2 | 17.9 | −14.5 / 42.4 | 87.31 kPa | 1.045 (derivada) | directa | NASA POWER (S75 diarios 2015–2024; S74 climatología 2001–2025) |
+| Pinacate | 7.1 / 39.7 | 22.3 | −4.7 / 48.4 | 96.96 kPa | 1.143 | directa | ídem |
+| Real de Ángeles (mx0207) | 4.5 / 30.3 | 16.4 | −7.0 / 35.8 | 79.01 kPa | 0.951 | directa | ídem |
+| Al Wahbah (g00281) | 9.6 / 42.1 | 25.9 | 0.6 / 45.3 | 89.41 kPa | 1.042 | directa | ídem |
+| Jezero (Marte) | −83 / −22 (muestra de 2 soles) | −55 | — | 718 Pa | 0.017 (derivada) | directa, 43 % (WX-007) | MEDA: S22 (2021-04-06), S21, S23 |
+| Polo sur lunar | **−53 (borde iluminado)**; máx. null | −53 | sombra −248 | ~3×10⁻¹⁰ Pa | 0 | **rasante** | Diviner (S07), Moon Fact Sheet (S02) |
+
+- **Decisión (Luna):** la misión usa el borde iluminado (−53 °C, ~220 K casi constante) porque la región candidata de Artemis es
+  iluminada y la ruta va al sol; la sombra permanente (−248 °C) es dato de la tabla pero no está en el recorrido (se declara).
+- Valores de la Tierra = celda de NASA POWER (~0.5° × 0.625°), no estación en el sitio. Típica = mín. diaria media del mes más frío /
+  máx. diaria media del mes más caluroso. La regla del frío usa la típica mínima; el motor, la media.
+- Otros sitios sin fila en la tabla: referencia de la Tierra a nivel del mar (WX-001 101.4 kPa, WX-002 1.217 kg/m³, WX-003 10–20 °C), declarada.
 
 ### Reglas (valores de juego, P)
 
 | Regla | Fórmula (P) | Efecto medido |
 |---|---|---|
-| a) Batería fría | capacidad útil = 1 − 0.2 % × (0 °C − T_mín), piso 85 %. Calefactor: no implementado | Tierra 100 % (T_mín > 0 en los 4 sitios); Luna 89 %; Marte 85 % (piso). La barra de energía arranca baja |
+| a) Batería fría | capacidad útil = 1 − 0.2 % × (0 °C − T_mín típica), piso 85 %. Calefactor: no implementado | Tierra 100 % (típica mínima > 0 °C en los 4 sitios); Luna 89 %; Marte 85 % (piso). La barra de energía arranca baja |
 | b) Calor del motor | dT/dt = 4 × \|acelerador\| × consumo − k (T − T_amb), k = 0.004 (radiación) + 0.1 × ρ / 1.217 (aire). Límite 100 °C | Tierra, eficiente a fondo: equilibrio ~45–55 °C; potente ~75–85 °C: nunca se sobrecalienta. Luna (k = 0.004): el eficiente pasa 100 °C a los ~70 s a fondo; el potente, en ~30 s. Marte (k = 0.0053): parecido |
 | b') Sobrecalentado | sobre 100 °C el motor empuja solo lo que el ambiente alcanza a enfriar (mín. 20 %), **pero la batería gasta lo que se pide** (la diferencia se pierde como calor); sale a < 95 °C. Evento `sobrecalentamiento` (humo, dos pitidos) | Soltar el acelerador lo enfría. HUD: barra "Motor" + °C, naranja a 90 °C, roja y "CALIENTE" al límite |
 | c) Luz → panel solar | recarga = capacidad del panel × 0.0025 /s × luz; luz = irradiancia / Tierra (Marte 0.431, WX-007) × 0.2 si es rasante | Panel (40): Tierra 0.1 /s, Marte 0.043 /s, polo sur lunar 0.02 /s |
 
-`T_amb` del motor = media del día típico (Luna: −53 °C). Pantalla: resumen del ambiente y efectos en las instrucciones de inicio
+`T_amb` del motor = temperatura media del lugar (Luna: −53 °C). Pantalla: resumen del ambiente y efectos en las instrucciones de inicio
 (p. ej. "Marte: −83 a −22 °C · aire 0.016 kg/m³ (1 % de la Tierra): el motor se enfría poco") y en el panel de datos (tecla I) con la fuente.
 `lineasAmbiente(ambiente)` (bilingüe) devuelve las líneas para el Expediente (pendiente de integrar en `Expediente.js`).
 
 **Dónde se rompe la analogía:** en la prueba terrestre el motor nunca pasa del límite y la batería no pierde capacidad;
 la pantalla de resultados de la misión lo dice ("El motor se calentó N veces en la misión y ninguna en la prueba: el aire de la Tierra
-(1.046 kg/m³) lo enfría…"; "Frío: en el destino hace −53 °C y la batería arrancó al 89 %…"). Reglas: con sobrecalentamiento,
+(1.045 kg/m³) lo enfría…"; "Frío: en el destino hace −53 °C y la batería arrancó al 89 %…"). Reglas: con sobrecalentamiento,
 motor potente → "usa el motor eficiente: se calienta la mitad"; motor eficiente → "maneja con pausas".
 
 ### Obstáculos recreados (P)
@@ -133,7 +135,9 @@ ni en pendientes > 14° (rocas) o > 10° (arena blanda). No modifican el perfil 
 | Arena blanda | tramos de arena de la Tierra, solo en terreno suave | 5–8 m, una cada 35–55 m | agarre de la rueda × 0.75 |
 
 Luna con rocas más bajas: con 1/6 de gravedad, una roca de ~0.11 m de alto a 4 m/s lanzó la carga fuera del soporte en 1 de 3 corridas.
-Dibujo: sprite `obstaculo_roca` si existe (ASSETS_ARTE.md); si no, roca de píxeles de al menos 3 × 2 px de arte; arena blanda = puntitos.
+Dibujo: arte de `assets/obstaculos/` (PR #58) por mundo con respaldo al de la Tierra: `obstaculo_roca[_marte|_luna]_1..3` a escala de arte,
+recortado para mostrar solo lo que asoma; `obstaculo_arena_blanda[_marte|_luna]` (tile 16 × 4) a lo largo del parche. Sin arte: roca de
+píxeles (mín. 3 × 2 px) y puntitos. `fx_sobrecalentamiento` se repite sobre el motor mientras dure; `ui_icono_temperatura` junto a la barra del motor.
 Samalayuca: 2 parches de arena blanda. mx0207 (todo compacto) y g00281 (dunas empinadas) quedan sin obstáculos con estas reglas.
 
 ### Resultados medidos (sin interfaz, paso fijo 60 Hz; diseño dorado = chasis ligero, rueda ancha × 2, motor eficiente, batería chica, soporte básico)

@@ -50,7 +50,9 @@ export class Hud {
     });
 
     // Temperatura del motor (ambiente.js, regla b): barra fina bajo las otras; se pone roja cerca del límite.
-    fijo(scene.add.text(560, 64, tr('Motor', 'Motor'), { ...ESTILO, fontSize: '11px' }));
+    const iconoT = hay('ui/ui_icono_temperatura'); // arte 8 × 8 (mismo estilo que los otros íconos); si no, solo texto
+    if (iconoT) fijo(scene.add.image(560 + 8, 70, 'ui/ui_icono_temperatura').setScale(2));
+    fijo(scene.add.text(560 + (iconoT ? 22 : 0), 64, tr('Motor', 'Motor'), { ...ESTILO, fontSize: '11px' }));
     fijo(scene.add.rectangle(560 + 70, 70, 160, 5, 0x2b2d3a).setOrigin(0, 0.5));
     this.barraMotor = fijo(scene.add.rectangle(560 + 72, 70, 0, 3, 0x6fb3ff).setOrigin(0, 0.5));
     this.textoMotor = fijo(scene.add.text(560 + 236, 64, '', { ...ESTILO, fontSize: '11px' }));

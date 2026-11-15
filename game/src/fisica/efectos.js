@@ -46,7 +46,7 @@ const PATINA_RAFAGA = 18; // ráfaga extra al empezar a patinar
 // Sacudida de cámara (fracción del ancho de pantalla: 3 px = 3/960). (P)
 const SACUDIDA_GOLPE_MS = UMBRAL_CHASIS_MS + 2; // golpes de chasis por encima de esto sacuden la cámara
 const MAX_SPRITES = 48; // tope de hojas de efecto vivas a la vez
-const SPRITE_CONTINUO_MS = { polvo: 110, patinaje: 70 }; // separación mínima entre hojas continuas por rueda
+const SPRITE_CONTINUO_MS = { polvo: 110, patinaje: 70, sobrecalentamiento: 500 }; // separación mínima entre hojas continuas (por rueda; motor)
 
 const PALETA_FIESTA = [0xffd166, 0x4cc38a, 0x6fb3ff, 0xff6b6b, 0xffffff];
 const PALETA_CHISPA = [0xffffff, 0xfff1a8, 0xffd166, 0xff9b3d];
@@ -121,16 +121,29 @@ export class Efectos {
     } else if (tipo === 'golpe_carga' || tipo === 'carga_perdida') {
       const { x, y } = r.carga.position;
       this.emitir({ tipo, x, y, superficie: this.superficieDe(x), intensidad });
-    } else if (tipo === 'energia_agotada' || tipo === 'sobrecalentamiento') {
+    } else if (tipo === 'energia_agotada') {
       this.emitir({ tipo, x: r.x, y: r.y, superficie: this.superficieDe(r.x) });
+    } else if (tipo === 'sobrecalentamiento') {
+      this.emitir({ tipo, ...this._puntoMotor(r), superficie: this.superficieDe(r.x) });
     }
     // 'patinaje' llega cada cuadro: el chorro de arena lo emite actualizar() desde la rueda que patina.
+  }
+
+  /** Punto del motor: parte trasera del chasis (gira con él). */
+  _puntoMotor(r) {
+    const c = Math.cos(r.chasis.angle);
+    const s = Math.sin(r.chasis.angle);
+    return { x: r.x - m(0.8) * c, y: r.y - m(0.8) * s - m(0.2), fuente: 'motor' };
   }
 
   /** Cada cuadro: polvo de las ruedas en el suelo (∝ velocidad) y arena de la rueda que patina. */
   actualizar(dtMs, robot = this.robot) {
     if (!this.vivo || !robot) return;
     const dt = dtMs / 1000;
+    // Motor sobrecalentado: con la hoja fx_sobrecalentamiento, el efecto se repite mientras dure (el humo provisional sale solo una vez).
+    if (robot.sobrecalentado && this._hojaPara({ tipo: 'sobrecalentamiento' })) {
+      this._reproducirHoja({ tipo: 'sobrecalentamiento', ...this._puntoMotor(robot) });
+    }
     robot.ruedas.forEach((w, i) => {
       const clave = `r${i}`;
       const enSuelo = robot.t - w.ultimoContacto < 0.15;

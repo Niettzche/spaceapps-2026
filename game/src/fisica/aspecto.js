@@ -35,7 +35,6 @@ const TABLA = {
   baliza: { ancho: 4, cuadros: [1, 4], animaciones: { parpadea: 'todo' } },
   meta: { ancho: 8, cuadros: [1, 4], animaciones: { ondea: 'todo' } },
   zona_entrega: { ancho: 16, cuadros: [1] },
-  obstaculo_roca: { ancho: 8, cuadros: [1, 2, 3, 4] }, // rocas recreadas (obstaculos.js); varios cuadros = variantes
 };
 const SUPERFICIES = ['arena', 'roca', 'compacto'];
 const ES_TILE = /^(tierra|marte|luna)_(arena|roca|compacto)(_borde)?$/;
@@ -60,9 +59,11 @@ for (const [ruta, url] of Object.entries(archivos)) {
 // Calcomanías de piezas sobre el chasis: deco_<id de pieza>.png (p. ej. deco_motor_potente). El robot se ve distinto
 // según las piezas elegidas. Posición en px de arte respecto al centro del chasis (24 × 6), girando con él. (P)
 const ES_DECO = /^deco_/;
+// Obstáculos recreados (fisica/obstaculos.js): obstaculo_roca[_marte|_luna]_1..3, obstaculo_arena_blanda[_marte|_luna].
+const ES_OBSTACULO = /^obstaculo_/;
 const POS_DECO = { motor: { x: -8, y: 0 }, bateria: { x: 6, y: 0 }, modulo: { x: 5, y: -4 } };
 
-const esDelJuego = (nombre) => nombre in TABLA || ES_TILE.test(nombre) || ES_FONDO.test(nombre) || ES_DECO.test(nombre);
+const esDelJuego = (nombre) => nombre in TABLA || ES_TILE.test(nombre) || ES_FONDO.test(nombre) || ES_DECO.test(nombre) || ES_OBSTACULO.test(nombre);
 
 /** Llamar en preload(): pide solo los PNG del juego que existen (y su JSON de Aseprite si lo hay). */
 export function cargarArte(scene) {
