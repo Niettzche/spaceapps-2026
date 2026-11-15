@@ -29,9 +29,9 @@ Piezas comunes salvo que se diga: chasis ligero, motor eficiente, batería chica
 | 5. pingualuit | Marte | malla en ambos ejes | 810 | sí, E 47 % | NIV | malla/estándar (770): atascado 40 m (SIM) |
 | 6. samalayuca (dorado Marte) | Marte | malla en ambos ejes | 810 | sí, E 47 % (2/2) | SIM | malla/estándar o estándar/malla (770): atascado 40–41 m (SIM) |
 | | | ancha en ambos ejes (diseño del camino dorado) | 890 | sí, E 42–43 % | NIV + SIM 1/1 | estándar (730): atascado 12–13 m |
-| 7. mx0261 Rincón de Parangueo | Luna | estándar + **batería mediana** | 770 | sí, E 34 % (NIV + SIM 1/1) | NIV + SIM | estándar (730): sin energía 538 m; malla (810): meta con E 0 % |
+| 7. mx0261 Rincón de Parangueo | Luna | estándar + **batería mediana** | 770 | sí, E 34 % (NIV + SIM 1/1) | NIV + SIM | estándar (730): sin energía 538 m; malla (810): sin energía ~536 m (playtest de Leo, 15 nov (simulación por pasos); antes: meta con E 0 %) |
 | g00263 Al Hutaymah (dorado Luna) | Luna | malla en ambos ejes | 810 | sí, E 42 % (2/2) | SIM | estándar (730): atascado 12 m; malla/estándar (770): atascado 41 m |
-| | | ancha en ambos ejes (diseño del camino dorado) | 890 | **inestable: 1/3** (meta E 38 %; 2 veces atascado a 41 m) | SIM (DEC decía «pasa, E 38 %») | |
+| | | ancha en ambos ejes (diseño del camino dorado) | 890 | **sí, 5/5, E 40 %** (playtest de Leo, 15 nov (simulación por pasos); antes: 1/3) | SIM | |
 | Misión Jezero | Marte | estándar | 730 | **2/3** entrega E 28–29 %; 1 carga perdida a 114 m (a fondo) | SIM | — |
 | | | malla en ambos ejes | 810 | sí, E 49–50 % (2/2) | SIM | |
 | Misión polo sur lunar | Luna | estándar + **batería mediana** | 770 | sí, E 23 % (1/1) | SIM | estándar + chica (730): sin energía 239 m |
@@ -100,7 +100,8 @@ Riesgos:
 
 ## 4. Hallazgos que no son de presupuesto (avisar al frente juego)
 
-- **g00263 con rueda ancha pasó solo 1 de 3** a fondo (2 veces atascado a 41 m), y la malla (810) 2 de 2. `DECISIONES.md` dice que la
-  ancha pasa con E 38 %. Riesgo para el camino dorado lunar y su e2e (el piloto de la e2e puede no ir a fondo: verificar).
+- **g00263 con rueda ancha pasa 5 de 5** a fondo, con E 40 % (playtest de Leo, 15 nov (simulación por pasos)). Antes había pasado
+  solo 1 de 3 (2 veces atascado a 41 m); la malla (810) pasó 2 de 2. Ya no es riesgo para el camino dorado lunar. Lo que queda: la
+  misión lunar con ancha y batería chica entrega con solo 8 % de energía (playtest de Leo, B2).
 - La malla (810) pasa Samalayuca y g00263 más barata que la ancha (890): el camino dorado no usa el diseño más barato.
 - Jezero con estándar a fondo perdió la carga 1 de 3 (ya señalado en `FISICA_V2.md` §5.1 para la ancha).

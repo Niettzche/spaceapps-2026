@@ -70,8 +70,8 @@ el viento y la nieve; con el mismo método, la consulta nueva reproduce la tabla
   (proporción P), 15 % menos (lo medido: 0.1–1 % típico y > 15 % en los más fuertes, MR-083; antes era 30 %, demasiado). WX-018/019:
   «brief power dip», 4 vórtices por sol en Jezero, S24.
 - **Pide:** rueda **de malla** (la más grande, 0.55 m de radio: pasa sobre los bloques) y, para la carga, **soporte con correas**.
-  Fallan la estándar y la de tacos (se hunden en el piso de arena). La ancha a veces llega y a veces no (Matter es caótico con los
-  bloques: llegó con la carga al 72 % y, con correas, se atascó a 74 m).
+  Fallan la estándar y la de tacos (se hunden en el piso de arena). La ancha también llega: 3 de 3 a la meta, con la carga al 77 %
+  (playtest de Leo, 15 nov (simulación por pasos); antes: llegó con la carga al 72 % y, con correas, se atascó a 74 m).
 
 ## 3. Tajo de Cananea (mx0023, Sonora) → Luna
 
@@ -156,7 +156,8 @@ el viento y la nieve; con el mismo método, la consulta nueva reproduce la tabla
 - **Viento con física:** hasta 14.7 m/s a 10 m (ρ = 0.974). Partículas de sal.
 - **Eventos (visuales):** espejismo sobre la playa caliente y velos de polvo salino con las ráfagas.
 - **Pide:** **batería mediana o grande** (recorrido largo y subida de 96 m). Con la batería chica ninguna rueda llega con holgura
-  (estándar, ancha y tacos se quedan sin energía a 511–538 m; la malla llega con 0 %). La rueda no decide: la costra y el lodo son
+  (estándar, ancha y tacos se quedan sin energía a 511–538 m; la malla, a ~536 m según el playtest de Leo, 15 nov (simulación por
+  pasos); antes llegaba con 0 %). La rueda no decide: la costra y el lodo son
   tramos cortos y planos.
 
 ## Obstáculos v2 (15 nov, mañana): que se vean, más donde se juega y avisos
@@ -214,7 +215,7 @@ Diseño base: chasis ligero, motor eficiente, batería chica, soporte básico, r
 | g00266 | **malla** | 810 | **meta**, 55 s, E 45 % |
 | tenoumer | estándar | 730 | atascado a 18 m |
 | tenoumer | tacos | 970 | atascado a 19 m |
-| tenoumer | ancha | 890 | meta, carga 72 % (inestable: con correas se atascó a 74 m) |
+| tenoumer | ancha | 890 | **meta 3/3, carga 77 %** (playtest de Leo, 15 nov (simulación por pasos); antes: carga 72 %, con correas se atascó a 74 m) |
 | tenoumer | **malla** | 810 | **meta**, carga 86 % |
 | tenoumer | **malla + correas** | 845 | **meta**, carga 91 % |
 | mx0023 | estándar | 730 | atascado a 33 m |
@@ -237,7 +238,7 @@ Diseño base: chasis ligero, motor eficiente, batería chica, soporte básico, r
 | mx0261 | estándar | 730 | sin energía a 538 m |
 | mx0261 | ancha | 890 | sin energía a 511 m |
 | mx0261 | tacos | 970 | sin energía a 514 m |
-| mx0261 | malla | 810 | meta con E 0 % (al límite) |
+| mx0261 | malla | 810 | **sin energía a ~536 m** (playtest de Leo, 15 nov (simulación por pasos); antes: meta con E 0 %, al límite) |
 | mx0261 | **estándar + batería mediana** | 770 | **meta**, 103 s, E 34 % |
 | mx0261 | **estándar + batería grande** | 810 | **meta**, 104 s, E 50 % |
 | mx0261 | ancha + batería mediana | 930 | meta, E 30 % |

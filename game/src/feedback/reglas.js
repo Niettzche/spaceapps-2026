@@ -9,6 +9,34 @@ const veces = (n) => tr(`${n} ${n === 1 ? 'vez' : 'veces'}`, `${n} ${n === 1 ? '
 export const INTEGRIDAD_SIN_AVISO = 0.9;
 /** Patinajes a partir de los cuales una batería agotada se atribuye primero al agarre (valor de juego, P). */
 export const PATINAJES_CAUSA_ENERGIA = 5;
+/**
+ * Fracción del intento con las ruedas patinando a partir de la cual el patinaje es la causa dominante de una batería
+ * agotada (valor de juego, P). telemetria.js no repite el mismo evento antes de 2.5 s, así que cada `patinaje` cubre como
+ * mucho ESPERA_PATINAJE_S y «patinajes × 2.5 s» estima el tiempo patinando.
+ */
+export const FRACCION_PATINAJE_DOMINANTE = 0.4;
+const ESPERA_PATINAJE_S = 2.5;
+/** Patinajes en roca que justifican las ruedas con tacos si el intento no terminó atascado en roca (valor de juego, P). */
+export const PATINAJES_ROCA_TACOS = 3;
+/** Energía restante bajo la cual una prueba o misión superada llegó «justa» de batería (valor de juego, P). */
+export const ENERGIA_BAJA = 0.15;
+const BATERIA_SIGUIENTE = { bateria_chica: 'bateria_mediana', bateria_mediana: 'bateria_grande' };
+
+/**
+ * ¿El patinaje en `superficie` fue la causa dominante de que se acabara la energía? Pide muchos patinajes
+ * (PATINAJES_CAUSA_ENERGIA), no menos que en la otra superficie y, si hay tiempos, haber patinado al menos
+ * FRACCION_PATINAJE_DOMINANTE del intento (hasta el evento `energia_agotada`). Sin tiempos solo cuenta el número.
+ */
+export function patinajeDomina(eventos, superficie) {
+  const ev = eventos ?? [];
+  const n = (sup) => ev.filter((e) => e.tipo === 'patinaje' && e.detalle === sup).length;
+  const propio = n(superficie);
+  const otro = n(superficie === 'arena' ? 'roca' : 'arena');
+  if (propio < PATINAJES_CAUSA_ENERGIA || propio < otro) return false;
+  const fin = ev.find((e) => e.tipo === 'energia_agotada')?.t ?? Math.max(0, ...ev.map((e) => (Number.isFinite(e.t) ? e.t : 0)));
+  if (!(fin > 0)) return true;
+  return Math.min(fin, (propio + otro) * ESPERA_PATINAJE_S) >= FRACCION_PATINAJE_DOMINANTE * fin;
+}
 
 /**
  * Física 2 (?fisica=2): el peor evento `hundimiento` de la partida. Detalle «4 cm · 7.9 kPa · arena · ancha 4.7 kPa»
@@ -78,7 +106,14 @@ export function recomendar(resultado, motivo) {
     });
   }
   const patinaRoca = contar('patinaje', 'roca');
-  if (patinaRoca > 0 && !usaPieza(d, 'rueda_tacos')) {
+  const exito = ['meta', 'entrega'].includes(motivo);
+  // Ruedas con tacos solo con eventos en roca que lo justifiquen: quedó atascado tras patinar en roca, o patinó en roca
+  // seguido y no menos que en arena (con tacos se pierde agarre en arena). Tras una prueba superada pide más evidencia:
+  // un par de resbalones en un tramo corto de roca no justifican perder agarre en el resto (B2, playtest de Leo: g00263).
+  const ultimoPatinaje = ev.filter((e) => e.tipo === 'patinaje').at(-1)?.detalle;
+  const umbralRoca = exito ? PATINAJES_CAUSA_ENERGIA : PATINAJES_ROCA_TACOS;
+  const rocaJustifica = (motivo === 'atascado' && ultimoPatinaje === 'roca') || (patinaRoca >= umbralRoca && patinaRoca >= patinaArena);
+  if (patinaRoca > 0 && rocaJustifica && !usaPieza(d, 'rueda_tacos')) {
     recs.push({
       id: 'rueda_tacos',
       texto: tr('Prueba ruedas con tacos para roca.', 'Try lugged wheels for rock.'),
@@ -128,7 +163,10 @@ export function recomendar(resultado, motivo) {
   const conModulo = d.some((x) => x.ranura === 'modulo' && x.pieza);
   // Solo si el intento falló por atasco o energía: tras una prueba superada no se agrega ruido al camino dorado.
   const fallo = ['atascado', 'energia_agotada'].includes(motivo);
-  if (fallo && patinajes >= 3 && !conModulo && !recs.some((r) => r.id === 'rueda_ancha' || r.id === 'rueda_tacos')) {
+  const pideRuedas = recs.some((r) => r.id === 'rueda_ancha' || r.id === 'rueda_tacos');
+  // Energía agotada sin patinaje dominante: la causa es la batería, y cada rescate gastaría todavía más.
+  const energiaSinPatinaje = motivo === 'energia_agotada' && !patinajeDomina(ev, 'arena') && !patinajeDomina(ev, 'roca');
+  if (fallo && patinajes >= 3 && !conModulo && !pideRuedas && !energiaSinPatinaje) {
     recs.push({
       id: 'auto_rescate',
       texto: tr('Pon el auto-rescate en el módulo: zafa al robot cuando se atasca.', 'Fit the self-rescue module: it frees the robot when it gets stuck.'),
@@ -149,10 +187,26 @@ export function recomendar(resultado, motivo) {
         cambio: { ranuras: ['modulo'], pieza: 'calentador_bateria' },
       });
     }
+    const dist = Math.round(resultado.distancia_m ?? 0);
+    const donde = dist > 0 ? tr(` a los ${dist} m`, ` at ${dist} m`) : '';
     if (!usaPieza(d, 'bateria_grande')) {
-      recs.push({ id: 'bateria_grande', texto: tr('Lleva la batería grande.', 'Bring the large battery.'), evidencia: tr('Se acabó la energía antes de terminar.', 'The battery ran out before the end.'), cambio: { ranuras: ['bateria'], pieza: 'bateria_grande' } });
+      recs.push({ id: 'bateria_grande', texto: tr('Lleva la batería grande.', 'Bring the large battery.'), evidencia: tr(`Se acabó la energía${donde}, antes de terminar.`, `The battery ran out${donde}, before the end.`), cambio: { ranuras: ['bateria'], pieza: 'bateria_grande' } });
     } else if (usaPieza(d, 'motor_potente')) {
       recs.push({ id: 'motor_eficiente', texto: tr('Cambia al motor eficiente: gasta la mitad.', 'Switch to the efficient motor: it uses half the energy.'), evidencia: tr('Se acabó la energía aun con la batería grande.', 'The battery ran out even with the large battery.'), cambio: { ranuras: ['motor'], pieza: 'motor_eficiente' } });
+    } else if (!conModulo) {
+      recs.push({ id: 'panel_solar', texto: tr('Pon el panel solar en el módulo: recarga mientras avanzas.', 'Fit the solar panel in the module bay: it recharges as you drive.'), evidencia: tr('Se acabó la energía aun con la batería grande.', 'The battery ran out even with the large battery.'), cambio: { ranuras: ['modulo'], pieza: 'panel_solar' } });
+    }
+  }
+  // Llegó, pero justo de energía (B2, playtest de Leo): más batería para tener margen. Si ya es la grande, el panel solar.
+  const energiaFinal = resultado.energia_restante;
+  if (exito && Number.isFinite(energiaFinal) && energiaFinal < ENERGIA_BAJA) {
+    const siguiente = BATERIA_SIGUIENTE[d.find((x) => x.ranura === 'bateria')?.pieza ?? 'bateria_chica'];
+    const evidencia = tr(`Llegaste con ${Math.round(energiaFinal * 100)} % de energía: casi no alcanzó.`,
+      `You arrived with ${Math.round(energiaFinal * 100)} % energy: barely enough.`);
+    if (siguiente) {
+      recs.push({ id: 'bateria_margen', texto: tr('Lleva una batería más grande para tener margen.', 'Bring a bigger battery for some margin.'), evidencia, cambio: { ranuras: ['bateria'], pieza: siguiente } });
+    } else if (!conModulo) {
+      recs.push({ id: 'bateria_margen', texto: tr('Pon el panel solar en el módulo para tener margen de energía.', 'Fit the solar panel in the module bay for some energy margin.'), evidencia, cambio: { ranuras: ['modulo'], pieza: 'panel_solar' } });
     }
   }
   // Motor sobrecalentado (ambiente.js): sin aire que lo enfríe, el motor potente se calienta el doble que el eficiente.
@@ -198,11 +252,14 @@ export function recomendar(resultado, motivo) {
     });
   }
   // La condición que terminó el intento tiene prioridad sobre problemas secundarios.
-  // Excepción: si se acabó la energía patinando mucho, la causa de fondo es el agarre (patinar gasta batería sin avanzar):
-  // primero las ruedas, luego la batería. Así «Aplicar y al taller» cambia las ruedas (camino dorado lunar).
-  const patinoMucho = patinaArena + patinaRoca >= PATINAJES_CAUSA_ENERGIA;
+  // Excepción: si se acabó la energía y el patinaje fue la causa dominante (patinajeDomina), la causa de fondo es el agarre
+  // (patinar gasta batería sin avanzar): primero las ruedas de esa superficie, luego la batería. Si no dominó, primero la
+  // batería (B2, playtest de Leo: con batería chica en Rincón de Parangueo salía «ruedas con tacos para roca»).
+  const ruedasPrimero = [patinajeDomina(ev, 'arena') && 'rueda_ancha', patinajeDomina(ev, 'roca') && 'rueda_tacos'].filter(Boolean);
   const prioridad = {
-    energia_agotada: patinoMucho ? ['rueda_ancha', 'rueda_tacos', 'bateria_grande', 'motor_eficiente', 'calentador_bateria'] : ['bateria_grande', 'motor_eficiente', 'calentador_bateria'],
+    energia_agotada: [...ruedasPrimero, 'bateria_grande', 'motor_eficiente', 'calentador_bateria', 'panel_solar'],
+    meta: ['bateria_margen'],
+    entrega: ['bateria_margen'],
     chasis_destruido: ['chasis_reforzado'],
     carga_perdida: ['soporte_amortiguado'],
     carga_danada: ['soporte_amortiguado'],
