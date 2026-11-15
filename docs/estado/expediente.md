@@ -78,7 +78,22 @@ Playtest: "el explorador libre no funciona" (la API no está publicada; antes so
   Si la API se cae a media consulta, se responde con el catálogo y las siguientes consultas ya no la esperan.
 - [x] Letra del Explorador ≥ 15 px. Pruebas nuevas: `pruebas/catalogo.test.js` (9) y 1 en `tickets.test.js`.
 
-Pruebas del frente: **41/41** (`cd game && node --test src/scenes/expediente/pruebas/`).
+Pruebas del frente: **49/49** (con `planeta.test.js`) (`cd game && node --test src/scenes/expediente/pruebas/`).
+
+### Efectos del Menú (`feat/expediente-menu-efectos`, 14 nov)
+Pedido: "agrega los efectos de menú dentro de Nueva partida y ¿De dónde salen los números?".
+- [x] **Nueva partida:** cada tarjeta tiene un planeta en pixel art que gira (Marte con casquetes, Luna con cráteres; luz
+  arriba a la izquierda y borde morado como `assets/fuente/titulo.mjs`), 48 cuadros de 48 px ×3 a 8 fps. Clic o toque en
+  el planeta = "Elegir …"; con el ratón encima gira más rápido; al elegir, giro rápido y acercamiento antes del fundido.
+  Si existe `assets/menu/planeta_marte.png` / `planeta_luna.png` (tira horizontal de cuadros cuadrados, ancho del cuadro =
+  alto de la imagen), se usa ese spritesheet; si no, se genera en código (`expediente/planeta_pixeles.js`, una vez por juego).
+- [x] **Selector "Español / English"** del menú principal también en destino, números y cómo jugar.
+- [x] **Números:** botones 1 ◀ · 2 ▶ · 3 Volver con ⏎ en la sugerida (▶; en la última página, Volver); panel detrás del
+  texto; al cambiar de página ya no se pierde el fondo; la línea del 78 % ya no se sale de la pantalla.
+- [x] **Estrellas que titilan** en todas las vistas del Menú, lejos de cualquier texto y fuera del Marte del fondo.
+- [x] **Botones (`boton()` de interfaz.js, Menú y Expediente):** crecen a ×1.05 al pasar el ratón (solo los de marco) y
+  suenan con `sonarBoton()` al pulsar (también con teclado). Con `prefers-reduced-motion` no hay animación.
+- [x] Revisado a 960×540 en es/en (principal, destino, números 1–3, cómo jugar): ningún texto se toca ni sale de pantalla.
 
 ## Prueba del camino completo en Luna y Marte
 Recorrido con clics y teclas reales (`npm run dev`, Chrome sin ventana): Menú → Nueva partida → destino → Expediente →
