@@ -250,11 +250,31 @@
     "superficies": [
       {
         "desde": 0.0,
+        "hasta": 840.0,
+        "tipo": "arena"
+      },
+      {
+        "desde": 840.0,
+        "hasta": 1080.0,
+        "tipo": "roca"
+      },
+      {
+        "desde": 1080.0,
+        "hasta": 2790.0,
+        "tipo": "arena"
+      },
+      {
+        "desde": 2790.0,
+        "hasta": 2910.0,
+        "tipo": "roca"
+      },
+      {
+        "desde": 2910.0,
         "hasta": 3990.0,
         "tipo": "arena"
       }
     ],
-    "superficies_nota": "Superficie: clasificación por reglas, no medición directa. arena si arena del suelo ≥ 65 %; si no, roca si rugosidad local (desv. est. en 90 m) > 2 m o pendiente > 15°; si no, compacto. Fuente: Copernicus DEM GLO-30 (rugosidad y pendiente); OpenLandMap SOL_SAND-WFRACTION v02, 0 cm (arena del suelo, 250 m) (ciencia_datos/datos/niveles_15.json, analisis/26). Arena del suelo en el corte: 96–99 %, media 98 %, sin píxeles sin dato. Ojo: la arena tiene prioridad sobre la pendiente (regla de la celda 21, para no confundir dunas con roca), así que donde hay arena las paredes quedan como arena aunque lleguen a 29.5°; y OpenLandMap es un mapa de suelo modelado a 250 m, no una medición en el cráter."
+    "superficies_nota": "Superficie: clasificación por reglas, no medición directa. roca si pendiente > 15° (también donde la arena del suelo es ≥ 65 %: paredes de cráter); si no, arena si arena del suelo ≥ 65 %; si no, roca si rugosidad local (desv. est. en 90 m) > 2 m; si no, compacto. Tramos de menos de 150 m se absorben en el anterior, salvo las paredes de 90 m o más. Fuente: Copernicus DEM GLO-30 (rugosidad y pendiente); OpenLandMap SOL_SAND-WFRACTION v02, 0 cm (arena del suelo, 250 m) (ciencia_datos/datos/niveles_15.json, analisis/26). Arena del suelo en el corte: 96–99 %, media 98 %, sin píxeles sin dato. Regla v2 (15 nov): la pendiente va antes que la arena del suelo, porque OpenLandMap es un mapa modelado a 250 m y marcaba como arena paredes de cráter; aquí cambian a roca 11 puntos con arena del suelo ≥ 65 % y pendiente > 15° (las paredes de menos de 90 m siguen absorbidas en el tramo vecino). Con la regla de la celda 21 esos puntos eran arena."
   },
   "nota": "Creado por model/niveles.py el 2026-11-15. No es un hallazgo de la búsqueda: es un control positivo del detector (cráter de impacto conocido que el detector encuentra; centro y medidas del detector, I03 en ciencia_datos/datos/impactos_tierra.csv; la coordenada de la lista es aproximada, del Earth Impact Database). estado: documentado, porque el esquema no tiene un valor para 'control positivo' (propuesto al integrador). Destino por la regla 4 de model/scan.py (P(Luna)=0.2093); frente al polo sur lunar el total sería 0.31. Gemelo de forma más cercano: cráter de Meridiani (Opportunity) (Marte), 1.61 km, 38 m, d/D 0.024, en -2.384, -5.884. novedoso: null; no está en data/known_analogs.json, pero es un cráter de impacto ya catalogado: no se presenta como hallazgo. Borde levantado: h/D = +0.0176 (model/borde.py), positivo: la medida coincide con que es un cráter de impacto. El puntaje describe qué tan lunar o marciana es su forma; no decide qué es (model/VALIDATION.md)."
 }

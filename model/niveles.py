@@ -3,7 +3,7 @@
 El perfil y las superficies los mide analisis/26_niveles_15.py (Copernicus DEM GLO-30 a 30 m + OpenLandMap, misma regla que las
 celdas 21 y 23; antes de medir reproduce idénticos los niveles de g00281 y mx0207). Aquí solo se copian al contrato Site:
 
-- Sitios que ya existen (cráteres con fuente g00266, g00263, g00176, mx0261 y tajos mx0023, mx0019, mx0155): se reescribe SOLO
+- Sitios que ya existen (cráteres con fuente g00281, g00266, g00263, g00176, mx0261 y tajos mx0023, mx0019, mx0155): se reescribe SOLO
   `nivel`. No cambia total, destino_ref, novedoso, variables ni nota. Se conservan exageracion_vertical y obstaculos.
 - Cráteres de impacto (meteor_crater, tenoumer, roter_kamm, talemzane): se crea el sitio. No son hallazgos de la búsqueda: son
   controles positivos del detector (cráteres de impacto conocidos que el detector encuentra; ciencia_datos/datos/impactos_tierra.csv
@@ -45,6 +45,10 @@ IMPACTOS = {
 CRATER_DE_SITIO = {sid: v[0] for sid, v in IMPACTOS.items()}       # lo usa model/borde.py (crater_de)
 NOMBRE_LISTA = {"G00195": "Meteor Crater"}                           # nombre del cráter en impactos_tierra.csv
 
+# Observaciones de un sitio que ya estaban en su nota del nivel y no salen de los datos del corte
+NOTA_EXTRA = {"g00281": (" OpenLandMap es un mapa de suelo modelado a 250 m: el fondo del cráter, según la etiqueta de IA, es una "
+                         "costra blanca (probable sal), no arena.")}
+
 PROYECCION = {"EPSG:6372": "cónica de Lambert de México, la de analisis/21"}
 
 
@@ -66,10 +70,16 @@ def nivel_sitio(v: dict, anterior: dict, mundo: str | None) -> dict:
     regla = v["superficie_tramos"][0]["regla"]
     nota = (f"Superficie: clasificación por reglas, no medición directa. {regla}. Fuente: {v['superficie_tramos'][0]['fuente']} "
             f"(ciencia_datos/datos/niveles_15.json, analisis/26). {arena}")
-    if v["resumen_superficie"]["arena"] and v["pend_max"] > 15:
+    if v.get("regla_version") == 2 and v.get("arena_suelo_y_pendiente_15"):
+        nota += (f" Regla v2 (15 nov): la pendiente va antes que la arena del suelo, porque OpenLandMap es un mapa modelado a 250 m "
+                 f"y marcaba como arena paredes de cráter; aquí cambian a roca {v['arena_suelo_y_pendiente_15']} puntos con arena del "
+                 "suelo ≥ 65 % y pendiente > 15° (las paredes de menos de 90 m siguen absorbidas en el tramo vecino). Con la "
+                 "regla de la celda 21 esos puntos eran arena.")
+    elif v["resumen_superficie"]["arena"] and v["pend_max"] > 15:
         nota += (" Ojo: la arena tiene prioridad sobre la pendiente (regla de la celda 21, para no confundir dunas con roca), así "
                  f"que donde hay arena las paredes quedan como arena aunque lleguen a {v['pend_max']}°; y OpenLandMap es un mapa "
                  "de suelo modelado a 250 m, no una medición en el cráter.")
+    nota += NOTA_EXTRA.get(v["id"], "")
     if v.get("agua_puntos"):
         nota += (f" Agua: {v['agua_puntos']} de {len(v['perfil_elevacion_m'])} puntos, entre {v['agua_desde_m']} y "
                  f"{v['agua_hasta_m']} m, son agua superficial (JRC Global Surface Water, ocurrencia ≥ 50 %): el DEM ve la "

@@ -217,11 +217,31 @@
     "superficies": [
       {
         "desde": 0.0,
+        "hasta": 570.0,
+        "tipo": "arena"
+      },
+      {
+        "desde": 570.0,
+        "hasta": 930.0,
+        "tipo": "roca"
+      },
+      {
+        "desde": 930.0,
+        "hasta": 2100.0,
+        "tipo": "arena"
+      },
+      {
+        "desde": 2100.0,
+        "hasta": 2670.0,
+        "tipo": "roca"
+      },
+      {
+        "desde": 2670.0,
         "hasta": 3000.0,
         "tipo": "arena"
       }
     ],
-    "superficies_nota": "Superficie: clasificación por reglas, no medición directa. arena si arena del suelo ≥ 65 %; si no, roca si rugosidad local (desv. est. en 90 m) > 2 m o pendiente > 15°; si no, compacto. Fuente: Copernicus DEM GLO-30 (rugosidad y pendiente); OpenLandMap SOL_SAND-WFRACTION v02, 0 cm (arena del suelo, 250 m) (ciencia_datos/datos/niveles_15.json, analisis/26). Arena del suelo en el corte: 78–86 %, media 82 %, sin píxeles sin dato. Ojo: la arena tiene prioridad sobre la pendiente (regla de la celda 21, para no confundir dunas con roca), así que donde hay arena las paredes quedan como arena aunque lleguen a 23.5°; y OpenLandMap es un mapa de suelo modelado a 250 m, no una medición en el cráter."
+    "superficies_nota": "Superficie: clasificación por reglas, no medición directa. roca si pendiente > 15° (también donde la arena del suelo es ≥ 65 %: paredes de cráter); si no, arena si arena del suelo ≥ 65 %; si no, roca si rugosidad local (desv. est. en 90 m) > 2 m; si no, compacto. Tramos de menos de 150 m se absorben en el anterior, salvo las paredes de 90 m o más. Fuente: Copernicus DEM GLO-30 (rugosidad y pendiente); OpenLandMap SOL_SAND-WFRACTION v02, 0 cm (arena del suelo, 250 m) (ciencia_datos/datos/niveles_15.json, analisis/26). Arena del suelo en el corte: 78–86 %, media 82 %, sin píxeles sin dato. Regla v2 (15 nov): la pendiente va antes que la arena del suelo, porque OpenLandMap es un mapa modelado a 250 m y marcaba como arena paredes de cráter; aquí cambian a roca 28 puntos con arena del suelo ≥ 65 % y pendiente > 15° (las paredes de menos de 90 m siguen absorbidas en el tramo vecino). Con la regla de la celda 21 esos puntos eran arena."
   },
   "nota": "Exportado por model/scan.py el 2026-11-14. Gemelo de forma más cercano: cráter de Cráter Gale (Marte), 1.06 km, 22 m, d/D 0.021. Nombre: nodo 'جبل البيضاء' de OpenStreetMap a ~0.04 km; NASA Earth Observatory (2024) lo describe como cono de toba con cráter de 1,400 m (https://science.nasa.gov/earth/earth-observatory/white-and-black-volcanoes-of-saudi-arabia-152839); el detector mide ~1.0 km a 200 m. novedoso: null; no encontrado como análogo lunar o marciano en la literatura revisada; tampoco está en la base de Ryan et al. 2024, Geosphere 20(2):547–576, doi:10.1130/GES02712.1, aunque esa base solo reúne campos basálticos y no es exhaustiva. Categoría: cráter natural verificado (etiqueta de IA crater_volcanico, confianza 0.85). Segunda evidencia, medida: borde levantado (38.2 m sobre el terreno lejano; model/borde.py); la etiqueta y la medida coinciden. El puntaje describe qué tan lunar o marciana es su forma; no decide qué es (model/VALIDATION.md). Etiqueta de IA: crater_volcanico, confianza 0.85 (claude -p sobre Sentinel-2 y relieve; 29 de 33 aciertos en la validación, ciencia_datos/etiquetado_ia)."
 }

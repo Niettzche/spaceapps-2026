@@ -30,11 +30,21 @@ SALIDA = DATOS / "niveles_15.json"
 PASO = 30.0
 CRS_MX = "EPSG:6372"
 REGLA_T = "arena si arena del suelo ≥ 65 %; si no, roca si rugosidad local (desv. est. en 90 m) > 2 m o pendiente > 15°; si no, compacto"
+# Regla v2 (15 nov, pedido del integrador para el manejo): la pendiente va ANTES que la arena del suelo. OpenLandMap es un mapa
+# modelado a 250 m y marcaba como arena paredes de cráter de hasta 41°. El umbral es el mismo de la regla v1 (15°). No cambia las
+# dunas: a 30 m, Samalayuca no pasa de 11.3°. Solo cambia los puntos que la v1 marcaba arena con pendiente > 15°. Las celdas 21 y
+# 23 (y --comprobar) siguen con la v1.
+REGLA_T2 = ("roca si pendiente > 15° (también donde la arena del suelo es ≥ 65 %: paredes de cráter); si no, arena si arena del "
+            "suelo ≥ 65 %; si no, roca si rugosidad local (desv. est. en 90 m) > 2 m; si no, compacto. Tramos de menos de 150 m se "
+            "absorben en el anterior, salvo las paredes de 90 m o más")
+MIN_ROCA_V2 = 90   # con la regla v2, una pared de 90 m o más no se absorbe (los demás tramos, 150 m como en la v1).
+                   # Las paredes de Tenoumer miden 90–120 m y la v1 las absorbía en la arena
 FUENTE_SUP = ("Copernicus DEM GLO-30 (rugosidad y pendiente); "
               "OpenLandMap SOL_SAND-WFRACTION v02, 0 cm (arena del suelo, 250 m)")
 
 # (id del sitio, grupo, de dónde sale el centro, id del detector, tabla del detector)
 SITIOS = [
+    ("g00281", "crater_con_fuente", "G00281", "global_crateres.csv"),     # ya era jugable (celda 23); se rehace con la regla v2
     ("g00266", "crater_con_fuente", "G00266", "global_crateres.csv"),
     ("g00263", "crater_con_fuente", "G00263", "global_crateres.csv"),
     ("g00176", "crater_con_fuente", "G00176", "global_crateres.csv"),
@@ -77,7 +87,7 @@ def ee_pixels(img, x_left, y_top, width, height, scale, crs, tries=4):
     raise RuntimeError(err)
 
 
-def tramos(tipos, paso, min_m=150):
+def tramos(tipos, paso, min_m=150, min_roca_m=None):
     """Igual que en las celdas 21 y 23: junta puntos del mismo tipo; los tramos de menos de min_m se absorben en el anterior."""
     t = []
     for k, ti in enumerate(tipos):
@@ -85,12 +95,21 @@ def tramos(tipos, paso, min_m=150):
         else: t.append({"desde_m": round(k * paso, 1), "hasta_m": round((k + 1) * paso, 1), "tipo": ti})
     out = []
     for tr in t:
-        if out and (tr["hasta_m"] - tr["desde_m"] < min_m): out[-1]["hasta_m"] = tr["hasta_m"]
+        corto = tr["hasta_m"] - tr["desde_m"] < min_m
+        if corto and min_roca_m is not None and tr["tipo"] == "pared" and tr["hasta_m"] - tr["desde_m"] >= min_roca_m:
+            corto = False                     # regla v2: una pared (arena del suelo con pendiente > 15°) de 90 m o más no se absorbe
+        if out and corto: out[-1]["hasta_m"] = tr["hasta_m"]
         elif out and out[-1]["tipo"] == tr["tipo"]: out[-1]["hasta_m"] = tr["hasta_m"]
         else: out.append(tr)
     fin = round((len(tipos) - 1) * paso, 1)
     for tr in out: tr["hasta_m"] = min(tr["hasta_m"], fin)
-    return out
+    # "pared" (solo la produce la regla v2) es roca: se renombra y se juntan los vecinos de roca
+    final = []
+    for tr in out:
+        tr["tipo"] = "roca" if tr["tipo"] == "pared" else tr["tipo"]
+        if final and final[-1]["tipo"] == tr["tipo"]: final[-1]["hasta_m"] = tr["hasta_m"]
+        else: final.append(tr)
+    return final
 
 
 def utm(lat, lon):
@@ -98,7 +117,7 @@ def utm(lat, lon):
     return f"EPSG:{(32600 if lat >= 0 else 32700) + zona}"
 
 
-def nivel(imgs, sid, lat, lon, largo_m, crs):
+def nivel(imgs, sid, lat, lon, largo_m, crs, regla=2):
     """nivel_tierra (celda 21) / nivel_utm (celda 23) con la proyección como parámetro."""
     glo30, arena_img = imgs[:2]
     x, y = Transformer.from_crs("EPSG:4326", crs, always_xy=True).transform(lon, lat)
@@ -109,14 +128,21 @@ def nivel(imgs, sid, lat, lon, largo_m, crs):
     pend = np.degrees(np.arctan(np.abs(np.gradient(perfil, PASO))))
     arena = ee_pixels(arena_img, x - largo_m / 2, y + PASO * 0.5, n, 1, PASO, crs)["arena"][0].astype(float)
     arena[(arena <= 0) | (arena > 100)] = np.nan                                                       # 0 y 255 = sin dato
-    tipos = ["arena" if (not np.isnan(s) and s >= 65) else ("roca" if (r > 2 or p > 15) else "compacto")
+    if regla == 1:
+        tipos = ["arena" if (not np.isnan(s) and s >= 65) else ("roca" if (r > 2 or p > 15) else "compacto")
+                 for r, p, s in zip(rug, pend, arena)]
+    else:
+        # Solo cambian frente a la v1 los puntos con arena del suelo ≥ 65 % y pendiente > 15° ("pared", que es roca)
+        tipos = [("pared" if p > 15 else "arena") if (not np.isnan(s) and s >= 65) else ("roca" if (r > 2 or p > 15) else "compacto")
              for r, p, s in zip(rug, pend, arena)]
     hay = not np.isnan(arena).all()
     return dict(id=sid, centro=[lat, lon], crs=crs, rumbo_deg=90, longitud_m=largo_m, paso_m=PASO,
                 perfil_elevacion_m=[round(float(v - perfil[0]), 1) for v in perfil], referencia="altura relativa al primer punto (m)",
                 fuente="Copernicus DEM GLO-30 (ESA, 2024_1), muestreo a 30 m",
-                superficie_tramos=[dict(t, fuente=FUENTE_SUP, regla=REGLA_T) for t in tramos(tipos, PASO)],
-                resumen_superficie={k: round(tipos.count(k) / n * 100) for k in ("arena", "roca", "compacto")},
+                superficie_tramos=[dict(t, fuente=FUENTE_SUP, regla=REGLA_T if regla == 1 else REGLA_T2) for t in tramos(tipos, PASO, 150, None if regla == 1 else MIN_ROCA_V2)],
+                regla_version=regla,
+                arena_suelo_y_pendiente_15=int(sum(1 for p, s in zip(pend, arena) if p > 15 and not np.isnan(s) and s >= 65)),
+                resumen_superficie={k: round([("roca" if t == "pared" else t) for t in tipos].count(k) / n * 100) for k in ("arena", "roca", "compacto")},
                 arena_suelo_pct=round(float(np.nanmean(arena))) if hay else None,
                 arena_min=round(float(np.nanmin(arena))) if hay else None,
                 arena_max=round(float(np.nanmax(arena))) if hay else None,
@@ -160,7 +186,7 @@ def comprobar(imgs):
     casos = [("g00281", 22.9018, 41.1412, 4000, utm(22.9018, 41.1412)),
              ("mx0207", *centro("MX0207", "crateres_mexico.csv")[:2], 3000, CRS_MX)]
     for sid, la, lo, largo, crs in casos:
-        nuevo = nivel(imgs, sid, la, lo, largo, crs)
+        nuevo = nivel(imgs, sid, la, lo, largo, crs, regla=1)
         g = guardados[sid]
         sitio = json.loads((RAIZ / "data" / "sites" / f"{sid}.json").read_text(encoding="utf-8"))["nivel"]
         claves = lambda ts: [(t["desde_m"], t["hasta_m"], t["tipo"]) for t in ts]
@@ -171,6 +197,15 @@ def comprobar(imgs):
         if not ok:
             raise SystemExit(f"{sid}: el nivel recalculado no coincide con el publicado; este script no mide lo mismo. No se escribe nada.")
         print(f"comprobación {sid}: {len(nuevo['perfil_elevacion_m'])} puntos y {len(nuevo['superficie_tramos'])} tramos idénticos")
+    # La regla v2 no debe cambiar los niveles sin paredes arenosas: dunas de Samalayuca (camino dorado), Pinacate y mx0207
+    for sid, la, lo, largo in (("samalayuca", 31.263611, -106.395278, 3000), ("pinacate", 31.84444, -113.39111, 4000),
+                               ("mx0207", *centro("MX0207", "crateres_mexico.csv")[:2], 3000)):
+        v2 = nivel(imgs, sid, la, lo, largo, CRS_MX, regla=2)
+        g = guardados[sid]
+        if ([(t["desde_m"], t["hasta_m"], t["tipo"]) for t in v2["superficie_tramos"]]
+                != [(t["desde_m"], t["hasta_m"], t["tipo"]) for t in g["superficie_tramos"]] or v2["perfil_elevacion_m"] != g["perfil_elevacion_m"]):
+            raise SystemExit(f"{sid}: la regla v2 cambia un nivel publicado que no debía cambiar. No se escribe nada.")
+        print(f"comprobación regla v2 en {sid}: mismos tramos que la v1")
 
 
 def main():
@@ -186,7 +221,7 @@ def main():
     res = [medir(imgs, *s) for s in lista]
     SALIDA.write_text(json.dumps({
         "metodo": "analisis/26_niveles_15.py (mismo que analisis/21_niveles_juego.py y analisis/23_segundo_sitio_lunar.py)",
-        "regla_superficie": REGLA_T, "niveles": res}, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+        "regla_superficie": REGLA_T2, "regla_v1": REGLA_T, "niveles": res}, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     for v in res:
         print(f"{v['id']:>14} {v['grupo']:>17} {v['crs']:>10} {v['longitud_m']} m, {len(v['perfil_elevacion_m'])} pts · relieve "
               f"{v['relieve_m']:6.1f} m · pend. máx {v['pend_max']:5.1f}° · {v['resumen_superficie']} · arena del suelo "
