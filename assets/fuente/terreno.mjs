@@ -37,11 +37,14 @@ function worley(x, y, seed) {
 
 const ESTILOS = {
   arena(A, seed) {
+    // sin manchas grandes: con un tile de 16 px, cualquier forma grande se nota como una banda que se repite.
+    // El tono sale de ruido fino (celdas de 2 px) con muy poco de la escala gruesa, y los granos son sueltos.
     const relleno = tile(16, 16, (x, y) => {
-      const n = tileFbm(x / 4, y / 4, 4, 4, seed, 3), g = tileNoise(x, y, 16, 16, seed + 12);
-      if (g > 0.86) return A[4];
-      if (g < -0.9) return A[0];
-      return tramado(A.slice(1, 4), 0.5 + n * 0.9, x, y);
+      const fino = tileFbm(x / 2, y / 2, 8, 8, seed, 2), grueso = tileFbm(x / 8, y / 8, 2, 2, seed + 30, 1);
+      const g = tileNoise(x * 1.37, y * 1.37, 0, 0, seed + 12) > 0.8 && tileNoise(x, y, 16, 16, seed + 13) > 0.2;
+      if (g) return A[4];
+      if (tileNoise(x, y, 16, 16, seed + 14) < -0.93) return A[0];
+      return tramado(A.slice(1, 4), 0.5 + fino * 0.75 + grueso * 0.12, x, y);
     });
     const borde = tile(16, 4, (x, y) => {
       const ola = Math.sin((x / 16) * Math.PI * 4) * 0.5 + tileNoise(x / 2, 0, 8, 0, seed - 6) * 0.4;

@@ -80,6 +80,21 @@ export function generar() {
   lema(f, [['LAND ON THE ', B], ['MOON', T.luna], [' / ', B], ['MARS', T.rojo], ['.', B]], 121);
   lema(f, [['RUN IT ', B], ['ANYWHERE', T.lavanda], ['.', B]], 130);
   guardar('titulo/titulo.png', f);
+
+  // Entrada y cierre del video de 30 s (1280 × 720 = 320 × 180 × 4, píxeles enteros). Van en docs/media/ y no en assets/,
+  // porque el Boot del juego precarga todas las imágenes de assets/.
+  const entrada = createFrame(W, H);
+  fondo(entrada);
+  textoTitulo(entrada, 'MARSCEPTION', 160, 46, { scale: 3, rampaTexto: T.logo, contorno: '#0d051c', sombra: '#2e0d6b', sombraDy: 3 });
+  guardar('../docs/media/video_entrada_1280x720.png', escalar(entrada, 4));
+  guardar('../docs/media/video_cierre_1280x720.png', escalar(f, 4));
+}
+
+/** Copia un cuadro escalado × k con vecino más cercano (para video o pantallas grandes). */
+function escalar(f, k) {
+  const g = createFrame(f.w * k, f.h * k);
+  for (let y = 0; y < g.h; y++) for (let x = 0; x < g.w; x++) g.color[y * g.w + x] = f.color[((y / k) | 0) * f.w + ((x / k) | 0)];
+  return g;
 }
 
 function norm(v) { const l = Math.hypot(...v); return v.map((a) => a / l); }
