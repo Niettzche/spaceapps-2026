@@ -102,6 +102,17 @@ export const ESTILOS = `
 #mc-explorador .cercanos button { text-align: left; width: 100%; }
 #mc-explorador a.boton { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 14px; border-radius: 4px;
   color: #ffd166; border: 1px solid #ffd166; text-decoration: none; }
+/* Tarjeta «¿Por qué el modelo…?» (misma que el Expediente, tecla M): título corto a la izquierda, valor a la derecha. */
+#mc-explorador .porque { margin: 8px 0; padding: 6px 10px; border: 1px solid #2a3160; border-radius: 4px; background: #141831; }
+#mc-explorador .porque h3 { margin: 2px 0 4px; font-size: 16px; color: #80e0dc; }
+#mc-explorador .porque dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 2px 12px; margin: 0; font-size: 15px; }
+#mc-explorador .porque dt { color: #a3abcc; }
+#mc-explorador .porque dd { margin: 0; }
+#mc-explorador .porque .bien { color: #06d6a0; } #mc-explorador .porque .riesgo { color: #ff7a93; }
+#mc-explorador .porque .dato { color: #80e0dc; } #mc-explorador .porque .sec { color: #a3abcc; }
+#mc-explorador .jugar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 8px 0; padding: 8px 10px;
+  border: 1px solid #ffd166; border-radius: 4px; }
+#mc-explorador .jugar p { margin: 0; flex: 1 1 220px; }
 @media (max-width: 560px) { #mc-explorador input, #mc-explorador select { min-width: 0; width: 100%; }
   #mc-explorador label { flex: 1 1 100%; }
   #mc-explorador .par { flex: 1 1 100%; }
