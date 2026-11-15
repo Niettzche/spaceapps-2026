@@ -67,3 +67,28 @@ test('sin sitio, las preguntas del sitio no inventan una respuesta', () => {
   assert.equal(respuestaPorReglas('desconocida', {}), null);
   assert.match(sinIA('limite'), /respiro/);
 });
+
+test('Cananea (B3): el parecido empieza por la forma y el gemelo, no por la vegetación; sin cortes ni repeticiones', () => {
+  setIdioma('es');
+  const cananea = leer('sites/mx0023.json');
+  const ctx = { sitio: cananea, destino: luna };
+  const p = respuestaPorReglas('parecido', ctx);
+  assert.match(p, /Lo que más pesa es la forma \(d\/D 0\.096\)/);
+  assert.match(p, /la asigna a la Luna con 87 %/);
+  assert.match(p, /gemelo más cercano: un cráter lunar de 0\.84 km y 80 m/);
+  assert.doesNotMatch(p, /Vegetaci[oó]n|NDVI/);
+  assert.doesNotMatch(p, /…/); // la frase de uso ya no se corta
+  assert.equal(p.match(/no geol[oó]gico/g).length, 1);
+  // La frase «La analogía se rompe…» del modelo pasa, completa, a «¿Dónde se rompe?».
+  assert.match(respuestaPorReglas('rompe', ctx), /La analogía se rompe por ser un hueco artificial escalonado.+no es el problema\./);
+});
+
+test('sin forma, el argumento principal no es una variable que vale 0 en el destino', () => {
+  setIdioma('es');
+  for (const s of sitios) {
+    const d = destinos[s.destino_ref];
+    if (!d || typeof s.similitud?.por_dimension?.forma === 'number') continue;
+    const p = respuestaPorReglas('parecido', { sitio: s, destino: d });
+    assert.doesNotMatch(p, /Lo que más se parece: (Vegetación|Precipitación)/, `${s.id}: ${p}`);
+  }
+});

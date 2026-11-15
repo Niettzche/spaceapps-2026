@@ -46,6 +46,15 @@ const ESTILOS = `
 #mc-tutora form button:disabled { background: #6c7393; cursor: not-allowed; }
 #mc-tutora .nota { margin: 0; color: #a3abcc; font-size: 13px; }
 #mc-tutora :focus-visible { outline: 3px solid #06d6a0; outline-offset: 2px; }
+/* Pantallas bajas (960 × 540): más alto para la respuesta, para que quepa sin desplazarse (playtest de Leo, B3). */
+@media (max-height: 600px) {
+  #mc-tutora .caja { gap: 6px; padding: 10px 12px; }
+  #mc-tutora canvas { width: 48px; height: 48px; }
+  #mc-tutora .msg { padding: 5px 9px; }
+  #mc-tutora .chips button { min-height: 40px; padding: 4px 10px; }
+  #mc-tutora input, #mc-tutora form button { min-height: 40px; }
+  #mc-tutora .nota { font-size: 12px; line-height: 1.3; }
+}
 @media (max-height: 460px) {
   #mc-tutora .caja { padding: 8px 10px; gap: 6px; }
   #mc-tutora canvas { width: 40px; height: 40px; }
@@ -136,6 +145,9 @@ export function abrirTutora(scene, { sitio = null, destino = null, pantalla = 'e
     const m = el('div', { class: `msg ${quien}` }, [el('span', {}, texto), etiqueta ? el('small', {}, etiqueta) : null]);
     registro.append(m);
     registro.scrollTop = registro.scrollHeight;
+    // Si la respuesta no cabe entera, se ve desde su inicio (antes quedaba al fondo y el principio se escondía arriba).
+    const arriba = m.getBoundingClientRect().top - registro.getBoundingClientRect().top;
+    if (arriba < 0) registro.scrollTop += arriba - 4;
     return m;
   }
 
