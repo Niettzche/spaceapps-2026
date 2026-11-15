@@ -16,7 +16,7 @@ import { abrirResumen } from './comun/tutorial_vista.js';
 import { vistaComoJugar, reiniciarPaginaComoJugar } from './expediente/como_jugar_vista.js';
 import { estrellas, planetaGirando, movimientoReducido } from './expediente/efectos.js';
 import { sonarBoton } from '../fisica/sonido.js';
-import { FondoMenu } from './expediente/fondo_menu.js';
+import { FondoMenu, MARTE_TITULO } from './expediente/fondo_menu.js';
 import { marteGrande, logoBrillo, lineaPixel, restaurarCamara, precargarInicio, videoInicio, warp, textoPx } from './expediente/inicio.js';
 import { vozTitulo } from './expediente/voz_titulo.js';
 import { escenarioNave, consolaMenu, flechasRejilla, entradaInterfaz, zoomEscotilla, detenerZoom } from './expediente/menu_nave.js';
@@ -56,10 +56,22 @@ export default class Menu extends Phaser.Scene {
     this.mostrar(this.vistaInicial);
   }
 
-  /** Cambia español ↔ inglés y vuelve a crear el Menú en la misma vista (los textos se arman al crear). */
-  cambiarIdioma(vista = 'principal') {
+  /**
+   * Cambia español ↔ inglés SIN reiniciar nada (retro de Leo, 15 nov: antes se reiniciaba el video de inicio y todo).
+   * - Inicio: solo se rehacen los textos (franja en español, selector ES · EN, lema del respaldo); el video sigue.
+   * - Opciones: solo se rehace la consola; la estación, el logo y el fondo vivo siguen donde iban.
+   * - Las demás vistas se redibujan en su lugar conservando el fondo vivo (planetas, galaxia y asteroides siguen).
+   */
+  cambiarIdioma(vista = this.vista ?? 'principal') {
+    if (this.zoomando && vista !== 'principal') return; // a media transición, se ignora
     alternarIdioma();
-    this.scene.restart({ vista });
+    // Se rehace en el cuadro siguiente: el botón que se pulsó puede ser uno de los que se destruyen.
+    this.time.delayedCall(0, () => {
+      if (!this.sys.isActive()) return;
+      if (vista === 'inicio' && this.vista === 'inicio') this.textosInicio();
+      else if (vista === 'principal' && this.vista === 'principal' && this.consola) this.consolaPrincipal();
+      else if (this.vista === vista) this.mostrar(vista, { conservarFondo: true });
+    });
   }
 
   /**
@@ -90,8 +102,16 @@ export default class Menu extends Phaser.Scene {
     return b;
   }
 
-  mostrar(vista, { llegada = false } = {}) {
-    limpiar(this);
+  mostrar(vista, { llegada = false, conservarFondo = false } = {}) {
+    // Con `conservarFondo` (cambio de idioma) el fondo vivo sigue: sus capas no se destruyen ni se vuelve a crear.
+    const fondoVivo = conservarFondo && this.fondoMenu?.g?.scene ? this.fondoMenu : null;
+    if (fondoVivo) {
+      const mantener = new Set([fondoVivo.g, fondoVivo.gDetras]);
+      this.children.list.slice().forEach((o) => { if (!mantener.has(o)) o.destroy(); });
+      if (this.teclado) { this.teclado.items = []; this.teclado.actual = null; this.teclado.atajos = []; }
+    } else limpiar(this);
+    this.consola = null;
+    this.textosInicioObjs = null;
     this.resumen = null; // limpiar() ya destruyó su capa
     this.vista = vista;
     if (this.alTocarInicio) { this.input.off('pointerdown', this.alTocarInicio); this.alTocarInicio = null; }
@@ -127,13 +147,13 @@ export default class Menu extends Phaser.Scene {
       vistaComoJugar(this, {
         presupuesto: PRESUPUESTO_INICIAL,
         alTerminar: () => this.mostrar(trasComoJugar),
-        redibujar: () => this.mostrar('como_jugar'),
+        redibujar: () => this.mostrar('como_jugar', { conservarFondo: true }),
         botonIdioma: () => this.botonIdioma('como_jugar'),
       });
     } else if (vista === 'numeros') {
       vistaNumeros(this, {
         volver: () => this.mostrar('principal'),
-        redibujar: () => this.mostrar('numeros'),
+        redibujar: () => this.mostrar('numeros', { conservarFondo: true }),
         botonIdioma: () => this.botonIdioma('numeros'),
       });
     }
@@ -145,8 +165,10 @@ export default class Menu extends Phaser.Scene {
     }
     // Fondo vivo de Leo (#76): asteroides, cometa, planetas detrás de Marte, galaxia, destellos y agujero negro al volver.
     // En «Nueva partida» con el fondo de Mauricio no va (no tiene un Marte al centro para su máscara), ni en el video.
+    const quiereFondo = vista !== 'destino' && vista !== 'inicio';
+    if (fondoVivo && quiereFondo && fondoVivo.marte === (nave ? nave.marte : MARTE_TITULO)) return; // se conserva el que ya iba
     this.fondoMenu?.destruir();
-    this.fondoMenu = vista === 'destino' || vista === 'inicio' ? null
+    this.fondoMenu = !quiereFondo ? null
       : new FondoMenu(this, { resultados: partida.resultados?.length ?? 0, ...(nave ? { marte: nave.marte } : {}) });
   }
 
@@ -188,12 +210,8 @@ export default class Menu extends Phaser.Scene {
     vozTitulo(); // «MARSCEPTION» con la voz de Mauricio, una vez por visita
     if (!v) this.inicioRespaldo();
     const quieto = movimientoReducido();
-    if (idioma() !== 'en') {
-      const aviso = textoPx(this, 480, 519, 'PRESIONA ENTER O TOCA PARA JUGAR', { origen: [0.5, 0.5] });
-      this.add.rectangle(480, 519, aviso.displayWidth + 36, 32, 0x0d0a24, 0.78).setStrokeStyle(2, 0x7a4cff, 0.8).setDepth(1);
-      if (!quieto) this.tweens.add({ targets: aviso, alpha: 0.5, duration: 700, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-    }
-    this.idiomaInicio();
+    this.sinVideoInicio = !v;
+    this.textosInicio();
 
     const entrar = () => {
       if (this.zoomando) return;
@@ -209,6 +227,23 @@ export default class Menu extends Phaser.Scene {
     this.input.on('pointerdown', this.alTocarInicio);
   }
 
+  /**
+   * Textos de la pantalla de inicio que dependen del idioma (franja en español, selector ES · EN y, sin video, el lema del
+   * respaldo). Se rehacen en su lugar al cambiar de idioma: el video, el logo y Marte siguen sin reiniciarse.
+   */
+  textosInicio() {
+    (this.textosInicioObjs ?? []).forEach((o) => { this.tweens.killTweensOf(o); o.destroy(); });
+    const antes = new Set(this.children.list);
+    if (this.sinVideoInicio) this.lemaRespaldo();
+    if (idioma() !== 'en') {
+      const aviso = textoPx(this, 480, 519, 'PRESIONA ENTER O TOCA PARA JUGAR', { origen: [0.5, 0.5] });
+      this.add.rectangle(480, 519, aviso.displayWidth + 36, 32, 0x0d0a24, 0.78).setStrokeStyle(2, 0x7a4cff, 0.8).setDepth(1);
+      if (!movimientoReducido()) this.tweens.add({ targets: aviso, alpha: 0.5, duration: 700, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    }
+    this.idiomaInicio();
+    this.textosInicioObjs = this.children.list.filter((o) => !antes.has(o));
+  }
+
   /** Idioma en la pantalla de inicio: «ES · EN  L» abajo a la derecha (el actual en amarillo y subrayado); clic o L. */
   idiomaInicio() {
     const en = idioma() === 'en';
@@ -221,7 +256,9 @@ export default class Menu extends Phaser.Scene {
     const caja = this.add.rectangle(x0, y, 950 - x0, 32, 0x0d0a24, 0.78).setOrigin(0, 0.5).setStrokeStyle(2, 0x7a4cff, 0.8).setDepth(1);
     const actual = en ? enT : esT;
     this.add.rectangle(actual.x - actual.displayWidth, y + 11, actual.displayWidth, 2, 0xffd166).setOrigin(0, 0.5).setDepth(2);
-    caja.setInteractive({ useHandCursor: true }).on('pointerdown', () => this.cambiarIdioma('inicio'));
+    // Zona táctil de 44 px de alto (la caja dibujada mide 32 y crece hacia arriba para no salirse de la pantalla).
+    caja.setInteractive({ hitArea: new Phaser.Geom.Rectangle(0, -12, 950 - x0, 44), hitAreaCallback: Phaser.Geom.Rectangle.Contains, useHandCursor: true })
+      .on('pointerdown', () => this.cambiarIdioma('inicio'));
   }
 
   /** Respaldo de la pantalla de inicio sin el cuadro del video: Marte que gira, logo con brillo y lema en la fuente pixel. */
@@ -229,6 +266,10 @@ export default class Menu extends Phaser.Scene {
     if (this.textures.exists('titulo/titulo_fondo')) this.add.image(480, 270, 'titulo/titulo_fondo').setScale(3).setDepth(-10);
     marteGrande(this);
     logoBrillo(this, 480, 172, 9);
+  }
+
+  /** Lema del respaldo de inicio (depende del idioma; lo rehace textosInicio). */
+  lemaRespaldo() {
     const T = '#ffffff', TIERRA = '#80e0dc', LUNA = '#c8c8d4', MARTE = '#ff8a7a', LEJOS = '#c9a7ff';
     const lineas = idioma() === 'en'
       ? [[['TRAIN ON ', T], ['EARTH', TIERRA], ['.', T]], [['LAND ON THE ', T], ['MOON', LUNA], [' / ', T], ['MARS', MARTE], ['.', T]],
@@ -251,6 +292,21 @@ export default class Menu extends Phaser.Scene {
    */
   vistaPrincipal(llegada = false) {
     const logo = logoBrillo(this, 480, 66, 7);
+    const consola = this.consolaPrincipal();
+    if (llegada) entradaInterfaz(this, { consola: consola.objs, logo, retraso: 450 });
+  }
+
+  /**
+   * Consola del menú de opciones (los textos dependen del idioma). Al cambiar de idioma se rehace solo la consola; si la
+   * vista ya estaba lista (no a media llegada), el teclado se vuelve a poner en el mismo botón.
+   */
+  consolaPrincipal() {
+    const previa = this.consola;
+    const enfocado = previa ? previa.botones.indexOf(this.teclado.actual) : -1;
+    if (previa) {
+      previa.objs.forEach((o) => { this.tweens.killTweensOf(o); o.destroy(); });
+      this.teclado.items = []; this.teclado.actual = null; this.teclado.atajos = [];
+    }
     const g = guardadoDisponible(DESTINOS);
     const en = idioma() === 'en';
     const opciones = [
@@ -267,12 +323,20 @@ export default class Menu extends Phaser.Scene {
       { etiqueta: en ? 'Language: English' : 'Idioma: Español', accion: () => this.cambiarIdioma('principal'), tecla: 'L',
         pista: en ? 'Cambiar a español' : 'Switch to English' },
     ];
-    const consola = consolaMenu(this, opciones, {
+    const consola = this.consola = consolaMenu(this, opciones, {
       ayudaPorDefecto: tr('↑↓←→ mover · 1–5 / Enter elegir · Esc inicio · L idioma', '↑↓←→ move · 1–5 / Enter choose · Esc title · L language'),
     });
     const botones = consola.botones;
     const [nueva, continuar] = botones;
-    if (llegada) entradaInterfaz(this, { consola: consola.objs, logo, retraso: 450 });
+    const ponerTeclado = (foco) => {
+      this.teclado.numerar(botones.slice(0, 5));
+      (g ? continuar : nueva).setSugerido(true);
+      this.teclado.poner(botones, foco ?? (g ? continuar : nueva));
+      this.teclado.extra = { ...this.teclado.extra, ...flechasRejilla(this, 2) };
+      this.teclado.alEscape = () => this.fundido(() => this.mostrar('inicio'));
+    };
+    // Cambio de idioma con la vista ya lista: mismo foco, sin animación de entrada.
+    if (previa && !this.listoPrincipal) { ponerTeclado(botones[enfocado] ?? botones[5]); return consola; }
     // Teclado y ratón se habilitan cuando la estación terminó de llegar (escenarioNave llama a listoPrincipal; sin
     // llegada, en el instante siguiente).
     this.listoPrincipal = () => {
@@ -280,12 +344,9 @@ export default class Menu extends Phaser.Scene {
       if (!this.sys.isActive() || this.vista !== 'principal') return;
       this.zoomando = false;
       this.input.enabled = true;
-      this.teclado.numerar(botones.slice(0, 5));
-      (g ? continuar : nueva).setSugerido(true);
-      this.teclado.poner(botones, g ? continuar : nueva);
-      this.teclado.extra = { ...this.teclado.extra, ...flechasRejilla(this, 2) };
-      this.teclado.alEscape = () => this.fundido(() => this.mostrar('inicio'));
+      ponerTeclado();
     };
+    return consola;
   }
 
   /**
