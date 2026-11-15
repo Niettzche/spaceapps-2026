@@ -311,6 +311,12 @@ export const EN = {
   juegoTitulo: 'Ready for launch?',
   juegoTexto: 'Pick a destination, test your rover on an Earth analogue and launch it to deliver the supply. It runs in the browser, in Spanish or English.',
   juegoBoton: 'Play Marsception →',
+  // Tráiler
+  trailerAnte: 'The trailer · 30 s',
+  trailerTitulo: 'Test on Earth. Deliver on the Moon or Mars.',
+  trailerAria: 'MARSCEPTION trailer, 30 seconds',
+  trailerPie: 'In English, with on-screen text. Press play to see the game in action.',
+  verTrailer: 'Watch the trailer (30 s)',
   // La física del juego e índice del bloque de cráteres
   fisAnte: 'The game’s physics',
   fisTitulo: 'Why changing the wheel or the planet changes what happens',

@@ -1315,3 +1315,9 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 @media (max-width: 560px) { .fis-fuentes .tabla td:nth-child(2) { white-space: normal; } }
 .fis-fuentes .tabla th, .fis-fuentes .tabla td { text-align: left; }
 .fis-fuentes .tabla td:nth-child(3) { font-family: var(--sans); font-size: 0.86rem; color: var(--tinta-2); }
+
+/* ── Tráiler ───────────────────────────────────────────────────────────── */
+.trailer-figura { max-width: 64rem; margin: 0 auto; }
+.trailer-figura video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; border: 1px solid var(--linea); border-radius: 20px; background: #07060a; box-shadow: var(--sombra); }
+.trailer-figura figcaption { margin: 0.8rem 0 0; text-align: center; }
+.inicio-trailer { margin-bottom: 0.4rem; }

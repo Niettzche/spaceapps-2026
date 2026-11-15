@@ -6,6 +6,10 @@
 **Última actualización:** 15 nov 2026, mañana (landing con divulgación científica en `informe/divulgacion/`; ANA, la tutora de análogos, ya en `main`; demo en https://v1.marsception.us/)
 
 ## Hecho (landing: «Los análogos» y «Pruébalo», 15 nov, mañana)
+- **Tráiler en la landing (11:40, pedido de Mario):** sección `#trailer` justo después de la portada y enlace «▶ Ver el tráiler
+  (30 s)» en la portada. Del video de 1080p y 14.4 MB salen `public/video/trailer.webm` (AV1 + Opus, 3.9 MB),
+  `trailer.mp4` (H.264 + AAC con faststart, 5.1 MB, respaldo para Safari) y un póster WebP de 17 KB; `preload="none"`: no se
+  descarga nada hasta darle play. Sigue en 1080p para que el pixel art y los textos chicos se lean.
 - **«La física del juego» y bloque de cráteres numerado (11:40, pedido de Mario):** sección `#fisica` (después de Destinos)
   con la guía de física del equipo hecha divulgación: gravedad, tracción (Mohr–Coulomb), hundimiento (Bekker–Wong) y viento,
   y la tabla «De dónde salen los números». Se dejaron fuera las preguntas difíciles y frases del pitch, y 3 datos de la guía sin

@@ -68,8 +68,25 @@
           <li class="inicio-entra" style="--orden:6" data-t="paso3c">Pruébalo en la Tierra</li>
           <li class="inicio-entra" style="--orden:6.5" data-t="paso4c">Lánzalo</li>
         </ol>
+        <a class="inicio-detalles inicio-trailer inicio-entra" style="--orden:6.8" href="#trailer"><span aria-hidden="true">▶</span> <span data-t="verTrailer">Ver el tráiler (30 s)</span></a>
         <a class="inicio-detalles inicio-entra" style="--orden:7" href="#detalles"><span data-t="verDetalles">Detalles técnicos: cifras, fuentes y validación</span> <span aria-hidden="true">→</span></a>
       </div>
+    </section>
+
+    <!-- ───────────── Tráiler (30 s; AV1/WebM y H.264/MP4 optimizados, solo se descargan al darle play) ───────────── -->
+    <section class="seccion trailer" id="trailer" aria-labelledby="t-trailer">
+      <header class="cap-cabeza">
+        <p class="cap-num revela" data-t="trailerAnte">El tráiler · 30 s</p>
+        <h2 id="t-trailer" class="revela" data-t="trailerTitulo">Prueba en la Tierra. Entrega en la Luna o en Marte.</h2>
+      </header>
+      <figure class="trailer-figura revela">
+        <video controls playsinline preload="none" width="1920" height="1080" poster="./video/trailer_poster.webp"
+               aria-label="Tráiler de MARSCEPTION, 30 segundos" data-t-aria="trailerAria">
+          <source src="./video/trailer.webm" type='video/webm; codecs="av01.0.08M.08, opus"'>
+          <source src="./video/trailer.mp4" type='video/mp4; codecs="avc1.640032, mp4a.40.2"'>
+        </video>
+        <figcaption class="nota" data-t="trailerPie">En inglés, con los textos en pantalla. Dale play para ver el juego en acción.</figcaption>
+      </figure>
     </section>
 
     <!-- ───────────── Pruébalo: el modelo de forma en el navegador (src/clasificador.js) ───────────── -->
