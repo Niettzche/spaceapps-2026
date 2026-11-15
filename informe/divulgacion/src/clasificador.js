@@ -68,7 +68,84 @@ export function montarClasificador(cont, nube, ctx) {
   const pie = el('p', { class: 'nota' });
   const figura = el('figure', { class: 'clasif-figura' }, [lienzo, leyenda, el('figcaption', {}, pie)]);
   const limite = el('p', { class: 'nota clasif-limite' });
-  cont.append(panel, figura, limite);
+
+  // ---------- Árbol de decisión (ciencia_datos/06): la ruta del cráter, pregunta por pregunta ----------
+  const NS = 'http://www.w3.org/2000/svg';
+  const arbolT = el('h3', { id: 'clasif-arbol-t' });
+  const arbolEntrada = el('p', { class: 'clasif-arbol-entrada' });
+  const arbolSvg = document.createElementNS(NS, 'svg');
+  arbolSvg.setAttribute('viewBox', '0 0 800 236');
+  arbolSvg.setAttribute('class', 'clasif-arbol-svg');
+  arbolSvg.setAttribute('role', 'img');
+  const pasos = el('ol', { class: 'clasif-arbol-pasos', 'aria-live': 'polite' });
+  const arbolNota = el('p', { class: 'nota' });
+  const arbolCaja = el('section', { class: 'clasif-arbol', 'aria-labelledby': 'clasif-arbol-t' },
+    [arbolT, arbolEntrada, el('div', { class: 'clasif-arbol-cuerpo' }, [arbolSvg, pasos]), arbolNota]);
+  cont.append(panel, figura, arbolCaja, limite);
+
+  /** Ruta de un cráter por el árbol: cada pregunta (nodo, respuesta, profundidad y posición) y la hoja final. */
+  function recorrido(x) {
+    const ruta = [];
+    let n = nube.arbol.raiz, d = 0, pos = 0;
+    while (!n.hoja) {
+      const si = x[n.variable] <= n.umbral;
+      ruta.push({ n, si, d, pos });
+      pos = pos * 2 + (si ? 0 : 1); d += 1; n = si ? n.si : n.no;
+    }
+    return { ruta, hoja: n, d, pos };
+  }
+
+  const umbralTexto = (v, u) => (v === 0 ? `${num(10 ** u, 10 ** u < 1 ? 2 : 1)} km` : num(u, 3));
+  const valorTexto = (v, x) => (v === 0 ? `${num(10 ** x, 10 ** x < 1 ? 2 : 1)} km` : num(x, 3));
+
+  function pintarArbol(r) {
+    const T = D();
+    const { ruta, hoja, d: dHoja, pos: posHoja } = recorrido(estado.x);
+    const enRuta = new Set([...ruta.map((p) => `${p.d}-${p.pos}`), `${dHoja}-${posHoja}`]);
+    const svgEl = (tag, attrs, padre) => {
+      const n = document.createElementNS(NS, tag);
+      for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+      padre.appendChild(n);
+      return n;
+    };
+    arbolSvg.replaceChildren();
+    const aristas = svgEl('g', {}, arbolSvg), nodos = svgEl('g', {}, arbolSvg);
+    const xy = (d, pos) => [((pos + 0.5) * 800) / 2 ** d, 22 + d * 64];
+    const dibujar = (n, d, pos) => {
+      const [x, y] = xy(d, pos);
+      const clave = `${d}-${pos}`;
+      if (!n.hoja) {
+        for (const [hijo, lado, k] of [[n.si, T.si, 0], [n.no, T.no, 1]]) {
+          const [hx, hy] = xy(d + 1, pos * 2 + k);
+          const ruta = enRuta.has(clave) && enRuta.has(`${d + 1}-${pos * 2 + k}`);
+          svgEl('line', { x1: x, y1: y + 15, x2: hx, y2: hy - 15, class: `arbol-arista${ruta ? ' ruta' : ''}` }, aristas);
+          const t = svgEl('text', { x: (x + hx) / 2 + (k ? 10 : -10), y: (y + hy) / 2, class: 'arbol-sino' }, aristas);
+          t.textContent = lado;
+          dibujar(hijo, d + 1, pos * 2 + k);
+        }
+      }
+      const g = svgEl('g', { class: `arbol-nodo${n.hoja ? ' arbol-hoja' : ''}${enRuta.has(clave) ? ' ruta' : ''}`, ...(n.hoja ? { 'data-clase': n.clase } : {}) }, nodos);
+      const w = n.hoja ? 84 : d === 2 ? 150 : 170;
+      svgEl('rect', { x: x - w / 2, y: y - 15, width: w, height: 30, rx: 8 }, g);
+      const t = svgEl('text', { x, y }, g);
+      t.textContent = n.hoja ? (n.clase === 'Luna' ? T.luna : T.marte) : `${T.corto[n.variable]} ≤ ${umbralTexto(n.variable, n.umbral)}`;
+    };
+    dibujar(nube.arbol.raiz, 0, 0);
+    const claseTexto = hoja.clase === 'Luna' ? T.luna : T.marte;
+    arbolSvg.setAttribute('aria-label', T.arbolAria(claseTexto));
+
+    pasos.replaceChildren(
+      ...ruta.map((p) => el('li', {}, [
+        el('span', { texto: T.pregunta(T.aporteVar[p.n.variable], umbralTexto(p.n.variable, p.n.umbral)) }),
+        el('span', { class: 'clasif-arbol-resp', texto: ` ${T.tuCrater}: ${valorTexto(p.n.variable, estado.x[p.n.variable])} → ${p.si ? T.si : T.no}` }),
+      ])),
+      el('li', { class: 'hoja', 'data-clase': hoja.clase }, [
+        el('b', { texto: T.hoja(claseTexto) }),
+        el('span', { texto: ` ${T.hojaConteo(num(hoja.luna + hoja.marte, 0), num(hoja.luna, 0), num(hoja.marte, 0))} ` }),
+        el('span', { texto: (hoja.clase === 'Luna') === (r.pLuna >= 0.5) ? T.coinciden : T.difieren }),
+      ]),
+    );
+  }
 
   // ---------- Dibujo ----------
   const PAD = { izq: 62, der: 14, arr: 14, aba: 44 };
@@ -178,6 +255,9 @@ export function montarClasificador(cont, nube, ctx) {
       .map(([c, t]) => el('li', { 'data-serie': c }, [el('i', { 'aria-hidden': 'true' }), el('span', { texto: t })])));
     pie.textContent = T.pie;
     limite.textContent = T.limite;
+    arbolT.textContent = T.arbolT;
+    arbolEntrada.textContent = T.arbolEntrada;
+    arbolNota.textContent = T.arbolNota(num(nube.arbol.peso_marte, 1));
   }
 
   function pintar(moverDeslizadores) {
@@ -210,6 +290,7 @@ export function montarClasificador(cont, nube, ctx) {
     notaEj.textContent = estado.ejemplo ? T.notas[estado.ejemplo] : T.notaLibre;
     lienzo.setAttribute('aria-label', T.aria(num(r.pLuna * 100, 0), `${num(diamKm, 2)} km`, num(dd, 3), num(br, 3)));
     dibujar();
+    pintarArbol(r);
   }
 
   textosFijos();

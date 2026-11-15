@@ -6,6 +6,10 @@
 **Última actualización:** 15 nov 2026, mañana (landing con divulgación científica en `informe/divulgacion/`; ANA, la tutora de análogos, ya en `main`; demo en https://v1.marsception.us/)
 
 ## Hecho (landing: «Los análogos» y «Pruébalo», 15 nov, mañana)
+- **El árbol de decisión en «Pruébalo» (11:40, pedido de Mario):** el árbol Luna contra Marte de `ciencia_datos/06` (profundidad 3,
+  78 % fuera de muestra) con la ruta del cráter resaltada y sus 3 preguntas; cada hoja dice cuántos cráteres lunares y marcianos
+  le llegan. `preparar_datos.py` lo reentrena con los mismos parámetros y se detiene si sus reglas no son idénticas a las que
+  imprimió el cuaderno. En teléfono se muestran solo las preguntas (el diagrama se oculta por debajo de 600 px).
 - **Los cráteres primero (11:10, pedido de Mario):** la portada dice que comparamos los cráteres de la Tierra con 4,288 de la Luna
   y 573 de Marte, y su segundo botón es «Clasifica un cráter» (#pruebalo). Orden nuevo: portada → Pruébalo → la ciencia → los
   análogos → lo que encontramos → cómo se juega → destinos → detalles. Navegación y descripción de la página en el mismo orden.
