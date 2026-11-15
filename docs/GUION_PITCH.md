@@ -12,7 +12,7 @@ Construimos MARSCEPTION: un explorador de análogos y un juego de rover con dato
 
 ## 0:45–1:15 · Video de 30 segundos
 
-Reproducir el corte final de 30 s sin hablar encima: prueba terrestre, fallo, ajuste del robot, entrega y límites de la analogía. Mientras se prepara ese corte, el video actual dura 25 s; reservar los cinco restantes para la transición. No sustituirlo por un recorrido en vivo completo: no cabe en este segmento.
+Reproducir el corte final de 30 s sin hablar encima: prueba terrestre, fallo, ajuste del robot, entrega y límites de la analogía. La captura recibida dura 55.53 s: no reproducirla completa en este bloque. Ya hay un [clip de 5 s](media/gameplay_5s_en.mp4) para que Mauricio lo incorpore al corte final. No sustituir el bloque por un recorrido en vivo completo: no cabe en este segmento.
 
 ## 1:15–1:44 · Evidencia y límites
 

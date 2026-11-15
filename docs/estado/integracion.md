@@ -2,6 +2,15 @@
 
 Responsable: Alan · Agente: Codex · Actualización: 2026-11-14
 
+## Video recibido · publicación web
+
+- Traído main 39afdb9 a una rama nueva `feat/video-grabacion-publica`; incluye #70 y el arte reciente. Alan confirmó que la publicación anterior ya está hecha.
+- Incorporada la captura proporcionada por Alan a la ruta pública existente del video, completa (55.53 s), optimizada para web y con audio. El original permanece intacto. La nueva versión requiere desplegar este cambio; no se afirma que ya esté en el VPS.
+- Textos ES/EN y documentos actualizados: captura real del inicio de Marte / prueba Samalayuca, no misión completa. Retirado el track del video anterior del reproductor y añadida versión a la URL para evitar reutilizar la caché del MP4 previo.
+- Extraído el clip de 5 s que esperaba Mauricio, `docs/media/gameplay_5s_en.mp4` (30–35 s de la fuente). No se envió ningún mensaje ni archivo a terceros.
+- El montaje de ≤30 s y los recorridos completos Marte/Luna siguen pendientes; no se envió el formulario de Space Apps.
+- Verificación: ambos MP4 decodifican completos sin errores, conservan H.264/AAC a 30 fps, incluyen `faststart`; duración web 55.53 s y clip 5.00 s. Build web correcto y MP4 copiado a dist. Captura web optimizada: 27,224,995 bytes frente a 48,948,332 del original.
+
 ## Entrega, metadatos y guion
 
 - Rama `feat/entrega-metadatos`: título exacto MARSCEPTION · Earth analogs for the Moon & Mars; descripción y Open Graph con imagen absoluta de 1200×630 en `web/public/media/og_1200x630.png`. Favicons SVG, PNG 32 y Apple 180 conectados desde `web/public/`, con base de Vite. Archivos originales copiados sin cambios del PR #67, commit 84582f6; no se mergeó el resto de la rama de arte.

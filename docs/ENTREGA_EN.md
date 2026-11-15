@@ -26,7 +26,7 @@ Distinct component evaluations include 9/11 documented Mexican craters in the or
 |---|---|
 | Demo | [MARSCEPTION](https://v1.marsception.us/) |
 | Rover game | [Play in English](https://v1.marsception.us/game/?lang=en) |
-| Video | [Current captioned overview](https://v1.marsception.us/media/mision-cero-30s-en.mp4); replace with the final 30-second cut after gameplay is recorded |
+| Video | [Supplied gameplay recording](https://v1.marsception.us/media/mision-cero-30s-en.mp4?v=20261114-222205), available after deployment: 55.53 s, English interface, start of the Mars route. Not the final ≤30 s submission cut |
 | Source code | [GitHub repository](https://github.com/Niettzche/spaceapps-2026) — owner must verify public access |
 | Methodology | [English, in this repository](METHODOLOGY_EN.md) · [Public GitHub URL](https://github.com/Niettzche/spaceapps-2026/blob/main/docs/METHODOLOGY_EN.md) |
 
@@ -48,7 +48,7 @@ Distinct component evaluations include 9/11 documented Mexican craters in the or
 - Viking soil properties: https://ntrs.nasa.gov/citations/20200003046
 - NASA JPL planetary physical parameters, adopted Mars gravity convention: https://ssd.jpl.nasa.gov/planets/phys_par.html
 
-Site records and methodology retain the detailed article, unit, date and limitation for each measurement. The video uses local elevation-derived relief and MARSCEPTION presentation artwork; it is not a recording of a rover mission.
+Site records and methodology retain the detailed article, unit, date and limitation for each measurement. The supplied video is a real gameplay capture showing destination selection, rover assembly and the Samalayuca Earth test. It does not show a complete Moon/Mars delivery; the game's original artwork and balance are illustrative, not footage of a real rover mission. A separate [five-second gameplay clip](media/gameplay_5s_en.mp4) is ready for the final edit.
 
 ## Tools
 

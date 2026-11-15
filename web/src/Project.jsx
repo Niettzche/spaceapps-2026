@@ -80,12 +80,11 @@ export function ProjectFooter({ lang }) {
       <div>{gameUrl ? <a className="primary" href={gameUrl}>{c.play} ↗</a> : <><strong>{c.pending}</strong><p>{c.pendingText}</p></>}</div>
     </section>
     <section className="project-sources" id="fuentes" aria-labelledby="sources-title">
-      <h2>{lang === 'en' ? 'The idea in 30 seconds' : 'La idea en 30 segundos'}</h2>
-      <video controls preload="none" style={{ width: '100%', maxWidth: '960px', margin: '24px 0' }} aria-label={lang === 'en' ? 'Project overview with English captions' : 'Resumen del proyecto con subtítulos en inglés'}>
-        <source src={import.meta.env.BASE_URL + 'media/mision-cero-30s-en.mp4'} type="video/mp4" />
-        <track kind="captions" src={import.meta.env.BASE_URL + 'media/mision-cero-30s-en.vtt'} srcLang="en" label="English" default />
+      <h2>{lang === 'en' ? 'Watch the rover test' : 'Mira la prueba del rover'}</h2>
+      <video controls preload="none" style={{ width: '100%', maxWidth: '960px', margin: '24px 0' }} aria-label={lang === 'en' ? 'Gameplay recording with the interface in English' : 'Grabación del juego con la interfaz en inglés'}>
+        <source src={import.meta.env.BASE_URL + 'media/mision-cero-30s-en.mp4?v=20261114-222205'} type="video/mp4" />
       </video>
-      <p>{lang === 'en' ? 'Visual explanation, not a recording of a rover mission.' : 'Explicación visual; no es una grabación de una misión del rover.'}</p>
+      <p>{lang === 'en' ? 'Actual gameplay: choosing Mars, building a rover and testing on Samalayuca dunes. 55.53 seconds; this excerpt does not show a completed mission.' : 'Captura real del juego: elección de Marte, armado del rover y prueba en las dunas de Samalayuca. 55.53 segundos; este fragmento no muestra una misión completa.'}</p>
       <h2 id="sources-title">{c.sources}</h2><p>{c.sourceText}</p>
       <p>{lang === 'en' ? 'Built with' : 'Herramientas'}: <a href="https://earthengine.google.com/">Google Earth Engine</a> · <a href="https://react.dev/">React</a> · <a href="https://vite.dev/">Vite</a> · <a href="https://maplibre.org/">MapLibre</a>.</p>
       <ul>{sources.map(([name, url]) => <li key={name}><a href={url} target="_blank" rel="noreferrer">{name} ↗</a></li>)}</ul>
