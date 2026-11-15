@@ -1,4 +1,6 @@
 import Phaser from 'phaser';
+import { sonarBoton } from '../../fisica/sonido.js';
+import { movimientoReducido, soltarTweensAlDestruir } from './efectos.js';
 
 // Dueño: frente expediente. Kit de interfaz de MIS escenas (Boot, Menú, Expediente, Explorador).
 // No reemplaza ui.js (del integrador): agrega foco visible y navegación por teclado (AGENTS.md §12: accesible).
@@ -39,23 +41,43 @@ export function panel(scene, x, y, w, h, { relleno = COLOR.panel, borde = COLOR.
  * `numero`: atajo de teclado; se muestra como "1 · texto" (igual que Resultados.js).
  * `sugerido`: opción que ejecuta Enter si nada tiene foco; se marca con " ⏎" en verde (igual que Resultados.js).
  * `anchoMin` / `altoMin`: tamaño mínimo de la zona táctil en px del juego (más grande que el texto, sin cambiar cómo se ve).
+ * `crecer`: al pasar el ratón el botón crece a ×1.05 (tween corto) y vuelve al salir. Por defecto solo los de marco
+ *   (en las filas de una lista crecería hacia la columna de al lado). Sin animación con prefers-reduced-motion.
+ * `alSobre(v)`: aviso cuando el ratón entra (true) o sale (false), p. ej. para animar el planeta de una tarjeta.
+ * Al pulsar suena `sonarBoton()` (fisica/sonido.js; respeta el silencio con M).
  */
 export function boton(scene, x, y, etiqueta, alPulsar, {
   size = 16, origen = [0.5, 0.5], habilitado = true, marco = true, color = COLOR.acento, ancho, numero = null, sugerido = false,
-  anchoMin = ZONA_MIN.ancho, altoMin = ZONA_MIN.alto,
+  anchoMin = ZONA_MIN.ancho, altoMin = ZONA_MIN.alto, crecer = marco, alSobre = null,
 } = {}) {
   const t = texto(scene, x, y, '', { size, color, origen, ancho });
+  const animar = crecer && !movimientoReducido();
+  if (animar) soltarTweensAlDestruir(scene, t);
   const b = {
     obj: t, etiqueta, habilitado, enfocado: false, sobre: false, color, numero, sugerido,
     // Durante el fundido de salida no se aceptan más pulsaciones (evita, p. ej., gastar un segundo ticket).
-    activar() { if (b.habilitado && !enTransicion(scene)) alPulsar(); },
+    activar() {
+      if (!b.habilitado || enTransicion(scene)) return;
+      sonarBoton();
+      alPulsar();
+    },
     setHabilitado(v) { b.habilitado = v; b.pintar(); return b; },
     setEtiqueta(s) { b.etiqueta = s; b.pintar(); return b; },
     setNumero(n) { b.numero = n; b.pintar(); return b; },
     setSugerido(v) { b.sugerido = v; b.pintar(); return b; },
     setColor(c) { b.color = c; b.pintar(); return b; },
     enfocar(v) { b.enfocado = v; b.pintar(); },
-    marcarSobre(v) { if (b.sobre === v) return; b.sobre = v; b.pintar(); },
+    marcarSobre(v) {
+      if (b.sobre === v) return;
+      b.sobre = v;
+      b.pintar();
+      if (animar && t.active) {
+        scene.tweens.killTweensOf(t);
+        const e = v && b.habilitado ? 1.05 : 1;
+        scene.tweens.add({ targets: t, scaleX: e, scaleY: e, duration: 90, ease: 'Quad.easeOut' });
+      }
+      alSobre?.(v && b.habilitado);
+    },
     rotulo() {
       const s = `${b.numero ? `${b.numero} · ` : ''}${b.etiqueta}${b.sugerido ? ' ⏎' : ''}`;
       return marco ? `[ ${s} ]` : s;
