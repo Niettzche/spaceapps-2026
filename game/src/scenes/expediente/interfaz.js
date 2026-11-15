@@ -193,6 +193,16 @@ function cajaDeBoton(scene, t) {
 }
 
 /**
+ * Franja oscura detrás de un texto secundario que va sobre el arte del fondo (Marte, nebulosa): así su contraste no
+ * depende de lo que pase detrás (≥ 4.5:1 con COLOR.tenue / muyTenue). Devuelve el texto.
+ */
+export function conFondo(scene, t, { margen = 8, alfa = 0.85 } = {}) {
+  const b = t.getBounds();
+  scene.add.rectangle(b.centerX, b.centerY, b.width + 2 * margen, b.height + margen, COLOR.panel, alfa).setDepth(t.depth - 0.5);
+  return t;
+}
+
+/**
  * Ayuda de 1 línea en un lugar fijo (no se mueve con el botón): `mostrar(texto)` la pone, `mostrar('')` la oculta.
  * La usan los botones con `alEnfocar` para que la frase larga no viva debajo de cada uno (DISENO.md §3).
  */
@@ -200,7 +210,10 @@ export function ayudaFija(scene, x, y, { ancho = 760, size = 16, color = COLOR.t
   const fondo = scene.add.rectangle(x, y, ancho, size + 18, COLOR.panel, 0.92).setStrokeStyle(1, COLOR.borde).setVisible(false);
   const t = texto(scene, x, y, '', { size, color, origen: [0.5, 0.5], ancho: ancho - 24, alinear: 'center' });
   let actual = null;
-  if (porDefecto) t.setText(porDefecto).setColor(COLOR.tenue);
+  if (porDefecto) {
+    t.setText(porDefecto).setColor(COLOR.tenue);
+    fondo.setVisible(true).setSize(Math.min(ancho, t.width + 32), size + 18);
+  }
   return {
     texto: t,
     mostrar(s, de = null) {
@@ -211,7 +224,7 @@ export function ayudaFija(scene, x, y, { ancho = 760, size = 16, color = COLOR.t
       if (!t.active) return;
       // Sin ayuda activa se ve el texto por defecto (tenue, sin caja), si lo hay.
       t.setText(s || porDefecto).setColor(s ? color : COLOR.tenue);
-      fondo.setVisible(!!s).setSize(Math.min(ancho, t.width + 32), Math.max(size + 18, t.height + 12));
+      fondo.setVisible(!!(s || porDefecto)).setSize(Math.min(ancho, t.width + 32), Math.max(size + 18, t.height + 12));
       fondo.setOrigin(0.5, 0.5);
     },
   };

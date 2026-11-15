@@ -5,7 +5,7 @@
 //   9/11 cráteres mexicanos conocidos (METODOLOGIA.md, informe del detector) · ~78 % exactitud balanceada Luna/Marte con
 //   grupos espaciales (METODOLOGIA.md; VALIDATION.md: 78 %) · 296 candidatos áridos, México + Atacama, Arizona y Arabia
 //   (VALIDATION.md) · controles negativos 3 de 3 (VALIDATION.md).
-import { COLOR, texto, boton, panel } from './interfaz.js';
+import { COLOR, texto, boton, panel, conFondo } from './interfaz.js';
 import { idioma } from '../../i18n.js';
 
 // Tipos de página: 'fuentes' (tarjetas por cuerpo: keyword → fuente), 'cifras' (3 cifras grandes + keywords),
@@ -30,7 +30,7 @@ export const PAGINAS = {
         cifras: [
           ['9/11', 'cráteres conocidos', 'detectados en México'],
           ['~78 %', 'exactitud', 'Luna contra Marte'],
-          ['296', 'candidatos áridos', 'México · Atacama · Arizona · Arabia'],
+          ['296', 'candidatos áridos', 'México, Atacama, Arizona, Arabia'],
         ],
         claves: ['Árbol + regresión logística', 'No es red neuronal', 'Clave: profundidad / diámetro', 'Controles negativos 3/3'],
         detalle: 'Forma a 200 m (mismo código en Tierra, Luna y Marte) · resto: exp(−|Tierra − destino| / escala)',
@@ -70,7 +70,7 @@ export const PAGINAS = {
         cifras: [
           ['9/11', 'known craters', 'detected in Mexico'],
           ['~78 %', 'accuracy', 'Moon vs. Mars'],
-          ['296', 'arid candidates', 'Mexico · Atacama · Arizona · Arabia'],
+          ['296', 'arid candidates', 'Mexico, Atacama, Arizona, Arabia'],
         ],
         claves: ['Tree + logistic regression', 'Not a neural network', 'Key: depth / diameter', 'Negative controls 3/3'],
         detalle: 'Shape at 200 m (same code on Earth, Moon and Mars) · rest: exp(−|Earth − target| / scale)',
@@ -118,7 +118,7 @@ function paginaCifras(scene, p) {
     panel(scene, x, 104, w, 150).setFillStyle(COLOR.panel, 0.88);
     texto(scene, x + w / 2, 146, cifra, { size: 40, color: COLOR.acento, origen: [0.5, 0.5] });
     texto(scene, x + w / 2, 192, clave, { size: 18, origen: [0.5, 0.5] });
-    texto(scene, x + w / 2, 222, sub, { size: 14, color: COLOR.muyTenue, origen: [0.5, 0.5], ancho: w - 16, alinear: 'center' });
+    texto(scene, x + w / 2, 222, sub, { size: 14, color: COLOR.muyTenue, origen: [0.5, 0.5], ancho: w - 8, alinear: 'center' });
   });
   // Keywords del método como chips (2 por fila).
   p.claves.forEach((c, i) => {
@@ -136,7 +136,7 @@ function paginaLimites(scene, p) {
     scene.add.rectangle(cx, 122, w, 40, 0x2a0f18, 0.92).setStrokeStyle(2, 0xff7a93);
     texto(scene, cx, 122, c, { size: 18, color: COLOR.alerta, origen: [0.5, 0.5] });
   });
-  texto(scene, 480, 166, p.nota, { size: 16, color: COLOR.texto, origen: [0.5, 0.5] });
+  conFondo(scene, texto(scene, 480, 166, p.nota, { size: 16, color: COLOR.texto, origen: [0.5, 0.5] }));
   const tw = 380, tsep = 30, tx0 = 480 - (2 * tw + tsep) / 2;
   p.tarjetas.forEach((t, i) => tarjeta(scene, tx0 + i * (tw + tsep), 192, tw, 200, t));
 }
@@ -160,14 +160,14 @@ export function vistaNumeros(scene, { volver, redibujar, botonIdioma }) {
   else if (p.tipo === 'cifras') paginaCifras(scene, p);
   else paginaLimites(scene, p);
   // Detalle: 1 línea (lo largo vive en docs/METODOLOGIA.md y en la página web).
-  texto(scene, 480, 418, p.detalle, { size: 14, color: COLOR.muyTenue, origen: [0.5, 0.5], ancho: 900, alinear: 'center' });
+  conFondo(scene, texto(scene, 480, 418, p.detalle, { size: 14, color: COLOR.muyTenue, origen: [0.5, 0.5], ancho: 900, alinear: 'center' }));
 
   const anterior = boton(scene, 330, 462, '◀', () => ir(-1), { size: 16 });
-  texto(scene, 480, 462, `${T.pagina} ${estado.pagina + 1}/${total}`, { size: 16, color: COLOR.tenue, origen: [0.5, 0.5] });
+  conFondo(scene, texto(scene, 480, 462, `${T.pagina} ${estado.pagina + 1}/${total}`, { size: 16, color: COLOR.tenue, origen: [0.5, 0.5] }));
   const siguiente = boton(scene, 630, 462, '▶', () => ir(1), { size: 16 });
   const atras = boton(scene, 480, 508, T.volver, volver, { size: 16 });
   const idiomaBoton = botonIdioma();
-  texto(scene, 16, 530, T.ayuda, { size: 14, color: COLOR.muyTenue, origen: [0, 1] });
+  conFondo(scene, texto(scene, 16, 530, T.ayuda, { size: 14, color: COLOR.muyTenue, origen: [0, 1] }), { margen: 6 });
 
   scene.teclado.extra = {
     ...scene.teclado.extra,

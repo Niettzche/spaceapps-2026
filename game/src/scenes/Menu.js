@@ -3,7 +3,7 @@ import { irA } from './ui.js';
 import { SITIOS, DESTINOS } from '../data.js';
 import { partida } from '../main.js';
 import { PRESUPUESTO_INICIAL, TICKETS_POR_PARTIDA, GRAVEDAD } from '../config/world.js';
-import { COLOR, texto, boton, panel, Teclado, limpiar, ayudaFija } from './expediente/interfaz.js';
+import { COLOR, texto, boton, panel, Teclado, limpiar, ayudaFija, conFondo } from './expediente/interfaz.js';
 import { DESTINO_POR_DEFECTO, ORDEN_DESTINOS } from './expediente/config.js';
 import { guardadoDisponible, restaurar, nuevaPartida, guardar, partidaActiva } from './expediente/guardado.js';
 import { sitiosParaDestino } from './expediente/logica.js';
@@ -96,8 +96,8 @@ export default class Menu extends Phaser.Scene {
 
   vistaPrincipal() {
     texto(this, 480, 66, 'MARSCEPTION', { size: 40, origen: [0.5, 0.5] });
-    texto(this, 480, 108, tr('Entrena en la Tierra. Aterriza en la Luna o Marte.', 'Train on Earth. Land on the Moon or Mars.'),
-      { size: 16, color: COLOR.tenue, origen: [0.5, 0.5] });
+    conFondo(this, texto(this, 480, 108, tr('Entrena en la Tierra. Aterriza en la Luna o Marte.', 'Train on Earth. Land on the Moon or Mars.'),
+      { size: 16, color: COLOR.tenue, origen: [0.5, 0.5] }));
 
     // Ayuda de 1 línea en un lugar fijo: aparece al enfocar o pasar el ratón por un botón (antes, una frase bajo cada uno).
     const ayuda = ayudaFija(this, 480, 452);
@@ -122,8 +122,8 @@ export default class Menu extends Phaser.Scene {
     const [nueva, continuar] = botones;
     const idiomaBoton = this.botonIdioma('principal');
 
-    texto(this, 480, 512, tr('↑↓ Tab: mover · 1–5 / Enter: elegir · L: idioma', '↑↓ Tab: move · 1–5 / Enter: choose · L: language'),
-      { size: 14, color: COLOR.muyTenue, origen: [0.5, 0.5] });
+    conFondo(this, texto(this, 480, 512, tr('↑↓ Tab: mover · 1–5 / Enter: elegir · L: idioma', '↑↓ Tab: move · 1–5 / Enter: choose · L: language'),
+      { size: 14, color: COLOR.muyTenue, origen: [0.5, 0.5] }));
     // Atajos 1–5 y opción sugerida (⏎), igual que Resultados.js. "Cómo jugar" va al final para no mover los atajos 1–4.
     this.teclado.numerar(botones);
     (g ? continuar : nueva).setSugerido(true);

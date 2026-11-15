@@ -1,6 +1,6 @@
 // Dueño: frente expediente. Vista de "Cómo jugar" dentro del Menú (la lógica está en como_jugar.js).
 import { tr } from '../../i18n.js';
-import { COLOR, texto, boton, panel } from './interfaz.js';
+import { COLOR, texto, boton, panel, conFondo } from './interfaz.js';
 import { pantallasComoJugar, marcarComoJugarVisto } from './como_jugar.js';
 
 // Página actual (se conserva si el Menú se reinicia al cambiar de idioma con L).
@@ -26,7 +26,7 @@ export function vistaComoJugar(scene, { presupuesto, alTerminar, redibujar, boto
   };
 
   texto(scene, 480, 40, tr('Cómo jugar', 'How to play'), { size: 28, origen: [0.5, 0.5] });
-  texto(scene, 480, 74, `${estado.pagina + 1} / ${total}`, { size: 16, color: COLOR.tenue, origen: [0.5, 0.5] });
+  conFondo(scene, texto(scene, 480, 74, `${estado.pagina + 1} / ${total}`, { size: 16, color: COLOR.tenue, origen: [0.5, 0.5] }));
   panel(scene, 80, 96, 800, 286).setFillStyle(COLOR.panel, 0.9);
   // Viñeta de Mauricio (96×64 dibujada ×3) a la izquierda; sin arte, solo el texto centrado en el panel.
   const conImagen = !!p.imagen && scene.textures.exists(p.imagen);
@@ -46,8 +46,8 @@ export function vistaComoJugar(scene, { presupuesto, alTerminar, redibujar, boto
   const siguiente = boton(scene, 480, 430, ultima ? tr('¡A jugar!', "Let's play!") : tr('Siguiente ▶', 'Next ▶'), () => ir(1),
     { sugerido: true, size: 18 });
   const saltar = boton(scene, 730, 430, tr('Saltar', 'Skip'), terminar, { size: 16 });
-  texto(scene, 480, 500, tr('← → pantalla · Enter sigue · Esc salta · L idioma',
-    '← → screen · Enter continues · Esc skips · L language'), { size: 14, color: COLOR.muyTenue, origen: [0.5, 0.5] });
+  conFondo(scene, texto(scene, 480, 500, tr('← → pantalla · Enter sigue · Esc salta · L idioma',
+    '← → screen · Enter continues · Esc skips · L language'), { size: 14, color: COLOR.muyTenue, origen: [0.5, 0.5] }));
 
   scene.teclado.alEscape = terminar;
   scene.teclado.extra = {
