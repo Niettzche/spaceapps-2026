@@ -8,6 +8,7 @@ import { montarInfografia } from './infografia.js';
 import { pixelarCifras } from './pixelnum.js';
 import { montarCielo } from './cielo.js';
 import { montarTutora } from './tutora.js';
+import { montarClasificador } from './clasificador.js';
 import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
 
@@ -452,6 +453,8 @@ Promise.all([cargar('nube'), cargar('relieves'), cargar('perfiles')]).then(([nub
   const museo = document.getElementById('museo');
   if (museo) montarInfografia(museo, datos);
   llenarDetalles(datos);
+  const clasif = document.getElementById('clasificador');
+  if (clasif) montarClasificador(clasif, nube, ctx);
   // Escenas 3D: three.js solo se descarga si la página tiene alguna
   if (!document.querySelector('[data-escena]')) return;
   const escenasListas = import('./escenas.js');

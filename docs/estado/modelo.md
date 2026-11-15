@@ -5,6 +5,18 @@
 **Responsable:** Mario  ·  **Agente:** Claude Code / Codex
 **Última actualización:** 15 nov 2026, mañana (landing con divulgación científica en `informe/divulgacion/`; ANA, la tutora de análogos, ya en `main`; demo en https://v1.marsception.us/)
 
+## Hecho (landing: «Los análogos» y «Pruébalo», 15 nov, mañana)
+- **«Pruébalo» (`#pruebalo`, `src/clasificador.js` + `src/modelo_forma.js`):** el modelo de forma de `model/forma.py` en el
+  navegador, sin red. Deslizadores de diámetro, profundidad y borde, o 7 cráteres reales/medianas; da P(Luna), dentro o fuera de la
+  nube Luna+Marte, el parecido de forma del juego y el aporte de cada variable, sobre la gráfica de 4,288 + 573 cráteres. El tajo
+  G00219 sale 99 % lunar a propósito: enseña por qué revisamos el borde. `preparar_datos.py` exporta los parámetros completos y se
+  detiene si no reproducen `model/forma.puntuar`; `node --test informe/divulgacion/src/` compara el JS con Python en 548 cráteres.
+- **«Los análogos» (`#analogos`):** 9 de 11 cráteres de México, 9 de 21 análogos famosos y 8 de 8 impactos; los 12 que no pasan,
+  por qué (lo que el método no mide: vida, química, frío polar, cuevas, lo sepultado; 3 cráteres por lluvia); El Pinacate y los
+  impactos ya se conocían (Apolo 14, Phinney 2015), así que no son descubrimientos; y el método en 5 pasos. Cifras comprobadas
+  por `preparar_datos.py`, incluida la lista de la tabla de VALIDATION.md y que ningún sitio esté marcado como novedoso.
+- Probado en Chromium sin ventana (1366 px oscuro en español, claro en inglés, teléfono de 390 px): sin errores ni desbordamiento.
+
 ## Hecho (textos verificados de Jabal Bayda y Cananea, 15 nov, 09:40; pedido de integración)
 - **`data/sites/g00266.json`:** el nombre pasa de «Cono de toba» a «Anillo de toba Jabal Bayda (Harrat Khaybar, Arabia Saudita)» y
   `proceso` a «Volcánico: anillo de toba de comendita (una riolita), de origen freatomagmático». La nota dice las dos versiones:

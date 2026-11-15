@@ -1185,3 +1185,77 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 .indice { gap: 0.1rem; }
 .indice a { padding: 0.55rem 0.55rem; }
 @media (max-width: 1240px) { .indice a[href="#destinos"] { display: none; } }
+
+/* ── Los análogos: qué encuentra el método, qué no y por qué ───────────── */
+.ana-cifras, .ana-listas, .ana-cierre { max-width: 64rem; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+.ana-listas, .ana-cierre { margin-top: 1rem; }
+@media (min-width: 820px) {
+  .ana-cifras { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ana-listas { grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); }
+  .ana-cierre { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+}
+.ana-tarjeta, .ana-lista, .ana-bloque { padding: 1.3rem 1.35rem 1.35rem; border: 1px solid var(--linea); border-radius: 20px; background: var(--vidrio); box-shadow: var(--sombra); }
+.ana-num { margin: 0 0 0.75rem; font: 500 2.6rem/1 var(--mono); letter-spacing: -0.03em; color: var(--c); }
+.ana-num span { margin-left: 0.15rem; font-size: 1.1rem; color: var(--tinta-3); }
+.ana-tarjeta h3 { font-size: 1.02rem; margin-bottom: 0.45rem; }
+.ana-tarjeta p:not(.ana-num) { margin: 0; font-size: 0.92rem; line-height: 1.55; color: var(--tinta-3); }
+.ana-chips { list-style: none; margin: 0 0 1rem; padding: 0; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.ana-chips li { padding: 0.35rem 0.7rem; border: 1px solid var(--linea); border-radius: 10px; background: var(--superficie); font: 400 0.78rem/1.3 var(--mono); color: var(--tinta-2); }
+.ana-razones { margin: 0 0 1rem; display: grid; gap: 0.65rem; }
+.ana-razones div { display: grid; grid-template-columns: minmax(0, 9.5rem) minmax(0, 1fr); gap: 0.2rem 1rem; padding-bottom: 0.65rem; border-bottom: 1px solid var(--linea); }
+@media (max-width: 520px) { .ana-razones div { grid-template-columns: minmax(0, 1fr); } }
+.ana-razones dt { font: 600 0.86rem/1.4 var(--sans); color: var(--tinta); }
+.ana-razones dd { margin: 0; font-size: 0.88rem; line-height: 1.5; color: var(--tinta-3); }
+.ana-lista .nota, .ana-bloque .nota { margin: 0; }
+.ana-bloque > p:not(.nota) { font-size: 0.95rem; line-height: 1.62; color: var(--tinta-2); margin-bottom: 0.9rem; }
+.ana-pasos { margin: 0 0 0.9rem; padding-left: 1.2rem; display: grid; gap: 0.5rem; font-size: 0.93rem; line-height: 1.5; color: var(--tinta-2); }
+.ana-pasos b { color: var(--tinta); }
+
+/* ── Pruébalo: el modelo de forma en el navegador ─────────────────────── */
+.clasif { max-width: 68rem; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.25rem; align-items: start; }
+@media (min-width: 900px) { .clasif { grid-template-columns: minmax(0, 23rem) minmax(0, 1fr); } }
+/* En pantallas angostas la gráfica va arriba: así se ve moverse el cráter mientras se usan los deslizadores. */
+@media (max-width: 899px) { .clasif-figura { order: -1; } }
+.clasif-panel, .clasif-figura { margin: 0; padding: 1.2rem 1.25rem; border: 1px solid var(--linea); border-radius: 20px; background: var(--vidrio); box-shadow: var(--sombra); }
+.clasif-rotulo { margin: 0 0 0.55rem; font: 500 0.68rem/1.3 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--tinta-3); }
+.clasif-ejemplos { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1.2rem; }
+.clasif-ejemplos .chip { flex-direction: column; align-items: flex-start; justify-content: center; gap: 0.1rem; min-height: 44px; text-align: left; }
+.clasif-ejemplos .chip span:first-child { color: var(--tinta-2); }
+.clasif-ejemplos .chip[aria-pressed="true"] span:first-child { color: var(--tinta); }
+.clasif-desl { margin-bottom: 0.95rem; }
+.clasif-desl-cab { display: flex; justify-content: space-between; align-items: baseline; gap: 0.75rem; margin-bottom: 0.3rem; }
+.clasif-desl label { font: 600 0.9rem/1.3 var(--sans); }
+.clasif-valor { font: 500 0.74rem/1.3 var(--mono); color: var(--tinta-2); text-align: right; }
+.clasif input[type="range"] { accent-color: var(--enfasis); }
+.clasif-resultado { margin-top: 1.1rem; padding-top: 1.1rem; border-top: 1px solid var(--linea); }
+.clasif-pct { display: block; font: 600 2.6rem/1 var(--mono); letter-spacing: -0.03em; color: var(--tinta); }
+.clasif-pct[data-lado="luna"] { color: var(--luna); }
+.clasif-pct[data-lado="marte"] { color: var(--marte); }
+.clasif-veredicto { margin: 0.45rem 0 0.8rem; font-weight: 600; }
+.clasif-barra { position: relative; height: 8px; border-radius: 999px; background: linear-gradient(90deg, var(--marte), var(--linea-fuerte) 50%, var(--luna)); }
+.clasif-barra-marca { position: absolute; top: 50%; left: calc(var(--p, 0.5) * 100%); width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%; background: var(--tinta); border: 3px solid var(--fondo); transition: left 160ms var(--ease-out); }
+.clasif-extremos { display: flex; justify-content: space-between; margin: 0.35rem 0 0.9rem; font: 500 0.7rem/1.3 var(--mono); color: var(--tinta-3); }
+.clasif-nube, .clasif-parecido { margin: 0 0 0.5rem; font-size: 0.88rem; line-height: 1.5; color: var(--tinta-2); }
+.clasif-nube::before { content: "●"; margin-right: 0.45rem; color: var(--tierra); }
+.clasif-nube[data-dentro="false"]::before { color: var(--banda); }
+.clasif-parecido { margin-bottom: 1rem; font-family: var(--mono); font-size: 0.76rem; color: var(--tinta-3); }
+.clasif-aportes { list-style: none; margin: 0 0 0.9rem; padding: 0; display: grid; gap: 0.5rem; }
+.clasif-aportes li { display: grid; grid-template-columns: minmax(0, 8.5rem) minmax(0, 1fr); gap: 0.15rem 0.75rem; align-items: center; font-size: 0.82rem; }
+.clasif-aporte-nombre { color: var(--tinta-2); }
+.clasif-aporte-barra { position: relative; height: 6px; border-radius: 999px; background: var(--linea); }
+.clasif-aporte-barra::before { content: ""; position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: var(--linea-fuerte); }
+.clasif-aporte-barra::after { content: ""; position: absolute; top: 0; bottom: 0; width: calc(var(--a, 0) * 100%); border-radius: 999px; transition: width 160ms var(--ease-out); }
+.clasif-aportes li[data-lado="luna"] .clasif-aporte-barra::after { left: 50%; background: var(--luna); }
+.clasif-aportes li[data-lado="marte"] .clasif-aporte-barra::after { right: 50%; background: var(--marte); }
+.clasif-aporte-valor { grid-column: 2; font: 500 0.7rem/1.3 var(--mono); color: var(--tinta-3); }
+.clasif-nota-ej { margin: 0; }
+.clasif-lienzo { display: block; width: 100%; height: 320px; cursor: crosshair; touch-action: pan-y pinch-zoom; }
+.clasif-leyenda { list-style: none; margin: 0.8rem 0 0.5rem; padding: 0; display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; font: 500 0.72rem/1.3 var(--mono); color: var(--tinta-2); }
+.clasif-leyenda li { display: inline-flex; align-items: center; gap: 0.45rem; }
+.clasif-leyenda i { width: 9px; height: 9px; border-radius: 50%; }
+.clasif-leyenda [data-serie="luna"] i { background: var(--luna); }
+.clasif-leyenda [data-serie="marte"] i { background: var(--marte); }
+.clasif-leyenda [data-serie="tierra"] i { background: var(--tierra); box-shadow: 0 0 0 2px var(--fondo), 0 0 0 3.5px var(--tierra); }
+.clasif-leyenda [data-serie="frontera"] i { width: 18px; height: 0; border-radius: 0; border-top: 2px dashed var(--tinta); }
+.clasif-figura figcaption .nota { margin: 0; }
+.clasif-limite { grid-column: 1 / -1; justify-self: center; max-width: 52rem; margin: 0; text-align: center; }

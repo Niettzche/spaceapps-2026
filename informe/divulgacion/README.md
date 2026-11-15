@@ -29,9 +29,23 @@ three.js solo se descarga si hay algún `[data-escena]`.
 
 **Lo que encontramos y lo que aportamos** (`#aportes`): otra pantalla del mismo cartel. Encontramos: 14 de 25 por forma son
 minas; el borde las delata (10 de 11, 7 de 8, solo 4 de 38 tajos); Marte es más plano también con D ≥ 2 km; El Elegante se parece
-más al polo sur lunar (forma 0.97). Aportamos: una sola regla a 200 m, un modelo que se lee (78 %), un catálogo abierto (57 sitios
+más al polo sur lunar (forma 0.97). Aportamos: una sola regla a 200 m, un modelo que se lee (78 %), un catálogo abierto (62 sitios
 con cráter medido) y el juego con el explorador libre. No presenta ningún sitio como descubrimiento. `preparar_datos.py` comprueba
 estas cifras (también el destino y la forma de `data/sites/pinacate.json`).
+
+**Los análogos** (`#analogos`): qué encuentra el método, qué no y por qué. 9 de 11 cráteres conocidos de México (detector),
+9 de 21 análogos famosos pasan el prefiltro y 8 de 8 impactos caen en la nube Luna+Marte. Los 12 que no pasan, agrupados por la
+razón que da la «Lectura» de `model/VALIDATION.md` (frío polar, lava en clima húmedo, química del agua y vida microbiana, cuevas,
+sepultado) más los 3 cráteres que quedan fuera por lluvia. Luego «Ya se conocían: por eso no son descubrimientos» (El Elegante,
+0.97; entrenamiento de 1965–1967 y del Apolo 14, Phinney 2015, NASA SP-2015-626) y «Lo que sí proponemos» (el método en 5 pasos).
+`preparar_datos.py` comprueba la lista de los que pasan contra la tabla, que los 3 «de lluvia» tengan más de 1 mm/día y más que
+todos los que pasan, las frases del Apolo 14 en `data/sites/pinacate.json` y que ningún sitio esté marcado como novedoso.
+
+**Pruébalo** (`#pruebalo`, `src/clasificador.js`): el modelo de forma de `model/forma.py` corriendo en el navegador, sin red.
+Tres deslizadores (diámetro, profundidad y altura del borde) o un cráter real (El Elegante, Meteor Crater, Lonar, Pingualuit, un
+tajo minero y las medianas lunar y marciana). Muestra P(Luna), si cae dentro de la nube Luna+Marte, el parecido de forma que usa
+el juego y cuánto empuja cada variable; la gráfica pone el cráter sobre los 4,288 cráteres lunares y los 573 marcianos con la
+frontera del 50 %, y se puede tocar o arrastrar. La cuenta vive en `src/modelo_forma.js`.
 
 **Pantallas completas y scroll suave.** La portada, el cartel y «aportes» ocupan una pantalla en escritorio (si no cabe, el cartel
 achica sus ilustraciones con `--encaje` y, en pantallas muy chicas, se lee bajando). El scroll usa Lenis (inercia suave; se apaga
@@ -65,7 +79,10 @@ uv run --with scikit-learn==1.5.2 --with pandas==2.2.3 --with numpy==2.1.3 \
 
 - `nube.json`: `ciencia_datos/datos/hoyas_referencia.csv` filtrado como `model/forma.py`, los 296 candidatos de
   `ciencia_datos/salidas/fichas_integradas.csv`, los 8 impactos de `ciencia_datos/datos/impactos_tierra.csv` y el plano de la
-  regresión logística de `model/forma.py`.
+  regresión logística de `model/forma.py`. También `modelo` (escalador, coeficientes hacia la Luna, centro y precisión de la nube
+  robusta y su corte del 95 %, con precisión completa), `ejemplos` y `medianas` para «Pruébalo». El script se detiene si esos
+  parámetros no reproducen `model/forma.puntuar` (ΔP < 1e-9) y escribe `pruebas/casos_modelo.json` (548 cráteres) para la prueba
+  de JavaScript: `node --test informe/divulgacion/src/`.
 - `relieves.json`: rejillas de 48 × 48 de `analisis/20_vista3d.py` (corrida en Colab; el zip `vista3d.zip` no está en el repo).
   Si no está la carpeta `--vista3d`, el script conserva el `relieves.json` que ya existe.
 - `perfiles.json`: `ciencia_datos/datos/perfiles_radiales.json` y `h/D` medido con `model/borde.py`.

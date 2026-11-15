@@ -26,7 +26,7 @@
       <span>Marsception</span>
     </a>
     <nav class="indice" aria-label="Secciones" data-t-aria="indiceAria">
-      <a href="#como" data-t="navComo">Cómo se juega</a><a href="#destinos" data-t="navDestinos">Destinos</a><a href="#ciencia" data-t="navCiencia">La ciencia</a><a href="#detalles" data-t="navDetalles">Detalles técnicos</a><a href="#business" data-t="navBiz">For Business</a><a href="#metodo" data-t="navDatos">Datos</a>
+      <a href="#como" data-t="navComo">Cómo se juega</a><a href="#destinos" data-t="navDestinos">Destinos</a><a href="#ciencia" data-t="navCiencia">La ciencia</a><a href="#pruebalo" data-t="navPruebalo">Pruébalo</a><a href="#detalles" data-t="navDetalles">Detalles técnicos</a><a href="#business" data-t="navBiz">For Business</a><a href="#metodo" data-t="navDatos">Datos</a>
     </nav>
     <div class="ajustes">
       <a class="boton boton-chico" href="https://v1.marsception.us/" data-t="navJugar">Jugar</a>
@@ -211,6 +211,84 @@
         </div>
         <p class="museo-fuentes aportes-nota" data-t="apNota">Son candidatos para revisar, no sitios certificados. Cifras, fuentes y límites en los detalles técnicos.</p>
       </article>
+    </section>
+
+    <!-- ───────────── Los análogos: qué encuentra el método, qué no y por qué (cifras: preparar_datos.py) ───────────── -->
+    <section class="seccion" id="analogos" data-grupo="ciencia" aria-labelledby="t-analogos">
+      <header class="cap-cabeza">
+        <p class="cap-num revela" data-t="anaAnte">Los análogos</p>
+        <h2 id="t-analogos" class="revela" data-t="anaTitulo">Qué encuentra el método, qué no y por qué</h2>
+        <p class="cap-entrada revela" data-t="anaEntrada">Para saber si el método sirve, lo probamos con lugares que ya se conocen. Encuentra muchos, se le escapan otros, y eso también dice algo.</p>
+      </header>
+      <div class="ana-cifras">
+        <article class="ana-tarjeta revela" data-cuerpo="tierra">
+          <p class="ana-num"><b>9</b><span>/11</span></p>
+          <h3 data-t="ana1T">cráteres conocidos de México</h3>
+          <p data-t="ana1">El detector los encuentra solo por su forma, con el mismo código que mide la Luna y Marte.</p>
+        </article>
+        <article class="ana-tarjeta revela" data-cuerpo="luna">
+          <p class="ana-num"><b>9</b><span>/21</span></p>
+          <h3 data-t="ana2T">análogos famosos del mundo pasan nuestro filtro</h3>
+          <p data-t="ana2">El filtro mira clima, vegetación y relieve (NASA POWER, MODIS y modelos de elevación). Pasan los desiertos y los cráteres en zonas secas.</p>
+        </article>
+        <article class="ana-tarjeta revela" data-cuerpo="marte">
+          <p class="ana-num"><b>8</b><span>/8</span></p>
+          <h3 data-t="ana3T">cráteres de impacto de la Tierra caen en la nube Luna+Marte</h3>
+          <p data-t="ana3">Su forma está dentro del 95 % de los cráteres de la Luna y de Marte. Es una condición necesaria, no una prueba.</p>
+        </article>
+      </div>
+      <div class="ana-listas">
+        <section class="ana-lista revela" aria-labelledby="t-ana-pasan">
+          <h3 id="t-ana-pasan" data-t="anaPasanT">Los 9 que pasan</h3>
+          <ul class="ana-chips">
+            <li data-t="anaPasa1">Atacama (Chile)</li><li data-t="anaPasa2">Death Valley (EE. UU.)</li><li data-t="anaPasa3">Mojave (EE. UU.)</li>
+            <li data-t="anaPasa4">Cráter Haughton (Canadá)</li><li data-t="anaPasa5">Mars Desert Research Station (EE. UU.)</li>
+            <li data-t="anaPasa6">El Pinacate (México)</li><li data-t="anaPasa7">Gran Desierto de Altar (México)</li>
+            <li data-t="anaPasa8">Guerrero Negro (México)</li><li data-t="anaPasa9">Naica (México)</li>
+          </ul>
+          <p class="nota" data-t="anaPasanNota">Son análogos por lo mismo que mide el filtro: aridez, suelo desnudo y relieve suave.</p>
+        </section>
+        <section class="ana-lista revela" aria-labelledby="t-ana-no">
+          <h3 id="t-ana-no" data-t="anaNoT">Los 12 que no, y por qué</h3>
+          <dl class="ana-razones">
+            <div><dt data-t="anaFrio">Frío polar</dt><dd data-t="anaFrioD">Valles Secos de McMurdo (Antártida)</dd></div>
+            <div><dt data-t="anaLava">Lava en clima húmedo</dt><dd data-t="anaLavaD">Holuhraun (Islandia) y Mauna Kea (Hawái)</dd></div>
+            <div><dt data-t="anaVida">Química del agua y vida microbiana</dt><dd data-t="anaVidaD">Río Tinto (España); Alchichica, Cuatro Ciénegas y el cenote El Zacatón (México)</dd></div>
+            <div><dt data-t="anaCueva">Cuevas</dt><dd data-t="anaCuevaD">Cueva de Villa Luz (México)</dd></div>
+            <div><dt data-t="anaSepult">Bajo tierra</dt><dd data-t="anaSepultD">Chicxulub (México): el cráter está sepultado</dd></div>
+            <div><dt data-t="anaLluvia">Más lluvia</dt><dd data-t="anaLluviaD">Meteor Crater y Colton Crater (EE. UU.) y Rincón de Parangueo (México): más de 1 mm al día, más que en cualquiera de los que pasan. Su forma sí es de cráter.</dd></div>
+          </dl>
+          <p class="nota" data-t="anaNoNota">Nuestro método mide forma, clima, vegetación y relieve. No mide vida, química ni lo que hay bajo tierra: esos lugares son buenos análogos por razones que no vemos. Que no pasen marca el alcance del método.</p>
+        </section>
+      </div>
+      <div class="ana-cierre">
+        <article class="ana-bloque revela">
+          <h3 data-t="anaConocT">Ya se conocían: por eso no son descubrimientos</h3>
+          <p data-t="anaConoc">El detector encontró el cráter El Elegante, en El Pinacate (Sonora), y el modelo le da 0.97 de parecido en forma con el polo sur lunar. No es un hallazgo nuestro: ahí hubo viajes de entrenamiento de geología en 1965–1967, y la tripulación del Apolo 14 (Shepard y Mitchell) entrenó ahí del 14 al 18 de febrero de 1970. Con los cráteres de impacto pasa igual. Encontrar lo que ya se sabía es la prueba de que el método apunta bien.</p>
+          <p class="nota" data-t="anaConocNota">Fuente del entrenamiento: Phinney (2015), NASA SP-2015-626. Ningún sitio de nuestro catálogo se presenta como descubrimiento: los demás son candidatos para que alguien los revise en campo.</p>
+        </article>
+        <article class="ana-bloque revela">
+          <h3 data-t="anaPropT">Lo que sí proponemos: una forma de encontrarlos</h3>
+          <ol class="ana-pasos">
+            <li data-t="anaP1"><b>Medir igual.</b> El mismo detector, a 200 m por píxel, en la Tierra, la Luna y Marte.</li>
+            <li data-t="anaP2"><b>Descartar.</b> Selvas, cultivos y nieve quedan fuera, con clima y vegetación medidos por la NASA.</li>
+            <li data-t="anaP3"><b>Comparar.</b> Un modelo que se lee compara la forma con 4,288 cráteres lunares y 573 marcianos.</li>
+            <li data-t="anaP4"><b>Revisar el borde.</b> Separa un cráter de una mina, que la forma sola confunde.</li>
+            <li data-t="anaP5"><b>Revisar en campo.</b> Lo que sale son candidatos, abiertos para que cualquiera los verifique o proponga otros desde el juego.</li>
+          </ol>
+          <p class="nota" data-t="anaPropNota">Hoy cubre México y 3 de 10 regiones áridas priorizadas. Se puede repetir en cualquier desierto.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ───────────── Pruébalo: el modelo de forma en el navegador (src/clasificador.js) ───────────── -->
+    <section class="seccion" id="pruebalo" aria-labelledby="t-pruebalo">
+      <header class="cap-cabeza">
+        <p class="cap-num revela" data-t="pruAnte">Pruébalo tú</p>
+        <h2 id="t-pruebalo" class="revela" data-t="pruTitulo">¿Luna o Marte? Clasifica un cráter</h2>
+        <p class="cap-entrada revela" data-t="pruEntrada">Es el modelo real, el mismo que usa el juego, corriendo en tu navegador. Carga un cráter de verdad o mueve sus tres medidas, y mira de qué lado cae.</p>
+      </header>
+      <div class="clasif" id="clasificador"><p class="nota" data-t="pruCargando">Cargando el modelo…</p></div>
     </section>
 
     <!-- ───────────── Detalles técnicos (para quien quiera revisar las cifras) ───────────── -->
