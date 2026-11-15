@@ -7,6 +7,7 @@ import { recomendar } from '../feedback/reglas.js';
 import { puntuar } from '../feedback/puntuacion.js';
 import { compararAnalogia } from '../feedback/analogia.js';
 import { exponerParaPruebas } from '../fisica/depuracion.js';
+import { sonarBoton } from '../fisica/sonido.js';
 
 // Dueño: frente juego. Resultado de la prueba o la misión: puntuación visible, recomendaciones por reglas y reintentar.
 // Ver ESPECIFICACION.md §11–§12.
@@ -33,7 +34,7 @@ export default class Resultados extends Phaser.Scene {
     const registro = partida.resultados[partida.resultados.length - 1];
     if (!registro) {
       titulo(this, 'Resultados', 'Todavía no hay pruebas ni misiones.');
-      boton(this, 480, 440, 'Menú', () => irA(this, 'Menu'));
+      boton(this, 480, 440, 'Menú', () => { sonarBoton(); irA(this, 'Menu'); });
       return;
     }
     const { tipo, exito, motivo, resultado, ilustrativo } = registro;
@@ -90,14 +91,15 @@ export default class Resultados extends Phaser.Scene {
       : [['Volver al taller', 'Taller'], ['Probar otra vez', 'Prueba'], [exito ? 'Lanzar misión' : 'Lanzar misión sin superar', 'Mision']];
     const sugerida = esMision ? (exito ? 2 : 0) : (exito ? 2 : 0);
     const xs = [190, 480, 770];
+    const ir = (escena) => { sonarBoton(); irA(this, escena); };
     opciones.forEach(([texto, escena], i) => {
-      const b = boton(this, xs[i], yb, `${i + 1} · ${texto}${i === sugerida ? ' ⏎' : ''}`, () => irA(this, escena));
+      const b = boton(this, xs[i], yb, `${i + 1} · ${texto}${i === sugerida ? ' ⏎' : ''}`, () => ir(escena));
       if (i === sugerida) b.setColor('#4cc38a');
     });
     this.input.keyboard.on('keydown', (ev) => {
       const n = Number(ev.key);
-      if (n >= 1 && n <= opciones.length) irA(this, opciones[n - 1][1]);
-      else if (ev.key === 'Enter') irA(this, opciones[sugerida][1]);
+      if (n >= 1 && n <= opciones.length) ir(opciones[n - 1][1]);
+      else if (ev.key === 'Enter') ir(opciones[sugerida][1]);
     });
     const avisos = ['La puntuación es de juego, no evidencia científica.'];
     if (ilustrativo) avisos.push('Terreno ilustrativo: no es un perfil medido.');
