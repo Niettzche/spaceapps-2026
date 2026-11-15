@@ -3,7 +3,22 @@
 > Lo actualiza SOLO este frente. Rama: `feat/modelo`.
 
 **Responsable:** Mario  ·  **Agente:** Claude Code / Codex
-**Última actualización:** 14 nov 2026, noche (borde levantado, sobre el PR de la auditoría del modelo)
+**Última actualización:** 15 nov 2026, madrugada (API del modelo publicada en https://v1.marsception.us/api/)
+
+## Hecho (API publicada, 15 nov, madrugada)
+- **API del modelo en línea: https://v1.marsception.us/api/** (`/health`, `/score`, `/submit`, `/feedback`). Es FastAPI con
+  `api/`, `model/` y `data/` de `main` cd939c0, como servicio del sistema detrás de nginx, que quita el prefijo `/api`. CORS solo
+  para `https://v1.marsception.us`. Las propuestas (`/submit`) se guardan en una SQLite fuera de la carpeta de cada versión,
+  así que sobreviven a una nueva publicación.
+- **El juego se compila con `VITE_API_URL=https://v1.marsception.us/api`** (main cd939c0, publicado). Comprobado en navegador:
+  el Explorador ve la API (`/health` 200) y una consulta desde la interfaz devuelve la comparación (Samalayuca contra Jezero).
+- **Límite actual en el servidor:** no hay Earth Engine, así que la **pendiente** sale sin dato. El NDVI depende de ORNL DAAC,
+  que respondía 400 por un error nuestro (pedía 23 compuestos y acepta 10). Corregido en el PR #71
+  (`fix/modelo-ndvi-ornl`): tramos en paralelo y fuentes de `/score` en paralelo. La API publicada corre desde main, así
+  que el arreglo entra cuando se fusione el PR y se vuelva a publicar.
+- Una consulta tarda ~60 s (ORNL de 36 a 50 s por tramo). Cloudflare corta a los 100 s y el juego espera 90 s.
+- Umbral para proponer: la API usa 0.4 (`UMBRAL_PROPUESTA`, ver `VALIDATION.md`), pero el texto del Explorador dice 60 % y
+  `game/src/scenes/expediente/config.js` tiene 0.6. **Hay que alinearlos** (lo decide el frente expediente o el integrador).
 
 ## Hecho (borde levantado, 14 nov, noche)
 - **`model/borde.py`: evidencia medida de que una depresión es un cráter.** `h/D` = altura máxima del perfil radial promedio a
