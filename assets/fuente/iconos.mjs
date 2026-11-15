@@ -80,7 +80,7 @@ function bateria(p, grande, mediana = false) {
   if (grande) { p.px(5, 1, C.l); p.px(10, 1, C.l); }
 }
 
-function motor(p, potente) {
+function motor(p, potente, equilibrado = false) {
   pinta(p, (x, y) => {
     // carcasa cilíndrica con aletas y eje a la derecha
     if (x >= 2 && x <= 10 && y >= 4 && y <= 11) {
@@ -93,7 +93,12 @@ function motor(p, potente) {
     if (x >= 3 && x <= 9 && y === 12) return 'd';                                                     // base
     return null;
   });
-  if (potente) {
+  if (equilibrado) {
+    // círculo partido: mitad turquesa (eficiencia) y mitad naranja (fuerza), con la raya blanca de en medio
+    for (const [x, y, k] of [[5, 6, 'c'], [5, 7, 'C'], [5, 8, 'c'], [6, 5, 'c'], [6, 6, 'C'], [6, 7, 'c'], [6, 8, 'C'], [6, 9, 'c'],
+      [7, 5, 'w'], [7, 6, 'w'], [7, 7, 'w'], [7, 8, 'w'], [7, 9, 'w'],
+      [8, 5, 'y'], [8, 6, 'o'], [8, 7, 'y'], [8, 8, 'o'], [8, 9, 'O'], [9, 6, 'o'], [9, 7, 'O'], [9, 8, 'o']]) p.px(x, y, C[k]);
+  } else if (potente) {
     // rayo rojo y naranja: más potencia, más consumo
     for (const [x, y, k] of [[6, 5, 'Y'], [5, 6, 'y'], [6, 7, 'o'], [7, 7, 'o'], [6, 8, 'o'], [5, 9, 'r'], [6, 6, 'y']]) p.px(x, y, C[k]);
   } else {
@@ -102,13 +107,16 @@ function motor(p, potente) {
   }
 }
 
-function soporte(p, amortiguado) {
+function soporte(p, amortiguado, correas = false) {
   pinta(p, (x, y) => {
     // bandeja en U con la carga adentro
     const base = amortiguado ? 9 : 11;
     if (y === base && x >= 2 && x <= 13) return 'm';
     if (y === base + 1 && x >= 2 && x <= 13) return 'd';
     if ((x === 2 || x === 13) && y >= base - 4 && y < base) return x === 2 ? 'l' : 'm';
+    if (correas && y >= base - 6 && y < base - 4 && (x === 2 || x === 13)) return x === 2 ? 'l' : 'm';  // paredes más altas
+    if (correas && y >= base - 6 && y < base && x > 2 && x < 13 && Math.abs((x - 7.5) - (y - (base - 3)) * 1.6) < 0.8) return 'y'; // correas cruzadas
+    if (correas && y >= base - 6 && y < base && x > 2 && x < 13 && Math.abs((x - 7.5) + (y - (base - 3)) * 1.6) < 0.8) return 'Y';
     if (x >= 5 && x <= 10 && y >= base - 4 && y < base) {                                              // carga
       if (y === base - 4) return 'h';
       return x === 7 || y === base - 2 ? 'o' : 'h';
@@ -154,19 +162,6 @@ function ruedaMalla(p) {
   });
 }
 
-/** Rueda rígida de aluminio con grousers (Curiosity/Perseverance): aro metálico con garras, rayos curvos de titanio. */
-function ruedaGrousers(p) {
-  const c = 7.5, R = 6.0;
-  pinta(p, (x, y) => {
-    const dx = x + 0.5 - c - 0.5, dy = y + 0.5 - c - 0.5, r = Math.hypot(dx, dy), a = Math.atan2(dy, dx), luz = dx + dy < 0;
-    if (r <= R + 1.2 && r > R) return Math.cos(a * 12) > 0.5 ? (luz ? 'l' : 'm') : null;   // garras metálicas
-    if (r > R) return null;
-    if (r > R - 1.4) return luz ? 'h' : 'l';                                                // aro de aluminio
-    if (r < 1.4) return 'd';
-    if (Math.abs(Math.sin(a * 3 + r * 0.45)) < 0.3) return luz ? 'l' : 'm';               // rayos curvos
-    return 'g';
-  });
-}
 
 /** Calentador de batería: placa con resistencia en serpentín naranja y ondas de calor arriba. */
 function calentador(p) {
@@ -229,12 +224,13 @@ export function generar() {
     bateria_grande: (p) => bateria(p, true),
     motor_eficiente: (p) => motor(p, false),
     motor_potente: (p) => motor(p, true),
+    motor_equilibrado: (p) => motor(p, false, true),
     soporte_basico: (p) => soporte(p, false),
     soporte_amortiguado: (p) => soporte(p, true),
+    soporte_correas: (p) => soporte(p, false, true),
     panel_solar: (p) => panel(p),
     // piezas nuevas (ids provisionales)
     rueda_malla: (p) => ruedaMalla(p),
-    rueda_grousers: (p) => ruedaGrousers(p),
     bateria_mediana: (p) => bateria(p, false, true),
     panel_solar_grande: (p) => panelGrande(p),
     calentador_bateria: (p) => calentador(p),

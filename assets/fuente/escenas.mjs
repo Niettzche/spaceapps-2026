@@ -5,12 +5,14 @@
 //   ../docs/media/proyecto_space_apps.png  imagen de la página del proyecto (320 × 180 × 6 = 1920 × 1080), con marca de arte con IA
 //     Estas van en docs/media y no en assets/, porque el Boot del juego precarga todas las imágenes de assets/.
 //   ui/favicon_32.png, ui/favicon_180.png (apple-touch, sin transparencia) y ui/favicon.svg: el robot con la carga en Marte
+//   pantallas/menu_fondo.png y pantallas/taller_fondo.png (320 × 180, sin texto, se dibujan × 3)
+//   pantallas/resultado_<motivo>.png (96 × 64): una viñeta por cada motivo de fin de Resultados.js
 // Correr después de los demás grupos: lee sus PNG del disco.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { inflateSync } from 'node:zlib';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createFrame, guardar, rampa, tramado, clamp, hex, BASE, core } from './comun.mjs';
+import { createFrame, guardar, rampa, tramado, clamp, hex, BASE, core, tileFbm } from './comun.mjs';
 import { PALETAS } from './paletas.mjs';
 import { textoTitulo, lema } from './titulo.mjs';
 
@@ -95,15 +97,15 @@ function suelo(f, tile, y) {
  * Robot armado como en el juego: chasis 24 × 6, dos ruedas, soporte y carga encima; suelo = y donde apoyan las ruedas.
  * Devuelve dónde quedaron la rueda trasera y la carga (para poner efectos).
  */
-function robot(f, x, suelo_, { rueda = 'rueda_estandar', chasis = 'chasis_ligero', giro = 0, conCarga = true, decos = [] } = {}) {
+function robot(f, x, suelo_, { rueda = 'rueda_estandar', chasis = 'chasis_ligero', giro = 0, conCarga = true, decos = [], danado = false, carga = 0 } = {}) {
   const r = leer(`entidades/${rueda}.png`), rw = r.h, top = suelo_ - 10;
-  cuadro(f, `entidades/${chasis}.png`, 0, 24, x, top);
+  cuadro(f, `entidades/${chasis}.png`, danado ? 1 : 0, 24, x, top);
   for (const d of decos) pegar(f, leer(`entidades/${d[0]}.png`), x + d[1], top + d[2]);
   cuadro(f, `entidades/${rueda}.png`, giro % 4, rw, x + 1, suelo_ - rw);
   cuadro(f, `entidades/${rueda}.png`, (giro + 1) % 4, rw, x + 23 - rw, suelo_ - rw);
   if (conCarga) {
     pegar(f, leer('entidades/soporte_basico.png'), x + 7, top - 4);
-    cuadro(f, 'entidades/carga.png', 0, 7, x + 8, top - 8);
+    cuadro(f, 'entidades/carga.png', carga, 7, x + 8, top - 8);
   }
   return { trasera: [x + 1 + (rw >> 1), suelo_], carga: [x + 11, top - 6] };
 }
@@ -150,6 +152,7 @@ export function generar() {
   imagenCompartir();
   imagenProyecto();
   favicons();
+  pantallas();
 }
 
 const T = PALETAS.titulo, B = '#e8e2ff';
@@ -358,4 +361,195 @@ function escalar(f, k) {
   const g = createFrame(f.w * k, f.h * k);
   for (let y = 0; y < g.h; y++) for (let x = 0; x < g.w; x++) g.color[y * g.w + x] = f.color[((y / k) | 0) * f.w + ((x / k) | 0)];
   return g;
+}
+
+// ---------------------------------------------------------------- fondos de pantallas y viñetas de resultado
+function pantallas() {
+  menuFondo();
+  tallerFondo();
+  resultados();
+}
+
+/** Esfera iluminada desde la izquierda: color(nx, ny, luz, x, y) → color; r en px. */
+function planeta(f, cx, cy, r, color) {
+  pintar(f, Math.floor(cx - r - 2), Math.floor(cy - r - 2), Math.ceil(2 * r + 4), Math.ceil(2 * r + 4), (x, y) => {
+    const nx = (x + 0.5 - cx) / r, ny = (y + 0.5 - cy) / r, d2 = nx * nx + ny * ny;
+    if (d2 > 1) return d2 < (1 + 1.6 / r) ** 2 && nx < 0.2 ? hex(T.borde_luz[0]) : 0;   // halo del lado iluminado
+    const nz = Math.sqrt(1 - d2), luz = clamp(-nx * 0.7 - ny * 0.35 + nz * 0.6, 0, 1);
+    return color(nx, ny, luz, x, y);
+  });
+}
+
+// Menú: la Tierra abajo a la izquierda y la Luna y Marte a la derecha, unidos por trayectorias punteadas
+// ("entrena en la Tierra, aterriza en la Luna o Marte"). El centro queda libre para los botones.
+function menuFondo() {
+  const f = createFrame(320, 180), ESP = rampa(T.espacio);
+  pintar(f, 0, 0, 320, 180, (x, y) => {
+    const n = tileFbm(x / 70, y / 70, 0, 0, 301, 4), h = Math.sin(x * 127.1 + y * 311.7) * 43758.5453, s = h - Math.floor(h);
+    if (s > 0.992) return s > 0.997 ? hex('#ffffff') : hex(T.estrella);   // estrellas escasas
+    return tramado(ESP.slice(0, 5), clamp(0.1 + (n + 0.25) * 0.5, 0, 0.85), x, y);
+  });
+  const OC = rampa(['#0c1a4a', '#16307e', '#2550d0', '#3f8cff', '#7cc8ff']), TI = rampa(['#173a1e', '#2f5a34', '#3ec466', '#9ad06a']);
+  planeta(f, 38, 196, 84, (nx, ny, luz, x, y) => {
+    const tierra = tileFbm(nx * 3 + 4, ny * 3, 0, 0, 303, 4) > 0.08, nube = tileFbm(nx * 5, ny * 9, 0, 0, 304, 3) > 0.28;
+    if (nube && luz > 0.15) return tramado([hex('#b4c4e0'), hex('#ffffff')], luz, x, y);
+    return tramado(tierra ? TI : OC, luz * 0.95, x, y);
+  });
+  const LU = rampa(PALETAS.luna.roca.slice(1)), MA = rampa(T.marte);
+  planeta(f, 268, 40, 15, (nx, ny, luz, x, y) => tramado(LU, luz * 0.95 - (tileFbm(nx * 3, ny * 3, 0, 0, 305, 3) > 0.15 ? 0.15 : 0), x, y));
+  planeta(f, 290, 116, 24, (nx, ny, luz, x, y) => tramado(MA, luz * 0.95 - (tileFbm(nx * 2.5, ny * 2.5, 0, 0, 306, 3) > 0.12 ? 0.18 : 0), x, y));
+  // trayectorias: arcos punteados desde la Tierra hasta cada destino
+  const L = hex(T.lavanda);
+  const arco = (x0, y0, x1, y1, alto) => {
+    for (let i = 0; i <= 120; i++) {
+      const t = i / 120, x = x0 + (x1 - x0) * t, y = y0 + (y1 - y0) * t - Math.sin(t * Math.PI) * alto;
+      if (i % 6 < 3) f.color[Math.round(y) * 320 + Math.round(x)] = L;
+    }
+  };
+  arco(96, 132, 248, 46, 34);
+  arco(108, 150, 262, 120, 20);
+  guardar('pantallas/menu_fondo.png', f);
+}
+
+// Taller: pared de placas oscuras con tablero de herramientas, una ventana del hangar con Marte afuera y el piso con
+// franjas de seguridad. Tonos bajos para que la interfaz del Taller se lea encima.
+function tallerFondo() {
+  const f = createFrame(320, 180), M = rampa(PALETAS.base.metal), PARED = [hex('#141826'), hex('#1c2132'), hex('#262c3e')];
+  pintar(f, 0, 0, 320, 180, (x, y) => {
+    if (y >= 150) {
+      if (y < 153) return y === 150 ? M[2] : (x + y) % 10 < 5 ? hex('#c8a01c') : hex('#1a1a22');   // franja de seguridad
+      return tramado([hex('#1a1d2a'), hex('#22263a'), M[0]], 0.3 + (y - 153) / 60 + ((x >> 4) % 2) * 0.1, x, y);
+    }
+    if (y % 40 === 0 || x % 64 === 0) return hex('#0e101a');                                             // juntas de placas
+    if ((x % 64 === 2 || x % 64 === 61) && y % 40 === 4) return M[1];                                      // remaches
+    return tramado(PARED, 0.35 + (y / 150) * 0.4, x, y);
+  });
+  // ventana del hangar con Marte afuera (paisaje del fondo de Marte, recortado)
+  const win = { x: 128, y: 26, w: 64, h: 44 };
+  for (const n of [1, 2, 3]) pegar(f, leer(`fondos/fondo_marte_${n}.png`), win.x, win.y, { sx: 40, sy: 96, w: win.w, h: win.h });
+  pintar(f, win.x - 3, win.y - 3, win.w + 6, win.h + 6, (x, y) => {
+    const dentro = x >= win.x && x < win.x + win.w && y >= win.y && y < win.y + win.h;
+    if (dentro) return x === win.x + 32 || y === win.y + 22 ? M[0] : 0;                                    // marco en cruz
+    return x === win.x - 3 || y === win.y - 3 ? M[3] : M[1];
+  });
+  // tableros perforados con siluetas de herramientas a los lados
+  const tablero = (x0, y0) => {
+    pintar(f, x0, y0, 56, 40, (x, y) => (x === x0 || y === y0 || x === x0 + 55 || y === y0 + 39 ? M[1] : (x - x0) % 4 === 2 && (y - y0) % 4 === 2 ? hex('#0e101a') : hex('#2a3046')));
+    const H = M[2];
+    for (let i = 0; i < 12; i++) { f.color[(y0 + 8 + i) * 320 + x0 + 10] = H; f.color[(y0 + 8 + i) * 320 + x0 + 11] = H; }   // destornillador
+    for (const [dx, dy] of [[9, 6], [12, 6], [9, 7], [12, 7]]) f.color[(y0 + dy) * 320 + x0 + dx] = hex('#f2701f');
+    for (let i = 0; i < 16; i++) f.color[(y0 + 10 + i) * 320 + x0 + 24 + (i >> 3)] = H;                                       // llave
+    for (const [dx, dy] of [[22, 8], [23, 8], [26, 8], [27, 8], [22, 9], [27, 9]]) f.color[(y0 + dy) * 320 + x0 + dx] = H;
+    pintar(f, x0 + 36, y0 + 10, 12, 8, () => M[2]);                                                                         // martillo
+    for (let i = 0; i < 12; i++) f.color[(y0 + 18 + i) * 320 + x0 + 41] = hex('#8a5a36');
+  };
+  tablero(20, 40);
+  tablero(244, 40);
+  // banco de trabajo con una rueda y una batería encima
+  pintar(f, 18, 120, 70, 4, (x, y) => (y === 120 ? M[3] : M[1]));
+  pintar(f, 22, 124, 3, 26, () => M[0]); pintar(f, 81, 124, 3, 26, () => M[0]);
+  pegar(f, leer('iconos/rueda_ancha.png'), 30, 104);
+  pegar(f, leer('iconos/bateria_grande.png'), 56, 104);
+  // lámparas colgantes
+  for (const lx of [100, 220]) {
+    pintar(f, lx, 0, 1, 10, () => M[0]);
+    pintar(f, lx - 4, 10, 9, 3, (x, y) => (y === 12 ? hex('#fff08a') : M[1]));
+  }
+  guardar('pantallas/taller_fondo.png', f);
+}
+
+/** Pega un cuadro temporal girado (vecino más cercano) con su centro en (cx, cy). */
+function girado(f, tmp, cx, cy, ang) {
+  const c = Math.cos(ang), s = Math.sin(ang), R = Math.ceil(Math.hypot(tmp.w, tmp.h) / 2);
+  for (let y = -R; y <= R; y++) for (let x = -R; x <= R; x++) {
+    const u = Math.round(c * x + s * y + tmp.w / 2 - 0.5), v = Math.round(-s * x + c * y + tmp.h / 2 - 0.5);
+    if (u < 0 || v < 0 || u >= tmp.w || v >= tmp.h) continue;
+    const col = tmp.color[v * tmp.w + u], X = cx + x, Y = cy + y;
+    if (col >>> 24 && X >= 0 && Y >= 0 && X < f.w && Y < f.h) f.color[Y * f.w + X] = col;
+  }
+}
+/** Robot dibujado aparte (32 × 24, suelo en y = 22) para girarlo. */
+function robotSuelto(op) {
+  const t = createFrame(32, 24);
+  robot(t, 4, 22, op);
+  return t;
+}
+
+// Una viñeta por motivo de fin (Resultados.js → MOTIVOS). Mismo marco que las del tutorial.
+function resultados() {
+  const V = (motivo, dibuja) => { const f = createFrame(96, 64); dibuja(f); marco(f); guardar(`pantallas/resultado_${motivo}.png`, f); };
+  const W = hex('#ffffff');
+
+  V('entrega', (f) => {
+    fondo(f, 'marte', 30, 92); suelo(f, 'marte_arena', 52);
+    pegar(f, leer('entidades/base.png'), 54, 28); pegar(f, leer('entidades/zona_entrega.png'), 34, 52);
+    cuadro(f, 'entidades/astronauta.png', 10, 10, 44, 35);                       // celebra
+    const r = robot(f, 12, 54, { rueda: 'rueda_ancha' });
+    efecto(f, 'fx_entrega', 6, r.carga[0] + 1, r.carga[1]);
+  });
+  V('meta', (f) => {
+    fondo(f, 'dunas', 196, 92); suelo(f, 'tierra_arena', 50);
+    cuadro(f, 'entidades/meta.png', 1, 8, 58, 34);
+    robot(f, 62, 52, { rueda: 'rueda_ancha' });
+    efecto(f, 'fx_meta', 5, 62, 30);
+  });
+  V('chasis_destruido', (f) => {
+    fondo(f, 'lava', 150, 92); suelo(f, 'tierra_roca', 50);
+    robot(f, 36, 52, { danado: true, conCarga: false });
+    cuadro(f, 'entidades/carga.png', 2, 7, 66, 45);
+    efecto(f, 'fx_chasis_destruido', 6, 48, 40);
+  });
+  V('carga_perdida', (f) => {
+    fondo(f, 'desierto', 120, 92); suelo(f, 'tierra_compacto', 50);
+    robot(f, 50, 52, { conCarga: false });
+    pegar(f, leer('entidades/soporte_basico.png'), 57, 38);
+    cuadro(f, 'entidades/carga.png', 2, 7, 22, 45);                              // la caja quedó atrás, rota
+    efecto(f, 'fx_carga_perdida', 7, 25, 47);
+  });
+  V('volcado', (f) => {
+    fondo(f, 'marte', 120, 92); suelo(f, 'marte_roca', 52);
+    girado(f, robotSuelto({ conCarga: false }), 48, 51, Math.PI);                // de cabeza, ruedas arriba
+    for (const [x, y] of [[38, 37], [58, 37], [34, 40], [62, 40]]) f.color[y * 96 + x] = W;   // ruedas que siguen girando
+  });
+  V('energia_agotada', (f) => {
+    fondo(f, 'luna', 60, 92); suelo(f, 'luna_arena', 50);
+    robot(f, 36, 52);
+    efecto(f, 'fx_energia_agotada_luna', 6, 40, 38);
+    pegar(f, leer('ui/ui_icono_energia.png'), 68, 18);
+    for (let y = 21; y < 25; y++) for (let x = 70; x < 73; x++) f.color[y * 96 + x] = hex('#2e3648');   // batería vacía
+    f.color[19 * 96 + 78] = hex(BASE.r); f.color[20 * 96 + 78] = hex(BASE.r); f.color[22 * 96 + 78] = hex(BASE.r);
+  });
+  V('atascado', (f) => {
+    fondo(f, 'dunas', 60, 92); suelo(f, 'tierra_arena', 50);
+    for (let x = 0; x < 96; x += 16) pegar(f, leer('obstaculos/obstaculo_arena_blanda.png'), x, 47);
+    const r = robot(f, 36, 55);                                                    // hundido 3 px en la arena
+    pintar(f, 34, 50, 28, 2, (x, y) => (y === 50 ? hex(PALETAS.tierra.arena[5]) : hex(PALETAS.tierra.arena[4])));
+    efecto(f, 'fx_patinaje', 3, r.trasera[0], 52, [28, 25]);
+    // reloj de 15 s
+    disco(f, 78, 16, 6, (u, v, d) => (d > 0.8 ? K : hex('#e8e2ff')));
+    for (let i = 0; i < 5; i++) f.color[(12 + i) * 96 + 78] = K;
+    for (let i = 0; i < 4; i++) f.color[16 * 96 + 78 + i] = K;
+  });
+  V('carga_danada', (f) => {
+    fondo(f, 'marte', 30, 92); suelo(f, 'marte_arena', 52);
+    pegar(f, leer('entidades/base.png'), 54, 28); pegar(f, leer('entidades/zona_entrega.png'), 34, 52);
+    cuadro(f, 'entidades/astronauta.png', 0, 10, 46, 35);                        // en reposo: no celebra
+    robot(f, 16, 54, { carga: 1 });
+    pegar(f, leer('ui/ui_icono_carga.png'), 22, 14);
+    f.color[17 * 96 + 32] = hex(BASE.r); f.color[18 * 96 + 32] = hex(BASE.r); f.color[20 * 96 + 32] = hex(BASE.r);
+  });
+  V('abandono', (f) => {
+    fondo(f, 'desierto', 200, 92); suelo(f, 'tierra_compacto', 50);
+    robot(f, 36, 52);
+    // bandera blanca en un poste sobre la carga
+    for (let y = 22; y < 40; y++) f.color[y * 96 + 50] = hex('#9aa6ba');
+    pintar(f, 51, 22, 8, 5, (x, y) => ((x + y) % 4 === 0 ? hex('#d0d8e6') : W));
+  });
+  V('caida', (f) => {
+    fondo(f, 'luna', 200, 92);
+    // borde de un precipicio: suelo solo a la izquierda
+    pintar(f, 0, 38, 40, 26, (x, y) => (x > 36 + (y - 38) * 0.2 ? 0 : y === 38 ? hex('#b4b4c0') : tramado(rampa(PALETAS.luna.roca.slice(1, 6)), 0.6 - (y - 38) / 40, x, y)));
+    girado(f, robotSuelto({}), 60, 46, 0.7);                                         // cae inclinado
+    for (const [x, y, n] of [[52, 24, 4], [64, 22, 5], [74, 28, 3]]) for (let i = 0; i < n; i++) f.color[(y - i) * 96 + x] = hex('#e8e8f0');
+  });
 }

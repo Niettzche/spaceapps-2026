@@ -1,9 +1,9 @@
 # Estado — Arte
 
-> Lo actualiza SOLO este frente. Ramas: `feat/arte` (#26) y `feat/arte-b` (#37), `feat/arte-c` (#49), `feat/arte-d` (#58), `feat/arte-e` (#64), `feat/arte-f` (#67), mergeadas; `feat/arte-g` (piezas nuevas y pintura del chasis).
+> Lo actualiza SOLO este frente. Ramas: `feat/arte` (#26) y `feat/arte-b` (#37), `feat/arte-c` (#49), `feat/arte-d` (#58), `feat/arte-e` (#64), `feat/arte-f` (#67), `feat/arte-g` (#72), mergeadas; `feat/arte-h` (piezas que faltaban, fondos del menú y del Taller, viñetas de resultado).
 
 **Responsable:** Mauricio  ·  **Agente:** Claude Code / Codex
-**Última actualización:** 15 nov 2026, 03:00
+**Última actualización:** 15 nov 2026, 04:00
 
 ## Hecho
 - **Prioridad A y B completas** (#26 y #37, en `main`):
@@ -83,6 +83,14 @@
     - Calcomanías `deco_bateria_mediana`, `deco_panel_solar_grande`, `deco_calentador_bateria` y `deco_radiador`.
   - Referencias de forma: `docs/taller/PIEZAS.md` (filas H5, S64, S14 y S76).
 - **Pintura del chasis:** `chasis_<ligero|reforzado>_<rojo|azul|verde|amarillo|morado>`, con 2 cuadros (normal y dañado) como el original. Solo cambia la carrocería; faro, franja, borde turquesa y daños quedan igual.
+- **Ronda `feat/arte-h`:**
+  - **Piezas que faltaban** (`SPRITES_PENDIENTES.md` §6):
+    - `motor_equilibrado`: ícono con un círculo mitad turquesa y mitad naranja, y `deco_motor_equilibrado`.
+    - `soporte_correas`: ícono con correas cruzadas y sprite de 10 × 3 con paredes de 0.35 m y correas amarillas.
+  - Quité `rueda_grousers` (ícono y sprite): ninguna pieza la usa.
+  - **`pantallas/menu_fondo.png`:** la Tierra abajo a la izquierda y la Luna y Marte a la derecha, con trayectorias punteadas; el centro queda libre para los botones.
+  - **`pantallas/taller_fondo.png`:** pared de placas oscuras, tableros con herramientas, ventana con Marte, banco y piso con franja de seguridad.
+  - **`pantallas/resultado_<motivo>.png`:** 10 viñetas de 96 × 64, una por motivo de `Resultados.js`.
 - `node assets/fuente/fx/exportar.mjs` regenera con pixelfx las 22 hojas de efectos.
 
 ## En curso
@@ -94,8 +102,11 @@
 - [ ] Ver el arte con el juego corriendo (todavía no lo he revisado en pantalla): ruedas en el taller y en la prueba, calcomanías, posición de efectos y polvo.
 
 ## Bloqueos / necesito de otro frente
-- **Juego:** agregar a `TABLA` en `aspecto.js` `rueda_malla` (ancho 8, cuadros [1, 4]), `rueda_grousers` (ancho 7, [1, 4]) y los chasis pintados (ancho 24, [1, 2]). Si no, se dibuja la tira entera.
-- **Taller:** confirmar los ids. Si cambian, solo hay que renombrar los archivos.
+- **Juego / menú / Taller:** conectar las pantallas nuevas.
+  - `Menu.js`: `pantallas/menu_fondo` en vez de `titulo/titulo_fondo`.
+  - `Taller.js`: `pantallas/taller_fondo` × 3 al fondo.
+  - `Resultados.js`: `pantallas/resultado_${motivo}` × 2 o × 3.
+  - Se puede quitar `rueda_grousers` de `TABLA`: ya no hay archivo.
 - **Juego:** rocas recortadas a 1–2 px. La nota del PR de `feat/arte-f` trae opciones.
 - **Juego:** `game/e2e/camino_dorado.mjs` no pasa del Boot con el menú actual: falla el `waitForFunction` del paso boot.
 - **Juego:** en la Misión, a la izquierda del inicio, se ve un hueco sin terreno de unos 48 px de pantalla.

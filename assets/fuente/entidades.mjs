@@ -199,6 +199,10 @@ export function generarB() {
   // ---- soporte_amortiguado: 10 × 4, paredes de 0.45 m y resortes bajo la bandeja.
   tira(D + 'soporte_amortiguado.png', 10, 4, 1, (p) => filas(p, ['hl......lh', 'mO......Om', 'mmmmmmmmmm', 'yOy....yOy']), { contorno: false });
 
+  // ---- soporte_correas: 10 × 3, paredes de 0.35 m (entre el básico y el amortiguado) con las correas amarillas
+  // enganchadas arriba de cada pared y hebillas a media altura.
+  tira(D + 'soporte_correas.png', 10, 3, 1, (p) => filas(p, ['hy......yh', 'mY......Ym', 'mmmmmmmmmm']), { contorno: false });
+
   // ---- base (hábitat): 40 × 24, detrás de la zona de entrega. Origen: centro inferior.
   tira(D + 'base.png', 40, 24, 1, (p) => {
     const L = (k) => BASE[k];
@@ -246,6 +250,7 @@ export function generarDeco() {
   const decos = {
     deco_motor_eficiente: ['.....', '.hcl.', '.mCd.', '.....'],   // motor con acento turquesa (eficiente)
     deco_motor_potente: ['.....', '.hyr.', '.mOd.', '.....'],     // motor con rayo naranja y rojo (potente)
+    deco_motor_equilibrado: ['.....', '.hcy.', '.mCo.', '.....'], // mitad turquesa y mitad naranja (equilibrado)
     deco_bateria_chica: ['....', '.he.', '.dE.', '....'],          // celda chica verde
     deco_bateria_grande: ['.....', '.hee.', '.dEE.', '.....'],     // bloque más ancho
     deco_panel_solar: ['..........', '.SsSsSsSs.', '..........'],  // panel delgado encima
@@ -325,17 +330,6 @@ export function generarPiezasNuevas() {
     for (const [x, y] of [[2, 3], [5, 3], [2, 4], [5, 4], [3, 2], [4, 2], [3, 5], [4, 5]]) r[y][x] = 'g'; // malla abierta
     const ch = anillo8[(i * 3) % 12];
     r[ch[1]][ch[0]] = 'c';                                                   // chevrón de titanio, turquesa (marca de giro)
-    filas(p, r.map((a) => a.join('')));
-  });
-
-  // ---- rueda_grousers: 7 × 7, 4 cuadros. Rueda rígida de aluminio (Curiosity/Perseverance): aro metálico brillante
-  // con garras (grousers) que avanzan con el giro; rayos de titanio y cubo oscuro. Metálica, no de goma (≠ rueda_tacos).
-  const borde = [[2, 1], [3, 1], [4, 1], [5, 2], [5, 3], [5, 4], [4, 5], [3, 5], [2, 5], [1, 4], [1, 3], [1, 2]];
-  tira(D + 'rueda_grousers.png', 7, 7, 4, (p, i) => {
-    const r = ['.......', '.......', '..l.l..', '...d...', '..m.m..', '.......', '.......'].map((x) => [...x]);
-    borde.forEach(([x, y], j) => { r[y][x] = (j + i * 3) % 3 === 0 ? 'm' : j < 6 ? 'h' : 'l'; });
-    const [mx, my] = borde[(i * 3 + 1) % 12];
-    r[my][mx] = 'o';                                                         // una garra naranja: marca de giro
     filas(p, r.map((a) => a.join('')));
   });
 }
