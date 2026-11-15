@@ -34,6 +34,31 @@ export function panel(scene, x, y, w, h, { relleno = COLOR.panel, borde = COLOR.
   return scene.add.rectangle(x, y, w, h, relleno).setOrigin(0, 0).setStrokeStyle(1, borde);
 }
 
+/**
+ * Caja de arte 9-slice a escala entera (kit de Mauricio): 'ui/ui_tarjeta' (cortes 4), 'ui/ui_panel' (3),
+ * 'ui/ui_titulo_placa' (6 a los lados, 5 arriba/abajo), 'ui/ui_ayuda' (3). Origen arriba a la izquierda.
+ * Respaldo sin textura o sin WebGL: el panel plano de siempre. Devuelve el objeto.
+ */
+const CORTES = { 'ui/ui_tarjeta': [4, 4, 4, 4], 'ui/ui_chip_rojo': [3, 3, 3, 3], 'ui/ui_chip_cian': [3, 3, 3, 3], 'ui/ui_panel': [3, 3, 3, 3], 'ui/ui_titulo_placa': [6, 6, 5, 5], 'ui/ui_ayuda': [3, 3, 3, 3] };
+export function cajaArte(scene, clave, x, y, w, h, { escala = 3, alfa = 1 } = {}) {
+  const c = CORTES[clave] ?? [4, 4, 4, 4];
+  if (hayArte(scene, clave)) {
+    const aw = Math.max(c[0] + c[1] + 1, Math.round(w / escala));
+    const ah = Math.max(c[2] + c[3] + 1, Math.round(h / escala));
+    return scene.add.nineslice(Math.round(x), Math.round(y), clave, undefined, aw, ah, c[0], c[1], c[2], c[3])
+      .setOrigin(0, 0).setScale(escala).setAlpha(alfa);
+  }
+  return panel(scene, x, y, w, h).setAlpha(alfa);
+}
+
+/** Título de pantalla con la fuente del logo sobre la placa de arte (ui_titulo_placa); devuelve { texto, placa }. */
+export function tituloPlaca(scene, x, y, contenido, { size = 30, padX = 30, padY = 12 } = {}) {
+  const t = texto(scene, x, y, contenido, { size, titulo: true, origen: [0.5, 0.5] });
+  const placa = cajaArte(scene, 'ui/ui_titulo_placa', x - t.width / 2 - padX, y - t.height / 2 - padY, t.width + 2 * padX, t.height + 2 * padY);
+  scene.children.moveBelow(placa, t);
+  return { texto: t, placa };
+}
+
 // Caja de los botones con marco: arte de Mauricio (ui/ui_boton[_encima|_presionado|_desactivado], 9-slice 12 × 12,
 // cortes de 4, dibujado ×3: el mismo botón que Taller/HUD/Resultados en comun/pixel.js). Relleno oscuro: el texto
 // amarillo/verde/blanco tiene contraste AA. Respaldo sin la textura (o sin WebGL): la caja dibujada de antes.
@@ -239,12 +264,20 @@ export function conFondo(scene, t, { margen = 8, alfa = 0.85 } = {}) {
  * La usan los botones con `alEnfocar` para que la frase larga no viva debajo de cada uno (DISENO.md §3).
  */
 export function ayudaFija(scene, x, y, { ancho = 760, size = 16, color = COLOR.texto, porDefecto = '' } = {}) {
-  const fondo = scene.add.rectangle(x, y, ancho, size + 18, COLOR.panel, 0.92).setStrokeStyle(1, COLOR.borde).setVisible(false);
+  // Caja de ayuda de Mauricio (ui_ayuda, 9-slice 10 × 10 ×2); respaldo: rectángulo con borde.
+  const arte = hayArte(scene, 'ui/ui_ayuda');
+  const fondo = arte
+    ? scene.add.nineslice(x, y, 'ui/ui_ayuda', undefined, 10, 10, 3, 3, 3, 3).setScale(2).setVisible(false)
+    : scene.add.rectangle(x, y, ancho, size + 18, COLOR.panel, 0.92).setStrokeStyle(1, COLOR.borde).setVisible(false);
   const t = texto(scene, x, y, '', { size, color, origen: [0.5, 0.5], ancho: ancho - 24, alinear: 'center' });
+  const medir = (w, h) => {
+    if (arte) { fondo.setSize(Math.ceil(w / 2), Math.ceil(h / 2)); fondo.setOrigin(0.5, 0.5); } else fondo.setSize(w, h).setOrigin(0.5, 0.5);
+  };
   let actual = null;
   if (porDefecto) {
     t.setText(porDefecto).setColor(COLOR.tenue);
-    fondo.setVisible(true).setSize(Math.min(ancho, t.width + 32), size + 18);
+    fondo.setVisible(true);
+    medir(Math.min(ancho, t.width + 32), Math.max(size + 18, t.height + 14));
   }
   return {
     texto: t,
@@ -254,10 +287,10 @@ export function ayudaFija(scene, x, y, { ancho = 760, size = 16, color = COLOR.t
       if (!s && de && actual !== de) return;
       actual = s ? de : null;
       if (!t.active) return;
-      // Sin ayuda activa se ve el texto por defecto (tenue, sin caja), si lo hay.
+      // Sin ayuda activa se ve el texto por defecto (tenue), si lo hay.
       t.setText(s || porDefecto).setColor(s ? color : COLOR.tenue);
-      fondo.setVisible(!!(s || porDefecto)).setSize(Math.min(ancho, t.width + 32), Math.max(size + 18, t.height + 12));
-      fondo.setOrigin(0.5, 0.5);
+      fondo.setVisible(!!(s || porDefecto));
+      medir(Math.min(ancho, t.width + 32), Math.max(size + 18, t.height + 14));
     },
   };
 }

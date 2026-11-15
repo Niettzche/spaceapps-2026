@@ -5,7 +5,7 @@
 //   9/11 cráteres mexicanos conocidos (METODOLOGIA.md, informe del detector) · ~78 % exactitud balanceada Luna/Marte con
 //   grupos espaciales (METODOLOGIA.md; VALIDATION.md: 78 %) · 296 candidatos áridos, México + Atacama, Arizona y Arabia
 //   (VALIDATION.md) · controles negativos 3 de 3 (VALIDATION.md).
-import { COLOR, texto, boton, panel, conFondo } from './interfaz.js';
+import { COLOR, texto, boton, panel, conFondo, cajaArte, tituloPlaca } from './interfaz.js';
 import { idioma } from '../../i18n.js';
 
 // Tipos de página: 'fuentes' (tarjetas por cuerpo: keyword → fuente), 'cifras' (3 cifras grandes + keywords),
@@ -97,12 +97,12 @@ const estado = { pagina: 0 };
 
 /** Tarjeta con título y filas «keyword → fuente» (keyword tenue arriba, fuente grande debajo). */
 function tarjeta(scene, x, y, w, h, { titulo, filas }) {
-  panel(scene, x, y, w, h).setFillStyle(COLOR.panel, 0.88);
-  texto(scene, x + w / 2, y + 22, titulo, { size: 18, color: COLOR.foco, origen: [0.5, 0.5] });
+  cajaArte(scene, 'ui/ui_tarjeta', x, y, w, h, { alfa: 0.94 });
+  texto(scene, x + w / 2, y + 24, titulo, { size: 18, color: COLOR.foco, origen: [0.5, 0.5] });
   filas.forEach(([clave, fuente], i) => {
-    const fy = y + 56 + i * 54;
+    const fy = y + 58 + i * 54;
     texto(scene, x + w / 2, fy, clave, { size: 14, color: COLOR.muyTenue, origen: [0.5, 0.5] });
-    texto(scene, x + w / 2, fy + 21, fuente, { size: 18, origen: [0.5, 0.5], ancho: w - 20, alinear: 'center' });
+    texto(scene, x + w / 2, fy + 24, fuente, { size: 18, origen: [0.5, 0.5], ancho: w - 20, alinear: 'center' });
   });
 }
 
@@ -115,15 +115,15 @@ function paginaCifras(scene, p) {
   const w = 292, sep = 18, x0 = 480 - (3 * w + 2 * sep) / 2;
   p.cifras.forEach(([cifra, clave, sub], i) => {
     const x = x0 + i * (w + sep);
-    panel(scene, x, 104, w, 150).setFillStyle(COLOR.panel, 0.88);
-    texto(scene, x + w / 2, 146, cifra, { size: 40, color: COLOR.acento, origen: [0.5, 0.5] });
-    texto(scene, x + w / 2, 192, clave, { size: 18, origen: [0.5, 0.5] });
-    texto(scene, x + w / 2, 222, sub, { size: 14, color: COLOR.muyTenue, origen: [0.5, 0.5], ancho: w - 8, alinear: 'center' });
+    cajaArte(scene, 'ui/ui_tarjeta', x, 100, w, 162, { alfa: 0.94 });
+    texto(scene, x + w / 2, 138, cifra, { size: 40, color: COLOR.acento, origen: [0.5, 0.5] });
+    texto(scene, x + w / 2, 180, clave, { size: 18, origen: [0.5, 0.5] });
+    texto(scene, x + w / 2, 200, sub, { size: 14, color: COLOR.muyTenue, origen: [0.5, 0], ancho: w - 16, alinear: 'center' });
   });
   // Keywords del método como chips (2 por fila).
   p.claves.forEach((c, i) => {
     const cx = i % 2 ? 480 + 216 : 480 - 216, cy = 286 + Math.floor(i / 2) * 42;
-    scene.add.rectangle(cx, cy, 400, 34, COLOR.panel, 0.88).setStrokeStyle(1, COLOR.borde);
+    cajaArte(scene, 'ui/ui_panel', cx - 200, cy - 18, 400, 36, { alfa: 0.94 });
     texto(scene, cx, cy, c, { size: 16, origen: [0.5, 0.5] });
   });
 }
@@ -133,12 +133,13 @@ function paginaLimites(scene, p) {
   const w = 196, sep = 14, x0 = 480 - (p.chips.length * w + (p.chips.length - 1) * sep) / 2;
   p.chips.forEach((c, i) => {
     const cx = x0 + i * (w + sep) + w / 2;
-    scene.add.rectangle(cx, 122, w, 40, 0x2a0f18, 0.92).setStrokeStyle(2, 0xff7a93);
+    const ch = cajaArte(scene, 'ui/ui_chip_rojo', cx - w / 2, 102, w, 40, { escala: 2 });
+    if (!scene.textures.exists('ui/ui_chip_rojo')) ch.setFillStyle(0x2a0f18, 0.92).setStrokeStyle(2, 0xff7a93);
     texto(scene, cx, 122, c, { size: 18, color: COLOR.alerta, origen: [0.5, 0.5] });
   });
   conFondo(scene, texto(scene, 480, 166, p.nota, { size: 16, color: COLOR.texto, origen: [0.5, 0.5] }));
   const tw = 380, tsep = 30, tx0 = 480 - (2 * tw + tsep) / 2;
-  p.tarjetas.forEach((t, i) => tarjeta(scene, tx0 + i * (tw + tsep), 192, tw, 200, t));
+  p.tarjetas.forEach((t, i) => tarjeta(scene, tx0 + i * (tw + tsep), 188, tw, 216, t));
 }
 
 /**
@@ -154,8 +155,8 @@ export function vistaNumeros(scene, { volver, redibujar, botonIdioma }) {
   const ultima = estado.pagina === total - 1;
   const ir = (paso) => { estado.pagina = (estado.pagina + paso + total) % total; redibujar(); };
 
-  texto(scene, 480, 32, T.titulo, { size: 26, origen: [0.5, 0.5] });
-  texto(scene, 480, 70, p.sub, { size: 18, color: COLOR.acento, origen: [0.5, 0.5] });
+  tituloPlaca(scene, 372, 30, T.titulo, { size: 26, padY: 8 }); // a la izquierda: el selector de idioma ocupa la esquina derecha
+  conFondo(scene, texto(scene, 480, 74, p.sub, { size: 18, color: COLOR.acento, origen: [0.5, 0.5] }), { margen: 6 });
   if (p.tipo === 'fuentes') paginaFuentes(scene, p);
   else if (p.tipo === 'cifras') paginaCifras(scene, p);
   else paginaLimites(scene, p);
