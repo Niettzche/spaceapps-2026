@@ -16,6 +16,9 @@ const ALTO = 11, BASE_Y = 9, TOPE_MAY = 2, TOPE_MIN = 4;
 // ---------------------------------------------------------------- glifos: [filas, fila donde empiezan]
 const M = TOPE_MAY, m = TOPE_MIN;
 const PROPIOS = {
+  // números redibujados: el 6 de 'big' se confundía con la G («2G7.2 m»); el 6 y el 9 llevan el trazo en diagonal
+  // y la panza cerrada, para que no se parezcan a G ni a g (el 0 ya se distingue de la O por su diagonal)
+  6: ['...#.|..#..|.#...|####.|#...#|#...#|.###.', M], 9: ['.###.|#...#|#...#|.####|...#.|..#..|.#...', M],
   // minúsculas (altura x de 5; ascendentes desde la fila 2; descendentes hasta la 10)
   a: ['.###.|....#|.####|#...#|.####', m], b: ['#....|#....|####.|#...#|#...#|#...#|####.', M],
   c: ['.###.|#....|#....|#....|.###.', m], d: ['....#|....#|.####|#...#|#...#|#...#|.####', M],
