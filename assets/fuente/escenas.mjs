@@ -11,6 +11,8 @@
 //   pantallas/menu_nave.png (320 × 180): estación en órbita para el menú de opciones (escotilla en el centro: 160, 92)
 //   menu/nave.png: la misma estación sola (fondo transparente), 4 cuadros con luces que parpadean
 //   piezas/<id>.png (32 × 32): piezas del Taller de arrastrar y soltar (los 19 ids de game/src/content/parts.json)
+//   ../docs/media/slides/slide_<n>_<tema>.png  fondos de las 7 diapositivas (240 × 135 × 8 = 1920 × 1080), con espacio para texto
+//   ../docs/media/iconos/<32|48>/<id>.png  íconos de keywords y de piezas ampliados × 2 y × 3 (vecino más cercano) para la web
 // Correr después de los demás grupos: lee sus PNG del disco.
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { inflateSync } from 'node:zlib';
@@ -160,6 +162,8 @@ export function generar() {
   postales();
   menuNave();
   piezasGrandes();
+  diapositivas();
+  iconosWeb();
 }
 
 const T = PALETAS.titulo, B = '#e8e2ff';
@@ -740,6 +744,165 @@ function piezasGrandes() {
     const img = leer(`iconos/${id}.png`), f = createFrame(img.w, img.h);
     f.color.set(img.color);
     guardar(`piezas/${id}.png`, escalar(f, 2));
+  }
+}
+
+// ---------------------------------------------------------------- diapositivas (240 × 135, se guardan × 8 = 1920 × 1080)
+// Mismo tamaño de píxel que los sprites del juego. Cada una deja una zona tranquila para el texto (anotada abajo).
+function estrellado(f, semilla = 0) {
+  const ESP = rampa(T.espacio);
+  pintar(f, 0, 0, f.w, f.h, (x, y) => {
+    const n = tileFbm(x / 60, y / 60, 0, 0, 301 + semilla, 4), h = Math.sin(x * 127.1 + y * 311.7 + semilla * 17) * 43758.5453, r = h - Math.floor(h);
+    if (r > 0.992) return r > 0.997 ? hex('#ffffff') : hex(T.estrella);
+    return tramado(ESP.slice(0, 5), clamp(0.08 + (n + 0.25) * 0.45, 0, 0.8), x, y);
+  });
+}
+function tierraPlaneta(f, cx, cy, r) {
+  const OC = rampa(['#0c1a4a', '#16307e', '#2550d0', '#3f8cff', '#7cc8ff']), TI = rampa(['#173a1e', '#2f5a34', '#3ec466', '#9ad06a']);
+  planeta(f, cx, cy, r, (nx, ny, luz, x, y) => {
+    const tierra = tileFbm(nx * 3 + 4, ny * 3, 0, 0, 303, 4) > 0.08, nube = tileFbm(nx * 5, ny * 9, 0, 0, 304, 3) > 0.28;
+    if (nube && luz > 0.15) return tramado([hex('#b4c4e0'), hex('#ffffff')], luz, x, y);
+    return tramado(tierra ? TI : OC, luz * 0.95, x, y);
+  });
+}
+const marteP = (f, cx, cy, r) => planeta(f, cx, cy, r, (nx, ny, luz, x, y) => tramado(rampa(T.marte), luz * 0.95 - (tileFbm(nx * 2.5, ny * 2.5, 0, 0, 306, 3) > 0.12 ? 0.18 : 0), x, y));
+const lunaP = (f, cx, cy, r) => planeta(f, cx, cy, r, (nx, ny, luz, x, y) => tramado(rampa(PALETAS.luna.roca.slice(1)), luz * 0.95 - (tileFbm(nx * 3, ny * 3, 0, 0, 305, 3) > 0.15 ? 0.15 : 0), x, y));
+function arcoPunteado(f, x0, y0, x1, y1, alto, color = hex(T.lavanda)) {
+  for (let i = 0; i <= 200; i++) {
+    const t = i / 200, x = Math.round(x0 + (x1 - x0) * t), y = Math.round(y0 + (y1 - y0) * t - Math.sin(t * Math.PI) * alto);
+    if (i % 8 < 4 && x >= 0 && y >= 0 && x < f.w && y < f.h) f.color[y * f.w + x] = color;
+  }
+}
+
+function diapositivas() {
+  const W = 240, H = 135, D = (n, tema, dibuja) => { const f = createFrame(W, H); dibuja(f); guardar(`../docs/media/slides/slide_${n}_${tema}.png`, escalar(f, 8)); };
+
+  // 1 · portada: logo arriba, robot llegando a la base en Marte abajo a la derecha. Texto: abajo a la izquierda.
+  D(1, 'portada', (f) => {
+    fondo(f, 'marte', 60, 45, 0, 0, W, H);
+    llegada(f, 112, 120, 186);
+    titulo(f, 18, 2, 2);
+    lema(f, LEMA_1, 40);
+  });
+
+  // 2 · el reto: la Tierra abajo a la izquierda, trayectorias a la Luna y a Marte. Texto: arriba a la izquierda.
+  D(2, 'reto', (f) => {
+    estrellado(f, 1);
+    tierraPlaneta(f, 34, 150, 70);
+    lunaP(f, 176, 40, 12);
+    marteP(f, 212, 98, 18);
+    arcoPunteado(f, 80, 102, 162, 44, 30);
+    arcoPunteado(f, 96, 118, 192, 102, 18);
+  });
+
+  // 3 · el modelo: mapa con los sitios análogos de data/sites (todos los candidatos y, resaltados, los 4 jugables).
+  // Costas: Natural Earth 1:110m (dominio público). Texto: sobre el océano Pacífico, a la izquierda.
+  D(3, 'modelo', (f) => {
+    const M = JSON.parse(readFileSync(join(ASSETS, 'fuente/datos/tierra_mapa.txt'), 'utf8'));
+    const tierra = M.filas.map((r) => { const out = []; for (const t of r.split(',')) if (t) out.push(...Array(+t.slice(1)).fill(t[0] === '1')); return out; });
+    const OC = rampa(['#0b1030', '#101a48', '#16265e']), TI = rampa(PALETAS.tierra.desierto_cerca.slice(1));
+    pintar(f, 0, 0, W, H, (x, y) => {
+      const lon = M.lon[0] + ((x + 0.5) / W) * (M.lon[1] - M.lon[0]), lat = M.lat[0] + ((y + 0.5) / H) * (M.lat[1] - M.lat[0]);
+      const reticula = Math.abs(((lon % 30) + 30) % 30) < 0.8 || Math.abs(((lat % 30) + 30) % 30) < 0.8;
+      if (tierra[y][x]) {
+        const costa = !tierra[y - 1]?.[x] || !tierra[y + 1]?.[x] || !tierra[y][x - 1] || !tierra[y][x + 1];
+        if (costa) return TI[4];
+        return tramado(TI, 0.45 + tileFbm(x / 14, y / 14, 0, 0, 501, 3) * 0.6, x, y);
+      }
+      if (reticula && (x + y) % 2) return hex('#26346e');
+      return tramado(OC, 0.5 + tileFbm(x / 40, y / 40, 0, 0, 502, 2) * 0.5, x, y);
+    });
+    const sitios = [];
+    for (const nombre of readdirSync(join(ASSETS, '../data/sites'))) {
+      const st = JSON.parse(readFileSync(join(ASSETS, '../data/sites', nombre), 'utf8'));
+      if (st.lat != null && st.lon != null) sitios.push(st);
+    }
+    const aXY = (st) => [Math.round(((st.lon - M.lon[0]) / (M.lon[1] - M.lon[0])) * W - 0.5), Math.round(((st.lat - M.lat[0]) / (M.lat[1] - M.lat[0])) * H - 0.5)];
+    const JUGABLES = ['samalayuca', 'pinacate', 'mx0207', 'g00281'];
+    for (const st of sitios) if (!JUGABLES.includes(st.id)) {
+      const [x, y] = aXY(st);
+      for (const [dx, dy] of [[0, -1], [-1, 0], [1, 0], [0, 1]]) f.color[(y + dy) * W + x + dx] = K;
+      f.color[y * W + x] = hex('#80e0dc');
+    }
+    for (const st of sitios) if (JUGABLES.includes(st.id)) {
+      const [x, y] = aXY(st);
+      disco(f, x, y, 3.2, (u, v, d) => (d > 0.8 ? K : d > 0.3 ? hex('#ffd166') : hex('#ffffff')));
+    }
+  });
+
+  // 4 · el juego: el robot armado en el taller con piezas alrededor. Texto: a la izquierda.
+  D(4, 'juego', (f) => {
+    const Mt = rampa(PALETAS.base.metal), PARED = [hex('#141826'), hex('#1c2132'), hex('#262c3e')];
+    pintar(f, 0, 0, W, H, (x, y) => {
+      if (y >= 110) return y < 113 ? (y === 110 ? Mt[2] : (x + y) % 10 < 5 ? hex('#c8a01c') : hex('#1a1a22')) : tramado([hex('#1a1d2a'), hex('#22263a'), Mt[0]], 0.3 + (y - 113) / 50, x, y);
+      if (y % 40 === 0 || x % 60 === 0) return hex('#0e101a');
+      if (x > 128 && x < 236 && y > 12 && y < 100 && (x % 4 === 2) && (y % 4 === 2)) return hex('#0e101a');   // tablero perforado
+      return tramado(PARED, 0.3 + (y / 110) * 0.4, x, y);
+    });
+    pintar(f, 150, 107, 64, 3, (x, y) => (y === 107 ? Mt[3] : (x + y) % 6 < 3 ? hex(BASE.y) : K));       // plataforma
+    const r = robot(f, 170, 107, { rueda: 'rueda_ancha', decos: [['deco_motor_potente', 0, 1], ['deco_bateria_grande', 18, 1], ['deco_panel_solar', 7, -2]] });
+    const L = hex(T.lavanda);
+    for (const [id, x, y] of [['rueda_ancha', 136, 70], ['motor_potente', 140, 30], ['bateria_grande', 212, 30], ['panel_solar', 214, 70], ['radiador', 176, 18]]) {
+      const cx = x + 8, cy = y + 8, [tx, ty] = [r.carga[0], r.carga[1] + 6], n = Math.max(Math.abs(tx - cx), Math.abs(ty - cy));
+      for (let i = 11; i < n - 6; i += 3) f.color[Math.round(cy + ((ty - cy) * i) / n) * W + Math.round(cx + ((tx - cx) * i) / n)] = L;
+      panel(f, x - 1, y - 1, 18, 18);
+      pegar(f, leer(`iconos/${id}.png`), x, y);
+    }
+  });
+
+  // 5 · la misión: el robot con la carga cruzando Marte hacia la base. Texto: arriba.
+  D(5, 'mision', (f) => {
+    fondo(f, 'marte', 20, 45, 0, 0, W, H);
+    llegada(f, 112, 70, 170);
+    pegar(f, leer('obstaculos/obstaculo_roca_marte_3.png'), 120, 109);
+    pegar(f, leer('obstaculos/obstaculo_roca_marte_1.png'), 30, 111);
+  });
+
+  // 6 · lo que la Tierra no puede probar: la Tierra con su atmósfera y su campo magnético desviando la radiación;
+  // afuera, vacío y rayos que pasan. Texto: a la derecha.
+  D(6, 'limites', (f) => {
+    pintar(f, 0, 0, W, H, (x, y) => ((Math.sin(x * 127.1 + y * 311.7) * 43758.5453) % 1 > 0.994 ? hex('#cfc4ff') : hex('#05040a')));
+    const cx = 70, cy = 68;
+    // campo magnético: arcos lavanda alrededor
+    for (const k of [1.5, 2.1, 2.8]) for (let i = 0; i < 360; i++) {
+      const a = (i / 360) * Math.PI * 2, rr = 30 * k * Math.pow(Math.abs(Math.cos(a)), 0.5);
+      const x = Math.round(cx + Math.cos(a) * rr), y = Math.round(cy + Math.sin(a) * rr * 0.9);
+      if (i % 6 < 3 && x >= 0 && y >= 0 && x < W && y < H) f.color[y * W + x] = hex(k < 2 ? '#7a4cff' : '#40188a');
+    }
+    // atmósfera azul y la Tierra
+    disco(f, cx, cy, 33, (u, v, d) => (d > 0.93 ? hex('#3f8cff') : d > 0.88 ? hex('#16307e') : 0));
+    tierraPlaneta(f, cx, cy, 28);
+    // radiación: rayos que llegan desde la derecha; los que tocan el campo se desvían, los demás siguen en el vacío
+    const R = [hex('#ff7a93'), hex('#ffd166')];
+    for (let j = 0; j < 14; j++) {
+      const y0 = 8 + j * 9, largo = 26 + (j * 7) % 14;
+      let x = 236 - ((j * 37) % 30), y = y0;
+      for (let i = 0; i < largo; i++) {
+        const d = Math.hypot(x - cx, y - cy);
+        if (d < 82) { y += y < cy ? -1 : 1; x -= 1; } else { x -= 2; y += (j % 3) - 1 > 0 && i % 4 === 0 ? 1 : 0; }
+        if (x < 0 || y < 0 || x >= W || y >= H) break;
+        if (i % 3 !== 2) f.color[y * W + x] = i < 3 ? hex('#ffffff') : R[j % 2];
+      }
+    }
+  });
+
+  // 7 · cierre: Marte grande con el borde morado, el logo y el lema. Texto: abajo (enlaces, equipo).
+  D(7, 'cierre', (f) => {
+    estrellado(f, 2);
+    marteP(f, 120, 150, 90);
+    titulo(f, 30, 3, 3);
+    lema(f, LEMA_1, 62);
+    lema(f, [['RUN IT ', B], ['ANYWHERE', T.lavanda], ['.', B]], 71);
+  });
+}
+
+// ---------------------------------------------------------------- íconos grandes para la web (× 2 = 32 px, × 3 = 48 px)
+function iconosWeb() {
+  for (const nombre of readdirSync(join(ASSETS, 'iconos')).filter((n) => n.endsWith('.png')).sort()) {
+    const img = leer(`iconos/${nombre}`), f = createFrame(img.w, img.h);
+    f.color.set(img.color);
+    guardar(`../docs/media/iconos/32/${nombre}`, escalar(f, 2));
+    guardar(`../docs/media/iconos/48/${nombre}`, escalar(f, 3));
   }
 }
 
