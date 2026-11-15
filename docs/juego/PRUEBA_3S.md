@@ -16,7 +16,8 @@
 Las capturas son de la versión en español a 960×540, sin la API del modelo (como en la demo publicada).
 Se regeneran con el recorrido Boot → portada → Menú → Nueva partida → Cómo jugar → elegir destino → Expediente → Explorador.
 
-> El Expediente lo está rediseñando otro agente (frente juego). Su captura es la versión actual; repítela cuando llegue el rediseño.
+> Las capturas ya incluyen el rediseño de Menú, Cómo jugar, Elegir destino y Expediente (frente juego, DISENO.md §3).
+> Si una pantalla cambia otra vez, vuelve a tomar su captura antes de la prueba.
 
 ## Resultados
 
