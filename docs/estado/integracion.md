@@ -2,6 +2,15 @@
 
 Responsable: Alan · Agente: Codex · Actualización: 2026-11-14
 
+## Entrega, metadatos y guion
+
+- Rama `feat/entrega-metadatos`: título exacto MARSCEPTION · Earth analogs for the Moon & Mars; descripción y Open Graph con imagen absoluta de 1200×630 en `web/public/media/og_1200x630.png`. Favicons SVG, PNG 32 y Apple 180 conectados desde `web/public/`, con base de Vite. Archivos originales copiados sin cambios del PR #67, commit 84582f6; no se mergeó el resto de la rama de arte.
+- README y ENTREGA_EN enlazan `docs/METHODOLOGY_EN.md`. Texto de entrega en inglés con enlaces de demo, juego, metodología, datos NASA/ESA, herramientas y declaración inglesa de USO_IA.md; se conserva el crédito pixelfx. Edmundo confirma el envío: no se guarda ni se envía el formulario desde esta tarea.
+- Guion recortado de 255 a 172 palabras habladas. Con 30 s reservados para video: estimación de 1:49.4 a 130 palabras/min (10.6 s de margen), o 1:56 a 120. No es un ensayo humano cronometrado; falta esa lectura con el equipo. Se mantienen segmentos sin repartir personas y las cifras ampliadas quedan para preguntas.
+- Grabaciones Marte/Luna y clip de 5 s condicionados a la próxima publicación desde main por Mario. Se pidió confirmar que esa publicación ya ocurrió. No se etiqueta una captura de la versión anterior como si fuera la nueva.
+- En el remoto consultado, la integración de #61 está en `feat/juego` (adfa1f5), mientras main sigue en cd939c0. Falta incorporar/publicar esa versión antes de grabar las tarjetas y decoración nuevas.
+- Verificación: build y lint de web sin errores (dos advertencias previas de hooks en MapView); HTML generado con título/OG correctos, PNG de 1200×630 e iconos existentes. Declaración de IA contrastada byte a byte como texto con la sección inglesa de USO_IA.md; enlaces locales a metodología comprobados.
+
 ## Portada web · arte del PR #64
 
 - Rama `feat/web-portada-marsception`, desde main con #64 ya integrado. Copiada la imagen original de `docs/media/web_portada_960x960.png` a `web/src/assets/` e importada en `Project.jsx`.

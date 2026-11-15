@@ -16,7 +16,7 @@ Delivery version, 15 November 2026. English summary of [METODOLOGIA.md](METODOLO
 **Validation.** These are separate checks, and each number answers a different question:
 - The detector finds **9 of 11** documented Mexican craters.
 - Of its 668 Mexican detections, **71%** fall in humid mountains. They are real sinkholes and ravines, false positives for crater interpretation. A bare-earth DEM (FABDEM) removes only 15% of them, so they are not tree canopies, and the arid mask removes them. That leaves 47 arid candidates in Mexico, and **296** arid candidates in total after the global search.
-- The complementary comparator passes 3/3 negative controls and 9/20 known analogs.
+- The complementary comparator passes 3/3 negative controls and 9/21 known analogs (see the current validation report below).
 - AI-assisted terrain labels are correct in 29/33 externally checked cases (a non-random sample).
 
 **Explainable model.** It is a logistic regression (Moon versus Mars) trained on **4,288 lunar and 573 Martian craters from 6 Mars sites**. With spatially grouped validation it reaches about **78%** balanced accuracy (76% using depth-to-diameter alone). On a Mars site it never saw, accuracy ranges from 70% (Gale) to 92% (Meridiani). It is not a neural network: its main rule is depth-to-diameter.

@@ -2,9 +2,7 @@
 
 An open-data Earth-analog explorer and 2D rover game for preparing selected Moon and Mars operations.
 
-**Public demo:** [Earth-analog explorer](https://v1.marsception.us/) · [Rover game · English](https://v1.marsception.us/game/?lang=en) · [Captioned video](https://v1.marsception.us/media/mision-cero-30s-en.mp4).
-
-Deployment check: the game title, menu and workshop now display English with `?lang=en`. The gameplay recording and full judge walkthrough remain pending. Source changes in an open PR are not yet part of the public demo.
+**Public demo:** [web explorer](https://v1.marsception.us/) · [rover game in English](https://v1.marsception.us/game/?lang=en) · [captioned overview video](https://v1.marsception.us/media/mision-cero-30s-en.mp4). Deployment is managed by Mario; the new English gameplay recordings will follow the next publication from main.
 
 NASA Space Apps 2026 · Monterrey / UDEM. Challenge: [Identify Earth Locations that Analog the Permanent Moon Base Locations and Mars](https://www.spaceappschallenge.org/2026/challenges/permanent-moon-base-locations-and-mars/).
 
@@ -45,7 +43,7 @@ After installing dependencies in both `web/` and `game/`:
 node web/scripts/build-demo.mjs
 ```
 
-Upload `web/dist/`. It contains web `/`, game `/game/` and the video. `DEMO_BASE` supports subdirectory hosting; `VITE_WEB_URL`, `VITE_API_URL` and `VITE_GAME_URL` are coordinated by the build script. See [deployment instructions](web/DEPLOY.md). Publication and the final public URL remain pending VPS access.
+Upload `web/dist/`. It contains web `/`, game `/game/` and the video. `DEMO_BASE` supports subdirectory hosting; `VITE_WEB_URL`, `VITE_API_URL` and `VITE_GAME_URL` are coordinated by the build script. See [deployment instructions](web/DEPLOY.md). Mario manages publication to the public demo domain above.
 
 ## Data and methodology
 
@@ -59,7 +57,7 @@ Upload `web/dist/`. It contains web `/`, game `/game/` and the video. `DEMO_BASE
 | [NASA GIBS](https://www.earthdata.nasa.gov/eosdis/science-system-description/eosdis-standard-services/gibs) | NASA · basemap imagery |
 | [GVP](https://volcano.si.edu/) / [OpenStreetMap](https://www.openstreetmap.org/copyright) | Smithsonian / OSM contributors · external landform checks |
 
-The detector compares Earth, Moon and Mars at 200 m resolution. See [methodology](docs/METODOLOGIA.md), [model validation](model/VALIDATION.md) and the [provisional shortlist](ciencia_datos/salidas/lista_corta.md). Surface interpretations, missing values, uncertainty and scientific limits remain explicit.
+The detector compares Earth, Moon and Mars at 200 m resolution. See [methodology in English](docs/METHODOLOGY_EN.md), [metodología en español](docs/METODOLOGIA.md), [model validation](model/VALIDATION.md) and the [provisional shortlist](ciencia_datos/salidas/lista_corta.md). Surface interpretations, missing values, uncertainty and scientific limits remain explicit.
 
 ## AI disclosure and project files
 
