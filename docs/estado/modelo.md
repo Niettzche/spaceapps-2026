@@ -65,6 +65,10 @@
   lo que no hay que decir. Y dos cuadernos ya ejecutados que vuelven a calcular sus cifras sin descargar nada:
   `01_borde_levantado.ipynb` y `02_cifras_de_la_guia.ipynb`. El generador y la última celda de cada cuaderno fallan si una cifra
   ya no coincide con `model/VALIDATION.md`.
+- **Banco de preguntas (15 nov, madrugada):** `informe/exposicion_modelo/preguntas_modelo.pdf` (generador
+  `informe/generar_preguntas_modelo.py`): 48 preguntas sobre el modelo en 10 temas, cada una con qué decir, qué añadir si
+  insisten y dónde está el respaldo. El generador se detiene si una frase citada ya no aparece en su documento
+  (`VALIDATION.md`, `AGENTS.md`, `score.py`, `NIVEL2.md`…). Las del juego (ruedas, batería) siguen en `docs/PITCH_QA_EN.md`.
 - **Figura «¿cráter o mina?» (14 nov, 23:40):** `informe/exposicion_modelo/figura_crater_o_mina_es.png` y `_en.png` (también
   `.svg`), para diapositivas y para la página en inglés. Corte de El Elegante (puesto 10 de 296 por el puntaje de forma) y del
   tajo G00219 de Arizona (puesto 3): solo el cráter sube sobre el terreno lejano. Los ejemplos salen de una regla (el mejor
