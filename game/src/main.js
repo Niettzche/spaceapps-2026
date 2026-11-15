@@ -8,8 +8,6 @@ import Taller from './scenes/Taller.js';
 import Prueba from './scenes/Prueba.js';
 import Mision from './scenes/Mision.js';
 import Resultados from './scenes/Resultados.js';
-import { DESTINOS } from './data.js';
-import { musica, pistaDeEscena } from './fisica/musica.js';
 
 // Estado compartido de la partida (persistencia en el navegador la implementa el frente correspondiente).
 const estadoInicial = () => ({ destino: 'jezero', presupuesto: PRESUPUESTO_INICIAL, tickets: TICKETS_POR_PARTIDA, diseno: [], sitio: null, resultados: [] });
@@ -31,7 +29,7 @@ Phaser.GameObjects.TextStyle.prototype.setStyle = function (style, updateText, s
   return r;
 };
 
-const juego = new Phaser.Game({
+new Phaser.Game({
   type: Phaser.AUTO,
   parent: 'app',
   backgroundColor: '#0b0d17',
@@ -41,17 +39,4 @@ const juego = new Phaser.Game({
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH, width: 960, height: 540 },
   physics: { default: 'matter', matter: { runner: { isFixed: true }, gravity: { y: 1 }, debug: false } },
   scene: [Boot, Menu, Expediente, Explorador, Taller, Prueba, Mision, Resultados],
-});
-
-// Música (fisica/musica.js, docs/juego/MUSICA.md): cada escena pide su pista al crearse. Prueba = Tierra, Misión = Marte o
-// Luna según el destino, Expediente/Explorador/Taller = menú; Resultados no cambia nada (la canción del nivel sigue).
-// El Menú pide la suya en Menu.mostrar (no en la pantalla de inicio, donde suena la voz del título).
-juego.events.once('ready', () => {
-  for (const escena of juego.scene.scenes) {
-    escena.sys.events.on('create', () => {
-      const mundo = DESTINOS[partida.destino]?.mundo;
-      const pista = pistaDeEscena(escena.scene.key, mundo);
-      if (pista) musica(pista);
-    });
-  }
 });

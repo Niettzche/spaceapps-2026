@@ -4,7 +4,8 @@ import { SITIOS, DESTINOS } from '../data.js';
 import { partida } from '../main.js';
 import { PRESUPUESTO_INICIAL, TICKETS_POR_PARTIDA, GRAVEDAD } from '../config/world.js';
 import { COLOR, texto, boton, panel, Teclado, limpiar, ayudaFija, cajaArte, tituloPlaca } from './expediente/interfaz.js';
-import { musica, siguienteVolumen, textoMusica } from '../fisica/musica.js';
+import { tocarMusica, cambiarVolumenMusica, alternarMusica, alCambiarMusica, estado as estadoMusica } from '../audio/musica.js';
+import { abrirTutora } from '../tutor/panel.js';
 import { DESTINO_POR_DEFECTO, ORDEN_DESTINOS } from './expediente/config.js';
 import { guardadoDisponible, restaurar, nuevaPartida, guardar, partidaActiva } from './expediente/guardado.js';
 import { sitiosParaDestino } from './expediente/logica.js';
@@ -20,7 +21,12 @@ import { sonarBoton } from '../fisica/sonido.js';
 import { FondoMenu, MARTE_TITULO } from './expediente/fondo_menu.js';
 import { marteGrande, logoBrillo, lineaPixel, restaurarCamara, precargarInicio, videoInicio, warp, textoPx } from './expediente/inicio.js';
 import { vozTitulo } from './expediente/voz_titulo.js';
-import { escenarioNave, consolaMenu, flechasRejilla, entradaInterfaz, zoomEscotilla, detenerZoom } from './expediente/menu_nave.js';
+import { escenarioNave, consolaMenu, flechasRejilla, entradaInterfaz, zoomEscotilla, detenerZoom, botonPx } from './expediente/menu_nave.js';
+
+// Botón de ANA en el menú de opciones: arriba a la izquierda (la consola ya tiene 3 filas llenas y arriba a la derecha
+// está Marte). Las estrellas no titilan debajo.
+const TUTORA = { x: 18, y: 10, w: 214, h: 44 };
+const ZONA_TUTORA = { x: TUTORA.x - 8, y: 0, right: TUTORA.x + TUTORA.w + 8, bottom: TUTORA.y + TUTORA.h + 8 };
 
 // A dónde ir al terminar o saltar "Cómo jugar" (se conserva si el Menú se reinicia al cambiar de idioma).
 let trasComoJugar = 'principal';
@@ -50,6 +56,7 @@ export default class Menu extends Phaser.Scene {
     restaurarCamara(this); // por si la escena se reinicia a media animación (cambio de idioma)
     this.oscuro = false;
     this.zoomando = false;
+    this.tutora = null;
     // Al volver de una partida en curso, el guardado se pone al día (diseño, resultados, tickets) antes de leerlo:
     // así "Continuar" y su resumen muestran lo mismo que había en memoria, no lo último escrito al gastar un ticket.
     if (partidaActiva()) guardar(partida);
@@ -104,8 +111,6 @@ export default class Menu extends Phaser.Scene {
   }
 
   mostrar(vista, { llegada = false, conservarFondo = false } = {}) {
-    // Música del menú desde que termina la animación de inicio (en la pantalla de inicio suena la voz del título).
-    if (vista !== 'inicio') musica('menu');
     // Con `conservarFondo` (cambio de idioma) el fondo vivo sigue: sus capas no se destruyen ni se vuelve a crear.
     const fondoVivo = conservarFondo && this.fondoMenu?.g?.scene ? this.fondoMenu : null;
     if (fondoVivo) {
@@ -117,6 +122,11 @@ export default class Menu extends Phaser.Scene {
     this.textosInicioObjs = null;
     this.resumen = null; // limpiar() ya destruyó su capa
     this.vista = vista;
+    this.dejarMusica?.();
+    this.dejarMusica = null;
+    // Música del menú (audio/musica.js): no suena en la pantalla de inicio; en las opciones empieza al terminar la
+    // llegada de la estación (listoPrincipal), es decir, cuando acaba la animación de inicio.
+    if (vista !== 'inicio' && vista !== 'principal') tocarMusica('menu');
     if (this.alTocarInicio) { this.input.off('pointerdown', this.alTocarInicio); this.alTocarInicio = null; }
     // Después del zoom a la nave (o de un fundido) la pantalla quedó en negro: se aclara con la vista nueva.
     if (this.oscuro) { this.oscuro = false; restaurarCamara(this, { aclarar: true }); }
@@ -146,6 +156,7 @@ export default class Menu extends Phaser.Scene {
     this.teclado.alEscape = vista === 'inicio' || vista === 'principal' ? null : () => this.mostrar('principal');
     if (vista === 'inicio') this.vistaInicio();
     else if (vista === 'destino') this.vistaDestino();
+    else if (vista === 'musica') this.vistaMusica();
     else if (vista === 'como_jugar') {
       vistaComoJugar(this, {
         presupuesto: PRESUPUESTO_INICIAL,
@@ -164,7 +175,7 @@ export default class Menu extends Phaser.Scene {
     // Estrellas que titilan detrás de todo y lejos del texto (quietas con prefers-reduced-motion); en las opciones, lejos
     // también de la estación, de la Tierra, del logo y de Marte. La pantalla de inicio no lleva: el video trae su cielo.
     if (vista !== 'inicio') {
-      estrellas(this, nave ? { planeta: { ...nave.marte, r: nave.marte.r + 14 }, zonas: [...nave.zonas, { x: 230, y: 20, right: 730, bottom: 112 }] } : {});
+      estrellas(this, nave ? { planeta: { ...nave.marte, r: nave.marte.r + 14 }, zonas: [...nave.zonas, { x: 230, y: 20, right: 730, bottom: 112 }, ZONA_TUTORA] } : {});
     }
     // Fondo vivo de Leo (#76): asteroides, cometa, planetas detrás de Marte, galaxia, destellos y agujero negro al volver.
     // En «Nueva partida» con el fondo de Mauricio no va (no tiene un Marte al centro para su máscara), ni en el video.
@@ -295,16 +306,14 @@ export default class Menu extends Phaser.Scene {
    */
   vistaPrincipal(llegada = false) {
     const logo = logoBrillo(this, 480, 66, 7);
-    this.controlMusica();
     const consola = this.consolaPrincipal();
-    if (llegada) entradaInterfaz(this, { consola: consola.objs, logo, retraso: 450 });
-  }
-
-  /** Control propio de la música (DISENO/MUSICA.md): arriba a la izquierda; clic o tecla U pasa 100 → 66 → 33 % → apagada. */
-  controlMusica() {
-    const b = boton(this, 20, 26, `${textoMusica(tr)} · U`, () => { siguienteVolumen(); b.setEtiqueta(`${textoMusica(tr)} · U`); }, { size: 14, origen: [0, 0.5] });
-    this.teclado.extra = { ...this.teclado.extra, u: () => b.activar(), U: () => b.activar() };
-    return b;
+    if (llegada) {
+      entradaInterfaz(this, { consola: consola.objs, logo, retraso: 450 });
+      if (!movimientoReducido() && this.botonTutora) {
+        this.botonTutora.objs.forEach((o) => o.setAlpha(0));
+        this.tweens.add({ targets: this.botonTutora.objs, alpha: 1, delay: 700, duration: 320, ease: 'Quad.easeOut' });
+      }
+    }
   }
 
   /**
@@ -335,15 +344,36 @@ export default class Menu extends Phaser.Scene {
         pista: en ? 'Cambiar a español' : 'Switch to English' },
     ];
     const consola = this.consola = consolaMenu(this, opciones, {
-      ayudaPorDefecto: tr('↑↓←→ mover · 1–5 / Enter elegir · Esc inicio · L idioma', '↑↓←→ move · 1–5 / Enter choose · Esc title · L language'),
+      ayudaPorDefecto: tr('↑↓←→ mover · 1–5 / Enter elegir · Esc inicio · L idioma · A tutora', '↑↓←→ move · 1–5 / Enter choose · Esc title · L language · A tutor'),
     });
     const botones = consola.botones;
     const [nueva, continuar] = botones;
+    // Apartado propio de la música (#104, docs/juego/MUSICA.md) arriba a la derecha y ANA (#105) arriba a la izquierda,
+    // fuera de la consola (que ya está llena). Al cambiar de idioma se rehacen con la consola.
+    this.botonMusica?.obj?.destroy();
+    this.botonTutora?.objs?.forEach((o) => o.destroy());
+    const musica = this.botonMusica = boton(this, 945, 28, tr('Música', 'Music'), () => this.fundido(() => this.mostrar('musica')),
+      { size: 14, origen: [1, 0.5], crecer: false });
+    const tutora = this.botonTutora = botonPx(this, TUTORA.x, TUTORA.y, TUTORA.w, TUTORA.h, tr('Tutora ANA', 'ANA, tutor'), () => this.abrirTutora(), {
+      tecla: 'A',
+      alEnfocar: (v) => consola.ayuda(v ? tr('Pregúntale qué es un análogo y de dónde salen los datos', 'Ask her what an analog is and where the data comes from') : '', tutora),
+    });
     const ponerTeclado = (foco) => {
       this.teclado.numerar(botones.slice(0, 5));
       (g ? continuar : nueva).setSugerido(true);
-      this.teclado.poner(botones, foco ?? (g ? continuar : nueva));
-      this.teclado.extra = { ...this.teclado.extra, ...flechasRejilla(this, 2) };
+      // Música y ANA entran al recorrido de Tab y ←→ (después de «Idioma»), pero no a la rejilla de ↑↓ de la consola.
+      this.teclado.poner([...botones, musica, tutora], foco ?? (g ? continuar : nueva));
+      const rejilla = flechasRejilla(this, 2);
+      const enRejilla = (tecla, paso) => (ev) => {
+        const tk = this.teclado;
+        if (this.modoTeclado && tk.actual && !botones.includes(tk.actual)) { tk.mover(paso); return; }
+        const todos = tk.items;
+        tk.items = botones;
+        try { rejilla[tecla](ev); } finally { tk.items = todos; }
+      };
+      const tutoraTecla = () => this.abrirTutora();
+      this.teclado.extra = { ...this.teclado.extra, ...rejilla, ArrowUp: enRejilla('ArrowUp', -1), ArrowDown: enRejilla('ArrowDown', 1),
+        a: tutoraTecla, A: tutoraTecla };
       this.teclado.alEscape = () => this.fundido(() => this.mostrar('inicio'));
     };
     // Cambio de idioma con la vista ya lista: mismo foco, sin animación de entrada.
@@ -353,11 +383,53 @@ export default class Menu extends Phaser.Scene {
     this.listoPrincipal = () => {
       this.listoPrincipal = null;
       if (!this.sys.isActive() || this.vista !== 'principal') return;
+      tocarMusica('menu');
       this.zoomando = false;
       this.input.enabled = true;
+      tocarMusica('menu');
       ponerTeclado();
     };
     return consola;
+  }
+
+  /**
+   * Apartado «Música»: volumen propio de 0 a 100 % en pasos de 10 (se guarda en este navegador) y quitar o poner la
+   * música. Mientras se ajusta suena la del menú. Teclas: - y + bajan y suben; Esc vuelve.
+   */
+  vistaMusica() {
+    tituloPlaca(this, 480, 40, tr('Música', 'Music'), { size: 30 });
+    cajaArte(this, 'ui/ui_tarjeta', 230, 96, 500, 330, { alfa: 0.94 });
+    const valor = texto(this, 480, 146, '', { size: 28, color: COLOR.acento, origen: [0.5, 0.5] });
+    const segmentos = Array.from({ length: 10 }, (_, i) => this.add.rectangle(310 + i * 34, 196, 28, 24, 0x06d6a0).setOrigin(0, 0.5).setDepth(2));
+    texto(this, 480, 244, tr('La música suena debajo de los efectos. La M de las pruebas también la calla.',
+      'Music plays under the sound effects. M during the tests mutes it too.'),
+      { size: 14, color: COLOR.tenue, origen: [0.5, 0.5], ancho: 460, alinear: 'center' });
+    const menos = boton(this, 380, 304, tr('- Bajar', '- Lower'), () => cambiarVolumenMusica(-10), { size: 18, anchoCaja: 170 });
+    const mas = boton(this, 580, 304, tr('+ Subir', '+ Raise'), () => cambiarVolumenMusica(10), { size: 18, anchoCaja: 170 });
+    const quitar = boton(this, 480, 372, '', () => alternarMusica(), { size: 18, anchoCaja: 300 });
+    const volver = boton(this, 480, 512, tr('Volver', 'Back'), () => this.mostrar('principal'), { size: 16 });
+    const pintar = (e) => {
+      if (!valor.active) return;
+      valor.setText(e.quitada ? tr('Música quitada', 'Music off') : `${e.volumen} %`);
+      segmentos.forEach((r, i) => r.setFillStyle(i < e.volumen / 10 && !e.quitada ? 0x06d6a0 : 0x2a3160));
+      quitar.setEtiqueta(e.quitada ? tr('Poner la música', 'Turn music on') : tr('Quitar la música', 'Turn music off'));
+      menos.setHabilitado(e.volumen > 0);
+      mas.setHabilitado(e.volumen < 100);
+    };
+    pintar(estadoMusica());
+    this.dejarMusica = alCambiarMusica(pintar);
+    this.events.once('shutdown', () => { this.dejarMusica?.(); this.dejarMusica = null; });
+    const bajar = () => { sonarBoton(); cambiarVolumenMusica(-10); };
+    const subir = () => { sonarBoton(); cambiarVolumenMusica(10); };
+    this.teclado.extra = { ...this.teclado.extra, '-': bajar, '_': bajar, '+': subir, '=': subir };
+    this.teclado.numerar([menos, mas, quitar, volver]);
+    this.teclado.poner([menos, mas, quitar, volver, this.botonIdioma('musica')], mas);
+  }
+
+  /** ANA sobre el menú de opciones. Sin sitio ni destino: responde sobre el método, la validación y el catálogo. */
+  abrirTutora() {
+    if (this.tutora || this.zoomando || this.vista !== 'principal') return;
+    this.tutora = abrirTutora(this, { pantalla: 'menu', alCerrar: () => { this.tutora = null; } });
   }
 
   /**

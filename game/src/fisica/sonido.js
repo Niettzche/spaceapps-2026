@@ -83,6 +83,8 @@ export function alternarSilencio() {
   try { globalThis.localStorage?.setItem(CLAVE_SILENCIO, silencio ? '1' : '0'); } catch { /* sin almacenamiento */ }
   try { if (maestro) maestro.gain.setTargetAtTime(silencio ? 0 : VOLUMEN, ctx.currentTime, 0.02); } catch { /* sin audio */ }
   for (const f of oyentes) f(silencio);
+  // La música (audio/musica.js) también calla con el silencio general.
+  try { globalThis.dispatchEvent?.(new CustomEvent('marsception:silencio', { detail: silencio })); } catch { /* sin eventos */ }
   return silencio;
 }
 

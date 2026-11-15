@@ -95,12 +95,19 @@ def test_fallo_del_proveedor_es_502(monkeypatch):
     assert cliente.post("/tutor", json={"pregunta": "hola"}).status_code == 502
 
 
-def test_modelo_razonador_no_manda_temperatura(monkeypatch):
+def test_modelo_por_defecto_es_razonador_y_no_manda_temperatura(monkeypatch):
     visto = {}
     _con_llave(monkeypatch, capturar=visto)
-    monkeypatch.setenv("OPENAI_MODEL", "gpt-5-mini")
+    monkeypatch.delenv("OPENAI_MODEL", raising=False)
+    monkeypatch.delenv("OPENAI_REASONING", raising=False)
     assert cliente.post("/tutor", json={"pregunta": "hola"}).status_code == 200
+    assert visto["cuerpo"]["model"] == "gpt-5.4-mini"
     assert "temperature" not in visto["cuerpo"] and visto["cuerpo"]["reasoning_effort"] == "low"
+    # Un modelo no razonador (OPENAI_MODEL=gpt-4.1-mini) sí lleva temperatura y no reasoning_effort.
+    monkeypatch.setenv("OPENAI_MODEL", "gpt-4.1-mini")
+    tutor.reiniciar_uso()
+    assert cliente.post("/tutor", json={"pregunta": "hola"}).status_code == 200
+    assert visto["cuerpo"]["temperature"] == 0.3 and "reasoning_effort" not in visto["cuerpo"]
 
 
 # ---------- Defensa contra prompt injection ----------

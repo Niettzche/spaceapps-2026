@@ -17,6 +17,7 @@ import { tr, trDato, idioma } from '../i18n.js';
 import { NIVELES_DESTACADOS } from '../content/niveles_destacados.js';
 import { porQueModelo, porQuePunto } from './expediente/descubrir.js';
 import CONOCIDOS from '../../../data/known_analogs.json';
+import { tocarMusica } from '../audio/musica.js';
 
 // Dueño: frente expediente. Explorador libre (AGENTS.md §6.4, punto 3):
 // coordenada → POST /score (similitud en vivo) → si supera el umbral, proponer el sitio (POST /submit).
@@ -28,6 +29,7 @@ export default class Explorador extends Phaser.Scene {
   constructor() { super('Explorador'); }
 
   create(datos) {
+    tocarMusica('menu');
     prepararIngles();
     this.consulta = null;
     // «Descubrir» (Expediente) manda las coordenadas de un sitio sin nivel: se rellenan y se consultan solas.
