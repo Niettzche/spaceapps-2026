@@ -6,6 +6,10 @@
 **Última actualización:** 15 nov 2026, mañana (landing con divulgación científica en `informe/divulgacion/`; ANA, la tutora de análogos, ya en `main`; demo en https://v1.marsception.us/)
 
 ## Hecho (landing: «Los análogos» y «Pruébalo», 15 nov, mañana)
+- **Los tajos como análogo operativo (propuesta de mario-84, pedida por Mario):** bloque destacado al final de «03 · Los
+  análogos»: «Una mina no es un cráter, pero sirve para practicar», con la redacción del nivel Cananea del juego (S140: la NASA
+  dice que la minería se transfiere pero no nombra ningún tajo como análogo; la comparación es nuestra). Comprobado por
+  `preparar_datos.py` contra `niveles_destacados.js` y `FUENTES_NIVELES.md`.
 - **Tráiler en la landing (11:40, pedido de Mario):** sección `#trailer` justo después de la portada y enlace «▶ Ver el tráiler
   (30 s)» en la portada. Del video de 1080p y 14.4 MB salen `public/video/trailer.webm` (AV1 + Opus, 3.9 MB),
   `trailer.mp4` (H.264 + AAC con faststart, 5.1 MB, respaldo para Safari) y un póster WebP de 17 KB; `preload="none"`: no se

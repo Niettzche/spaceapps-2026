@@ -311,6 +311,10 @@ export const EN = {
   juegoTitulo: 'Ready for launch?',
   juegoTexto: 'Pick a destination, test your rover on an Earth analogue and launch it to deliver the supply. It runs in the browser, in Spanish or English.',
   juegoBoton: 'Play Marsception →',
+  // Los tajos como análogo operativo (03 · Los análogos)
+  anaMinaT: 'A mine is not a crater, but it is a place to practise',
+  anaMina: 'A stepped pit resembles the ones future resource mining could dig on the Moon: ramps, loose slopes and rolling rocks. NASA says mining lessons transfer, but names no pit as an analogue; the comparison is ours, which is why the Cananea pit (Sonora) is a level in the game. It is an operational analogue, not a geological one: it does not reproduce lunar gravity, vacuum or cold.',
+  anaMinaNota: 'The raised rim tells a crater from a mine; here the mine stops being a trap and becomes a practice ground.',
   // Tráiler
   trailerAnte: 'The trailer · 30 s',
   trailerTitulo: 'Test on Earth. Deliver on the Moon or Mars.',

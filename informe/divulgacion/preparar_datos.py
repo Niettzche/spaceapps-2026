@@ -68,6 +68,12 @@ CIFRAS = {
     ],
     # «El árbol de decisión» en Pruébalo: su exactitud fuera de pliegue (20 repeticiones, grupos espaciales)
     "ciencia_datos/06_modelo_luna_marte.ipynb": ["Árbol profundidad 3      80 % (79–82)         78 % (77–79)"],
+    # «Una mina no es un cráter, pero sirve para practicar» (#analogos): lo mismo que dice el nivel Cananea del juego
+    "game/src/content/niveles_destacados.js": [
+        "la NASA dice que lo aprendido en la minería se transfiere, pero no nombra ningún tajo como análogo, S140",
+        "Subir las rampas de un tajo con talud suelto que se hunde y piedras que ruedan",
+    ],
+    "docs/taller/FUENTES_NIVELES.md": ["Nadie nombra un tajo como sitio análogo"],
     "data/sites/pinacate.json": [
         "viajes de entrenamiento de geología de 1965–1967",
         "tripulación del Apolo 14 (Shepard y Mitchell) del 14 al 18 de febrero de 1970 (Phinney 2015, NASA SP-2015-626)",

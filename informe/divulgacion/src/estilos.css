@@ -1321,3 +1321,7 @@ html.lenis, html.lenis body { scroll-behavior: auto; }
 .trailer-figura video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; border: 1px solid var(--linea); border-radius: 20px; background: #07060a; box-shadow: var(--sombra); }
 .trailer-figura figcaption { margin: 0.8rem 0 0; text-align: center; }
 .inicio-trailer { margin-bottom: 0.4rem; }
+
+/* Los tajos como análogo operativo: bloque destacado a todo lo ancho */
+.ana-mina { grid-column: 1 / -1; border-color: var(--banda); border-left-width: 4px; }
+.ana-mina h3 { color: var(--tinta); }
