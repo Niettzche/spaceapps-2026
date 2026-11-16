@@ -3,7 +3,21 @@
 > Lo actualiza SOLO este frente. Rama: `feat/modelo`.
 
 **Responsable:** Mario  ·  **Agente:** Claude Code / Codex
-**Última actualización:** 15 nov 2026, mañana (landing con divulgación científica en `informe/divulgacion/`; ANA, la tutora de análogos, ya en `main`; demo en https://v1.marsception.us/)
+**Última actualización:** 15 nov 2026, 18:50 (repo público; landing con «¿Encontramos análogos nuevos?»; guía, banco de preguntas y documento de razonamiento del modelo; demo en https://v1.marsception.us/)
+
+## Hecho (repo público y hallazgos en la landing, 15 nov, 18:50; pedido de Mario)
+- **El repo es público** (https://github.com/Niettzche/spaceapps-2026). Antes se revisó el historial completo del remoto (123 ramas,
+  125 refs de PR y el tag): sin llaves, tokens, llaves privadas ni contraseñas; `.env` nunca se subió; sin IP, alias SSH ni datos
+  del túnel del VPS; sin GPS ni cuentas en los metadatos de PNG, PDF, PPTX, XLSX y videos. Queda visible, sin ser secreto: los
+  correos de los autores de los commits, el ID del proyecto de Earth Engine (`analisis/00_preparacion.py`) y rutas `/home/mario` en
+  salidas de 3 cuadernos de `ciencia_datos/`. Se activaron el secret scanning y la protección al subir de GitHub (0 alertas).
+- **Landing, «¿Encontramos análogos nuevos?»** (detalles técnicos): candidatos, no descubrimientos; Pinacate y Colton como respaldo del
+  método; Jabal Bayda (Marte) y Al Wahbah (Luna) propuestos sin llamarlos nuevos; los tajos como análogo de operación; los 296
+  candidatos son hoyos con forma de cráter (27 cráteres naturales y 53 minas según la etiqueta de IA). Fuente: `model/NIVEL2.md` §A.
+  Rama `feat/modelo-hallazgos-exposicion` (el commit estaba en `feat/modelo` después de fusionarse el PR #87).
+- **Texto del proyecto para la plataforma (inglés):** revisado contra el repo. Se corrigió «Opportunity MEDA» (es Perseverance), el
+  «9 de 21» (es frente a Jezero; frente al polo sur lunar son 2 de 21), «picked out» Colton (queda en el puesto 223 de 296 por borde)
+  y Tenoumer y Pingualuit como controles positivos. No vive en el repo.
 
 ## Hecho (landing: «Los análogos» y «Pruébalo», 15 nov, mañana)
 - **Tráiler en la landing (11:40, pedido de Mario):** sección `#trailer` justo después de la portada y enlace «▶ Ver el tráiler
@@ -187,8 +201,18 @@
   lo que no hay que decir. Y dos cuadernos ya ejecutados que vuelven a calcular sus cifras sin descargar nada:
   `01_borde_levantado.ipynb` y `02_cifras_de_la_guia.ipynb`. El generador y la última celda de cada cuaderno fallan si una cifra
   ya no coincide con `model/VALIDATION.md`.
+- **Documento «Por qué lo hicimos así» (15 nov, 09:25):** `informe/exposicion_modelo/razonamiento_modelo.pdf` (generador
+  `informe/generar_razonamiento_modelo.py`): las 27 decisiones del modelo, cada una con el problema, lo decidido, el porqué, el
+  costo o lo descartado y el respaldo. Las razones salen de `PROYECTO.md`, `docs/DECISIONES.md`, `model/NIVEL2.md` y
+  `model/VALIDATION.md`; el generador se detiene si una frase citada ya no está. En la rama `feat/modelo-hallazgos-exposicion`.
+- **Guía de exposición, sección «El modelo de principio a fin» (15 nov, 09:15):** las tres primeras páginas de
+  `guia_exposicion_modelo.pdf` explican para qué sirve el modelo, los datos, el preprocesamiento (200 m, detector, filtros),
+  las tres características, el entrenamiento y la prueba, el comparador y un ejemplo completo (El Pinacate contra el polo sur
+  lunar). Todo se lee del código y de los datos: el generador se detiene si cambian las constantes del detector, los pesos de
+  `model/score.py` o si el ejemplo ya no se reproduce. La guía pasa de 6 a 9 páginas. En la rama `feat/modelo-hallazgos-exposicion`.
 - **Banco de preguntas (15 nov, madrugada):** `informe/exposicion_modelo/preguntas_modelo.pdf` (generador
-  `informe/generar_preguntas_modelo.py`): 48 preguntas sobre el modelo en 10 temas, cada una con qué decir, qué añadir si
+  `informe/generar_preguntas_modelo.py`): 51 preguntas sobre el modelo en 10 temas (15 nov, 09:05: se añadieron tres sobre ANA, la
+  tutora, y la guía ya la menciona en sus dos preguntas de IA), cada una con qué decir, qué añadir si
   insisten y dónde está el respaldo. El generador se detiene si una frase citada ya no aparece en su documento
   (`VALIDATION.md`, `AGENTS.md`, `score.py`, `NIVEL2.md`…). Las del juego (ruedas, batería) siguen en `docs/PITCH_QA_EN.md`.
 - **Figura «¿cráter o mina?» (14 nov, 23:40):** `informe/exposicion_modelo/figura_crater_o_mina_es.png` y `_en.png` (también
