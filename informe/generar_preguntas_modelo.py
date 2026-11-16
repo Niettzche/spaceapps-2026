@@ -58,6 +58,11 @@ CITAS = {
     "ciencia_datos/etiquetado_ia/README.md": ["Por qué 298 y no 310 ni 296"],
     "model/NIVEL2.md": ["Harrat Hutaymah sí está", "entrenamiento del Apolo 15"],
     "model/curados.py": ["tripulación del Apolo 14"],
+    "api/tutor.py": ["Use ONLY the facts in the CONTEXT blocks", 'os.getenv("OPENAI_MODEL"',
+                     '_entero("TUTOR_POR_IP", 15), _entero("TUTOR_VENTANA_S", 300)',
+                     "la tutora NO tiene herramientas ni secretos en su contexto"],
+    "game/src/tutor/panel.js": ["puede equivocarse, revisa la fuente", "lo dice y sigue con reglas"],
+    "game/src/tutor/conocimiento.js": ["POR REGLAS (sin IA ni red)"],
 }
 faltan = [f"{doc}: {c}" for doc, frases in CITAS.items() for c in frases if c not in (RAIZ / doc).read_text(encoding="utf-8")]
 if faltan:
@@ -99,8 +104,8 @@ SECCIONES = [
         ("¿Es inteligencia artificial? ¿Qué tipo de modelo es?",
          "Es estadística explicable: una regresión logística con tres medidas de cada cráter. No es una red neuronal. La entrenamos "
          "con 4,288 cráteres de la Luna y 573 de Marte.",
-         "La regla principal se puede leer: profundidad entre diámetro. Los cráteres del polo sur lunar son más hondos para su tamaño "
-         "(mediana 0.058) que los de Marte (0.027).",
+         "Su variable más influyente se puede leer: profundidad entre diámetro. Los cráteres lunares son más hondos para su tamaño "
+         "(mediana 0.060 en los 4,288 cráteres de 80.5–90° S) que los de Marte (mediana 0.027).",
          "model/forma.py · model/VALIDATION.md, sección B", True),
         ("¿Por qué un modelo tan simple y no una red neuronal?",
          "Porque con tres medidas por cráter una red no tiene nada más que aprender, y un modelo simple se puede explicar y revisar. "
@@ -259,7 +264,8 @@ SECCIONES = [
          "presas y dunas no tienen casos contrastados.",
          "docs/USO_IA.md · ciencia_datos/etiquetado_ia", False),
         ("¿Por qué a veces dicen 298 candidatos y a veces 296?",
-         "Se etiquetaron 298. El análisis usa 296 porque quita dos detecciones de Sonora que repetían depresiones ya contadas en México.",
+         "Se etiquetaron 298. El análisis usa 296 porque quita dos detecciones de Sonora (G00232 y G00239) que repetían depresiones "
+         "mexicanas que no pasaron el filtro de cráter.",
          None, "ciencia_datos/etiquetado_ia/README.md", False),
         ("¿La etiqueta de IA y el borde son dos pruebas independientes?",
          "No del todo: la IA también vio el relieve. La comparación independiente es la de cráteres con fuente externa contra canteras "
@@ -269,13 +275,31 @@ SECCIONES = [
         ("¿Por qué no usan un modelo de lenguaje para calcular la similitud?",
          "Porque un modelo de lenguaje no mide: opina, y no responde igual dos veces. Cada cifra nuestra se vuelve a calcular con el "
          "repositorio.",
-         None, "docs/USO_IA.md · cuadernos de informe/exposicion_modelo", False),
+         "Sí hay un modelo de lenguaje en el juego, la tutora ANA, pero solo explica nuestros datos: no calcula ninguna similitud.",
+         "docs/USO_IA.md · cuadernos de informe/exposicion_modelo", False),
+        ("En el juego hay una tutora, ANA. ¿Es un modelo de lenguaje?",
+         "Solo en parte, y es una función aparte del modelo de análogos. Las preguntas sugeridas se responden con reglas, sin IA. "
+         "La pregunta libre sí va a un modelo de lenguaje pequeño de OpenAI, que recibe nuestra documentación y la ficha del sitio, "
+         "con la instrucción de usar solo eso.",
+         "ANA explica, no calcula: ninguna similitud, etiqueta ni cifra del modelo sale de ella. Si falla o no hay conexión, el juego "
+         "sigue igual con las respuestas por reglas. Qué modelo es se fija en el servidor, y cada respuesta de la API lo dice.",
+         "api/tutor.py · game/src/tutor/conocimiento.js", True),
+        ("¿Cómo evitan que ANA invente datos?",
+         "No podemos garantizarlo, y el panel lo avisa: «puede equivocarse, revisa la fuente». Lo que hacemos es acotarla: el servidor "
+         "arma su contexto con nuestros documentos y la ficha del sitio, y sus reglas le piden decir que no tiene el dato cuando no "
+         "está ahí.",
+         "No hemos medido cada cuánto se equivoca. Por eso las cifras que defendemos son las de los documentos, no las que diga ANA.",
+         "api/tutor.py (REGLAS) · game/src/tutor/panel.js", False),
+        ("¿Y si alguien intenta manipular a ANA?",
+         "No tiene herramientas ni secretos en su contexto, así que lo peor que logra un ataque es que diga algo fuera de tema. "
+         "Además se filtran la entrada y la salida, y hay un límite de 15 preguntas cada 5 minutos por dirección.",
+         None, "api/tutor.py · api/tests/test_tutor.py", False),
     ]),
     ("Lo que encontraron", [
         ("¿Encontraron algo que nadie conociera?",
          "No lo presentamos como descubrimiento. El método dio por su cuenta con sitios ya usados: El Pinacate, donde entrenó la "
          "tripulación del Apolo 14, y Colton, del Apolo 15. Eso respalda el método.",
-         "De los cráteres de Arabia: Al Hutaymah ya está en una base global de 2024 para Marte, y Al Wahbah está publicado como "
+         "De los cráteres de Arabia: el campo volcánico de Al Hutaymah (Harrat Hutaymah) ya está en una base global de 2024 para Marte, y Al Wahbah está publicado como "
          "análogo de Encélado. Jabal Bayda no lo encontramos como análogo en lo que revisamos: lo proponemos, sin llamarlo nuevo.",
          "model/NIVEL2.md, sección A", True),
         ("¿De verdad los encontró solo?",
@@ -284,7 +308,8 @@ SECCIONES = [
          None, "analisis/16_busqueda_global.py · model/NIVEL2.md, sección A", False),
         ("¿Para qué sirven las minas que encontraron?",
          "Como análogo operativo, no geológico: paredes empinadas, excavación y sombra en el fondo. Y decimos dónde se rompe la "
-         "comparación: son más hondas que casi cualquier cráter lunar de su tamaño. Ninguno de los 22 tajos del catálogo tiene borde "
+         "comparación: son huecos artificiales escalonados, y las más hondas superan a casi cualquier cráter lunar de su tamaño. Ninguno "
+         "de los 22 tajos del catálogo tiene borde "
          "levantado.",
          None, "data/sites (nota de cada tajo) · model/VALIDATION.md", False),
         ("¿Por qué México?",
@@ -305,11 +330,11 @@ SECCIONES = [
         ("¿Cuál es la mayor debilidad de su modelo?",
          "Que el porcentaje no ordena análogos: la forma a 200 m no distingue un cráter de un valle, y el resto del puntaje casi solo "
          "dice «es árido». Qué es cada sitio lo deciden la etiqueta y el borde, y eso descansa en pocos casos contrastados.",
-         "El dato: al separar cráteres de valles, el puntaje de forma da un AUC de 0.42, peor que tirar una moneda.",
+         "El dato: al separar cráteres de valles, el puntaje de forma da un AUC de 0.42 (p = 0.43): no se distingue del azar.",
          "model/VALIDATION.md, «¿La forma distingue un cráter…?»", False),
         ("¿Qué harían con más tiempo?",
          "Probar el borde en más cráteres de impacto, incluidos los erosionados; averiguar por qué los cráteres lunares de referencia "
-         "casi no lo muestran; cubrir las siete regiones áridas que faltan; y añadir composición, que es lo que pide Marte.",
+         "casi no lo muestran; cubrir las seis regiones áridas que faltan (Sahara, interior de Australia, Gobi, Kalahari, meseta iraní y Thar); y añadir composición, que es lo que pide Marte.",
          None, "docs/estado/modelo.md («Siguiente») · model/VALIDATION.md (límites del borde)", False),
     ]),
     ("El modelo dentro del juego", [
@@ -395,7 +420,7 @@ tenemos es…». Las preguntas del juego (ruedas, batería, velocidad) las lleva
 
 <div class="caja oro">
 <p><b>Las que más probablemente lleguen.</b> Las tres primeras son las que <code>AGENTS.md</code> pide llevar preparadas; las otras
-dos son las que más exponen al modelo:</p>
+son las dos que más exponen al modelo y la de ANA, que está a la vista en el menú del juego:</p>
 <ul>{probables}</ul>
 </div>
 

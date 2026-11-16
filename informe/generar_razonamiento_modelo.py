@@ -1,0 +1,378 @@
+"""Genera informe/exposicion_modelo/razonamiento_modelo.html: por qué se tomó cada decisión del modelo de análogos.
+
+Complementa a la guía (qué es el modelo y qué decir) y al banco de preguntas. Cada decisión lleva el problema que había, lo que
+se decidió, por qué, lo que costó o lo que se probó y se dejó, y dónde está el respaldo.
+
+Las razones no se escriben de memoria: salen de PROYECTO.md («Decisiones» y bitácora), docs/DECISIONES.md, model/NIVEL2.md y
+model/VALIDATION.md. El script se detiene si una frase citada ya no está en su documento.
+
+Uso:  python informe/generar_razonamiento_modelo.py        (solo biblioteca estándar)
+PDF:  google-chrome-stable --headless --no-pdf-header-footer \\
+        --print-to-pdf=informe/exposicion_modelo/razonamiento_modelo.pdf informe/exposicion_modelo/razonamiento_modelo.html
+"""
+import datetime
+import html
+from pathlib import Path
+
+RAIZ = Path(__file__).resolve().parent.parent
+e = html.escape
+
+# --- Frases que deben seguir apareciendo en su documento: si una cambia, hay que revisar la decisión que la usa ---
+CITAS = {
+    "PROYECTO.md": [
+        "No quieren repetir los análogos conocidos",
+        "para que las diferencias sean del terreno y no de los datos",
+        "Una comparación justa y reproducible",
+        "Hay pocos cráteres terrestres confiables (decenas) y el reto pide justificar la analogía y decir dónde se rompe",
+        "FABDEM solo quita 15 % de esas detecciones: la causa es el terreno, no los árboles",
+        "Evita resultados inflados por cráteres vecinos y por el desbalance",
+        "Cada cuerpo tiene su propio nivel de referencia; sería fuga de información",
+        "La revisión visual a 200 m no es confiable y las etiquetas con fuente se pueden defender ante los jueces",
+        "el jurado evalúa sitios, justificación y presentación, no la exactitud del clasificador",
+        "regresión logística 55 % y árbol de profundidad 3 51 % de exactitud balanceada fuera de pliegue (al azar: 32 %)",
+        'sin pesos el modelo solo dice "Luna"',
+        'Así respondemos directamente "dónde se rompe"',
+        "más hondas que el 99.75 % de los cráteres lunares de su tamaño",
+        "casi siempre hay uno parecido",
+        "premia lo plano",
+        "DeepMoon",
+        "descartado: a 200 m no se distinguen a ojo",
+        "Elysium y Utopia se excluyen por ser llanuras muy lisas con pocos cráteres",
+        "llama Tierra al 60 % de las detecciones en zonas húmedas y solo al 28 % de las áridas",
+        "3 de las 10 regiones priorizadas",
+    ],
+    "docs/DECISIONES.md": [
+        "forma = dimensión principal · datos reales y validados",
+        "cubrir las dos mitades del reto (los datos del detector favorecen la Luna)",
+        "Alcance global (zonas áridas del mundo); México como caso destacado",
+    ],
+    "model/NIVEL2.md": [
+        "No cambiamos pesos antes de la entrega",
+        "Es un análogo por proceso, no por apariencia",
+        "encontrado en la literatura revisada, no que nadie lo haya usado",
+        "Harrat Hutaymah sí está",
+        "entrenamiento del Apolo 15",
+    ],
+    "model/VALIDATION.md": [
+        "el d/D lunar baja de 0.058 a 0.043 con todos los tamaños y de 0.059 a 0.051 con D ≥ 2 km (Marte: 0.027 y 0.019)",
+        "No se reentrenó el modelo con LOLA suavizado",
+        "el 84% cae dentro del 95 % de la nube",
+        "la ventana ancha se eligió después de ver que la estrecha dejaba fuera a cráteres con fuente",
+        "**De los 8 que la regla no había visto, 7 tienen borde levantado.**",
+        "**No entra al puntaje ni cambia ningún total.**",
+        "### Controles negativos: 3 de 3 pasan",
+        "### Análogos conocidos: 9 de 21 pasan",
+        "Que no pasen es esperable y marca el alcance del prefiltro",
+        "percentiles 10–90: 0.32–0.52",
+        "puntaje de forma 0.42",
+        "entre los 25 primeros por forma, 3 cráteres naturales y 14 minas",
+        "vale entre 0.20 y 0.33 en todos los sitios",
+        "10 de 11 (91%)", "3 de 26 (12%)", "4 de 38 (11%)", "55 de 248 (22%)",
+        "la IA etiqueta 27 como cráteres naturales (9%)",
+        "con la ventana estrecha (0.83–1.33) pasan 5",
+    ],
+    "AGENTS.md": ["Si falla, el modelo está mal", '**Nunca** decir "escaneamos todo el planeta"', "9 de 11", "668 detecciones", "71 %",
+                  "47 candidatos", "Si el LLM falla, reglas"],
+    "ciencia_datos/etiquetado_ia/README.md": ["Qué no se le dio", "29 de 33 aciertos", 'Nunca "la IA descubrió"'],
+    "docs/estado/modelo.md": ["Probado y descartado: gemelo por perfil completo", "quedan entre los puestos 62 y 289 de 296"],
+    "model/scan.py": ["análogo operativo, no se presenta como hallazgo"],
+}
+faltan = [f"{doc}: {c}" for doc, frases in CITAS.items() for c in frases if c not in (RAIZ / doc).read_text(encoding="utf-8")]
+if faltan:
+    raise SystemExit("Estas frases ya no están en su documento; revisa la decisión que las usa antes de regenerar:\n- " + "\n- ".join(faltan))
+
+# --- Las decisiones: (título, [(etiqueta, texto), ...], respaldo) ---
+P, D, Q = "El problema", "Lo que decidimos", "Por qué"
+SECCIONES = [
+    ("Cómo leímos el reto", [
+        ("Una búsqueda con medida, no una lista de lugares", [
+            (P, "El autor del reto pide tres cosas. Criterios científicos, no solo que un lugar «se parezca». Decir dónde se rompe la "
+                "analogía. Y sorprender: no repetir los análogos de siempre, como Atacama, la Antártida, Islandia o Hawái."),
+            (D, "Hacer un barrido sistemático que le pone una medida a cada lugar, y decir de cada sitio qué tanto se parece y dónde falla."),
+            (Q, "Es lo que el reto dice valorar: una métrica de similitud, una búsqueda sistemática y sitios que no sean los clásicos. "
+                "Un barrido puede dar con lugares que nadie eligió, y una medida se puede revisar."),
+        ], "PROYECTO.md, «El reto» y «Nuestro enfoque»"),
+        ("Dos destinos: el polo sur de la Luna y Jezero, en Marte", [
+            (P, "El reto habla de las bases lunares permanentes y también de Marte."),
+            (D, "Calcular para los dos destinos, y que en el juego el jugador elija."),
+            (Q, "Para cubrir las dos mitades del reto. El equipo lo decidió sabiendo que los datos del detector favorecen a la Luna."),
+        ], "docs/DECISIONES.md (14 nov)"),
+    ]),
+    ("Qué medir y cómo hacerlo comparable", [
+        ("Empezar por la forma del terreno", [
+            (P, "El reto lista muchos criterios posibles: minerales, temperatura, hielo, polvo, terreno volcánico, terreno para probar "
+                "movilidad. No se podía hacer todo en dos días."),
+            (D, "La forma de los cráteres es la dimensión principal. El clima, la vegetación y la pendiente la complementan."),
+            (Q, "El polo sur lunar y Jezero son terreno de cráteres. Y el relieve existe como dato abierto para los tres mundos, así "
+                "que se puede medir igual en todos. El equipo lo adoptó como núcleo por ser datos reales y ya validados."),
+            ("Lo que costó", "No vemos composición, hielo ni vida. Varios análogos famosos lo son por eso, y nuestro modelo no los reconoce."),
+        ], "docs/DECISIONES.md (14 nov) · model/NIVEL2.md, sección D · model/VALIDATION.md, sección A"),
+        ("Los tres mundos con el mismo código y a 200 m", [
+            (P, "Cada relieve viene de un instrumento distinto y a otra resolución: 30 m en la Tierra, 80 m en la Luna y 200 m en "
+                "Marte. Comparados así, se miden los instrumentos y no los terrenos."),
+            (D, "Llevar los tres a 200 m por píxel, que es la resolución del más burdo, y pasarlos por el mismo código."),
+            (Q, "Para que las diferencias sean del terreno y no de los datos. Es una comparación justa, y cualquiera la puede repetir."),
+            ("Lo que costó", "A 200 m solo se ven cráteres de unos 0.6 km o más. Y el borde no se mide bien: en la Luna sale negativo "
+                             "(mediana −23 m). Por eso más adelante el borde se mide aparte, a 80 m."),
+        ], "PROYECTO.md, «Decisiones» y paso 1"),
+        ("Un detector que decide la forma, no el origen", [
+            (P, "Había que encontrar cráteres sin saber de antemano dónde están."),
+            (D, "Un detector geométrico. «Llena» el relieve como si lloviera y se queda con los hoyos cerrados que miden de 0.6 a 10 km, "
+                "tienen 20 m o más de hondo y son redondos."),
+            (Q, "Es una regla que se aplica idéntica en los tres mundos y no necesita ejemplos para aprender. Pasar una red entrenada "
+                "con cráteres lunares (DeepMoon) quedó anotado como idea opcional, y no se hizo."),
+            ("Lo que costó", "Encuentra depresiones, no cráteres: un valle cerrado o una mina que cumplan la forma también pasan. Lo "
+                             "medimos: encuentra 9 de 11 cráteres mexicanos conocidos, pero de 296 candidatos áridos solo 27 son "
+                             "cráteres naturales según la etiqueta."),
+        ], "PROYECTO.md, paso 2 · model/VALIDATION.md, «Precisión del detector según la IA»"),
+        ("Buscar solo en zonas áridas", [
+            (P, "En México el detector dio 668 detecciones, y el 71 % estaba en sierras húmedas del sur."),
+            (D, "Quedarnos con las zonas áridas, usando el índice de vegetación de MODIS. En México quedaron 47 candidatos."),
+            (Q, "La primera sospecha era que las copas de los árboles engañaban al relieve. Se probó con un relieve sin árboles (FABDEM) y las "
+                "detecciones solo bajaron 15 %. No eran árboles: eran dolinas y cañadas reales. El filtro tenía que ser por contexto, "
+                "no corrigiendo el relieve. Además, entrenado con las 668, el modelo aprendía a reconocer esas dolinas y no cráteres."),
+            ("Lo que costó", "Solo buscamos en desiertos. Lo que haya en zonas con vegetación no lo vemos."),
+        ], "PROYECTO.md, «Decisiones» y bitácora del 14 nov · informe/validacion_detector.pdf"),
+    ]),
+    ("Qué modelo, y cómo no engañarnos", [
+        ("Un modelo simple y explicable, no una red neuronal", [
+            (P, "Había que decidir con qué separar los mundos."),
+            (D, "Una regresión logística con tres medidas por cráter. Un árbol poco profundo solo se usa en la landing, para explicarlo."),
+            (Q, "Por dos razones. Hay pocos cráteres terrestres confiables, apenas decenas, y con eso una red no aprende. Y el reto pide "
+                "justificar la analogía y decir dónde se rompe: un modelo de tres medidas se puede leer."),
+            ("Lo que salió", "Con una sola medida, la profundidad entre el diámetro, acierta 76 %. Con las tres, 78 %."),
+        ], "PROYECTO.md, «Decisiones» (14 nov) · AGENTS.md §6.1"),
+        ("Entrenar solo con la Luna y Marte", [
+            (P, "El primer modelo separaba tres clases: Luna, Marte y Tierra. Acertaba entre 51 % y 55 %, cuando adivinar daría 32 %. El "
+                "freno eran las etiquetas de la Tierra: a 200 m no se distingue a ojo qué hoyo es un cráter."),
+            (D, "Que el modelo aprenda solo de la Luna y de Marte, donde sí se sabe de qué mundo es cada cráter. Los hoyos de la Tierra "
+                "no entran al entrenamiento: solo reciben un puntaje."),
+            (Q, "La revisión a ojo no es confiable y no se puede defender ante un jurado; de qué mundo es un cráter lunar o marciano "
+                "no admite duda. Y es la pregunta de un análogo: ¿este hoyo de la Tierra se parece más a los de la Luna o a los de Marte?"),
+            ("Lo que costó", "El modelo no sabe qué es un cráter. Dice a cuál mundo se parece una forma, sea cráter, valle o mina. Esa "
+                             "limitación es la que después nos llevó al borde levantado."),
+        ], "PROYECTO.md, bitácora y «Decisiones» (14 nov)"),
+        ("Probarlo con zonas que no vio", [
+            (P, "Los cráteres vecinos se parecen. Si unos van a entrenar y sus vecinos a probar, el modelo parece mejor de lo que es. "
+                "Además hay muchos más cráteres lunares que marcianos."),
+            (D, "Probar por grupos espaciales de 50 × 50 km y reportar exactitud balanceada."),
+            (Q, "Evita resultados inflados por los vecinos y por el desbalance. Sin compensar el desbalance, el modelo solo contestaba «Luna»."),
+        ], "PROYECTO.md, «Decisiones» y bitácora (diagnóstico de los modelos)"),
+        ("Dejar fuera lo que haría trampa", [
+            (D, "No usar la elevación como variable. Y dejar fuera dos sitios de Marte, Elysium y Utopia."),
+            (Q, "Cada mundo tiene su propio nivel de referencia: la elevación delataría de qué mundo es un cráter sin decir nada de su "
+                "forma. Elysium y Utopia son llanuras muy lisas con pocos cráteres."),
+        ], "PROYECTO.md, «Decisiones» y paso 1"),
+        ("Comprobar que la diferencia no es del instrumento", [
+            (P, "La Luna se mide con un instrumento y Marte con otro, más borroso. Si Marte sale más plano por eso, el modelo estaría "
+                "separando instrumentos y no mundos."),
+            (D, "Hacer el experimento: emborronar el relieve lunar hasta la resolución del de Marte y volver a medir."),
+            ("Lo que salió", "La profundidad entre el diámetro lunar baja de 0.058 a 0.043; en cráteres de 2 km o más, de 0.059 a 0.051. "
+                             "Marte, en cráteres de 2 km o más, queda en 0.019 (con todos los tamaños, 0.027). En cráteres chicos, parte de la diferencia es del instrumento; en los grandes, no."),
+            ("Lo que no hicimos", "Volver a entrenar con la Luna emborronada. No sabemos cuánto bajaría el 78 %."),
+        ], "model/NIVEL2.md, sección B · model/VALIDATION.md, «Objeción del instrumento»"),
+        ("Una segunda pregunta: ¿esta forma existe allá?", [
+            (P, "Un clasificador siempre contesta «Luna» o «Marte», aunque reciba algo que no se parece a ninguno."),
+            (D, "Medir qué tan lejos cae cada hoyo de la nube de cráteres de la Luna y de Marte, y bajarle el puntaje si cae fuera del 95 %."),
+            (Q, "Así se señalan las formas que no existen allá. Las minas más hondas quedan fuera por exceso de profundidad."),
+            ("Lo que aprendimos", "La nube descarta extremos, pero no confirma nada: el 84 % de todas las depresiones de México cae dentro."),
+        ], "model/forma.py · model/VALIDATION.md, «Tasa base de la nube»"),
+    ]),
+    ("Del modelo a los sitios", [
+        ("El clasificador deja de ser el producto", [
+            (P, "El 14 de noviembre había un clasificador y un día para entregar."),
+            (D, "Congelar el modelo y tratarlo como evidencia. El producto pasan a ser los sitios: cada uno con su puntaje, para qué "
+                "sirve y dónde se rompe la comparación."),
+            (Q, "El jurado evalúa sitios, justificación y presentación, no la exactitud de un clasificador."),
+            ("Para después", "Más resolución, la red DeepMoon y las dolinas."),
+        ], "PROYECTO.md, «Decisiones» (cambio de enfoque)"),
+        ("Un puntaje por dimensión, no un solo número", [
+            (P, "Un número único no dice en qué se parece un sitio ni en qué no."),
+            (D, "Comparar por separado forma, oscilación térmica, precipitación, vegetación y pendiente, y enseñar las cinco."),
+            (Q, "Así se responde directamente «dónde se rompe»."),
+            ("Cómo se combinan", "Con una media geométrica, para que un resultado malo no se tape con uno bueno. Con un veto de "
+                                 "vegetación, para que una selva dé 0. Y si el destino está fuera de lo que la Tierra alcanza, se "
+                                 "compara contra el extremo terrestre y se anota como límite."),
+        ], "PROYECTO.md, «Pendientes y mejoras propuestas» · AGENTS.md §6.3 · model/score.py"),
+        ("Controles antes de creerle al número", [
+            (P, "Un puntaje siempre da un número. Hay que saber si significa algo."),
+            (D, "Dos pruebas obligatorias: lugares que deben dar cerca de 0 (el Amazonas, el Congo y un arrozal) y análogos ya "
+                "reconocidos, que deben dar alto. La regla del equipo: si falla, el modelo está mal."),
+            ("Lo que salió", "Los 3 controles negativos dan 0. De los análogos conocidos pasan 9 de 21."),
+            ("Cómo lo leímos", "Pasan los que son análogos por lo que medimos: desiertos, dunas y cráteres en zonas secas. No pasan los "
+                               "que lo son por otra razón: frío polar, lava en clima húmedo, química del agua. Lo reportamos como "
+                               "el alcance del método."),
+        ], "AGENTS.md §6.3 · model/VALIDATION.md, sección A"),
+        ("No tocar los pesos a última hora", [
+            (P, "La oscilación térmica da casi lo mismo en todos los sitios, entre 0.20 y 0.33, porque los dos destinos superan el "
+                "máximo terrestre."),
+            (D, "No cambiar pesos antes de la entrega. Declararla como una dimensión que la Tierra no alcanza."),
+            (Q, "Cambiar el peso cambiaría todos los totales y las cifras ya escritas en el guion. Y el dato dice algo cierto: en "
+                "ningún lugar de la Tierra se puede probar ese ciclo térmico."),
+            ("Para después", "Sacarla del total y dejarla solo entre los límites, y volver a validar."),
+        ], "model/NIVEL2.md, sección C"),
+    ]),
+    ("Revisar nuestro propio resultado", [
+        ("Admitir que el porcentaje no ordena", [
+            (P, "Al revisar salieron dos cosas. Sin la forma, 8 de cada 10 sitios áridos quedan entre 0.32 y 0.52: casi todo lo árido "
+                "pasa. Y la forma no separa un cráter de un valle: al intentarlo da un AUC de 0.42 (p = 0.43), que no se distingue del azar."),
+            (D, "Decirlo, y no usar el porcentaje como lista de mejores. El porcentaje describe un sitio; qué es cada sitio lo dicen "
+                "la etiqueta y el borde."),
+            (Q, "Ordenados por forma, entre los 25 primeros había 14 minas y 3 cráteres. Presentar esa lista como «los mejores "
+                "análogos» habría sido falso."),
+        ], "model/VALIDATION.md, secciones A y B"),
+        ("Etiquetas con fuentes, y después con IA medida", [
+            (P, "Había que saber qué es cada candidato: cráter, mina, valle o presa. Etiquetar a mano se descartó, porque a 200 m no se "
+                "distinguen a ojo."),
+            (D, "Primero, fuentes externas: minas de OpenStreetMap y un catálogo de cráteres volcánicos con fuente. Después, para los "
+                "298 candidatos, que Claude propusiera qué es cada uno viendo la imagen de satélite y el relieve."),
+            (Q, "Las fuentes cubren pocos casos. Y a la IA no se le dieron nombres ni distancias a minas, para poder medir su acierto "
+                "contra esas mismas fuentes: 29 de 33."),
+            ("El límite", "Los 33 no se eligieron al azar: son minas, volcanes y Meteor Crater. Los valles, presas y dunas no tienen "
+                          "casos contrastados. Por eso se dice «etiquetado asistido por IA y verificado», nunca «la IA descubrió»."),
+        ], "ciencia_datos/etiquetado_ia/README.md · PROYECTO.md, «Decisiones»"),
+        ("Buscar una medida que distinga un cráter: el borde levantado", [
+            (P, "Hacía falta algo medible, no solo una etiqueta, que separara un cráter de una mina o de un valle."),
+            (D, "Medir el borde levantado: cuánto sube el terreno pegado al hoyo sobre el terreno lejano, con el relieve a 80 m."),
+            (Q, "Por física. Un impacto o una explosión volcánica lanzan material y lo apilan alrededor; un valle, una presa o un tajo "
+                "no tienen eso. Es un parecido de proceso y no de apariencia, que es lo que el reto pide."),
+            ("Lo que salió", "Tienen borde 10 de 11 cráteres con fuente externa, 3 de 26 valles, presas y dunas, y 4 de 38 tajos mineros."),
+        ], "model/VALIDATION.md, «Borde levantado» · model/NIVEL2.md, sección D"),
+        ("Probar la regla donde no se pudo ajustar", [
+            (P, "La zona donde se mide el borde se eligió después de ver los datos: la zona estrecha dejaba fuera a cráteres conocidos. "
+                "Con 11 casos, eso es ajustar la regla a la muestra."),
+            (D, "Dos cosas. Reportar todas las combinaciones de zona y umbral, no solo la elegida. Y fijar la regla para después medir "
+                "cráteres de impacto de otros países, que no habían intervenido."),
+            ("Lo que salió", "De 8 cráteres que la regla nunca había visto, 7 tienen borde."),
+            ("El límite", "Son cráteres conocidos, no una muestra al azar. Con la zona estrecha pasan 5."),
+        ], "model/VALIDATION.md, «Sensibilidad» y «Prueba fuera de muestra»"),
+        ("El borde va junto al sitio, no dentro del porcentaje", [
+            (P, "¿Se mete el borde al puntaje de similitud?"),
+            (D, "No. Va como evidencia de qué es cada sitio, y no cambia ningún total."),
+            (Q, "El borde responde «¿es un cráter?», no «¿se parece a la Luna?». Con la misma medida solo lo muestran 55 de 248 "
+                "cráteres lunares de referencia. Meterlo al porcentaje habría sido afirmar algo que no medimos."),
+        ], "model/VALIDATION.md, «Cómo se usa» y «Límites»"),
+        ("Una idea que se probó y se dejó: el gemelo por perfil completo", [
+            (P, "La idea era buscarle a cada candidato su cráter gemelo en la Luna, comparando el corte completo."),
+            ("Lo que salió", "Como el gemelo se elige entre más de mil cráteres, casi siempre hay uno parecido. Y la medida premia lo "
+                             "plano: entre los 25 que mejor encajan hay un solo cráter natural, y los 11 cráteres con fuente quedan "
+                             "entre los puestos 62 y 289 de 296."),
+            (D, "No usarlo como evidencia. Lo más informativo del perfil es dónde no se parece, y ahí destacan las minas."),
+        ], "PROYECTO.md, paso 7 · docs/estado/modelo.md («Probado y descartado»)"),
+    ]),
+    ("Qué decir de lo que encontramos", [
+        ("Las minas son análogos operativos, no hallazgos", [
+            (P, "Las minas a cielo abierto salían arriba por forma y estaban marcadas como sitios novedosos."),
+            (D, "Presentarlas como análogo operativo y quitarles la marca de novedoso."),
+            (Q, "Son minas conocidas, no descubrimientos. Y en forma la comparación se rompe: son huecos artificiales escalonados, y las "
+                "más hondas (profundidad entre diámetro mayor de 0.2) superan al 99.75 % de los "
+                "cráteres lunares de su tamaño. Sirven para otra cosa: paredes empinadas, excavación y sombra en el fondo."),
+        ], "PROYECTO.md, paso 7 · model/scan.py (regla 5)"),
+        ("No llamar descubrimiento a nada sin revisar la literatura", [
+            (P, "El detector dio con cráteres de Arabia que parecían nuevos como análogos."),
+            (D, "Buscarlos en la literatura antes de decirlo."),
+            ("Lo que salió", "El campo volcánico de Al Hutaymah (Harrat Hutaymah) ya está en una base global de 2024 de sitios relevantes para Marte. Al Wahbah está publicado "
+                             "como análogo de Encélado. Colton, en Arizona, sirvió para entrenar al Apolo 15. Jabal Bayda no lo "
+                             "encontramos, y eso no quiere decir que nadie lo haya usado."),
+            ("Cómo lo leímos", "Que el método diera por su cuenta con El Pinacate y con Colton, sitios de entrenamiento del Apolo, "
+                               "respalda al método. No es un hallazgo."),
+        ], "model/NIVEL2.md, sección A"),
+        ("México a fondo, el mundo en parte", [
+            (P, "El reto pide buscar en cualquier lugar de la Tierra, y la validación completa solo existía para México."),
+            (D, "Alcance global con México como caso destacado: la misma búsqueda en Atacama, Arizona y Arabia."),
+            (Q, "Para no prometer de más. Se dice «búsqueda global en zonas áridas» con su cifra, 3 de 10 regiones priorizadas, y "
+                "nunca «escaneamos todo el planeta»."),
+        ], "docs/DECISIONES.md (14 nov) · AGENTS.md §6.4 · PROYECTO.md, paso 4"),
+        ("El modelo de lenguaje explica, no calcula", [
+            (D, "La similitud se calcula con medidas. Dentro del producto, el modelo de lenguaje está solo en ANA, la tutora del juego: "
+                "sus preguntas libres las responde un modelo de OpenAI (gpt-5.4-mini por defecto) que explica nuestros datos; si falla, "
+                "responden reglas. Claude se usó fuera del producto: etiquetas, arte y código."),
+            (Q, "Cada cifra del modelo se puede volver a calcular con el repositorio. Con un modelo de lenguaje haciendo la cuenta, no."),
+        ], "AGENTS.md §6.1 y §8 · api/tutor.py"),
+        ("Decir siempre lo que la Tierra no puede probar", [
+            (D, "Cada sitio lleva sus límites: gravedad, presión, radiación y vacío. La gravedad del destino solo se usa en la misión "
+                "del juego, nunca en la prueba terrestre."),
+            (Q, "El autor del reto lo pide de forma explícita: ningún análogo es perfecto. Y decir dónde falla el modelo es lo que le "
+                "da credibilidad a lo demás."),
+        ], "PROYECTO.md, «El reto» · AGENTS.md §5 y §6.3"),
+    ]),
+]
+
+TOTAL = sum(len(d) for _, d in SECCIONES)
+
+CSS = """
+@page { size: Letter; margin: 15mm 15mm 16mm 15mm; }
+* { box-sizing: border-box; }
+body { font-family: "IBM Plex Sans", "Inter", "Helvetica Neue", Arial, sans-serif; color: #1d2024; font-size: 10pt; line-height: 1.45; margin: 0; }
+h1 { font-size: 22pt; line-height: 1.1; margin: 0 0 3mm; letter-spacing: -.01em; }
+h2 { font-size: 13.5pt; margin: 6mm 0 2.5mm; padding-top: 2mm; border-top: 1.5px solid #1d2024; break-after: avoid; }
+p, li { max-width: 180mm; }
+ol, ul { margin: 1.5mm 0; padding-left: 5.5mm; } li { margin: .8mm 0; }
+.sub { color: #555; font-size: 10.5pt; margin-bottom: 4mm; }
+.caja { background: #f1efe9; border-left: 4px solid #1f6f78; padding: 3mm 4mm; margin: 3.5mm 0; break-inside: avoid; }
+.caja.oro { border-left-color: #c7921a; }
+.caja p { margin: 1.2mm 0; }
+.d { break-inside: avoid; margin: 0 0 3.2mm; padding-bottom: 2.4mm; border-bottom: .6px solid #ccc; }
+.d h3 { font-size: 10.8pt; margin: 0 0 1mm; }
+.d h3 .n { color: #555; font-weight: 600; margin-right: 1.5mm; }
+.d .f { display: grid; grid-template-columns: 30mm 1fr; gap: .7mm 3mm; }
+.d .f b { font-size: 8.8pt; color: #555; font-weight: 600; padding-top: .35mm; }
+.d .f p { margin: 0; }
+.d .resp { color: #555; font-size: 8.5pt; margin: 1mm 0 0; }
+code { font-size: 8.8pt; }
+"""
+
+bloques, n = [], 0
+for titulo, decisiones in SECCIONES:
+    bloques.append(f"<h2>{e(titulo)}</h2>")
+    for nombre, filas, src in decisiones:
+        n += 1
+        cuerpo = "".join(f"<b>{e(etq)}</b><p>{e(txt)}</p>" for etq, txt in filas)
+        bloques.append(f'<div class="d"><h3><span class="n">{n}.</span>{e(nombre)}</h3><div class="f">{cuerpo}</div>'
+                       f'<p class="resp">Respaldo: {e(src)}</p></div>')
+
+MESES = "enero febrero marzo abril mayo junio julio agosto septiembre octubre noviembre diciembre".split()
+HOY = datetime.date.today()
+FECHA = f"{HOY.day} de {MESES[HOY.month - 1]} de {HOY.year}"
+
+HTML = f"""<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Por qué lo hicimos así</title>
+<style>{CSS}</style></head><body>
+
+<h1>Por qué lo hicimos así</h1>
+<div class="sub">MARSCEPTION · NASA Space Apps 2026 · El razonamiento detrás del modelo de análogos, en {TOTAL} decisiones · {FECHA}</div>
+
+<div class="caja">
+<p><b>Para qué es este documento.</b> La guía explica qué es el modelo y el banco trae las preguntas. Aquí está el porqué: qué
+problema había en cada paso, qué se decidió, por qué, y qué costó o qué se probó y se dejó. Sirve para contestar «¿y por qué no lo
+hicieron de otra forma?».</p>
+</div>
+
+<div class="caja oro">
+<p><b>El hilo completo, en seis pasos.</b></p>
+<ol>
+<li>El reto pide criterios medibles, decir dónde se rompe la analogía y no repetir los análogos famosos. Por eso se hizo una
+búsqueda sistemática con una medida, y no una lista de lugares.</li>
+<li>Se eligió la forma del terreno porque se puede medir igual en los tres mundos, y se midió con el mismo código y a la misma
+resolución.</li>
+<li>Se eligió un modelo simple, entrenado solo con la Luna y Marte, porque de la Tierra no había etiquetas confiables.</li>
+<li>Al revisar el resultado se vio que el puntaje no distinguía un cráter de una mina o de un valle. En vez de esconderlo, se
+buscó una medida que sí lo hiciera: el borde levantado.</li>
+<li>Esa regla se fijó y se probó en cráteres que no había visto.</li>
+<li>No se llamó descubrimiento a nada sin revisar la literatura, y siempre se declara lo que la Tierra no puede probar.</li>
+</ol>
+</div>
+
+{chr(10).join(bloques)}
+
+<div class="caja">
+<p><b>Lo que haríamos con más tiempo.</b> Volver a entrenar con la Luna emborronada, para saber cuánto bajaría el 78 %.
+Sacar la oscilación térmica del total. Probar el borde en más cráteres de impacto, incluidos los erosionados, y averiguar por qué
+los cráteres lunares de referencia casi no lo muestran. Cubrir las seis regiones áridas que faltan (Sahara, interior de Australia, Gobi, Kalahari, meseta iraní y Thar). Y añadir composición, que es
+lo que este modelo no ve.</p>
+</div>
+
+</body></html>"""
+
+salida = RAIZ / "informe" / "exposicion_modelo" / "razonamiento_modelo.html"
+salida.write_text(HTML, encoding="utf-8")
+print(f"{salida.relative_to(RAIZ)} · {TOTAL} decisiones en {len(SECCIONES)} secciones")

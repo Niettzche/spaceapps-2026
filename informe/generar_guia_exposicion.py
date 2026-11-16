@@ -15,6 +15,7 @@ PDF:  google-chrome-stable --headless --no-pdf-header-footer \\
 """
 import datetime
 import html
+import json
 import shutil
 import subprocess
 import sys
@@ -25,7 +26,7 @@ import numpy as np
 
 RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ))
-from model import borde, forma  # noqa: E402
+from model import borde, forma, score  # noqa: E402
 
 e = html.escape
 VAL = (RAIZ / "model" / "VALIDATION.md").read_text(encoding="utf-8")
@@ -271,11 +272,19 @@ figcaption { font-size: 8.5pt; color: #444; margin-top: 1mm; max-width: 180mm; }
 .qa .resp { color: #555; font-size: 8.5pt; }
 .salto { break-before: page; }
 code { font-size: 8.8pt; }
+.pasos { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3.4mm; margin: 2.5mm 0 1.5mm; break-inside: avoid; }
+.pasos div { border: .8px solid #1d2024; border-top: 3px solid #1f6f78; padding: 1.4mm 1.8mm 1.6mm; font-size: 8.5pt; line-height: 1.3; position: relative; }
+.pasos b { display: block; font-size: 9pt; margin-bottom: .6mm; }
+.pasos div:not(:last-child)::after { content: "›"; position: absolute; right: -2.7mm; top: 50%; transform: translateY(-50%); font-size: 12pt; color: #555; }
+.pie { font-size: 8.5pt; color: #444; margin: 0 0 2mm; }
+h3.p { font-size: 11pt; margin: 4mm 0 1mm; break-after: avoid; }
+ol { margin: 1.5mm 0; padding-left: 5mm; }
+tr.total td { font-weight: 600; border-top: 1.2px solid #1d2024; }
 """
 
 PREGUNTAS = [
     ("¿Qué modelo es? ¿Es inteligencia artificial?",
-     "Es un modelo estadístico explicable: una regresión logística y un árbol poco profundo con tres medidas de cada cráter "
+     "Es un modelo estadístico explicable: una regresión logística con tres medidas de cada cráter "
      "(diámetro, profundidad entre diámetro y borde). No es una red neuronal. Lo entrenamos con 4,288 cráteres de la Luna y 573 de "
      "Marte, y los separa con 78 % de exactitud balanceada, validando por zonas para no hacer trampa con cráteres vecinos.",
      "model/forma.py · model/VALIDATION.md, sección B"),
@@ -316,22 +325,22 @@ PREGUNTAS = [
      "model/VALIDATION.md, «Borde levantado» (tabla y límites) · cuaderno 01, sección 3"),
     ("¿Encontraron algo que nadie conociera?",
      "No lo presentamos como descubrimiento. El método encontró por su cuenta sitios ya usados: El Pinacate (Apolo 14) y Colton "
-     "(Apolo 15), lo que respalda el método. De los cráteres de Arabia Saudita, Al Hutaymah ya está en una base global de sitios "
+     "(Apolo 15), lo que respalda el método. De los cráteres de Arabia Saudita, el campo volcánico de Al Hutaymah (Harrat Hutaymah) ya está en una base global de sitios "
      "relevantes para Marte (2024) y Al Wahbah está publicado como análogo de Encélado. Jabal Bayda no lo encontramos como análogo "
      "lunar ni marciano en lo que revisamos: lo proponemos, sin llamarlo nuevo.",
      "model/NIVEL2.md, sección A (Ryan et al. 2024, Geosphere, doi:10.1130/GES02712.1)"),
     ("¿Y las minas?",
-     "El detector encuentra muchos tajos mineros porque tienen forma de cráter. No son cráteres: ninguno de los 22 de nuestro "
-     "catálogo tiene borde levantado. Los dejamos como análogo operativo (paredes empinadas, excavación, sombra en el fondo), no "
-     "geológico, y decimos dónde se rompe: son más hondos que casi cualquier cráter lunar de su tamaño.",
-     "data/sites (nota de cada tajo) · ciencia_datos/salidas/lista_corta.md"),
+     "El detector encuentra muchos tajos mineros porque tienen forma de cráter. No son cráteres: ninguno de los 22 tajos del "
+     "catálogo (data/sites) tiene borde levantado, y de los 38 candidatos con cantera de OpenStreetMap a 2 km o menos, solo 4. Los dejamos como análogo operativo (paredes empinadas, excavación, sombra en el fondo), no "
+     "geológico, y decimos dónde se rompe: son huecos artificiales escalonados, y los más hondos superan a casi cualquier cráter lunar de su tamaño.",
+     "data/sites (nota de cada tajo) · model/VALIDATION.md, «Borde levantado» · ciencia_datos/salidas/lista_corta.md"),
     ("¿Marte sale más plano solo porque su mapa es más borroso?",
      "En parte sí en cráteres de menos de 1 km. Lo probamos emborronando la Luna a la resolución de Marte: su profundidad relativa "
-     "baja de 0.058 a 0.043. Pero con cráteres de 2 km o más, donde la resolución ya no importa, el modelo mantiene 77.6 %.",
+     "baja de 0.058 a 0.043. Pero con cráteres de 2 km o más, donde la resolución casi no cambia la medida (0.059 → 0.051), el modelo mantiene 77.6 %.",
      "model/NIVEL2.md, sección B · model/VALIDATION.md"),
     ("¿Escanearon todo el planeta?",
-     "No. México es el caso validado, y repetimos la búsqueda en Atacama, Arizona y Arabia: tres de las diez regiones áridas que "
-     f"priorizamos. De ahí salen {len(t)} candidatos áridos.",
+     "No. México es el caso validado, y repetimos la búsqueda en un cuadro de 600 × 600 km en Atacama, Arizona y Arabia "
+     f"occidental: otras tres de las diez regiones áridas que priorizamos. De ahí salen {len(t)} candidatos áridos.",
      "PROYECTO.md, paso 4"),
     ("¿Qué tan bueno es el detector?",
      "Detecta depresiones cerradas con forma de cráter, no cráteres. Encuentra 9 de 11 cráteres mexicanos conocidos, pero solo el "
@@ -351,12 +360,14 @@ PREGUNTAS = [
     ("¿Cómo usaron la IA?",
      "El modelo de forma no es IA generativa. Usamos Claude para sugerir qué es cada candidato a partir de la imagen de satélite y el "
      "relieve, y contrastamos 33 casos con fuentes externas: 29 aciertos. No son verdad geológica y lo decimos. Claude Code y Codex "
-     "ayudaron con el código y los documentos.",
-     "ciencia_datos/etiquetado_ia · docs/USO_IA.md"),
+     "ayudaron con el código y los documentos. Mauricio hizo el arte del juego con Claude. Y en el juego hay una tutora, ANA: sus preguntas libres las responde un modelo de "
+     "lenguaje de OpenAI con nuestros datos como único contexto; las sugeridas, reglas sin IA.",
+     "ciencia_datos/etiquetado_ia · docs/USO_IA.md · api/tutor.py"),
     ("¿Por qué no usan un modelo de lenguaje para calcular la similitud?",
      "Porque un modelo de lenguaje no mide: opina, y no responde igual dos veces. Cada cifra nuestra se vuelve a calcular con el "
-     "repositorio. La IA generativa la usamos en un solo lugar, declarado: proponer qué es cada candidato a partir de la imagen, y "
-     "esas etiquetas las contrastamos con fuentes y con el borde medido.",
+     "repositorio. En el modelo, la IA generativa entra en un solo lugar, declarado: proponer qué es cada candidato a partir de la "
+     "imagen, y esas etiquetas las contrastamos con fuentes y con el borde medido. ANA, la tutora del juego, sí usa un modelo de "
+     "lenguaje, pero solo explica: no calcula ninguna similitud.",
      "docs/USO_IA.md · cuadernos de informe/exposicion_modelo"),
 ]
 
@@ -364,7 +375,7 @@ NO_DECIR = [
     ("«La IA descubrió…», «red neuronal», «deep learning»", "No lo es. Es un modelo estadístico explicable."),
     ("«Escaneamos todo el planeta»", "Fueron México y tres de diez regiones áridas."),
     ("«Encontramos análogos nuevos»",
-     "Al Hutaymah ya está en una base global de 2024 para Marte. Jabal Bayda es una propuesta: «no lo encontramos en lo que revisamos». "
+     "El campo de Al Hutaymah (Harrat Hutaymah) ya está en una base global de 2024 para Marte. Jabal Bayda es una propuesta: «no lo encontramos en lo que revisamos». "
      "En el catálogo ningún sitio se marca como novedoso; los tajos mineros son análogos operativos, no hallazgos."),
     ("«La regla acierta en 9 de 9 cráteres de impacto»",
      f"Son {K_IMP} de {N_IMP} nunca vistos; Meteor Crater ya era un candidato y no cuenta. Y son cráteres conocidos, no una muestra al azar."),
@@ -395,6 +406,168 @@ FUENTES = [
     ("Apolo 14 en El Pinacate; Apolo 15 en Colton", "NASA SP-2015-626 (Phinney 2015); USGS OFR 2005-1190"),
 ]
 
+# --- «El modelo de principio a fin»: todo sale del código y de los datos. Si algo cambia allá, el script se detiene ---
+def _dice(ruta, *frases):
+    txt = (RAIZ / ruta).read_text(encoding="utf-8")
+    mal = [f for f in frases if f not in txt]
+    if mal:
+        raise SystemExit(f"{ruta} ya no dice esto; revisa «El modelo de principio a fin» antes de regenerar:\n- " + "\n- ".join(mal))
+
+
+_dice("analisis/07_buscador_crateres.py", "T, S = 60, 30", "PROF_BASE, PROF_C = 5.0, 20.0",
+      "(d.diam_km >= 0.6) & (d.diam_km <= 10) & (d.prof_m >= PROF_C) & (d.circ >= 0.6)")
+_dice("analisis/03_referencias_luna_marte.py", "ldem_80s_80m", "luna.lat <= -80.5", "Mars_HRSC_MOLA_BlendDEM_Global_200mp_v2")
+_dice("model/features.py", "periodo 2001-2025", "CUADRO_M = 10_000", "MODIS MOD13Q1 NDVI (250 m, 16 días)")
+_dice("AGENTS.md", "668 detecciones", "71 %", "47 candidatos", "NDVI p90 < 0.35", "76 % solo con profundidad/diámetro")
+_dice("model/VALIDATION.md", "grupos espaciales de 250 × 250 píxeles (50 × 50 km)", "entre 70 % (Gale) y 92 % (Meridiani)",
+      "(México + Atacama, Arizona y Arabia)")
+
+_clf, _esc, _mcd, _corte, _n = forma._modelo()
+if _n != {"n_luna": 4288, "n_marte": 573}:
+    raise SystemExit(f"El modelo ya no se entrena con 4,288 y 573 cráteres ({_n}); revisa la guía.")
+_lr = _clf[-1]
+_hacia_luna = -1.0 if _lr.classes_[1] == "Marte" else 1.0
+COEF = dict(zip(forma.VARIABLES, _hacia_luna * _lr.coef_[0]))        # peso de cada característica estandarizada, hacia «Luna»
+VECES = COEF["prof_diam"] / max(abs(COEF["log_diam"]), abs(COEF["borde_rel"]))
+REFM = forma._referencia()
+MED = REFM.groupby("cuerpo")[["prof_diam", "borde_m"]].median()
+N_SITIOS_MARTE = REFM[REFM.cuerpo == "Marte"].sitio.nunique()
+RAZON_CLASES = _n["n_luna"] / _n["n_marte"]
+
+DIM = score.DIMENSIONES
+DEST = {d: json.loads((RAIZ / "data" / "targets" / f"{d}.json").read_text(encoding="utf-8"))["variables"] for d in forma.CUERPO_DESTINO}
+PIN = json.loads((RAIZ / "data" / "sites" / "pinacate.json").read_text(encoding="utf-8"))
+PV, PS = PIN["variables"], PIN["similitud"]
+_c = score.comparar(PV, DEST["polo_sur_lunar"])
+_f = forma.forma_para("polo_sur_lunar", PV["diametro"]["valor"], PV["profundidad"]["valor"], PV["borde"]["valor"])
+if _c["total"] != PS["total"] or _c["por_dimension"] != PS["por_dimension"] or abs(_f["valor"] - PV["forma"]["valor"]) > 5e-4:
+    raise SystemExit("El ejemplo de El Pinacate ya no se reproduce con model/score.py y model/forma.py; revisa la guía.")
+if not _f["dentro_95"] or PIN["destino_ref"] != "polo_sur_lunar":
+    raise SystemExit("El ejemplo de El Pinacate cambió (nube o destino); revisa el texto.")
+
+
+def _val(d, k):
+    return d[k]["valor"]
+
+
+T_MAX = DIM["oscilacion_termica"]["rango_tierra"][1]
+T_LUNA, T_JEZ = _val(DEST["polo_sur_lunar"], "oscilacion_termica"), _val(DEST["jezero"], "oscilacion_termica")
+PEND_LUNA, PEND_JEZ = _val(DEST["polo_sur_lunar"], "pendiente"), _val(DEST["jezero"], "pendiente")
+SD = PS["por_dimension"]
+
+COMO = f"""
+<h2>Para qué sirve</h2>
+<p>Antes de mandar un robot a la Luna o a Marte se le prueba en la Tierra, en un lugar que se parezca al destino: un <b>análogo</b>.
+El reto pide encontrar esos lugares con datos abiertos y decir en qué se parecen y en qué no. Eso hace el modelo. De un lugar de
+la Tierra devuelve tres cosas:</p>
+<ul>
+<li><b>Qué tanto se parece</b> a cada destino (el polo sur de la Luna y el cráter Jezero, en Marte): un porcentaje, separado por dimensión.</li>
+<li><b>A qué mundo se parece más</b> la forma de su cráter: a los de la Luna o a los de Marte.</li>
+<li><b>Dónde se rompe la comparación:</b> lo que ese lugar no puede probar, como la gravedad, el vacío o la radiación.</li>
+</ul>
+<p>En el juego, eso decide qué sitios se sugieren para cada destino y llena el Expediente. El recorrido de cada nivel es un corte
+real del relieve del sitio.</p>
+
+<h2>Cómo funciona, de principio a fin</h2>
+<div class="pasos">
+<div><b>1 · Datos</b>Relieve de la Tierra, la Luna y Marte</div>
+<div><b>2 · Misma escala</b>Todo a 200 m por píxel</div>
+<div><b>3 · Detector</b>Hoyos cerrados con forma de cráter</div>
+<div><b>4 · Medidas</b>Tamaño, hondura y borde de cada hoyo</div>
+<div><b>5 · Modelo de forma</b>¿Se parece a los de la Luna o a los de Marte?</div>
+<div><b>6 · Comparador</b>Forma, clima, vegetación y pendiente: un porcentaje</div>
+</div>
+<p class="pie">Los pasos 1 a 4 se hacen igual, con el mismo código, en los tres mundos. El paso 5 aprende de la Luna y de Marte, y se
+aplica a la Tierra. El paso 6 compara cada sitio con su destino.</p>
+
+<h3 class="p">Paso 1 · Los datos</h3>
+<table><thead><tr><th style="width:27%">Qué</th><th>De dónde</th><th style="width:24%">Resolución</th></tr></thead><tbody>
+<tr><td>Relieve de la Tierra</td><td>Copernicus DEM GLO-30 (ESA)</td><td>30 m, llevado a 200 m</td></tr>
+<tr><td>Relieve de la Luna</td><td>LOLA <code>ldem_80s_80m</code> (NASA, sonda LRO): del paralelo 80.5° S al polo</td><td>80 m, llevado a 200 m</td></tr>
+<tr><td>Relieve de Marte</td><td>Mosaico HRSC+MOLA (ESA y NASA, vía USGS): {N_SITIOS_MARTE} recortes de 100 × 100 km, entre ellos Jezero y Gale</td><td>200 m</td></tr>
+<tr><td>Clima de la Tierra</td><td>NASA POWER: oscilación térmica diaria y precipitación, promedio de 2001 a 2025</td><td>un valor por punto</td></tr>
+<tr><td>Vegetación de la Tierra</td><td>MODIS MOD13Q1 (NASA): índice NDVI</td><td>250 m</td></tr>
+</tbody></table>
+
+<h3 class="p">Pasos 2 a 4 · El preprocesamiento: de un mapa de alturas a una lista de cráteres medidos</h3>
+<ol>
+<li><b>Misma resolución.</b> Los relieves de la Tierra y de la Luna se promedian a 200 m por píxel, que es la resolución del de
+Marte: así una medida significa lo mismo en los tres mundos. El costo: a esa escala solo se ven cráteres de unos 0.6 a 10 km.</li>
+<li><b>Buscar hoyos cerrados.</b> El relieve se recorre en ventanas de 12 km que se traslapan. En cada una se «llena» el terreno
+como si lloviera hasta desbordarse: lo que queda bajo el agua es un hoyo cerrado, y la altura del agua es su profundidad.</li>
+<li><b>Medir cada hoyo.</b> Diámetro (el de un círculo con la misma área), profundidad máxima, qué tan redondo es y borde (la
+altura del anillo pegado al hoyo menos la del terreno un poco más lejos).</li>
+<li><b>Quedarse con los que parecen cráter.</b> Diámetro de 0.6 a 10 km, al menos 20 m de hondo y redondez de 0.6 o más (1 es un
+círculo).</li>
+<li><b>Solo en la Tierra, filtro árido.</b> Se descarta lo que tiene vegetación: NDVI de 0.35 o más en su época más verde
+(percentil 90). En México, de 668 detecciones quedaron 47; el 71 % eran dolinas y cañadas de sierras húmedas.</li>
+</ol>
+<p><b>Lo que sale de aquí:</b> {len(t)} candidatos en zonas áridas de México, Atacama, Arizona y Arabia. Y la referencia para
+entrenar: 4,288 cráteres del polo sur lunar y 573 de Marte, medidos con el mismo código.</p>
+
+<h3 class="p">Las tres características que entran al modelo</h3>
+<table><thead><tr><th style="width:27%">Característica</th><th style="width:33%">Qué dice</th><th>Qué tanto ayuda</th></tr></thead><tbody>
+<tr><td>Profundidad entre diámetro</td><td>Qué tan hondo es el cráter para su tamaño</td><td>Es la que separa: ronda {MED.loc["Luna", "prof_diam"]:.2f} en la Luna y {MED.loc["Marte", "prof_diam"]:.2f} en Marte. Pesa unas {VECES:.0f} veces más que la que le sigue</td></tr>
+<tr><td>Logaritmo del diámetro</td><td>El tamaño. El logaritmo evita que los pocos cráteres grandes dominen</td><td>Poco</td></tr>
+<tr><td>Borde entre diámetro</td><td>Cuánto sube el anillo pegado al hoyo</td><td>Poco: a 200 m sale negativo hasta en la Luna (mediana −{abs(MED.loc["Luna", "borde_m"]):.0f} m). No es el «borde levantado» de más adelante, que se mide aparte, a 80 m</td></tr>
+</tbody></table>
+
+<h3 class="p">Paso 5 · El modelo de forma</h3>
+<p><b>Qué es.</b> Una regresión logística: una suma con pesos de las tres características, que da la probabilidad de que un cráter
+sea lunar y no marciano. Antes, cada característica se lleva a la misma escala (media 0, desviación 1), y se compensa que haya
+{RAZON_CLASES:.0f} veces más cráteres lunares que marcianos, para que el modelo no aprenda a contestar siempre «Luna».</p>
+<p><b>Cómo se probó.</b> Los cráteres vecinos se parecen, así que nunca se entrena y se prueba con cráteres del mismo cuadro de
+50 × 50 km. Así acierta el 78 % (exactitud balanceada; 50 % sería adivinar). Con solo profundidad entre diámetro, 76 %. Y con un
+sitio de Marte que nunca vio, entre 70 % y 92 %.</p>
+<p><b>El segundo control: la nube.</b> Se mide qué tan lejos cae un cráter de la Tierra del conjunto de cráteres de la Luna y de
+Marte. Si cae fuera del 95 % de esa nube, su forma no existe allá (un tajo minero demasiado hondo, por ejemplo) y el puntaje baja.</p>
+<p><b>Puntaje de forma</b> = probabilidad de parecerse al mundo del destino × castigo por caer fuera de la nube. Va de 0 a 1.</p>
+
+<h3 class="p">Paso 6 · El comparador: de la forma al porcentaje</h3>
+<table><thead><tr><th style="width:21%">Dimensión</th><th style="width:25%">Tierra</th><th>Destino</th><th class="n" style="width:10%">Escala</th><th class="n" style="width:13%">Peso</th></tr></thead><tbody>
+<tr><td>Forma</td><td>el puntaje del paso 5</td><td>ya va incluido</td><td class="n">—</td><td class="n">{DIM["forma"]["peso"]:.2f}</td></tr>
+<tr><td>Oscilación térmica diaria</td><td>NASA POWER</td><td>Luna {T_LUNA:.0f} K (Diviner, en una lunación de ~29.5 días), Jezero {T_JEZ:.0f} K (MEDA, en Perseverance)</td><td class="n">{DIM["oscilacion_termica"]["escala"]:.0f} K</td><td class="n">{DIM["oscilacion_termica"]["peso"]:.2f}</td></tr>
+<tr><td>Precipitación</td><td>NASA POWER</td><td>0</td><td class="n">{DIM["precipitacion"]["escala"]:.0f} mm/día</td><td class="n">{DIM["precipitacion"]["peso"]:.2f}</td></tr>
+<tr><td>Vegetación (NDVI)</td><td>MODIS</td><td>0</td><td class="n">{DIM["ndvi"]["escala"]:.2f}</td><td class="n">{DIM["ndvi"]["peso"]:.2f}, con veto</td></tr>
+<tr><td>Pendiente</td><td>Copernicus, media en 10 km</td><td>Luna {PEND_LUNA:.1f}°, Jezero {PEND_JEZ:.1f}° (de sus relieves)</td><td class="n">{DIM["pendiente"]["escala"]:.0f}°</td><td class="n">{DIM["pendiente"]["peso"]:.2f}</td></tr>
+</tbody></table>
+<p>Cada dimensión da un número de 0 a 1: <code>s = exp(−diferencia / escala)</code>. Sin diferencia da 1; con una diferencia igual
+a la escala, 0.37. El total es una <b>media geométrica</b> con esos pesos: un resultado malo en una dimensión no se tapa con uno
+bueno en otra. Tres reglas más:</p>
+<ul>
+<li><b>Veto.</b> Si la similitud de vegetación da menos de {score.UMBRAL_VETO:.2f} (vegetación densa), el total es 0. Así caen el Amazonas y el Congo.</li>
+<li><b>Recorte.</b> Ningún lugar de la Tierra oscila {T_LUNA:.0f} K entre el día y la noche: se compara contra {T_MAX:.0f} K, el máximo terrestre que
+fijamos, y se anota como límite.</li>
+<li><b>Dato faltante.</b> Se omite esa dimensión y baja la confianza. Un punto sin cráter medido no tiene forma.</li>
+</ul>
+
+<h3 class="p">Un ejemplo completo: El Elegante, en El Pinacate, contra el polo sur lunar</h3>
+<table><thead><tr><th style="width:21%">Dimensión</th><th>En el sitio</th><th style="width:28%">En el destino</th><th class="n" style="width:17%">Similitud</th></tr></thead><tbody>
+<tr><td>Forma</td><td>{_val(PV, "diametro"):.2f} km de ancho, {_val(PV, "profundidad"):.0f} m de hondo (cociente {_val(PV, "profundidad_diametro"):.3f})</td><td>cráteres del polo sur lunar</td><td class="n">{SD["forma"]:.2f}</td></tr>
+<tr><td>Oscilación térmica</td><td>{_val(PV, "oscilacion_termica"):.1f} K</td><td>{T_LUNA:.0f} K, recortado a {T_MAX:.0f} K</td><td class="n">{SD["oscilacion_termica"]:.2f}</td></tr>
+<tr><td>Precipitación</td><td>{_val(PV, "precipitacion"):.2f} mm/día</td><td>0</td><td class="n">{SD["precipitacion"]:.2f}</td></tr>
+<tr><td>Vegetación (NDVI)</td><td>{_val(PV, "ndvi"):.2f}</td><td>0</td><td class="n">{SD["ndvi"]:.2f}</td></tr>
+<tr><td>Pendiente</td><td>{_val(PV, "pendiente"):.1f}°</td><td>{PEND_LUNA:.1f}°</td><td class="n">{SD["pendiente"]:.2f}</td></tr>
+<tr class="total"><td>Total</td><td colspan="2">media geométrica con los pesos de arriba</td><td class="n">{PS["total"]:.3f}, es decir {100 * PS["total"]:.0f} %</td></tr>
+</tbody></table>
+<p><b>Cómo leerlo.</b> El modelo le da {100 * _f["P_Luna"]:.0f} % de probabilidad de ser lunar y no marciano, porque es hondo para su tamaño.
+Aun así el total queda en {100 * PS["total"]:.0f} %: la Tierra no alcanza la oscilación térmica de la Luna, y El Pinacate es más plano que el polo
+sur. Por eso decimos que el porcentaje describe un sitio, pero no sirve para ordenar análogos.</p>
+
+<div class="caja alerta">
+<p><b>Lo que este modelo no ve.</b> No distingue un cráter de un valle o de una mina que midan lo mismo: para eso están el borde
+levantado y la etiqueta de cada sitio, que vienen enseguida. Tampoco mira de qué está hecho el suelo, ni imágenes, agua o
+vida. Y el porcentaje no es la probabilidad de que una misión salga bien.</p>
+</div>
+
+<div class="caja">
+<p><b>Palabras que vas a usar.</b> <b>Análogo:</b> lugar de la Tierra que se parece a uno de otro mundo en algo que se puede medir.
+<b>DEM:</b> mapa de alturas del terreno. <b>NDVI:</b> índice de vegetación visto desde satélite; cerca de 0 es suelo desnudo.
+<b>Exactitud balanceada:</b> el promedio del acierto en cráteres lunares y del acierto en marcianos. <b>Grupos espaciales:</b>
+probar con zonas que el modelo no vio al entrenar. <b>Media geométrica:</b> promedio que castiga un valor muy bajo.</p>
+</div>
+"""
+
 MESES = "enero febrero marzo abril mayo junio julio agosto septiembre octubre noviembre diciembre".split()
 HOY = datetime.date.today()
 FECHA = f"{HOY.day} de {MESES[HOY.month - 1]} de {HOY.year}"
@@ -412,16 +585,18 @@ HTML = f"""<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Có
 <div class="caja">
 <p><b>La idea en una frase.</b> Encontramos lugares de la Tierra con forma de cráter, comprobamos cuáles son cráteres de verdad,
 y decimos qué tan lunares o marcianos son y dónde deja de servir la comparación.</p>
+<p><b>Cómo leer esta guía.</b> Primero, entender el modelo: para qué sirve y cómo funciona, paso a paso. Después, qué decir, lo
+que nos distingue y las preguntas de los jueces.</p>
 </div>
-
-<h2>Qué decir en 30 segundos</h2>
+{COMO}
+<h2 class="salto">Qué decir en 30 segundos</h2>
 <div class="guion">
 <b>Qué es</b><p>«Nuestro modelo es explicable, no una red neuronal: compara la forma de cráteres de la Tierra con la de cráteres reales de la Luna y de Marte, medidos con el mismo código.»</p>
-<b>La prueba</b><p>«Sin decirle dónde buscar, encontró El Pinacate y Colton, donde entrenaron astronautas del Apolo.»</p>
+<b>La prueba</b><p>«Sin darle coordenadas, dentro de las regiones que revisamos encontró El Pinacate y Colton, donde entrenaron astronautas del Apolo.»</p>
 <b>El hallazgo</b><p>«Ordenados solo por forma, entre los 25 primeros hay 14 minas y 3 cráteres. Ordenados por el borde levantado, 11 cráteres y 1 mina.»</p>
 <b>El límite</b><p>«Y decimos dónde falla: la Tierra no reproduce la gravedad, el vacío ni la radiación.»</p>
 </div>
-<p>Son 87 palabras, sin cronometrar: dilo en voz alta con reloj. Si sobra tiempo: «Fijamos la regla y la probamos en {N_IMP} cráteres de
+<p>Son 92 palabras, sin cronometrar: dilo en voz alta con reloj. Si sobra tiempo: «Fijamos la regla y la probamos en {N_IMP} cráteres de
 impacto de otros países que nunca había visto: {K_IMP} la pasan». El guion oficial es <code>docs/GUION_PITCH.md</code>; si cambias algo, avisa.</p>
 
 <h2>Lo que nos distingue: revisamos nuestro propio puntaje</h2>
@@ -440,12 +615,12 @@ los dos lados del centro; cero = terreno lejano; exageración vertical ×{exager
 cráter con fuente externa y el tajo mejor puestos por forma. En la cuenta de arriba, qué es mina o cráter lo dice la etiqueta de IA.</figcaption>
 </figure>
 
-<h2>Y no es un solo ejemplo: el borde en todos los grupos</h2>
+<h2 class="salto">Y no es un solo ejemplo: el borde en todos los grupos</h2>
 
 <div class="nums">
 <div><div class="num">{de(fuente)}</div><span>cráteres conocidos tienen borde levantado</span></div>
 <div><div class="num">{de(valle)}</div><span>valles, presas y dunas lo tienen</span></div>
-<div><div class="num">{de(tajo)}</div><span>tajos mineros lo tienen</span></div>
+<div><div class="num">{de(tajo)}</div><span>candidatos con cantera de OpenStreetMap a 2 km o menos lo tienen</span></div>
 <div><div class="num">{K_IMP} de {N_IMP}</div><span>cráteres de impacto de otros países, que la regla nunca había visto</span></div>
 </div>
 

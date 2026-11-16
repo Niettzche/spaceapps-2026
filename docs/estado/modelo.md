@@ -3,9 +3,41 @@
 > Lo actualiza SOLO este frente. Rama: `feat/modelo`.
 
 **Responsable:** Mario  ·  **Agente:** Claude Code / Codex
-**Última actualización:** 15 nov 2026, mañana (landing con divulgación científica en `informe/divulgacion/`; ANA, la tutora de análogos, ya en `main`; demo en https://v1.marsception.us/)
+**Última actualización:** 15 nov 2026, 18:50 (repo público; landing con «¿Encontramos análogos nuevos?»; guía, banco de preguntas y documento de razonamiento del modelo; demo en https://v1.marsception.us/)
+
+## Hecho (repo público y hallazgos en la landing, 15 nov, 18:50; pedido de Mario)
+- **El repo es público** (https://github.com/Niettzche/spaceapps-2026). Antes se revisó el historial completo del remoto (123 ramas,
+  125 refs de PR y el tag): sin llaves, tokens, llaves privadas ni contraseñas; `.env` nunca se subió; sin IP, alias SSH ni datos
+  del túnel del VPS; sin GPS ni cuentas en los metadatos de PNG, PDF, PPTX, XLSX y videos. Queda visible, sin ser secreto: los
+  correos de los autores de los commits, el ID del proyecto de Earth Engine (`analisis/00_preparacion.py`) y rutas `/home/mario` en
+  salidas de 3 cuadernos de `ciencia_datos/`. Se activaron el secret scanning y la protección al subir de GitHub (0 alertas).
+- **Landing, «¿Encontramos análogos nuevos?»** (detalles técnicos): candidatos, no descubrimientos; Pinacate y Colton como respaldo del
+  método; Jabal Bayda (Marte) y Al Wahbah (Luna) propuestos sin llamarlos nuevos; los tajos como análogo de operación; los 296
+  candidatos son hoyos con forma de cráter (27 cráteres naturales y 53 minas según la etiqueta de IA). Fuente: `model/NIVEL2.md` §A.
+  Rama `feat/modelo-hallazgos-exposicion` (el commit estaba en `feat/modelo` después de fusionarse el PR #87).
+- **Texto del proyecto para la plataforma (inglés):** revisado contra el repo. Se corrigió «Opportunity MEDA» (es Perseverance), el
+  «9 de 21» (es frente a Jezero; frente al polo sur lunar son 2 de 21), «picked out» Colton (queda en el puesto 223 de 296 por borde)
+  y Tenoumer y Pingualuit como controles positivos. No vive en el repo.
+
+
+## Hecho (auditoría de documentación, 15 nov, tarde; pedido de Mario)
+- Auditoría de solo lectura de los 63 `.md` de `main`, el texto del formulario y la landing. Se corrige lo del frente modelo:
+  - **Landing (ES y EN):** "exactitud balanceada" en vez de "acierto"; datos NASA **y ESA** (HRSC es de la ESA); 176 K es entre
+    el día y la noche en una lunación, no "por día"; dolinas y cañadas, no "plantas"; 62 sitios "con un cráter medido" (sin
+    "fecha", que falta en 434 de 685 variables); regiones como recuadros de 600 × 600 km (faltan 6 de 10); proponer sitios
+    necesita el servicio en línea; licencias "queremos ofrecer"; VALIDATION.md tiene las cifras de validación, no "todas";
+    nota de IA con arte, etiquetas y ANA (OpenAI); enlace a `docs/METHODOLOGY_EN.md`. `preparar_datos.py` y `node --test` pasan.
+  - `PROYECTO.md`: sin "sitios nuevos" ni "hallazgos"; Harrat Hutaymah sí está en Ryan et al. (2024); repo público; meta 21:00.
+  - `ciencia_datos/05_fichas_integradas.py` → `lista_corta.md` regenerada con el mismo cambio; `README.md` (repo público, tabla).
+  - `etiquetado_ia/README.md`: 33 casos con verdad externa; `NIVEL2.md`: 9 de 21; estado: Samalayuca `novedoso` = null, umbral 0.4.
+- Lo de otros frentes (ENTREGA_EN, USO_IA, METODOLOGIA, PITCH_QA, guion, docs/juego, docs/taller, AGENTS/DECISIONES) queda en el
+  informe de la auditoría para cada responsable.
 
 ## Hecho (landing: «Los análogos» y «Pruébalo», 15 nov, mañana)
+- **Los tajos como análogo operativo (propuesta de mario-84, pedida por Mario):** bloque destacado al final de «03 · Los
+  análogos»: «Una mina no es un cráter, pero sirve para practicar», con la redacción del nivel Cananea del juego (S140: la NASA
+  dice que la minería se transfiere pero no nombra ningún tajo como análogo; la comparación es nuestra). Comprobado por
+  `preparar_datos.py` contra `niveles_destacados.js` y `FUENTES_NIVELES.md`.
 - **Tráiler en la landing (11:40, pedido de Mario):** sección `#trailer` justo después de la portada y enlace «▶ Ver el tráiler
   (30 s)» en la portada. Del video de 1080p y 14.4 MB salen `public/video/trailer.webm` (AV1 + Opus, 3.9 MB),
   `trailer.mp4` (H.264 + AAC con faststart, 5.1 MB, respaldo para Safari) y un póster WebP de 17 KB; `preload="none"`: no se
@@ -187,8 +219,18 @@
   lo que no hay que decir. Y dos cuadernos ya ejecutados que vuelven a calcular sus cifras sin descargar nada:
   `01_borde_levantado.ipynb` y `02_cifras_de_la_guia.ipynb`. El generador y la última celda de cada cuaderno fallan si una cifra
   ya no coincide con `model/VALIDATION.md`.
+- **Documento «Por qué lo hicimos así» (15 nov, 09:25):** `informe/exposicion_modelo/razonamiento_modelo.pdf` (generador
+  `informe/generar_razonamiento_modelo.py`): las 27 decisiones del modelo, cada una con el problema, lo decidido, el porqué, el
+  costo o lo descartado y el respaldo. Las razones salen de `PROYECTO.md`, `docs/DECISIONES.md`, `model/NIVEL2.md` y
+  `model/VALIDATION.md`; el generador se detiene si una frase citada ya no está. En la rama `feat/modelo-hallazgos-exposicion`.
+- **Guía de exposición, sección «El modelo de principio a fin» (15 nov, 09:15):** las tres primeras páginas de
+  `guia_exposicion_modelo.pdf` explican para qué sirve el modelo, los datos, el preprocesamiento (200 m, detector, filtros),
+  las tres características, el entrenamiento y la prueba, el comparador y un ejemplo completo (El Pinacate contra el polo sur
+  lunar). Todo se lee del código y de los datos: el generador se detiene si cambian las constantes del detector, los pesos de
+  `model/score.py` o si el ejemplo ya no se reproduce. La guía pasa de 6 a 9 páginas. En la rama `feat/modelo-hallazgos-exposicion`.
 - **Banco de preguntas (15 nov, madrugada):** `informe/exposicion_modelo/preguntas_modelo.pdf` (generador
-  `informe/generar_preguntas_modelo.py`): 48 preguntas sobre el modelo en 10 temas, cada una con qué decir, qué añadir si
+  `informe/generar_preguntas_modelo.py`): 51 preguntas sobre el modelo en 10 temas (15 nov, 09:05: se añadieron tres sobre ANA, la
+  tutora, y la guía ya la menciona en sus dos preguntas de IA), cada una con qué decir, qué añadir si
   insisten y dónde está el respaldo. El generador se detiene si una frase citada ya no aparece en su documento
   (`VALIDATION.md`, `AGENTS.md`, `score.py`, `NIVEL2.md`…). Las del juego (ruedas, batería) siguen en `docs/PITCH_QA_EN.md`.
 - **Figura «¿cráter o mina?» (14 nov, 23:40):** `informe/exposicion_modelo/figura_crater_o_mina_es.png` y `_en.png` (también
@@ -249,7 +291,8 @@
   `novedoso` ya se calcula: 7 candidatos quedan como no novedosos por estar a menos de 50 km del Gran Desierto de Altar,
   del Pinacate o de Rincón de Parangueo.
 - **Samalayuca** con variables reales y perfil de dunas de 3 km (coordenada de Domínguez-Acosta et al. 2023). No hay literatura
-  que la trate como análogo planetario, así que va como `candidato_modelo` con `novedoso: true`.
+  que la trate como análogo planetario, así que va como `candidato_modelo`. Hoy `novedoso` es `null`: ningún sitio del catálogo
+  se marca como novedoso.
 - `model/VALIDATION.md`: controles negativos 3 de 3 en 0 (veto por NDVI). Análogos conocidos: 9 de 21 por encima de 0.4; los que
   no pasan son análogos por razones que el comparador no ve (frío, lava húmeda, química, cuevas). Impactos terrestres: 8 de 8
   dentro de la nube de forma.
@@ -294,8 +337,7 @@
 - `docs/GUION_PITCH.md`, bloque «Evidencia y límites»: propongo decir «Ordenados solo por forma, entre los 25 primeros hay 14
   minas y 3 cráteres. Ordenados por el borde levantado, 11 cráteres y 1 mina.» Es lo que distingue al proyecto y hoy el guion no
   menciona el borde. Texto y cuidados en `model/NIVEL2.md` §D; figura lista en `informe/exposicion_modelo/`.
-- `game/src/scenes/expediente/config.js`: `UMBRAL_PROPUESTA` sigue en 0.6 en `main` (la API ya usa 0.4). Con 0.6 ningún análogo
-  conocido puede proponerse desde el Explorador (el más alto da 0.556).
+- ~~`game/src/scenes/expediente/config.js`: `UMBRAL_PROPUESTA` sigue en 0.6 en `main`.~~ Resuelto: `main` ya usa 0.4, igual que la API.
 - `docs/METODOLOGIA.md` dice «9/20 análogos conocidos»; lo correcto es 9 de 21, como ya dice el guion.
 - `site.schema.json`: valor de `estado` nuevo `control_positivo` para los cráteres de impacto conocidos (meteor_crater,
   tenoumer, roter_kamm, talemzane). Hoy van como `documentado` con la explicación en la nota.

@@ -22,5 +22,5 @@
 
 **Limitaciones:**
 - La "verdad" de minas es OpenStreetMap, que puede tener errores.
-- Solo 34 casos tienen verdad externa; el resto no está verificado individualmente.
+- Solo 33 casos tienen verdad externa; el resto no está verificado individualmente.
 - Las imágenes son de 12.8 km a resolución baja: los cráteres de menos de ~1 km se ven pequeños.

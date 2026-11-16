@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Marsception · Entrena en la Tierra, aterriza en la Luna o en Marte</title>
-  <meta name="description" content="Comparamos los cráteres de la Tierra con 4,288 de la Luna y 573 de Marte usando datos abiertos de la NASA. Clasifica un cráter tú mismo y prueba tu rover en esos lugares, en un juego en el navegador.">
+  <meta name="description" content="Comparamos los cráteres de la Tierra con 4,288 de la Luna y 573 de Marte usando datos abiertos de la NASA y la ESA. Clasifica un cráter tú mismo y prueba tu rover en esos lugares, en un juego en el navegador.">
   <meta name="color-scheme" content="dark light">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%23F08A4B' stroke-width='3'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23F08A4B'/%3E%3C/svg%3E">
   <script>
@@ -57,7 +57,7 @@
         <p class="antetitulo inicio-entra" style="--orden:0" data-t="antetitulo">NASA Space Apps Challenge 2026 · Sede UDEM</p>
         <h1 id="t-inicio" class="inicio-logo"><img src="./arte/logo.png" width="191" height="25" alt="Marsception"></h1>
         <p class="inicio-lema" data-t="inicioLema">Entrena en la <b class="c-tierra">Tierra</b>. Aterriza en la <b class="c-luna">Luna</b> / <b class="c-marte">Marte</b>.</p>
-        <p class="inicio-sub inicio-entra" style="--orden:3" data-t="inicioSub">Comparamos los cráteres de la Tierra con 4,288 de la Luna y 573 de Marte, medidos con la misma regla y con datos de la NASA. Los que más se parecen son los lugares donde pruebas tu rover antes de lanzarlo.</p>
+        <p class="inicio-sub inicio-entra" style="--orden:3" data-t="inicioSub">Comparamos los cráteres de la Tierra con 4,288 de la Luna y 573 de Marte, medidos con la misma regla y con datos de la NASA y la ESA. Los que más se parecen son los lugares donde pruebas tu rover antes de lanzarlo.</p>
         <div class="acciones inicio-entra" style="--orden:4">
           <a class="boton boton-grande boton-jugar" href="https://v1.marsception.us/"><span class="parpadeo" aria-hidden="true">▶</span><span data-t="jugarAhora">Jugar ahora</span></a>
           <a class="boton-fantasma" href="#pruebalo"><span data-t="verCrater">Clasifica un cráter</span> <span aria-hidden="true">↓</span></a>
@@ -117,7 +117,7 @@
             <canvas class="museo-arte" data-arte="medimos" width="128" height="72" role="img" aria-label="Un satélite pasa sobre el cráter El Elegante y marca su forma." data-t-aria="museo1a"></canvas>
             <p class="museo-dato"><b>5,208</b><span aria-hidden="true">→</span><b class="c-tierra">47</b></p>
             <p class="museo-dato-pie" data-t="museo1d">hoyos medidos en México → con forma de cráter, en desiertos</p>
-            <p data-t="museo1p">Medimos cada hoyo con datos de satélite, igual que en la Luna y en Marte (200 m por píxel). Solo en desiertos: con plantas, cualquier hoyo parece cráter.</p>
+            <p data-t="museo1p">Medimos cada hoyo con datos de satélite, igual que en la Luna y en Marte (200 m por píxel). Solo en desiertos: en zonas húmedas, a 200 m, las dolinas y cañadas también parecen cráteres.</p>
           </li>
           <li class="museo-paso">
             <p class="museo-num" aria-hidden="true">2</p>
@@ -125,7 +125,7 @@
             <canvas class="museo-arte" data-arte="comparamos" width="128" height="72" role="img" aria-label="Un cráter de la Luna, hondo, junto a uno de Marte que se rellena de arena." data-t-aria="museo2a"></canvas>
             <p class="museo-dato"><b class="c-luna">0.060</b><span aria-hidden="true">·</span><b class="c-marte">0.027</b></p>
             <p class="museo-dato-pie" data-t="museo2d">profundidad entre diámetro: Luna · Marte</p>
-            <p data-t="museo2p">En la Luna los cráteres son hondos; en Marte, el viento, el agua y el hielo los rellenaron. Con 4,288 cráteres lunares y 573 marcianos, el modelo los distingue: acierta 78 %.</p>
+            <p data-t="museo2p">En la Luna los cráteres son hondos; en Marte, el viento, el agua y el hielo los rellenaron. Con 4,288 cráteres lunares y 573 marcianos, el modelo los distingue con 78 % de exactitud balanceada.</p>
           </li>
           <li class="museo-paso">
             <p class="museo-num" aria-hidden="true">3</p>
@@ -141,7 +141,7 @@
           <h3 id="t-museo-lim" data-t="museoLimT">Lo que la Tierra no puede imitar</h3>
           <ul>
             <li><canvas class="museo-arte" data-arte="gravedad" width="72" height="36" role="img" aria-label="La carga del juego cae 2 metros en la Tierra, en Marte y en la Luna." data-t-aria="museoGa"></canvas><b data-t="museoG">Gravedad</b><span data-t="museoGd">Tierra 9.81 · Marte 3.71 · Luna 1.62 m/s².</span></li>
-            <li><canvas class="museo-arte" data-arte="termica" width="72" height="40" role="img" aria-label="Barras de oscilación térmica diaria: 40, 55 y 176 kelvin." data-t-aria="museoTa"></canvas><b data-t="museoT">Temperatura</b><span data-t="museoTd">Por día: Luna 176 K, Jezero 55 K. En la Tierra, el modelo usa 40 K como máximo.</span></li>
+            <li><canvas class="museo-arte" data-arte="termica" width="72" height="40" role="img" aria-label="Barras de oscilación térmica entre el día y la noche: 40, 55 y 176 kelvin." data-t-aria="museoTa"></canvas><b data-t="museoT">Temperatura</b><span data-t="museoTd">Entre el día y la noche: Luna 176 K (en un día lunar, unos 29.5 días terrestres), Jezero 55 K (en un sol). En la Tierra, el modelo usa 40 K como máximo.</span></li>
             <li><canvas class="museo-arte" data-arte="vacio" width="64" height="32" role="img" aria-label="La Tierra con atmósfera y la Luna sin ella." data-t-aria="museoAa"></canvas><b data-t="museoA">Aire</b><span data-t="museoAd">La Luna no tiene atmósfera; la de Marte es muy delgada.</span></li>
             <li><canvas class="museo-arte" data-arte="radiacion" width="64" height="32" role="img" aria-label="La radiación del Sol desviada por el campo magnético de la Tierra." data-t-aria="museoRa"></canvas><b data-t="museoR">Radiación</b><span data-t="museoRd">Sin campo magnético global ni atmósfera gruesa que los proteja.</span></li>
           </ul>
@@ -153,7 +153,7 @@
             <a class="boton" href="https://v1.marsception.us/"><span data-t="jugarAhora">Jugar ahora</span> <span aria-hidden="true">→</span></a>
             <button type="button" class="boton-fantasma" id="imprimir-cartel" data-t="museoImprimir">Imprimir cartel</button>
           </div>
-          <p class="museo-fuentes" data-t="museoFuentes">Datos: LRO LOLA, MOLA+HRSC, MODIS y NASA POWER (NASA); Copernicus DEM (ESA). Los cortes de El Elegante y Peñasquito son sus perfiles reales (exageración vertical ×2 y ×6). Los cráteres de la Luna y de Marte están dibujados a la escala de su profundidad entre diámetro mediana (×5). Cifras completas en los detalles técnicos.</p>
+          <p class="museo-fuentes" data-t="museoFuentes">Datos: LRO LOLA, MOLA, MODIS y NASA POWER (NASA); HRSC y Copernicus DEM (ESA). Los cortes de El Elegante y Peñasquito son sus perfiles reales (exageración vertical ×2 y ×6). Los cráteres de la Luna y de Marte están dibujados a la escala de su profundidad entre diámetro mediana (×5). Cifras completas en los detalles técnicos.</p>
         </footer>
       </article>
     </section>
@@ -219,9 +219,14 @@
             <li data-t="anaP2"><b>Descartar.</b> Selvas, cultivos y nieve quedan fuera, con clima y vegetación medidos por la NASA.</li>
             <li data-t="anaP3"><b>Comparar.</b> Un modelo que se lee compara la forma con 4,288 cráteres lunares y 573 marcianos.</li>
             <li data-t="anaP4"><b>Revisar el borde.</b> Separa un cráter de una mina, que la forma sola confunde.</li>
-            <li data-t="anaP5"><b>Revisar en campo.</b> Lo que sale son candidatos, abiertos para que cualquiera los verifique o proponga otros desde el juego.</li>
+            <li data-t="anaP5"><b>Revisar en campo.</b> Lo que sale son candidatos, abiertos para que cualquiera los verifique. Con el servicio del modelo en línea, el juego también puede enviar una coordenada para revisión.</li>
           </ol>
-          <p class="nota" data-t="anaPropNota">Hoy cubre México y 3 de 10 regiones áridas priorizadas. Se puede repetir en cualquier desierto.</p>
+          <p class="nota" data-t="anaPropNota">Hoy cubre México y un recuadro de 600 × 600 km en Atacama, Arizona y Arabia occidental. Se puede repetir en cualquier desierto.</p>
+        </article>
+        <article class="ana-bloque ana-mina revela">
+          <h3 data-t="anaMinaT">Una mina no es un cráter, pero sirve para practicar</h3>
+          <p data-t="anaMina">Un tajo escalonado se parece a los que podría excavar la futura minería de recursos en la Luna: rampas, taludes sueltos y piedras que ruedan. La NASA dice que lo aprendido en la minería se transfiere, pero no nombra ningún tajo como análogo; la comparación es nuestra, y por eso el tajo de Cananea (Sonora) es un nivel del juego. Es un análogo de la operación, no de la geología: no reproduce la gravedad, el vacío ni el frío de la Luna.</p>
+          <p class="nota" data-t="anaMinaNota">El borde levantado separa un cráter de una mina; aquí la mina deja de ser trampa y se vuelve campo de práctica.</p>
         </article>
       </div>
     </section>
@@ -240,20 +245,20 @@
             <li><b class="kn-num c-marte"><span class="kn-valor" data-hasta="14" data-dec="0">14</span><span class="kn-unidad">/25</span></b><span class="kn-pie" data-t="knE1">de los hoyos más parecidos por forma son minas a cielo abierto</span></li>
             <li><b class="kn-num c-acento"><span class="kn-valor" data-hasta="7" data-dec="0">7</span><span class="kn-unidad">/8</span></b><span class="kn-pie" data-t="knE2">cráteres de impacto que la regla nunca había visto tienen borde</span></li>
             <li><b class="kn-num c-luna"><span class="kn-unidad">≥</span><span class="kn-valor" data-hasta="2" data-dec="0">2</span><span class="kn-unidad">km</span></b><span class="kn-pie" data-t="knE3">en esos cráteres, Marte es más plano de verdad: no es el instrumento</span></li>
-            <li><b class="kn-num c-tierra"><span class="kn-valor" data-hasta="0.97" data-dec="2">0.97</span></b><span class="kn-pie" data-t="knE4">de parecido en forma entre El Pinacate y el polo sur lunar</span></li>
+            <li><b class="kn-num c-tierra"><span class="kn-valor" data-hasta="0.97" data-dec="2">0.97</span></b><span class="kn-pie" data-t="knE4">de parecido en forma entre El Pinacate (ya usado por el Apolo 14) y el polo sur lunar</span></li>
             </ul>
           </section>
           <section class="kn-fila" aria-labelledby="t-aportamos">
             <h3 class="kn-rotulo" id="t-aportamos" data-t="apAporT">Lo que aportamos</h3>
             <ul class="kn-cifras">
             <li><b class="kn-num c-tierra"><span class="kn-valor" data-hasta="200" data-dec="0">200</span><span class="kn-unidad">m</span></b><span class="kn-pie" data-t="knA1">una sola regla para medir la Tierra, la Luna y Marte</span></li>
-            <li><b class="kn-num c-luna"><span class="kn-valor" data-hasta="78" data-dec="0">78</span><span class="kn-unidad">%</span></b><span class="kn-pie" data-t="knA2">de acierto, con un modelo que se lee: tres medidas y una ecuación</span></li>
-            <li><b class="kn-num c-acento"><span class="kn-valor" data-hasta="62" data-dec="0">62</span></b><span class="kn-pie" data-t="knA3">sitios abiertos, cada dato con su fuente, unidad y fecha</span></li>
-            <li><b class="kn-num c-marte"><span class="kn-valor" data-hasta="2" data-dec="0">2</span></b><span class="kn-pie" data-t="knA4">destinos en un juego donde cualquiera puede proponer sitios</span></li>
+            <li><b class="kn-num c-luna"><span class="kn-valor" data-hasta="78" data-dec="0">78</span><span class="kn-unidad">%</span></b><span class="kn-pie" data-t="knA2">de exactitud balanceada, con un modelo que se lee: tres medidas y una ecuación</span></li>
+            <li><b class="kn-num c-acento"><span class="kn-valor" data-hasta="62" data-dec="0">62</span></b><span class="kn-pie" data-t="knA3">sitios con un cráter medido, cada dato con su fuente y unidad</span></li>
+            <li><b class="kn-num c-marte"><span class="kn-valor" data-hasta="2" data-dec="0">2</span></b><span class="kn-pie" data-t="knA4">destinos en un juego gratis en el navegador</span></li>
             </ul>
           </section>
         </div>
-        <p class="museo-fuentes aportes-nota" data-t="apNota">Son candidatos para revisar, no sitios certificados. Cifras, fuentes y límites en los detalles técnicos.</p>
+        <p class="museo-fuentes aportes-nota" data-t="apNota">Son candidatos para revisar, no descubrimientos ni sitios certificados. Cifras, fuentes y límites en los detalles técnicos.</p>
       </article>
     </section>
 
@@ -396,7 +401,7 @@
       <details class="detalle revela">
         <summary data-t="det2">Profundidad entre diámetro</summary>
         <div class="detalle-cuerpo">
-          <p data-t="ddEntrada">La regla principal del modelo es una división. En el polo sur lunar, la mediana de profundidad entre diámetro (d/D) es 0.060; en Marte, 0.027. En proporción, los cráteres marcianos tienen menos de la mitad de hondura.</p>
+          <p data-t="ddEntrada">La medida clave es una división. En los 4,288 cráteres del polo sur lunar, la mediana de profundidad entre diámetro (d/D) es 0.060; en Marte (3 sitios), 0.027. En proporción, los cráteres marcianos tienen menos de la mitad de hondura.</p>
           <div class="histograma" id="dd-histo"></div>
           <p class="nota" data-t="ddPie2">d/D de los 4,288 cráteres lunares (arriba del eje) y de los 573 marcianos (abajo), en porcentaje de cada mundo.</p>
           <p data-t="ddP2">Un cráter simple recién formado llega a d/D ≈ 0.2 (Pike, 1977). Casi todos los que medimos son más viejos, y a 200 m el fondo se ve más somero, por eso las medianas son menores.</p>
@@ -441,6 +446,17 @@
       </details>
 
       <details class="detalle revela">
+        <summary data-t="det7">¿Encontramos análogos nuevos?</summary>
+        <div class="detalle-cuerpo">
+          <p data-t="nuevoEntrada">Encontramos candidatos, no descubrimientos. Ningún sitio del catálogo está marcado como novedoso.</p>
+          <p data-t="nuevoP1"><strong>El método llegó solo a sitios donde ya entrenaron astronautas.</strong> El Pinacate (Sonora), donde se entrenó la tripulación del Apolo 14 en febrero de 1970 (Phinney 2015, NASA SP-2015-626), y Colton Crater (Arizona), donde entrenó la del Apolo 15 en julio de 1970 (USGS OFR 2005-1190). Eso respalda el método; no es un hallazgo.</p>
+          <p data-t="nuevoP2"><strong>Lo que proponemos, sin llamarlo nuevo.</strong> El anillo de toba Jabal Bayda (Harrat Khaybar, Arabia Saudita): no lo encontramos usado como análogo de la Luna ni de Marte en la literatura revisada, y tampoco está en la base global de Ryan et al. (2024, <em>Geosphere</em>), que solo reúne campos basálticos y no es exhaustiva. El maar Al Wahbah (Harrat Kishb, Arabia Saudita): está publicado como análogo de Encélado (Dos Santos, Schultz et al. 2024, <em>Astrobiology</em>), pero no lo encontramos usado para la Luna ni para Marte; aquí se propone para la Luna.</p>
+          <p data-t="nuevoP3"><strong>Los tajos mineros, como análogo de operación, no de geología.</strong> Sirven para probar paredes empinadas, excavación y sombra en el fondo. Son minas conocidas, no hallazgos. La comparación de forma se rompe: son huecos artificiales escalonados, y los más hondos superan a casi cualquier cráter lunar de su tamaño (no todos).</p>
+          <p class="nota" data-t="nuevoLim">«No encontrado» quiere decir no encontrado en la literatura revisada, no que nadie lo haya usado. Harrat Hutaymah, también en Arabia, ya está en la base de Ryan et al. (2024) para Marte. Los 296 candidatos áridos son hoyos con forma de cráter, no análogos: según la etiqueta de IA, 27 son cráteres naturales y 53 son minas. Fuente: <code>model/NIVEL2.md</code>, sección A, y <code>model/VALIDATION.md</code>.</p>
+        </div>
+      </details>
+
+      <details class="detalle revela">
         <summary data-t="det5">Por qué solo en desiertos</summary>
         <div class="detalle-cuerpo">
           <p data-t="aridoEntrada">A 200 m, una dolina o una cañada de una sierra húmeda tiene la misma forma que un cráter. Por eso el modelo usa la vegetación como veto: solo cuenta donde casi no hay plantas, según el índice de vegetación (NDVI) que mide el satélite MODIS de la NASA (percentil 90 menor que 0.35).</p>
@@ -450,8 +466,8 @@
             <li><span class="embudo-n">47</span><span data-t="embudo3">en zonas áridas</span></li>
           </ol>
           <p data-t="aridoP1">De las 668 depresiones con forma de cráter, el <strong>71 %</strong> cae en sierras húmedas del sur: son dolinas y cañadas reales. No son copas de árboles: con un relieve sin árboles ni edificios (FABDEM) solo bajan un 15 %.</p>
-          <p data-t="aridoP2">El detector encuentra 9 de 11 cráteres mexicanos conocidos. Fuera de México ya cubre Atacama, Arizona y Arabia: 3 de 10 regiones áridas priorizadas, no todo el planeta.</p>
-          <p data-t="aridoP3">El Amazonas, la cuenca del Congo y el delta del Mekong dan similitud 0 (3 de 3 controles negativos). De 21 análogos conocidos pasan 9. Los que no pasan son análogos por razones que estas variables no ven: frío polar, química del agua, cuevas o cráteres sepultados.</p>
+          <p data-t="aridoP2">El detector encuentra 9 de 11 cráteres mexicanos conocidos. Fuera de México ya cubre un recuadro de 600 × 600 km en Atacama, Arizona y Arabia occidental; faltan 6 de las 10 regiones áridas priorizadas. No es todo el planeta.</p>
+          <p data-t="aridoP3">El Amazonas, la cuenca del Congo y el delta del Mekong dan similitud 0 (3 de 3 controles negativos). De 21 análogos conocidos pasan 9. Los que no pasan tienen más lluvia de la que acepta el filtro o son análogos por razones que estas variables no ven: frío polar, química del agua, cuevas o cráteres sepultados.</p>
         </div>
       </details>
 
@@ -492,7 +508,7 @@
       <header class="cap-cabeza">
         <p class="cap-num revela">Marsception for Business</p>
         <h2 id="t-business" class="revela" data-t="bizTitulo">Para salones, laboratorios y equipos de misión</h2>
-        <p class="cap-entrada revela" data-t="bizEntrada">Jugar es gratis para cualquiera. Para universidades, centros de investigación y empresas, ofrecemos licencias con el catálogo de análogos, el modelo y herramientas para enseñar y trabajar con ellos.</p>
+        <p class="cap-entrada revela" data-t="bizEntrada">Jugar es gratis para cualquiera. Para universidades, centros de investigación y empresas, queremos ofrecer licencias con el catálogo de análogos, el modelo y herramientas para enseñar y trabajar con ellos.</p>
       </header>
       <div class="planes">
         <article class="plan revela">
@@ -570,14 +586,15 @@
         <div class="revela">
           <h3 data-t="reproTitulo">Para revisarlo</h3>
           <ul>
-            <li><a href="https://github.com/Niettzche/spaceapps-2026/blob/main/model/VALIDATION.md">model/VALIDATION.md</a> <span data-t="rVal">todas las cifras de esta página</span></li>
+            <li><a href="https://github.com/Niettzche/spaceapps-2026/blob/main/model/VALIDATION.md">model/VALIDATION.md</a> <span data-t="rVal">las cifras de validación del modelo</span></li>
             <li><a href="https://github.com/Niettzche/spaceapps-2026/blob/main/docs/METODOLOGIA.md">docs/METODOLOGIA.md</a> <span data-t="rMet">método en una página</span></li>
+            <li><a href="https://github.com/Niettzche/spaceapps-2026/blob/main/docs/METHODOLOGY_EN.md">docs/METHODOLOGY_EN.md</a> <span data-t="rMetEn">el mismo método, en inglés</span></li>
             <li><a href="https://github.com/Niettzche/spaceapps-2026/tree/main/informe/exposicion_modelo">informe/exposicion_modelo</a> <span data-t="rCuad">cuadernos que vuelven a calcular las cifras</span></li>
             <li><a href="https://github.com/Niettzche/spaceapps-2026/blob/main/informe/divulgacion/preparar_datos.py">preparar_datos.py</a> <span data-t="rPrep">genera los datos de esta página y comprueba sus cifras</span></li>
           </ul>
         </div>
       </div>
-      <p class="nota revela" data-t="metodoNota">Pesos, umbrales y la ventana del borde son provisionales. La búsqueda identifica candidatos para revisión, no certifica sitios de entrenamiento. Uso de IA: Claude Code y Codex ayudaron con el código y los textos; las cifras salen de los archivos del repositorio y un script comprueba que coincidan.</p>
+      <p class="nota revela" data-t="metodoNota">Pesos, umbrales y la ventana del borde son provisionales. La búsqueda identifica candidatos para revisión, no certifica sitios de entrenamiento. Uso de IA: Claude Code y Codex ayudaron con el código y los textos; el arte se hizo con ayuda de Claude; Claude propuso etiquetas de relieve (29 de 33 correctas en una revisión externa no aleatoria), y las respuestas libres de ANA vienen de un modelo de OpenAI. Las cifras salen de los archivos del repositorio y un script comprueba que coincidan.</p>
     </section>
   </main>
 
