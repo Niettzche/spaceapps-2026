@@ -98,10 +98,10 @@ nuevos = base_nat[base_nat.conocido_como == ""]
 conocidos_en_lista = int((nat.conocido_como != "").sum())
 lista_nuevos = "; ".join(f"{r.id} ({r.region}, dif. relativa {r.dif_rel:.2f})" for r in nuevos.itertuples())
 md += ["", f"**Lectura principal:** {len(base_nat)} cráteres naturales pasan la regla base; {len(nuevos)} de ellos **no están en ninguna lista de análogos conocidos** "
-       f"y son candidatos nuevos a revisar: {lista_nuevos}. Los {len(nat)} de la lista corta son los de perfil más parecido y {conocidos_en_lista} ya son análogos conocidos, "
-       f"así que también funcionan como **controles** de que el método encuentra lo que debe. Si el equipo quiere, los nuevos mejor puntuados pueden entrar a la lista. "
-       f"Ojo: \"no está en la lista\" no significa \"nunca usado\". `data/known_analogs.json` no es exhaustivo. Revisión del 2026-11-14 (`model/NIVEL2.md` §A): G00176 resultó ser Colton Crater, del entrenamiento del Apolo 15, y ya está en esa lista. G00263 (maar Al Hutaymah) y G00266 (cono Jabal Bayda) no aparecen como análogos en la literatura revisada. G00041 y G00037 no se revisaron. "
-       f"Los **tajos mineros** ({mn.region.nunique()} regiones) son el otro hallazgo: análogo operativo de pendientes extremas, con la analogía rota por exceso de profundidad, sobre todo en el fondo."]
+       f"y son candidatos a revisar: {lista_nuevos}. Los {len(nat)} de la lista corta son los de perfil más parecido y {conocidos_en_lista} ya son análogos conocidos, "
+       f"así que también funcionan como **controles** de que el método encuentra lo que debe. Si el equipo quiere, los mejor puntuados de ellos pueden entrar a la lista. "
+       f"Ojo: \"no está en la lista\" no significa \"nunca usado\". `data/known_analogs.json` no es exhaustivo. Revisión del 2026-11-14 (`model/NIVEL2.md` §A): G00176 resultó ser Colton Crater, del entrenamiento del Apolo 15, y ya está en esa lista. G00266 (anillo de toba Jabal Bayda) no aparece como análogo en la literatura revisada; el campo volcánico de G00263 (maar Al Hutaymah), Harrat Hutaymah, sí está en la base de Ryan et al. (2024) como ambiente relevante para Marte. G00041 y G00037 no se revisaron. "
+       f"Los **tajos mineros** ({mn.region.nunique()} regiones) son el otro grupo: minas conocidas, no hallazgos, propuestas como análogo operativo de pendientes extremas, con la analogía rota por exceso de profundidad, sobre todo en el fondo."]
 pd.DataFrame(nuevos[["id", "region", "lat", "lon", "diam_km", "prof_diam", "etiqueta_ia", "conf_ia", "dif_media", "dif_rel", "sombra_crater_tierra", "razon_ia"]]).to_csv(S / "naturales_nuevos.csv", index=False)
 md += ["", "**Cómo leerla:**",
        "- *Dif. relativa*: diferencia media de perfil con su gemelo lunar dividida entre el d/D del propio cráter (0.10 = el perfil difiere en promedio un 10 % de su profundidad relativa). Es la que ordena la lista: la absoluta premia lo plano.",

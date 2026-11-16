@@ -39,7 +39,7 @@ function aplicarIdioma(lang) {
   for (const [n, es] of ES_SRC) n.setAttribute('src', lang === 'en' ? n.dataset.srcEn : es);
   document.title = lang === 'en' ? 'Marsception · Train on Earth, land on the Moon or Mars' : tituloES;
   document.querySelector('meta[name="description"]').content = lang === 'en'
-    ? 'We compare Earth’s craters with 4,288 on the Moon and 573 on Mars using NASA open data. Classify a crater yourself and test your rover in those places, in a browser game.' : descES;
+    ? 'We compare Earth’s craters with 4,288 on the Moon and 573 on Mars using NASA and ESA open data. Classify a crater yourself and test your rover in those places, in a browser game.' : descES;
   const url = new URL(location.href);
   if (lang === 'en') url.searchParams.set('lang', 'en'); else url.searchParams.delete('lang');
   history.replaceState(null, '', url);
